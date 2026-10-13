@@ -8,9 +8,51 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
-## Project overview
+## Project overview: CommerceOS
 
-**techleaders**: a Next.js 16 (App Router) + React 19 + TypeScript + Tailwind CSS v4 web application, built in a monorepo. TODO: describe the product goal in one or two sentences.
+**CommerceOS** is a lightweight single-store e-commerce platform (storefront plus merchant admin). It includes **Commerce Copilot**, an AI advisor that gives the merchant evidence-based, actionable recommendations drawn from the store's own data. It is an AI Engineering capstone / portfolio MVP with a 5-week timeline.
+
+> **Source of truth:** [`.ai/specs/2026-10-13-commerceos-mvp.md`](.ai/specs/2026-10-13-commerceos-mvp.md). Read it before any feature work. If a decision conflicts with the spec, follow the spec unless the user explicitly approves a change. Scope expansions need the user's approval.
+
+### Product principles
+
+1. Working end-to-end flows beat feature count.
+2. Real, traceable data beats unsupported AI claims.
+3. **AI advises; the merchant decides.** The model never changes prices, publishes products, issues refunds or modifies orders.
+4. Simple now, extensible later: no microservices, plugin systems or premature abstractions.
+5. Engineering quality is part of the product: validation, tests, error handling, observability, security and docs.
+6. Explicit limitations beat fake functionality. Never present a mock payment or shipping integration as live.
+
+### Scope
+
+- **P0 (MVP):** storefront (catalog, search/filter, cart, checkout with server-side price and stock validation, Stripe test mode or a clearly labelled demo payment, order confirmation); admin (auth, dashboard with real metrics, product/category CRUD, orders with a status workflow, stock adjustment, seed data); Commerce Copilot (one workflow: a performance summary plus 3 prioritized recommendations with evidence; save, dismiss and complete actions; a safe fallback when the LLM is unavailable).
+- **P1 (only after P0 is stable):** AI-drafted product descriptions, date-range comparison, an eval script, Stripe webhooks, CSV import, image upload.
+- **Out of scope:** multi-tenancy, marketplaces, real shipping and refunds, discounts and subscriptions, multi-currency, a CMS page builder, autonomous AI actions, open-ended agent loops and multi-agent setups, microservices and Kubernetes.
+
+### Stack
+
+TypeScript (strict), Next.js 16 App Router + React 19, PostgreSQL, **MikroORM** (migrations), **Awilix** (DI), Tailwind CSS v4, **shadcn/ui** (admin), **Zod** (input and AI output validation), a maintained auth library (no custom crypto or sessions), a provider-neutral LLM adapter, Stripe Checkout (test mode), Vitest + Playwright. Package manager: npm. Do not add libraries without a stated reason.
+
+### Architecture (modular monolith)
+
+- Modules: `catalog`, `cart`, `orders`, `payments`, `inventory`, `analytics`, `copilot`, plus `shared` (database, di, auth, validation, errors, observability). Each module has only the layers it needs: `domain` → `application` → `infrastructure`, with Next.js as the presentation layer.
+- The spec's suggested `src/` layout lives **inside the app package** under the monorepo rule, e.g. `packages/<app>/src/modules/...`.
+- Domain has no Next.js, HTTP or ORM dependencies. Route handlers and server actions stay thin and delegate to application use cases.
+- One Awilix composition root. No ad-hoc repositories or LLM clients. Choose lifetimes deliberately: no singletons holding a request-scoped EntityManager or user context.
+- Money is stored as integer minor units (`priceMinor`, `totalMinor`). Order creation and stock changes run in a DB transaction that decrements stock atomically (no overselling). Order items store name and price snapshots. Migrations are the source of truth for the schema.
+- Never trust client-submitted prices, totals, payment status or stock. Validate all input with Zod and enforce admin authorization on the server.
+
+### Commerce Copilot rules
+
+- Flow: auth → input validation and limits → deterministic intent routing or a bounded tool-calling loop → **approved tools only** (`getSalesSummary`, `getTopProducts`, `getLowStockProducts`, `getOrderSummary`). No raw SQL or ORM access for the model.
+- Output follows the `CopilotRecommendation` schema (title, priority, observation, evidence[], reasoning, suggestedAction, relatedProductIds?, limitations?). Validate at runtime, retry a bounded number of times, then fall back safely.
+- Grounding: every metric value and product ID must come from tool results. Never invent data or claim causation from correlation.
+- Treat prompts and product content as untrusted (prompt injection). Send the minimum data needed, never credentials or unnecessary personal data. Set timeouts and limits. Never render model output as HTML.
+- Metric definitions (revenue, paid orders, AOV, top products, low stock) are documented in both the code and the UI.
+
+### Definition of done
+
+TypeScript, lint and relevant tests pass. Input validation, error states and authorization are in place. No secrets or personal data in logs. Docs are updated. Manual verification steps are documented for flows without automated tests. Secrets live only in env variables; commit `.env.example` and nothing else.
 
 ## Task routing
 
@@ -18,7 +60,7 @@ Before starting a task, read the files listed for the area it touches.
 
 | When the task involves… | Read first | Key rules |
 |---|---|---|
-| Any task | `AGENTS.md`, `.ai/lessons.md`, `SDLC.md` | Work from a spec in `.ai/specs/`; log autonomous runs in `.ai/runs/`; record lessons |
+| Any task | `AGENTS.md`, `.ai/specs/2026-10-13-commerceos-mvp.md`, `.ai/lessons.md`, `SDLC.md` | Work from a spec in `.ai/specs/`; log autonomous runs in `.ai/runs/`; record lessons |
 | A new feature | `.ai/specs/`, `SDLC.md` | Spec first (`YYYY-MM-DD-slug.md`); after implementation, move the spec to `specs/implemented/` |
 | Pages, layouts, routing (UI) | `app/layout.tsx`, `app/page.tsx`, `node_modules/next/dist/docs/` | Server Components by default; `cacheComponents` is on; use Next.js 16 APIs, not older ones |
 | Styles | `app/globals.css` | Tailwind CSS v4 utility classes; no new CSS frameworks |
