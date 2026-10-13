@@ -29,3 +29,16 @@ All agents (Claude Code, Codex, etc.) MUST use these structures. Do not store sp
 2. **Runs**: every autonomous run MUST write a log to `.ai/runs/YYYY-MM-DD-slug.md` (goal, steps taken, decisions, outcome, follow-ups).
 3. **Lessons**: read `.ai/lessons.md` before starting work. After fixing a bug or discovering something worth remembering, append an entry to `.ai/lessons.md` (details in `.ai/lessons/YYYY-MM-DD-slug.md` if long).
 4. Dates use the current date in `YYYY-MM-DD` format.
+
+## Working principles
+
+Distilled from the Claude Code team's best practices. They apply to every agent working in this repo.
+
+1. **Plan before building.** Start every non-trivial task with a plan: a spec in `.ai/specs/` or plan mode. Invest in the plan so the implementation can be done in one pass. If something goes sideways, stop and re-plan; do not keep pushing.
+2. **Verify, don't assume.** Prove the change works: run tests, lint and build, or compare behaviour against `main`. Do not declare work done without evidence.
+3. **Prefer the elegant solution.** If a fix turns out hacky or mediocre, scrap it and reimplement it cleanly using everything learned so far. Do not stack patches.
+4. **Learn from every correction.** When the user corrects you, or you fix a bug, write the rule or lesson down in `.ai/lessons.md` (or in this file, if it is a project-wide rule) so the mistake does not repeat. Keep these files short and pruned.
+5. **Fix autonomously.** Given a bug report, failing CI or logs, investigate and fix end to end without asking how. Ask only for decisions that genuinely belong to the user.
+6. **Keep context clean.** Delegate broad searches and independent subtasks to subagents, and run independent work in parallel (for example, separate git worktrees).
+7. **Automate repetition.** If you do something more than once, turn it into a skill or script, commit it under `.agents/` or `.ai/scripts/`, and reuse it.
+8. **Reduce ambiguity.** Clarify requirements up front and record them in the spec. Specific inputs produce better output.
