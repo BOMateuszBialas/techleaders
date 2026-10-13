@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 /** Storefront shell. The catalog (product listing and detail) arrives in Week 2. */
-export default function StorefrontHome() {
+export default function HomePage() {
   return (
     <div className="flex flex-1 flex-col">
       <header className="border-b">

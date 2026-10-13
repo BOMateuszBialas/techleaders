@@ -1,5 +1,6 @@
 import { connection } from "next/server";
 import { createRequestScope } from "@/server/container";
+import { logger } from "@/server/logger";
 
 /**
  * GET /api/health: liveness plus dependency status.
@@ -11,14 +12,14 @@ export async function GET() {
 
   const scope = createRequestScope();
   try {
-    const health = await scope.cradle.getSystemHealth.execute();
+    const health = await scope.cradle.getSystemHealthUseCase.execute();
     return Response.json(health, {
       status: health.status === "ok" ? 200 : 503,
       headers: { "Cache-Control": "no-store" },
     });
-  } catch {
+  } catch (error) {
     // e.g. invalid environment configuration; details stay in server logs only.
-    console.error("[health] health check failed to run");
+    logger.error("Health check failed to run", { route: "GET /api/health", error });
     return Response.json(
       { status: "degraded", components: [] },
       { status: 503, headers: { "Cache-Control": "no-store" } },

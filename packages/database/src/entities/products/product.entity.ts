@@ -1,6 +1,6 @@
 import { PRODUCT_STATUSES, SUPPORTED_CURRENCIES } from "@commerceos/core";
 import { defineEntity, p, type InferEntity } from "@mikro-orm/core";
-import { CategorySchema } from "./category";
+import { CategorySchema } from "../categories/category.entity";
 
 export const ProductSchema = defineEntity({
   name: "Product",

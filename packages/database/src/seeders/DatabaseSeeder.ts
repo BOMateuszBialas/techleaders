@@ -1,7 +1,7 @@
 import type { EntityManager } from "@mikro-orm/core";
 import { Seeder } from "@mikro-orm/seeder";
-import { CategorySchema } from "../entities/category";
-import { ProductSchema } from "../entities/product";
+import { CategorySchema } from "../entities/categories/category.entity";
+import { ProductSchema } from "../entities/products/product.entity";
 
 /**
  * Local development / demo seed data. All records are clearly marked as demo

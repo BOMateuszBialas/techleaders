@@ -1,19 +1,15 @@
-/** Port implemented by infrastructure (e.g. the database package). */
-export interface HealthCheck {
-  readonly name: string;
-  check(): Promise<void>;
-}
+import type { HealthCheckPort } from "../../ports/health-check.port";
 
 export type ComponentHealth = { name: string; status: "up" | "down"; latencyMs: number };
 export type SystemHealth = { status: "ok" | "degraded"; components: ComponentHealth[] };
 
-export type GetSystemHealthDeps = { healthChecks: readonly HealthCheck[] };
+export type GetSystemHealthDeps = { healthChecks: readonly HealthCheckPort[] };
 
 /**
  * Runs every registered health check. Error details are deliberately not
  * returned, so infrastructure errors never leak to callers.
  */
-export class GetSystemHealth {
+export class GetSystemHealthUseCase {
   constructor(private readonly deps: GetSystemHealthDeps) {}
 
   async execute(): Promise<SystemHealth> {
@@ -24,6 +20,7 @@ export class GetSystemHealth {
           await healthCheck.check();
           return { name: healthCheck.name, status: "up", latencyMs: elapsed(startedAt) };
         } catch {
+          // A failed check is the expected "down" signal; its details must not reach callers.
           return { name: healthCheck.name, status: "down", latencyMs: elapsed(startedAt) };
         }
       }),

@@ -4,10 +4,11 @@ import { connection } from "next/server";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { createRequestScope } from "@/server/container";
+import { logger } from "@/server/logger";
 
 export const metadata: Metadata = { title: "Admin" };
 
-export default function AdminDashboard() {
+export default function AdminPage() {
   return (
     <div className="flex max-w-4xl flex-col gap-6">
       <div>
@@ -35,10 +36,10 @@ export default function AdminDashboard() {
 async function loadSystemHealth() {
   const scope = createRequestScope();
   try {
-    return await scope.cradle.getSystemHealth.execute();
-  } catch {
+    return await scope.cradle.getSystemHealthUseCase.execute();
+  } catch (error) {
     // e.g. invalid environment configuration; details stay in server logs only.
-    console.error("[admin] system health could not be loaded");
+    logger.error("System health could not be loaded", { page: "/admin", error });
     return null;
   } finally {
     await scope.dispose();

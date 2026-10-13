@@ -5,7 +5,7 @@ import { z } from "zod";
  * Server environment, validated once at startup. Import `env` instead of
  * reading `process.env` directly. Never expose these values to the client.
  */
-const EnvSchema = z.object({
+const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   DATABASE_URL: z
     .string()
@@ -20,10 +20,10 @@ const EnvSchema = z.object({
     .transform((value) => value === "true"),
 });
 
-export type Env = z.infer<typeof EnvSchema>;
+export type Env = z.infer<typeof envSchema>;
 
 export function parseEnv(source: Record<string, string | undefined>): Env {
-  const result = EnvSchema.safeParse(source);
+  const result = envSchema.safeParse(source);
   if (!result.success) {
     const problems = result.error.issues
       .map((issue) => `  - ${issue.path.join(".")}: ${issue.message}`)

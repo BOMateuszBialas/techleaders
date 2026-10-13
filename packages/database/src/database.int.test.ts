@@ -1,8 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import type { MikroORM } from "@mikro-orm/postgresql";
+import { MikroORM } from "@mikro-orm/postgresql";
 import { initToolingOrm, loadRootEnv } from "./cli/cli-orm";
+import { createOrmConfig } from "./config";
 import { CategorySchema, ProductSchema } from "./entities";
-import { DatabaseHealthCheck } from "./health";
+import { DatabaseHealthCheck } from "./adapters/database-health-check";
 import { DatabaseSeeder } from "./seeders/DatabaseSeeder";
 
 loadRootEnv();
@@ -12,6 +13,9 @@ if (!testDatabaseUrl) {
     "TEST_DATABASE_URL is not set. Copy .env.example to .env and start `npm run db:up`.",
   );
 }
+
+/** Nothing listens here in the dev/CI setup, so connecting fails fast. */
+const UNUSED_PORT = 5999;
 
 describe("database (PostgreSQL)", () => {
   let orm: MikroORM;
@@ -29,6 +33,28 @@ describe("database (PostgreSQL)", () => {
 
   it("reports the database as healthy", async () => {
     await expect(new DatabaseHealthCheck({ orm }).check()).resolves.toBeUndefined();
+  });
+
+  // Regression: the app builds the ORM lazily (no connect() call), and the
+  // health check used to report "down" until something else opened the pool.
+  it("reports a lazily created ORM (as built by the app container) as healthy", async () => {
+    const lazyOrm = new MikroORM(createOrmConfig({ databaseUrl: testDatabaseUrl }));
+    try {
+      await expect(new DatabaseHealthCheck({ orm: lazyOrm }).check()).resolves.toBeUndefined();
+    } finally {
+      await lazyOrm.close(true);
+    }
+  });
+
+  it("fails the health check when the database is unreachable", async () => {
+    const unreachable = new URL(testDatabaseUrl);
+    unreachable.port = String(UNUSED_PORT);
+    const unreachableOrm = new MikroORM(createOrmConfig({ databaseUrl: unreachable.toString() }));
+    try {
+      await expect(new DatabaseHealthCheck({ orm: unreachableOrm }).check()).rejects.toThrow();
+    } finally {
+      await unreachableOrm.close(true);
+    }
   });
 
   it("has no schema drift between entities and migrations", async () => {
