@@ -1,0 +1,159 @@
+import { spawn } from "node:child_process";
+import { randomUUID } from "node:crypto";
+import { existsSync, mkdirSync } from "node:fs";
+import { homedir } from "node:os";
+import { dirname, join, resolve } from "node:path";
+import { z } from "zod";
+
+/** Pinned in `.ai/browsers/agent-browser.md` and `.ai/scripts/ensure-agent-browser.sh`. */
+export const AGENT_BROWSER_VERSION = "v0.35.2";
+const COMMAND_TIMEOUT_MS = 30_000;
+
+/**
+ * Runs the CLI and resolves on process *exit*, not on stdio close: the first
+ * command of a session starts a background daemon that inherits the stdout
+ * pipe, so waiting for the pipe to close would hang until the timeout.
+ */
+function runCli(bin: string, args: string[]): Promise<{ code: number | null; stdout: string }> {
+  return new Promise((done, fail) => {
+    const child = spawn(bin, args, { stdio: ["ignore", "pipe", "pipe"], windowsHide: true });
+    const stdout: string[] = [];
+    const stderr: string[] = [];
+    child.stdout.on("data", (chunk: Buffer) => stdout.push(chunk.toString()));
+    child.stderr.on("data", (chunk: Buffer) => stderr.push(chunk.toString()));
+
+    const timer = setTimeout(() => {
+      child.kill();
+      fail(new Error(`agent-browser ${args.join(" ")} timed out after ${COMMAND_TIMEOUT_MS} ms`));
+    }, COMMAND_TIMEOUT_MS);
+
+    child.once("error", (error) => {
+      clearTimeout(timer);
+      fail(error);
+    });
+    child.once("exit", (code) => {
+      clearTimeout(timer);
+      // Let already-buffered output arrive, then stop listening to the shared pipe.
+      setImmediate(() => {
+        child.stdout.destroy();
+        child.stderr.destroy();
+        const output = stdout.join("");
+        if (output.trim() === "") {
+          fail(new Error(`agent-browser ${args[0]} printed no output: ${stderr.join("")}`));
+          return;
+        }
+        done({ code, stdout: output });
+      });
+    });
+  });
+}
+
+const resultSchema = z.object({
+  success: z.boolean(),
+  data: z.record(z.string(), z.unknown()).nullable(),
+  error: z.string().nullable().optional(),
+});
+
+/** The binary from `AGENT_BROWSER_BIN`, the install script's cache, or `PATH`. */
+export function resolveAgentBrowserBin(): string {
+  const fromEnv = process.env.AGENT_BROWSER_BIN;
+  if (fromEnv) return fromEnv;
+
+  const asset =
+    process.platform === "win32"
+      ? "agent-browser-win32-x64.exe"
+      : `agent-browser-${process.platform}-${process.arch === "arm64" ? "arm64" : "x64"}`;
+  const cacheRoot = process.env.XDG_CACHE_HOME ?? join(homedir(), ".cache");
+  const cached = join(cacheRoot, "agent-tools", "agent-browser", AGENT_BROWSER_VERSION, asset);
+  return existsSync(cached) ? cached : "agent-browser";
+}
+
+export async function assertAgentBrowserInstalled(bin: string): Promise<void> {
+  try {
+    const { code } = await runCli(bin, ["--version"]);
+    if (code !== 0) throw new Error(`exit code ${code}`);
+  } catch (error) {
+    throw new Error(
+      `agent-browser not found ("${bin}"). Run \`bash .ai/scripts/ensure-agent-browser.sh\` ` +
+        "or set AGENT_BROWSER_BIN.",
+      { cause: error },
+    );
+  }
+}
+
+type Snapshot = { snapshot: string; refs: Record<string, { role: string; name: string }> };
+
+/**
+ * One isolated agent-browser session for a test file. Every command runs
+ * without a shell and with `--json`; a failed command throws with the CLI's
+ * error message.
+ */
+export class BrowserSession {
+  private constructor(
+    private readonly bin: string,
+    private readonly session: string,
+    private readonly baseUrl: string,
+  ) {}
+
+  static create(baseUrl: string): BrowserSession {
+    return new BrowserSession(resolveAgentBrowserBin(), `e2e-${randomUUID()}`, baseUrl);
+  }
+
+  private async command(args: string[]): Promise<Record<string, unknown>> {
+    // A failing command exits non-zero but still prints its JSON result.
+    const { stdout } = await runCli(this.bin, ["--session", this.session, ...args, "--json"]);
+    const result = resultSchema.parse(JSON.parse(stdout));
+    if (!result.success) {
+      throw new Error(`agent-browser ${args[0]} failed: ${result.error ?? "unknown error"}`);
+    }
+    return result.data ?? {};
+  }
+
+  async open(path: string): Promise<void> {
+    await this.command(["open", new URL(path, this.baseUrl).toString()]);
+  }
+
+  async snapshot(): Promise<Snapshot> {
+    const data = await this.command(["snapshot"]);
+    return z
+      .object({
+        snapshot: z.string(),
+        refs: z.record(z.string(), z.object({ role: z.string(), name: z.string() })),
+      })
+      .parse(data);
+  }
+
+  async clickRole(role: string, name: string): Promise<void> {
+    await this.command(["find", "role", role, "click", "--name", name, "--exact"]);
+  }
+
+  async waitForText(text: string): Promise<void> {
+    await this.command(["wait", "--text", text]);
+  }
+
+  async waitForUrl(pattern: string): Promise<void> {
+    await this.command(["wait", "--url", pattern]);
+  }
+
+  async url(): Promise<string> {
+    return z.object({ url: z.string() }).parse(await this.command(["get", "url"])).url;
+  }
+
+  async title(): Promise<string> {
+    return z.object({ title: z.string() }).parse(await this.command(["get", "title"])).title;
+  }
+
+  async text(selector: string): Promise<string> {
+    return z.object({ text: z.string() }).parse(await this.command(["get", "text", selector])).text;
+  }
+
+  async screenshot(path: string): Promise<void> {
+    const absolute = resolve(path);
+    mkdirSync(dirname(absolute), { recursive: true });
+    await this.command(["screenshot", "--full", absolute]);
+  }
+
+  async close(): Promise<void> {
+    await this.command(["close"]);
+  }
+}

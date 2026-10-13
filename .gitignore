@@ -47,3 +47,6 @@ yarn-error.log*
 
 # env files: only the placeholder example is committed
 !.env.example
+
+# e2e failure screenshots (uploaded by CI)
+packages/app/e2e/artifacts/

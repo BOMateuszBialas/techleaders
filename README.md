@@ -36,14 +36,15 @@ Next.js 16.4 (App Router, Turbopack, Cache Components) · React 19.3 · TypeScri
 ## Prerequisites
 
 - Node.js **≥ 22.17** (developed on 24) and npm 11
-- Docker Desktop (for local PostgreSQL). On Windows it requires the **Virtual Machine Platform** / WSL 2 feature. Alternatively, use any PostgreSQL 17 instance and point `DATABASE_URL` at it.
+- Docker Desktop: local PostgreSQL, and the Testcontainers PostgreSQL used by integration and e2e tests. On Windows it requires the **Virtual Machine Platform** / WSL 2 feature. To only run the app, any PostgreSQL 17 instance works via `DATABASE_URL`.
+- For e2e tests: agent-browser and Chrome for Testing, installed with `bash .ai/scripts/ensure-agent-browser.sh` (pinned and checksum-verified; use Git Bash on Windows).
 
 ## Getting started
 
 ```bash
 npm install                 # installs all workspaces
 cp .env.example .env        # one .env for the whole repo, at the root
-npm run db:up               # starts PostgreSQL (creates commerceos and commerceos_test)
+npm run db:up               # starts PostgreSQL for local development
 npm run db:migrate          # applies migrations
 npm run db:seed             # loads demo data (repeatable; marked [DEMO])
 npm run dev                 # http://localhost:3000
@@ -62,7 +63,6 @@ Defined and validated in `packages/app/src/server/env.ts`; invalid configuration
 | Variable | Required | Purpose |
 |---|---|---|
 | `DATABASE_URL` | yes | PostgreSQL connection string for the app and CLI |
-| `TEST_DATABASE_URL` | for integration tests | Separate test database (`commerceos_test`) |
 | `DATABASE_DEBUG` | no (`false`) | Log SQL queries |
 | `APP_URL` | no (`http://localhost:3000`) | Public base URL |
 | `NODE_ENV` | no | Standard Node environment |
@@ -78,12 +78,24 @@ AI provider and payment variables will be added when those integrations are impl
 | `npm run lint` | ESLint across the monorepo |
 | `npm run typecheck` | `tsc --noEmit` in every package (the app also generates route types first) |
 | `npm test` | Unit tests (no DB needed) |
-| `npm run test:integration` | Integration tests against PostgreSQL (`TEST_DATABASE_URL`) |
+| `npm run test:coverage` | Unit tests with the 100% coverage gate (HTML report in `coverage/`) |
+| `npm run test:integration` | Integration tests against a throwaway PostgreSQL container (Testcontainers, needs Docker) |
+| `npm run test:e2e` | Browser tests: starts PostgreSQL and the built app, drives it with agent-browser (run `npm run build` first) |
 | `npm run format` / `npm run format:check` | Prettier write / check |
 | `npm run db:up` / `npm run db:down` | Start / stop local PostgreSQL |
 | `npm run db:migrate` | Apply pending migrations |
 | `npm run db:migration:create` | Generate a migration from entity changes (review it before committing) |
 | `npm run db:seed` | Load or refresh demo seed data |
+
+## Tests and CI
+
+| Layer | Files | Runs against |
+|---|---|---|
+| Unit | `packages/*/src/**/*.test.ts` | Nothing external; **100% coverage required** (`npm run test:coverage`) |
+| Integration | `packages/*/src/**/*.int.test.ts` | A throwaway PostgreSQL 17 container (Testcontainers) |
+| E2E | `packages/app/e2e/**/*.e2e.test.ts` | The production build started against its own PostgreSQL container, driven by agent-browser |
+
+`.github/workflows/ci.yml` runs on every pull request and on `main`, with one check per job: lint/format/typecheck, unit tests with coverage, build, integration tests, and e2e tests (screenshots of failing e2e tests are uploaded as an artifact). Docker is the only service the tests need; there is no shared test database.
 
 ## AI provider (Commerce Copilot)
 
@@ -103,7 +115,7 @@ Not implemented yet. The plan is Stripe Checkout in **test mode** if feasible wi
 ## Known limitations
 
 - **Admin authentication is not implemented.** `/admin` is an unprotected shell that shows only system status, with no store data and no mutations. Do not deploy publicly in this state.
-- No LLM provider, payments, catalog UI, cart, checkout or CI pipeline yet.
+- No LLM provider, payments, catalog UI, cart or checkout yet.
 - `npm audit` reports advisories in development tooling dependencies (e.g. `braces` via linting and test tooling); they do not affect runtime code and are tracked for a later update.
 
 ## Roadmap

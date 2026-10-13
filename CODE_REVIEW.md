@@ -8,13 +8,18 @@ Every PR must pass, in order (see `.ai/agentic.config.json`):
 
 ```bash
 npm run lint
+npm run format:check
 npm run typecheck
-npm test
+npm run test:coverage      # unit tests, fails below 100% coverage
 npm run build
-npm run test:integration   # when the change touches the database
+npm run test:integration   # Testcontainers PostgreSQL (needs Docker)
+npm run test:e2e           # after `npm run build`; needs Docker and agent-browser
 ```
 
-A red gate is a blocker, whatever the review says.
+A red gate (or a red CI check) is a blocker, whatever the review says.
+
+- New or changed code without unit tests that keep coverage at 100% is a **High** finding. So is a new coverage exclusion, `/* v8 ignore */` comment or lowered threshold without a written reason and the user's approval.
+- A new page or user flow without an e2e test is a **High** finding.
 
 ## Review priorities
 
