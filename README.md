@@ -2,7 +2,7 @@
 
 CommerceOS is a lightweight, single-store e-commerce platform: a customer storefront plus a merchant admin dashboard. **Commerce Copilot** is its AI merchant advisor. It analyses the store's own data (sales, orders, products, inventory) and suggests a few prioritised, evidence-backed actions. The Copilot is **advisory only**: it never changes prices, products or orders by itself.
 
-This is a 5-week AI Engineering portfolio MVP. The full specification is in [`.ai/specs/2026-10-13-commerceos-mvp.md`](.ai/specs/2026-10-13-commerceos-mvp.md), and the engineering rules are in [`AGENTS.md`](AGENTS.md).
+This is a 5-week AI Engineering portfolio MVP. The full specification is in [`.ai/specs/2026-10-13-commerceos-mvp.md`](.ai/specs/2026-10-13-commerceos-mvp.md), the agent rules are in [`AGENTS.md`](AGENTS.md), and the day-to-day coding conventions are in [`ENGINEERING_STANDARDS.md`](ENGINEERING_STANDARDS.md).
 
 > **Current state: foundation only.** The monorepo, database layer, DI container, env validation, health check, tests and basic UI shells exist. Catalog, cart, checkout, admin auth and the Copilot workflow are **not implemented yet** (see [Roadmap](#roadmap)).
 
@@ -11,7 +11,7 @@ This is a 5-week AI Engineering portfolio MVP. The full specification is in [`.a
 ```text
 packages/
   app/        Next.js app: storefront, admin, API routes, DI composition root, env validation
-  core/       Domain types and rules, use cases, ports (pure TypeScript, no framework)
+  core/       Domain rules, use cases, Zod input schemas, ports, typed errors (no framework)
   database/   MikroORM config, entities, migrations, seeders, infrastructure adapters
   ai/         Commerce Copilot: LLM provider port and adapters, output schemas, grounding checks
   config/     Shared tsconfig
@@ -19,7 +19,7 @@ docker-compose.yml   Local PostgreSQL
 .ai/                 Specs, run logs and lessons for agent-assisted development
 ```
 
-Dependency direction: `app → core, database, ai`; `database → core`; `ai → core`. `core` depends on nothing. Internal packages are consumed as TypeScript source (no build step).
+Dependency direction: `app → core, ai` (and `app → database` only in the DI composition root `packages/app/src/server/container.ts`); `database → core`; `ai → core`. `core` depends only on Zod. ESLint (`no-restricted-imports` in `eslint.config.mjs`) fails the lint step if a package crosses these boundaries. Internal packages are consumed as TypeScript source (no build step).
 
 ## Technology stack
 

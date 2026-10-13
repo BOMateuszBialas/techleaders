@@ -1,3 +1,5 @@
+import { AppError } from "../errors/app-error";
+
 /**
  * Money is always stored and calculated as integer minor currency units
  * (e.g. grosze, cents). Never use floating-point amounts for prices or totals.
@@ -11,8 +13,11 @@ export type Money = {
   readonly currency: CurrencyCode;
 };
 
-export class InvalidMoneyError extends Error {
-  override readonly name = "InvalidMoneyError";
+/** A money invariant was broken (non-integer amount, currency mismatch). Internal, not user input. */
+export class InvalidMoneyError extends AppError {
+  constructor(message: string) {
+    super("INVALID_MONEY", message);
+  }
 }
 
 export function isCurrencyCode(value: string): value is CurrencyCode {

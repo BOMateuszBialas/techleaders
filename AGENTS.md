@@ -12,7 +12,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 **CommerceOS** is a lightweight single-store e-commerce platform (storefront plus merchant admin). It includes **Commerce Copilot**, an AI advisor that gives the merchant evidence-based, actionable recommendations drawn from the store's own data. It is an AI Engineering capstone / portfolio MVP with a 5-week timeline.
 
-> **Source of truth:** [`.ai/specs/2026-10-13-commerceos-mvp.md`](.ai/specs/2026-10-13-commerceos-mvp.md). Read it before any feature work. If a decision conflicts with the spec, follow the spec unless the user explicitly approves a change. Scope expansions need the user's approval.
+> **Source of truth:** [`.ai/specs/2026-10-13-commerceos-mvp.md`](.ai/specs/2026-10-13-commerceos-mvp.md). Read it before any feature work. Day-to-day implementation conventions (naming, layout, boundaries, errors, review checklist) are in [`ENGINEERING_STANDARDS.md`](ENGINEERING_STANDARDS.md). If a decision conflicts with the spec, follow the spec unless the user explicitly approves a change. Scope expansions need the user's approval.
 
 ### Product principles
 
@@ -49,14 +49,15 @@ Do not add libraries without a stated reason. TS 7 and ESLint 10 were deliberate
 | Package | Responsibility | May depend on |
 |---|---|---|
 | `packages/app` (`@commerceos/app`) | Next.js: storefront, admin, route handlers and server actions (presentation), **DI composition root** (`src/server/container.ts`), env validation (`src/server/env.ts`) | `core`, `database`, `ai` |
-| `packages/core` (`@commerceos/core`) | Domain types and rules (`src/domain`), use cases and ports, i.e. interfaces (`src/application`). Pure TypeScript | nothing (no Next.js, no ORM, no Zod) |
+| `packages/core` (`@commerceos/core`) | Domain rules (`src/domain`), use cases and services (`src/services`), shared Zod input schemas (`src/validators`), ports (`src/ports`), `AppError` and typed errors (`src/errors`). Pure TypeScript | `zod` only (no Next.js, React, ORM or DI) |
 | `packages/database` (`@commerceos/database`) | MikroORM config, entities (`defineEntity`), migrations, seeders, repository and health adapters implementing `core` ports | `core` |
-| `packages/ai` (`@commerceos/ai`) | Commerce Copilot: `LlmProvider` port and adapters, Copilot tools, prompts, Zod output schemas, grounding checks, eval utilities | `core` |
+| `packages/ai` (`@commerceos/ai`) | Commerce Copilot: `LlmProviderPort` and adapters, Copilot tools, prompts, Zod output schemas, grounding checks, eval utilities | `core` |
 | `packages/config` (`@commerceos/config`) | Shared `tsconfig.base.json` only | – |
 
 - Internal packages are consumed as **TypeScript source** (`exports` → `./src/index.ts`) with no build step. Turbopack transpiles workspace packages.
-- Business logic never lives in React components or route handlers. Handlers stay thin: validate input → resolve the use case from the request scope → map the result to a response.
-- Organise feature code by domain module (`catalog`, `cart`, `orders`, `payments`, `inventory`, `analytics`, `copilot`) **inside** these packages, e.g. `packages/core/src/catalog/...`. Do not create a new package without approval.
+- Business logic never lives in React components or route handlers. Handlers stay thin: wrap with `apiHandler` → validate input (`parseRequestBody`) → resolve the use case from the request scope → return `jsonOk(...)`. Use cases signal failures with `AppError` subclasses (`ValidationError`, `NotFoundError`, `UnauthorizedError`, `ForbiddenError`, `ConflictError`); `apiHandler` maps them to 400/401/403/404/409 and everything else to a generic 500 (`packages/app/src/server/http/`).
+- Layout is **layer folder, then concept folder**, e.g. `core/src/services/products/product.service.ts`, `database/src/entities/products/product.entity.ts` (full layout and naming in `ENGINEERING_STANDARDS.md` §1 and "Repository decisions"). Create a concept folder with its first real file. Do not create a new package without approval.
+- Dependency direction is enforced by ESLint (`no-restricted-imports` in `eslint.config.mjs`): `core` imports no framework, ORM or workspace package; `ai` never touches the database package; in `app` only `src/server/container.ts` may import `@commerceos/database` or `@mikro-orm/*`.
 - Add layers and folders only when they hold real code: no empty folders, no speculative interfaces.
 
 ### Dependency injection (Awilix)
@@ -83,7 +84,7 @@ Do not add libraries without a stated reason. TS 7 and ESLint 10 were deliberate
 - Validate all untrusted input at the boundary with Zod (route handlers, server actions, AI output). Read env only through `getEnv()`.
 - Enforce authorization on the server for every admin and Copilot operation; hiding UI is not authorization. **Admin auth is not implemented yet. Until it is, the `/admin` shell must not expose store data or mutations.**
 - Never trust client-submitted prices, totals, payment status or stock. Never store card data.
-- Never return stack traces, raw provider or DB errors, or secrets to users. Log with context, but redact secrets and personal data.
+- Never return stack traces, raw provider or DB errors, or secrets to users. Log with context through `logger` (`packages/app/src/server/logger.ts`, redacts sensitive keys and URL credentials); never call `console.*` directly in server code.
 - Server-only modules start with `import "server-only"`.
 
 ### Commerce Copilot rules
@@ -93,7 +94,7 @@ Do not add libraries without a stated reason. TS 7 and ESLint 10 were deliberate
 - Grounding: every metric value and product ID must come from tool results. Never invent data or claim causation from correlation.
 - Treat prompts and product content as untrusted (prompt injection). Send the minimum data needed, never credentials or unnecessary personal data. Set timeouts and limits. Never render model output as HTML.
 - Metric definitions (revenue, paid orders, AOV, top products, low stock) are documented in both the code and the UI.
-- All LLM access goes through the `LlmProvider` port (`packages/ai`). Without credentials the app uses `UnconfiguredLlmProvider`, which fails explicitly; the UI must then show a clear fallback state or deterministic rule-based insights, never a fabricated answer.
+- All LLM access goes through `LlmProviderPort` (`packages/ai`). Without credentials the app uses `UnconfiguredLlmProvider`, which fails explicitly; the UI must then show a clear fallback state or deterministic rule-based insights, never a fabricated answer.
 - Evaluation: keep a version-controlled eval set (in `packages/ai`) that covers factual grounding, invalid output, insufficient data, prompt injection in product content, and provider failure. Assert properties, not exact wording.
 
 ### Testing
@@ -128,15 +129,15 @@ Before starting a task, read the files listed for the area it touches.
 
 | When the task involves… | Read first | Key rules |
 |---|---|---|
-| Any task | `AGENTS.md`, `.ai/specs/2026-10-13-commerceos-mvp.md`, `.ai/lessons.md`, `SDLC.md` | Work from a spec in `.ai/specs/`; log autonomous runs in `.ai/runs/`; record lessons |
+| Any task | `AGENTS.md`, `ENGINEERING_STANDARDS.md`, `.ai/specs/2026-10-13-commerceos-mvp.md`, `.ai/lessons.md`, `SDLC.md` | Work from a spec in `.ai/specs/`; log autonomous runs in `.ai/runs/`; record lessons |
 | A new feature | `.ai/specs/`, `SDLC.md` | Spec first (`YYYY-MM-DD-slug.md`); after implementation, move the spec to `specs/implemented/` |
-| Domain rules / use cases | `packages/core/src/` | Pure TS, no framework imports; depend on ports; unit-test with fakes |
-| Entities, migrations, seeds | `packages/database/src/`, Database conventions above | `defineEntity`; register in `entities/index.ts`; migration plus integration test with every schema change |
+| Domain rules / use cases | `packages/core/src/`, `ENGINEERING_STANDARDS.md` §1–3 | Pure TS (+ Zod), no framework imports; `<name>.use-case.ts` / `<name>.service.ts`; ports end in `Port`/`Gateway`; errors extend `AppError`; unit-test with fakes |
+| Entities, migrations, seeds | `packages/database/src/`, Database conventions above | `defineEntity` in `entities/<concept>/<name>.entity.ts`; register in `entities/index.ts`; migration plus integration test with every schema change |
 | Dependency wiring | `packages/app/src/server/container.ts` | Deliberate lifetimes; strict mode; scoped EM |
 | Env variables | `packages/app/src/server/env.ts`, `.env.example` | Add to the Zod schema and `.env.example` together; read via `getEnv()` |
 | Pages, layouts, routing (UI) | `packages/app/src/app/`, `node_modules/next/dist/docs/` | Server Components by default; `cacheComponents` is on, so wrap request-time data in `<Suspense>` and call `connection()`; use Next.js 16 APIs |
 | UI components, styles | `packages/app/components.json`, `packages/app/src/components/ui/`, `packages/app/src/app/globals.css` | Add components with `npx shadcn@latest add <name>` (run in `packages/app`); Tailwind utilities; accessible states |
-| API / Route Handlers | `packages/app/src/app/api/health/route.ts` (reference), `BACKWARD_COMPATIBILITY.md` | Thin handler; Zod input; per-request scope; no internal error details in responses; additive API changes only |
+| API / Route Handlers | `packages/app/src/server/http/`, `BACKWARD_COMPATIBILITY.md` | `apiHandler` + `parseRequestBody` + `ApiResult` envelope; per-request scope; no internal error details in responses; additive API changes only (`/api/health` keeps its own shape) |
 | Commerce Copilot / LLM | `packages/ai/src/`, Commerce Copilot rules above | Go through the port only; schema-validate; ground every claim; handle the fallback; add eval cases |
 | New package or shared code | Packages and boundaries above | Do not create a new package without approval; respect the dependency direction |
 | Build / TS / lint / test config | `packages/app/next.config.ts`, `packages/config/tsconfig.base.json`, `eslint.config.mjs`, `vitest.config.mts` | Changes to config and env variables follow `BACKWARD_COMPATIBILITY.md` |

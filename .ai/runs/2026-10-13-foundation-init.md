@@ -1,7 +1,7 @@
 # Run: foundation initialization
 
 - **Date:** 2026-10-13
-- **Spec:** [.ai/specs/2026-10-13-foundation-init.md](../specs/2026-10-13-foundation-init.md)
+- **Spec:** [.ai/specs/implemented/2026-10-13-foundation-init.md](../specs/implemented/2026-10-13-foundation-init.md)
 - **Trigger:** user request to initialise CommerceOS (monorepo, stack, AGENTS.md, README)
 
 ## Goal

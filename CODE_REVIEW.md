@@ -26,6 +26,14 @@ A red gate is a blocker, whatever the review says.
 
 ## Repo-specific checks
 
+Apply the full checklist in [`ENGINEERING_STANDARDS.md` §13](ENGINEERING_STANDARDS.md#13-code-review-checklist) (architecture, security and correctness, AI-specific, verification). The points below are the repo-specific additions.
+
+### Conventions and boundaries
+
+- Naming and layout follow `ENGINEERING_STANDARDS.md` §1 and "Repository decisions" (`*.entity.ts`, `*.use-case.ts` / `*.service.ts`, `*.schema.ts`, `*.port.ts`, adapters under `adapters/`, pages export `<Segment>Page`).
+- Package boundaries are enforced by ESLint `no-restricted-imports`. Loosening those rules (or adding an `eslint-disable` for them) is a **High** finding unless the spec approves it.
+- Route handlers use `apiHandler`, `parseRequestBody` and the `ApiResult` envelope; errors from use cases are `AppError` subclasses. Server code logs through `logger`, not `console.*`.
+
 ### Next.js 16 (App Router)
 
 - This Next.js version has breaking changes compared with older releases. The code must follow the docs in `node_modules/next/dist/docs/`, not APIs from older versions. Flag deprecated APIs.
@@ -54,7 +62,7 @@ A red gate is a blocker, whatever the review says.
 - Lessons from bug fixes go into `.ai/lessons.md`.
 - Behaviour changes need tests: unit (`*.test.ts`) for rules and use cases, integration (`*.int.test.ts`) for persistence and transactions. Schema changes need a migration.
 - Dependencies are wired only in `packages/app/src/server/container.ts`, with deliberate lifetimes (no request-scoped EM in singletons).
-- `packages/core` must not import Next.js, MikroORM or other infrastructure.
+- `packages/core` must not import Next.js, React, MikroORM, Awilix or other workspace packages (Zod is allowed).
 
 ## Severity guidance
 

@@ -1,6 +1,6 @@
 import "server-only";
-import { UnconfiguredLlmProvider, type LlmProvider } from "@commerceos/ai";
-import { GetSystemHealth, type HealthCheck } from "@commerceos/core";
+import { UnconfiguredLlmProvider, type LlmProviderPort } from "@commerceos/ai";
+import { GetSystemHealthUseCase, type HealthCheckPort } from "@commerceos/core";
 import {
   DatabaseHealthCheck,
   MikroORM,
@@ -33,10 +33,10 @@ export type Cradle = {
   env: Env;
   orm: MikroORM;
   em: EntityManager;
-  llmProvider: LlmProvider;
-  healthChecks: HealthCheck[];
+  llmProvider: LlmProviderPort;
+  healthChecks: HealthCheckPort[];
   databaseHealthCheck: DatabaseHealthCheck;
-  getSystemHealth: GetSystemHealth;
+  getSystemHealthUseCase: GetSystemHealthUseCase;
 };
 
 function buildContainer(): AwilixContainer<Cradle> {
@@ -59,7 +59,7 @@ function buildContainer(): AwilixContainer<Cradle> {
     healthChecks: asFunction(({ databaseHealthCheck }: Pick<Cradle, "databaseHealthCheck">) => [
       databaseHealthCheck,
     ]).singleton(),
-    getSystemHealth: asClass(GetSystemHealth).scoped(),
+    getSystemHealthUseCase: asClass(GetSystemHealthUseCase).scoped(),
   });
 
   return container;

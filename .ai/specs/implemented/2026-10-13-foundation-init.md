@@ -1,7 +1,7 @@
 # Foundation initialization (Week 1, part 1)
 
-- **Status:** in progress
-- **Parent spec:** [2026-10-13-commerceos-mvp.md](2026-10-13-commerceos-mvp.md) (sections 4, 5, 11 "Week 1")
+- **Status:** implemented (DB verification completed 2026-10-13)
+- **Parent spec:** [2026-10-13-commerceos-mvp.md](../2026-10-13-commerceos-mvp.md) (sections 4, 5, 11 "Week 1")
 - **Goal:** a stable, minimal, locally runnable foundation for CommerceOS. Not product features.
 
 ## Starting state
@@ -57,13 +57,13 @@ Dependency direction: `app` → `core`, `database`, `ai`; `database` → `core`;
 ## Acceptance criteria
 
 - [x] `npm install` at the root installs all workspaces.
-- [ ] `docker compose up -d`, `npm run db:migrate` and `npm run db:seed` work. **Blocked:** Docker engine cannot start on the dev machine (Windows "Virtual Machine Platform" is disabled).
-- [~] `npm run dev` serves `/`, `/admin` and `/api/health`. Verified: 200 / 200 / 503 with the DB down. The 200 with the DB up is still unverified (blocked as above).
+- [x] `docker compose up -d`, `npm run db:migrate` and `npm run db:seed` work (verified once Docker became available).
+- [x] The app serves `/`, `/admin` and `/api/health`: 200 / 200 / 503 with the DB down, and `/api/health` 200 `ok` with the DB up. That check exposed a health-check bug (lazy ORM), fixed in the engineering-standards run.
 - [x] `npm run lint`, `npm run typecheck`, `npm run test` and `npm run build` pass.
-- [ ] `npm run test:integration` passes with Postgres running. Written (migrations, schema drift, repeatable seed, DB constraints, health) but not yet run (blocked as above).
+- [x] `npm run test:integration` passes with Postgres running (migrations, schema drift, repeatable seed, DB constraints, health).
 - [x] README and AGENTS.md describe only commands that actually exist.
 
-**Status (2026-10-13):** implemented; DB verification pending. Move this spec to `implemented/` once the three unchecked items pass.
+**Status (2026-10-13):** implemented and fully verified.
 
 ## Implementation notes
 

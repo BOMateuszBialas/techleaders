@@ -1,0 +1,55 @@
+/**
+ * Base class for every domain and application error. `code` is a stable,
+ * machine-readable identifier; `message` is safe to show to the caller.
+ * The presentation layer maps the subclasses below to HTTP status codes;
+ * any other AppError signals a broken invariant and is treated as internal.
+ */
+export class AppError extends Error {
+  constructor(
+    readonly code: string,
+    message: string,
+    options?: ErrorOptions,
+  ) {
+    super(message, options);
+    this.name = new.target.name;
+  }
+}
+
+export type FieldErrors = Record<string, string[]>;
+
+/** Input failed validation. `fieldErrors` maps field paths to messages. */
+export class ValidationError extends AppError {
+  constructor(
+    message = "The request is invalid.",
+    readonly fieldErrors: FieldErrors = {},
+  ) {
+    super("VALIDATION_FAILED", message);
+  }
+}
+
+export class NotFoundError extends AppError {
+  constructor(message = "The requested resource was not found.") {
+    super("NOT_FOUND", message);
+  }
+}
+
+/** No authenticated user. */
+export class UnauthorizedError extends AppError {
+  constructor(message = "Authentication is required.") {
+    super("UNAUTHORIZED", message);
+  }
+}
+
+/** Authenticated, but not allowed to perform this operation. */
+export class ForbiddenError extends AppError {
+  constructor(message = "You are not allowed to perform this operation.") {
+    super("FORBIDDEN", message);
+  }
+}
+
+/** The operation conflicts with the current state (duplicate slug, stale stock, …). */
+export class ConflictError extends AppError {
+  constructor(message = "The request conflicts with the current state.") {
+    super("CONFLICT", message);
+  }
+}
