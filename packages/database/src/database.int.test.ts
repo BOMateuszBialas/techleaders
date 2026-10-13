@@ -1,18 +1,13 @@
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import { MikroORM } from "@mikro-orm/postgresql";
-import { initToolingOrm, loadRootEnv } from "./cli/cli-orm";
+import { initToolingOrm } from "./cli/cli-orm";
 import { createOrmConfig } from "./config";
 import { CategorySchema, ProductSchema } from "./entities";
 import { DatabaseHealthCheck } from "./adapters/database-health-check";
 import { DatabaseSeeder } from "./seeders/DatabaseSeeder";
+import "./testing/provided-context";
 
-loadRootEnv();
-const testDatabaseUrl = process.env.TEST_DATABASE_URL;
-if (!testDatabaseUrl) {
-  throw new Error(
-    "TEST_DATABASE_URL is not set. Copy .env.example to .env and start `npm run db:up`.",
-  );
-}
+const testDatabaseUrl = inject("databaseUrl");
 
 /** Nothing listens here in the dev/CI setup, so connecting fails fast. */
 const UNUSED_PORT = 5999;

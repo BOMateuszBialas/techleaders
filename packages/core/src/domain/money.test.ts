@@ -1,7 +1,20 @@
 import { describe, expect, it } from "vitest";
-import { InvalidMoneyError, addMoney, formatMoney, money, multiplyMoney, sumMoney } from "./money";
+import {
+  InvalidMoneyError,
+  addMoney,
+  formatMoney,
+  isCurrencyCode,
+  money,
+  multiplyMoney,
+  sumMoney,
+} from "./money";
 
 describe("money", () => {
+  it("recognises supported currency codes only", () => {
+    expect(isCurrencyCode("PLN")).toBe(true);
+    expect(isCurrencyCode("GBP")).toBe(false);
+  });
+
   it("rejects non-integer minor amounts", () => {
     expect(() => money(10.5, "PLN")).toThrow(InvalidMoneyError);
   });
@@ -18,6 +31,10 @@ describe("money", () => {
     expect(multiplyMoney(money(1250, "PLN"), 3)).toEqual(money(3750, "PLN"));
     expect(() => multiplyMoney(money(1250, "PLN"), -1)).toThrow(InvalidMoneyError);
     expect(() => multiplyMoney(money(1250, "PLN"), 1.5)).toThrow(InvalidMoneyError);
+  });
+
+  it("sums a list of amounts", () => {
+    expect(sumMoney([money(100, "PLN"), money(250, "PLN")], "PLN")).toEqual(money(350, "PLN"));
   });
 
   it("sums an empty list to zero", () => {

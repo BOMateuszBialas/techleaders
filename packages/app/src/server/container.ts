@@ -82,3 +82,13 @@ function getRootContainer(): AwilixContainer<Cradle> {
 export function createRequestScope(): AwilixContainer<Cradle> {
   return getRootContainer().createScope();
 }
+
+/**
+ * Disposes the process-wide container (closes the connection pool) so the
+ * next request builds a fresh one. For graceful shutdown and tests.
+ */
+export async function disposeRootContainer(): Promise<void> {
+  const container = globalForContainer.__commerceosContainer;
+  globalForContainer.__commerceosContainer = undefined;
+  await container?.dispose();
+}

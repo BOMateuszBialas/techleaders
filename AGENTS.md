@@ -39,8 +39,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 | DI | **Awilix 13** (strict mode, PROXY injection) |
 | UI | Tailwind CSS v4, **shadcn/ui** (style `base-nova`, Base UI primitives, `lucide-react`) |
 | Validation | **Zod 4** (env, request input, AI output) |
-| Tests / quality | Vitest 5 (`unit` and `integration` projects), ESLint 9 (`eslint-config-next`), Prettier 3 |
-| Not chosen yet | Auth library, LLM provider, Stripe, Playwright. Each is a separate decision; do not add one silently |
+| Tests / quality | Vitest 5 (`unit`, `integration`, `e2e` projects) with v8 coverage, Testcontainers (PostgreSQL), agent-browser (e2e), ESLint 9 (`eslint-config-next`), Prettier 3, GitHub Actions CI |
+| Not chosen yet | Auth library, LLM provider, Stripe. Each is a separate decision; do not add one silently |
 
 Do not add libraries without a stated reason. TS 7 and ESLint 10 were deliberately not adopted (compatibility with Next 16.4 is unverified).
 
@@ -99,13 +99,15 @@ Do not add libraries without a stated reason. TS 7 and ESLint 10 were deliberate
 
 ### Testing
 
-- Unit tests: `packages/*/src/**/*.test.ts`, run with `npm test`. No network or DB access. Use them for domain rules, metrics, schemas and use cases with fake ports.
-- Integration tests: `packages/*/src/**/*.int.test.ts`, run with `npm run test:integration`. They need PostgreSQL (`npm run db:up`) and use the separate `commerceos_test` database (`TEST_DATABASE_URL`).
-- Every behaviour change ships with tests. Priorities: business rules, persistence and transactions, authorization, AI output validation and failure paths. Add a Playwright E2E test for the purchase → admin → Copilot path once those flows exist.
+- **100% unit coverage is mandatory.** Every new feature and every change must keep unit coverage at **100% lines, branches, functions and statements**. `npm run test:coverage` enforces it and CI fails below it. Do not lower the thresholds, and do not add a coverage exclusion or `/* v8 ignore */` comment without a reason written next to it and the user's approval. The current exclusion list (with reasons) is in `vitest.config.mts`; logic that a page needs goes into a colocated `.ts` module so it is unit-covered.
+- Unit tests: `packages/*/src/**/*.test.ts`, run with `npm test` (`npm run test:coverage` for the gate). No network or DB access: use fake ports, or `createUnitTestOrm()` (`@commerceos/database/testing`) with stubbed methods.
+- Integration tests: `packages/*/src/**/*.int.test.ts`, run with `npm run test:integration`. A Vitest global setup starts a throwaway PostgreSQL 17 container with **Testcontainers** (needs Docker) and hands its URL to tests via `inject("databaseUrl")`. Use them for persistence, transactions, constraints and migrations.
+- E2E tests: `packages/app/e2e/**/*.e2e.test.ts`, run with `npm run build && npm run test:e2e`. The global setup instantiates the whole app ephemerally (PostgreSQL container → migrate and seed CLI → `next start` on a free port) and tests drive it with **agent-browser** through `useBrowser()` (`packages/app/e2e/support/`). Install the browser once with `bash .ai/scripts/ensure-agent-browser.sh`. Failing tests save a screenshot to `packages/app/e2e/artifacts/`. **Every new page or user flow gets an e2e test.**
+- Every behaviour change ships with tests; a bug fix ships with a regression test that fails before the fix. Priorities: business rules, persistence and transactions, authorization, AI output validation and failure paths. Extend the e2e suite to the purchase → admin → Copilot path once those flows exist.
 
 ### Definition of done
 
-- `npm run lint`, `npm run typecheck`, `npm test` and `npm run build` pass; `npm run test:integration` passes when the change touches the DB.
+- The whole gate passes (see Validation): lint, format, typecheck, **unit tests at 100% coverage**, build, integration and e2e tests. CI (`.github/workflows/ci.yml`) runs it on every pull request; a red check blocks the merge.
 - Input validation, loading, empty and error states, and server-side authorization are in place.
 - No secrets or unnecessary personal data in code or logs. Secrets live only in env variables; `.env.example` holds placeholders only.
 - Schema changes have a migration; seed data and tests are updated with them.
@@ -141,21 +143,22 @@ Before starting a task, read the files listed for the area it touches.
 | Commerce Copilot / LLM | `packages/ai/src/`, Commerce Copilot rules above | Go through the port only; schema-validate; ground every claim; handle the fallback; add eval cases |
 | New package or shared code | Packages and boundaries above | Do not create a new package without approval; respect the dependency direction |
 | Build / TS / lint / test config | `packages/app/next.config.ts`, `packages/config/tsconfig.base.json`, `eslint.config.mjs`, `vitest.config.mts` | Changes to config and env variables follow `BACKWARD_COMPATIBILITY.md` |
-| Tests | Testing above, `vitest.config.mts` | `*.test.ts` = unit, `*.int.test.ts` = integration (PostgreSQL) |
-| CI / GitHub | `.ai/trackers/github.md`, `SDLC.md` | TODO: no `.github/workflows` yet; CI should mirror the validation gate |
+| Tests | Testing above, `vitest.config.mts`, `packages/app/e2e/support/` | `*.test.ts` = unit (100% coverage), `*.int.test.ts` = integration (Testcontainers), `*.e2e.test.ts` = e2e (agent-browser) |
+| CI / GitHub | `.github/workflows/ci.yml`, `.ai/trackers/github.md`, `SDLC.md` | Jobs mirror the validation gate (lint, unit + coverage, build, integration, e2e); keep the workflow and the gate in sync |
 | Code review / PR | `CODE_REVIEW.md`, `BACKWARD_COMPATIBILITY.md`, `SDLC.md` | Pipeline labels follow `SDLC.md`; severities follow `CODE_REVIEW.md` |
 
 ## Validation
 
-Run before every commit or PR (the gate from `.ai/agentic.config.json`):
+Run before every commit or PR (the gate from `.ai/agentic.config.json`; CI runs the same checks on every pull request):
 
 ```bash
 npm run lint
+npm run format:check
 npm run typecheck
-npm test
+npm run test:coverage      # unit tests, fails below 100% coverage
 npm run build
-# when the change touches the database (needs `npm run db:up`):
-npm run test:integration
+npm run test:integration   # Testcontainers PostgreSQL (needs Docker)
+npm run test:e2e           # after `npm run build`; needs Docker and agent-browser
 ```
 
 Process documents: `SDLC.md` (ticket flow and labels), `CODE_REVIEW.md` (review rules), `BACKWARD_COMPATIBILITY.md` (protected contracts), `.ai/agentic.config.json` (pipeline configuration).

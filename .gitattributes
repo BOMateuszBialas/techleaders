@@ -1,0 +1,2 @@
+# Shell scripts run on Linux CI; keep them LF on every platform.
+*.sh text eol=lf

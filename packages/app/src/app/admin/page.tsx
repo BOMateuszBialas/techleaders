@@ -3,8 +3,7 @@ import { Suspense } from "react";
 import { connection } from "next/server";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { createRequestScope } from "@/server/container";
-import { logger } from "@/server/logger";
+import { loadSystemHealth } from "./load-system-health";
 
 export const metadata: Metadata = { title: "Admin" };
 
@@ -31,19 +30,6 @@ export default function AdminPage() {
       </Card>
     </div>
   );
-}
-
-async function loadSystemHealth() {
-  const scope = createRequestScope();
-  try {
-    return await scope.cradle.getSystemHealthUseCase.execute();
-  } catch (error) {
-    // e.g. invalid environment configuration; details stay in server logs only.
-    logger.error("System health could not be loaded", { page: "/admin", error });
-    return null;
-  } finally {
-    await scope.dispose();
-  }
 }
 
 async function SystemStatus() {

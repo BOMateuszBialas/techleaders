@@ -10,12 +10,24 @@ import { ProductSchema } from "../entities/products/product.entity";
  * Repeatable: records are upserted by their unique slug, so running the seed
  * again updates them instead of creating duplicates.
  */
-const categories = [
+type SeedCategory = { slug: string; name: string; description: string };
+type SeedProduct = {
+  slug: string;
+  name: string;
+  /** Slug of a category in the same catalog. */
+  category: string;
+  priceMinor: number;
+  stockQuantity: number;
+  sku: string;
+};
+export type SeedCatalog = { categories: readonly SeedCategory[]; products: readonly SeedProduct[] };
+
+const demoCategories = [
   { slug: "coffee", name: "Coffee", description: "[DEMO] Specialty coffee beans." },
   { slug: "brewing", name: "Brewing gear", description: "[DEMO] Equipment for home brewing." },
 ] as const;
 
-const products = [
+const demoProducts = [
   {
     slug: "ethiopia-yirgacheffe-250g",
     name: "Ethiopia Yirgacheffe 250 g",
@@ -58,33 +70,39 @@ const products = [
   },
 ] as const;
 
+export const DEMO_CATALOG: SeedCatalog = { categories: demoCategories, products: demoProducts };
+
+/**
+ * Upserts a catalog by unique slug. Throws when a product references a
+ * category that is not part of the same catalog.
+ */
+export async function seedCatalog(em: EntityManager, catalog: SeedCatalog): Promise<void> {
+  const categoryIds = new Map<string, string>();
+  for (const category of catalog.categories) {
+    const saved = await em.upsert(CategorySchema, { ...category }, { onConflictFields: ["slug"] });
+    categoryIds.set(category.slug, saved.id);
+  }
+
+  for (const { category, ...product } of catalog.products) {
+    const categoryId = categoryIds.get(category);
+    if (!categoryId) throw new Error(`Seed category "${category}" missing`);
+    await em.upsert(
+      ProductSchema,
+      {
+        ...product,
+        description: `[DEMO] ${product.name}. Seed data for local development.`,
+        currency: "PLN",
+        status: "published",
+        category: categoryId,
+      },
+      { onConflictFields: ["slug"] },
+    );
+  }
+  await em.flush();
+}
+
 export class DatabaseSeeder extends Seeder {
   async run(em: EntityManager): Promise<void> {
-    const categoryIds = new Map<string, string>();
-    for (const category of categories) {
-      const saved = await em.upsert(
-        CategorySchema,
-        { ...category },
-        { onConflictFields: ["slug"] },
-      );
-      categoryIds.set(category.slug, saved.id);
-    }
-
-    for (const { category, ...product } of products) {
-      const categoryId = categoryIds.get(category);
-      if (!categoryId) throw new Error(`Seed category "${category}" missing`);
-      await em.upsert(
-        ProductSchema,
-        {
-          ...product,
-          description: `[DEMO] ${product.name}. Seed data for local development.`,
-          currency: "PLN",
-          status: "published",
-          category: categoryId,
-        },
-        { onConflictFields: ["slug"] },
-      );
-    }
-    await em.flush();
+    await seedCatalog(em, DEMO_CATALOG);
   }
 }

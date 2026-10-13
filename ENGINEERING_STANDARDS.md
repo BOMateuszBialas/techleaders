@@ -409,6 +409,13 @@ Deviation from the original AGENTS.md: `core` now depends on **Zod**, because sh
 - The MikroORM seeder class file keeps MikroORM's conventional name (`DatabaseSeeder.ts`).
 - `defineEntity` schemas are exported as `<Name>Schema` (MikroORM idiom); the inferred entity type is `<Name>`.
 
+### Testing (adopted 2026-10-13, spec: [`.ai/specs/implemented/2026-10-13-ci-and-test-safety-net.md`](.ai/specs/implemented/2026-10-13-ci-and-test-safety-net.md))
+
+- **Unit coverage is 100%** (lines, branches, functions, statements), enforced by `npm run test:coverage` and CI. The only exclusions are listed with reasons in `vitest.config.mts`: tests and fixtures, test infrastructure, generated code (migrations, shadcn primitives), barrels and type-only `*.port.ts` files, Next.js `page.tsx` / `layout.tsx` (covered by e2e tests) and the DB CLI entry points (run by the integration and e2e setups).
+- Integration tests use **Testcontainers** PostgreSQL; there is no shared test database.
+- E2E tests run the production build against its own PostgreSQL container and drive it with **agent-browser** (`packages/app/e2e/`). Every new page or user flow gets one.
+- CI: `.github/workflows/ci.yml`, one job per gate step.
+
 ### Deferred until a real consumer exists
 
 Client-side `/api` helper, `makeCrudRoute`, auth helpers, rate limiting, domain events, shared form/table/feedback components.

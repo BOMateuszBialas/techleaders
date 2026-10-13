@@ -25,6 +25,18 @@ describe("redact", () => {
     expect(String(result.stack)).not.toContain("u:p@");
   });
 
+  it("handles errors without a stack trace", () => {
+    const error = new Error("no stack");
+    error.stack = undefined;
+    expect(redact(error)).toEqual({ name: "Error", message: "no stack", stack: undefined });
+  });
+
+  it("passes primitives and null through unchanged", () => {
+    expect(redact(42)).toBe(42);
+    expect(redact(null)).toBeNull();
+    expect(redact([true, "postgres://a:b@h"])).toEqual([true, "postgres://[REDACTED]@h"]);
+  });
+
   it("stops at a fixed depth instead of recursing forever", () => {
     const deep = { a: { b: { c: { d: { e: { f: "too deep" } } } } } };
     expect(JSON.stringify(redact(deep))).toContain("[Truncated]");
@@ -35,6 +47,15 @@ describe("logger", () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });
+
+  it.each(["info", "warn", "error"] as const)(
+    "writes %s entries to the matching console method",
+    (level) => {
+      const spy = vi.spyOn(console, level).mockImplementation(() => {});
+      logger[level]("hello");
+      expect(JSON.parse(String(spy.mock.calls[0]?.[0]))).toMatchObject({ level, message: "hello" });
+    },
+  );
 
   it("writes one JSON line with the redacted context", () => {
     const spy = vi.spyOn(console, "error").mockImplementation(() => {});
