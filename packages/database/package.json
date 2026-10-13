@@ -1,0 +1,26 @@
+{
+  "name": "@commerceos/database",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CommerceOS persistence: MikroORM config, entities, migrations, seeders and repository adapters",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "migrate": "tsx src/cli/migrate.ts up",
+    "migration:create": "tsx src/cli/migrate.ts create",
+    "seed": "tsx src/cli/seed.ts"
+  },
+  "dependencies": {
+    "@commerceos/core": "*",
+    "@mikro-orm/core": "^7.2.5",
+    "@mikro-orm/migrations": "^7.2.5",
+    "@mikro-orm/postgresql": "^7.2.5",
+    "@mikro-orm/seeder": "^7.2.5"
+  },
+  "devDependencies": {
+    "@commerceos/config": "*"
+  }
+}

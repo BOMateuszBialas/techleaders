@@ -29,18 +29,62 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - **P1 (only after P0 is stable):** AI-drafted product descriptions, date-range comparison, an eval script, Stripe webhooks, CSV import, image upload.
 - **Out of scope:** multi-tenancy, marketplaces, real shipping and refunds, discounts and subscriptions, multi-currency, a CMS page builder, autonomous AI actions, open-ended agent loops and multi-agent setups, microservices and Kubernetes.
 
-### Stack
+### Stack (installed versions)
 
-TypeScript (strict), Next.js 16 App Router + React 19, PostgreSQL, **MikroORM** (migrations), **Awilix** (DI), Tailwind CSS v4, **shadcn/ui** (admin), **Zod** (input and AI output validation), a maintained auth library (no custom crypto or sessions), a provider-neutral LLM adapter, Stripe Checkout (test mode), Vitest + Playwright. Package manager: npm. Do not add libraries without a stated reason.
+| Area | Choice |
+|---|---|
+| Runtime / package manager | Node.js ≥ 22.17 (developed on 24), **npm workspaces** |
+| App | Next.js 16.4 (App Router, Turbopack, `cacheComponents` on), React 19.3, TypeScript 5.9 (strict) |
+| Database | PostgreSQL 17 (docker compose), **MikroORM 7** (`@mikro-orm/postgresql`, migrations, seeder) |
+| DI | **Awilix 13** (strict mode, PROXY injection) |
+| UI | Tailwind CSS v4, **shadcn/ui** (style `base-nova`, Base UI primitives, `lucide-react`) |
+| Validation | **Zod 4** (env, request input, AI output) |
+| Tests / quality | Vitest 5 (`unit` and `integration` projects), ESLint 9 (`eslint-config-next`), Prettier 3 |
+| Not chosen yet | Auth library, LLM provider, Stripe, Playwright. Each is a separate decision; do not add one silently |
 
-### Architecture (modular monolith)
+Do not add libraries without a stated reason. TS 7 and ESLint 10 were deliberately not adopted (compatibility with Next 16.4 is unverified).
 
-- Modules: `catalog`, `cart`, `orders`, `payments`, `inventory`, `analytics`, `copilot`, plus `shared` (database, di, auth, validation, errors, observability). Each module has only the layers it needs: `domain` → `application` → `infrastructure`, with Next.js as the presentation layer.
-- The spec's suggested `src/` layout lives **inside the app package** under the monorepo rule, e.g. `packages/<app>/src/modules/...`.
-- Domain has no Next.js, HTTP or ORM dependencies. Route handlers and server actions stay thin and delegate to application use cases.
-- One Awilix composition root. No ad-hoc repositories or LLM clients. Choose lifetimes deliberately: no singletons holding a request-scoped EntityManager or user context.
-- Money is stored as integer minor units (`priceMinor`, `totalMinor`). Order creation and stock changes run in a DB transaction that decrements stock atomically (no overselling). Order items store name and price snapshots. Migrations are the source of truth for the schema.
-- Never trust client-submitted prices, totals, payment status or stock. Validate all input with Zod and enforce admin authorization on the server.
+### Packages and boundaries (modular monolith)
+
+| Package | Responsibility | May depend on |
+|---|---|---|
+| `packages/app` (`@commerceos/app`) | Next.js: storefront, admin, route handlers and server actions (presentation), **DI composition root** (`src/server/container.ts`), env validation (`src/server/env.ts`) | `core`, `database`, `ai` |
+| `packages/core` (`@commerceos/core`) | Domain types and rules (`src/domain`), use cases and ports, i.e. interfaces (`src/application`). Pure TypeScript | nothing (no Next.js, no ORM, no Zod) |
+| `packages/database` (`@commerceos/database`) | MikroORM config, entities (`defineEntity`), migrations, seeders, repository and health adapters implementing `core` ports | `core` |
+| `packages/ai` (`@commerceos/ai`) | Commerce Copilot: `LlmProvider` port and adapters, Copilot tools, prompts, Zod output schemas, grounding checks, eval utilities | `core` |
+| `packages/config` (`@commerceos/config`) | Shared `tsconfig.base.json` only | – |
+
+- Internal packages are consumed as **TypeScript source** (`exports` → `./src/index.ts`) with no build step. Turbopack transpiles workspace packages.
+- Business logic never lives in React components or route handlers. Handlers stay thin: validate input → resolve the use case from the request scope → map the result to a response.
+- Organise feature code by domain module (`catalog`, `cart`, `orders`, `payments`, `inventory`, `analytics`, `copilot`) **inside** these packages, e.g. `packages/core/src/catalog/...`. Do not create a new package without approval.
+- Add layers and folders only when they hold real code: no empty folders, no speculative interfaces.
+
+### Dependency injection (Awilix)
+
+- One composition root: `packages/app/src/server/container.ts`. It is the only place that instantiates infrastructure (ORM, LLM adapters, repositories).
+- Lifetimes: **singleton** for process-wide and stateless objects (env, `MikroORM`, LLM provider, health checks); **scoped** for anything per-request (`em` = `orm.em.fork()`, use cases using the EM, user context).
+- Per request: `const scope = createRequestScope()` → `scope.cradle.<useCase>` → `await scope.dispose()` in `finally`.
+- The container runs in `strict: true`, so Awilix throws if a singleton depends on a scoped registration. Never weaken this.
+- Classes receive dependencies through a single constructor object (`constructor(deps: { orm: MikroORM })`), which keeps them testable without the container.
+
+### Database conventions (MikroORM + PostgreSQL)
+
+- Entities use `defineEntity` + `p.*` builders (no decorators) and must be added to `entities` in `packages/database/src/entities/index.ts`.
+- **Migrations are the source of truth.** Never use `schema.update()` outside tests. After changing an entity: `npm run db:migration:create`, review the generated SQL, and commit it. The integration test fails on any drift between entities and migrations.
+- `allowGlobalContext: false`: always work on a forked EntityManager (request scope or explicit `orm.em.fork()`).
+- Money is stored as integer minor units (`priceMinor`, `totalMinor`) in `int` columns with `check (>= 0)`. Use the `Money` helpers in `core`; never use floats.
+- Order creation and stock changes run in one transaction (`em.transactional`) with an atomic conditional stock decrement (no overselling). Order items store name and price snapshots.
+- Add unique constraints and indexes for slugs, SKUs, order references and frequently queried foreign keys. Use DB `check` constraints for enums and invariants.
+- Seeders are repeatable (upsert by unique key), and demo data is visibly marked (`[DEMO]`, `DEMO-` SKUs).
+- Do not return ORM entities from API routes. Map them to explicit DTOs.
+
+### Security and validation
+
+- Validate all untrusted input at the boundary with Zod (route handlers, server actions, AI output). Read env only through `getEnv()`.
+- Enforce authorization on the server for every admin and Copilot operation; hiding UI is not authorization. **Admin auth is not implemented yet. Until it is, the `/admin` shell must not expose store data or mutations.**
+- Never trust client-submitted prices, totals, payment status or stock. Never store card data.
+- Never return stack traces, raw provider or DB errors, or secrets to users. Log with context, but redact secrets and personal data.
+- Server-only modules start with `import "server-only"`.
 
 ### Commerce Copilot rules
 
@@ -49,10 +93,34 @@ TypeScript (strict), Next.js 16 App Router + React 19, PostgreSQL, **MikroORM** 
 - Grounding: every metric value and product ID must come from tool results. Never invent data or claim causation from correlation.
 - Treat prompts and product content as untrusted (prompt injection). Send the minimum data needed, never credentials or unnecessary personal data. Set timeouts and limits. Never render model output as HTML.
 - Metric definitions (revenue, paid orders, AOV, top products, low stock) are documented in both the code and the UI.
+- All LLM access goes through the `LlmProvider` port (`packages/ai`). Without credentials the app uses `UnconfiguredLlmProvider`, which fails explicitly; the UI must then show a clear fallback state or deterministic rule-based insights, never a fabricated answer.
+- Evaluation: keep a version-controlled eval set (in `packages/ai`) that covers factual grounding, invalid output, insufficient data, prompt injection in product content, and provider failure. Assert properties, not exact wording.
+
+### Testing
+
+- Unit tests: `packages/*/src/**/*.test.ts`, run with `npm test`. No network or DB access. Use them for domain rules, metrics, schemas and use cases with fake ports.
+- Integration tests: `packages/*/src/**/*.int.test.ts`, run with `npm run test:integration`. They need PostgreSQL (`npm run db:up`) and use the separate `commerceos_test` database (`TEST_DATABASE_URL`).
+- Every behaviour change ships with tests. Priorities: business rules, persistence and transactions, authorization, AI output validation and failure paths. Add a Playwright E2E test for the purchase → admin → Copilot path once those flows exist.
 
 ### Definition of done
 
-TypeScript, lint and relevant tests pass. Input validation, error states and authorization are in place. No secrets or personal data in logs. Docs are updated. Manual verification steps are documented for flows without automated tests. Secrets live only in env variables; commit `.env.example` and nothing else.
+- `npm run lint`, `npm run typecheck`, `npm test` and `npm run build` pass; `npm run test:integration` passes when the change touches the DB.
+- Input validation, loading, empty and error states, and server-side authorization are in place.
+- No secrets or unnecessary personal data in code or logs. Secrets live only in env variables; `.env.example` holds placeholders only.
+- Schema changes have a migration; seed data and tests are updated with them.
+- Docs (README, this file, specs) are updated when setup, behaviour, architecture or API contracts change.
+- Flows without automated tests have documented manual verification steps.
+
+### Agent rules
+
+1. **Inspect before editing:** read the relevant packages, scripts, installed versions (`node_modules/next/dist/docs/`, library typings) and existing conventions first.
+2. **Plan bounded changes:** for multi-file work, write or update a spec in `.ai/specs/` and name the files and modules involved.
+3. **Stay focused:** no unrelated refactors, stack replacements or broad reorganisations without approval.
+4. **Respect the spec:** if a request expands scope or conflicts with the spec or this file, explain the trade-off and ask.
+5. **No invented integrations:** without credentials, use an explicitly labelled dev adapter or mock and document the limitation.
+6. **No `any`, unsafe casts, disabled lint rules or swallowed errors** without a documented reason.
+7. **Run the checks** (see Validation) before declaring a task done. If a check cannot run, say why.
+8. **Report on completion:** what changed, key decisions, commands run and their results, known gaps, and the recommended next task. Never claim production readiness.
 
 ## Task routing
 
@@ -62,12 +130,17 @@ Before starting a task, read the files listed for the area it touches.
 |---|---|---|
 | Any task | `AGENTS.md`, `.ai/specs/2026-10-13-commerceos-mvp.md`, `.ai/lessons.md`, `SDLC.md` | Work from a spec in `.ai/specs/`; log autonomous runs in `.ai/runs/`; record lessons |
 | A new feature | `.ai/specs/`, `SDLC.md` | Spec first (`YYYY-MM-DD-slug.md`); after implementation, move the spec to `specs/implemented/` |
-| Pages, layouts, routing (UI) | `app/layout.tsx`, `app/page.tsx`, `node_modules/next/dist/docs/` | Server Components by default; `cacheComponents` is on; use Next.js 16 APIs, not older ones |
-| Styles | `app/globals.css` | Tailwind CSS v4 utility classes; no new CSS frameworks |
-| API / Route Handlers | `BACKWARD_COMPATIBILITY.md`, `node_modules/next/dist/docs/` | Validate input on the server; API changes are additive only. TODO: conventions once the first endpoint exists |
-| New package or shared code | `AGENTS.md` (monorepo section) | Code goes in `packages/<name>/`; nothing new at the root |
-| Next.js / build / TS / lint config | `next.config.ts`, `tsconfig.json`, `eslint.config.mjs` | Changes to config and env variables follow `BACKWARD_COMPATIBILITY.md` |
-| Tests | — | TODO: no test runner yet; add one and include it in the validation gate |
+| Domain rules / use cases | `packages/core/src/` | Pure TS, no framework imports; depend on ports; unit-test with fakes |
+| Entities, migrations, seeds | `packages/database/src/`, Database conventions above | `defineEntity`; register in `entities/index.ts`; migration plus integration test with every schema change |
+| Dependency wiring | `packages/app/src/server/container.ts` | Deliberate lifetimes; strict mode; scoped EM |
+| Env variables | `packages/app/src/server/env.ts`, `.env.example` | Add to the Zod schema and `.env.example` together; read via `getEnv()` |
+| Pages, layouts, routing (UI) | `packages/app/src/app/`, `node_modules/next/dist/docs/` | Server Components by default; `cacheComponents` is on, so wrap request-time data in `<Suspense>` and call `connection()`; use Next.js 16 APIs |
+| UI components, styles | `packages/app/components.json`, `packages/app/src/components/ui/`, `packages/app/src/app/globals.css` | Add components with `npx shadcn@latest add <name>` (run in `packages/app`); Tailwind utilities; accessible states |
+| API / Route Handlers | `packages/app/src/app/api/health/route.ts` (reference), `BACKWARD_COMPATIBILITY.md` | Thin handler; Zod input; per-request scope; no internal error details in responses; additive API changes only |
+| Commerce Copilot / LLM | `packages/ai/src/`, Commerce Copilot rules above | Go through the port only; schema-validate; ground every claim; handle the fallback; add eval cases |
+| New package or shared code | Packages and boundaries above | Do not create a new package without approval; respect the dependency direction |
+| Build / TS / lint / test config | `packages/app/next.config.ts`, `packages/config/tsconfig.base.json`, `eslint.config.mjs`, `vitest.config.mts` | Changes to config and env variables follow `BACKWARD_COMPATIBILITY.md` |
+| Tests | Testing above, `vitest.config.mts` | `*.test.ts` = unit, `*.int.test.ts` = integration (PostgreSQL) |
 | CI / GitHub | `.ai/trackers/github.md`, `SDLC.md` | TODO: no `.github/workflows` yet; CI should mirror the validation gate |
 | Code review / PR | `CODE_REVIEW.md`, `BACKWARD_COMPATIBILITY.md`, `SDLC.md` | Pipeline labels follow `SDLC.md`; severities follow `CODE_REVIEW.md` |
 
@@ -77,8 +150,11 @@ Run before every commit or PR (the gate from `.ai/agentic.config.json`):
 
 ```bash
 npm run lint
-npx tsc --noEmit
+npm run typecheck
+npm test
 npm run build
+# when the change touches the database (needs `npm run db:up`):
+npm run test:integration
 ```
 
 Process documents: `SDLC.md` (ticket flow and labels), `CODE_REVIEW.md` (review rules), `BACKWARD_COMPATIBILITY.md` (protected contracts), `.ai/agentic.config.json` (pipeline configuration).
@@ -87,8 +163,9 @@ Process documents: `SDLC.md` (ticket flow and labels), `CODE_REVIEW.md` (review 
 
 This project is a **monorepo**: one repository holding multiple packages.
 
-- Each package's source code lives in its own directory: `packages/<package-name>/`.
-- Do not add new standalone source code at the repository root. The root holds only shared tooling and configuration (workspaces, lint, TS config, CI).
+- Each package's source code lives in its own directory: `packages/<package-name>/` (current packages: `app`, `core`, `database`, `ai`, `config`; see Packages and boundaries).
+- Do not add new standalone source code at the repository root. The root holds only shared tooling and configuration: `package.json` (workspaces and scripts), `eslint.config.mjs`, `vitest.config.mts`, Prettier, `docker-compose.yml`, `.env.example` and `test/` (shared test stubs).
+- One `.env` for the whole repo lives at the root. `packages/app/next.config.ts` and the database CLI load it.
 - Shared code goes into a dedicated package under `packages/` and is imported from there, not copied.
 
 ## Project metadata: the `.ai/` folder

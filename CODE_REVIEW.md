@@ -8,8 +8,10 @@ Every PR must pass, in order (see `.ai/agentic.config.json`):
 
 ```bash
 npm run lint
-npx tsc --noEmit
+npm run typecheck
+npm test
 npm run build
+npm run test:integration   # when the change touches the database
 ```
 
 A red gate is a blocker, whatever the review says.
@@ -39,7 +41,7 @@ A red gate is a blocker, whatever the review says.
 
 ### Styling
 
-- Style with Tailwind CSS v4 utility classes. Global styles stay in `app/globals.css`. Do not add new CSS frameworks without a spec.
+- Style with Tailwind CSS v4 utility classes. Global styles stay in `packages/app/src/app/globals.css`. Do not add new CSS frameworks without a spec.
 
 ### Dependencies
 
@@ -50,7 +52,9 @@ A red gate is a blocker, whatever the review says.
 
 - Feature work references a spec in `.ai/specs/`. Autonomous runs leave a log in `.ai/runs/`.
 - Lessons from bug fixes go into `.ai/lessons.md`.
-- TODO: tests. There is no test runner yet. Once one is added, require tests for new logic and add the test command to the validation gate.
+- Behaviour changes need tests: unit (`*.test.ts`) for rules and use cases, integration (`*.int.test.ts`) for persistence and transactions. Schema changes need a migration.
+- Dependencies are wired only in `packages/app/src/server/container.ts`, with deliberate lifetimes (no request-scoped EM in singletons).
+- `packages/core` must not import Next.js, MikroORM or other infrastructure.
 
 ## Severity guidance
 

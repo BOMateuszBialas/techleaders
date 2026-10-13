@@ -1,0 +1,11 @@
+node_modules
+.next
+coverage
+package-lock.json
+packages/database/src/migrations
+packages/app/next-env.d.ts
+# Agent pipeline and skills are maintained by their own tooling
+.agents
+.ai
+skills-lock.json
+*.md
