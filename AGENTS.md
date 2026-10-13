@@ -8,6 +8,39 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
+## Project overview
+
+**techleaders**: a Next.js 16 (App Router) + React 19 + TypeScript + Tailwind CSS v4 web application, built in a monorepo. TODO: describe the product goal in one or two sentences.
+
+## Task routing
+
+Before starting a task, read the files listed for the area it touches.
+
+| When the task involves… | Read first | Key rules |
+|---|---|---|
+| Any task | `AGENTS.md`, `.ai/lessons.md`, `SDLC.md` | Work from a spec in `.ai/specs/`; log autonomous runs in `.ai/runs/`; record lessons |
+| A new feature | `.ai/specs/`, `SDLC.md` | Spec first (`YYYY-MM-DD-slug.md`); after implementation, move the spec to `specs/implemented/` |
+| Pages, layouts, routing (UI) | `app/layout.tsx`, `app/page.tsx`, `node_modules/next/dist/docs/` | Server Components by default; `cacheComponents` is on; use Next.js 16 APIs, not older ones |
+| Styles | `app/globals.css` | Tailwind CSS v4 utility classes; no new CSS frameworks |
+| API / Route Handlers | `BACKWARD_COMPATIBILITY.md`, `node_modules/next/dist/docs/` | Validate input on the server; API changes are additive only. TODO: conventions once the first endpoint exists |
+| New package or shared code | `AGENTS.md` (monorepo section) | Code goes in `packages/<name>/`; nothing new at the root |
+| Next.js / build / TS / lint config | `next.config.ts`, `tsconfig.json`, `eslint.config.mjs` | Changes to config and env variables follow `BACKWARD_COMPATIBILITY.md` |
+| Tests | — | TODO: no test runner yet; add one and include it in the validation gate |
+| CI / GitHub | `.ai/trackers/github.md`, `SDLC.md` | TODO: no `.github/workflows` yet; CI should mirror the validation gate |
+| Code review / PR | `CODE_REVIEW.md`, `BACKWARD_COMPATIBILITY.md`, `SDLC.md` | Pipeline labels follow `SDLC.md`; severities follow `CODE_REVIEW.md` |
+
+## Validation
+
+Run before every commit or PR (the gate from `.ai/agentic.config.json`):
+
+```bash
+npm run lint
+npx tsc --noEmit
+npm run build
+```
+
+Process documents: `SDLC.md` (ticket flow and labels), `CODE_REVIEW.md` (review rules), `BACKWARD_COMPATIBILITY.md` (protected contracts), `.ai/agentic.config.json` (pipeline configuration).
+
 ## Repository structure: monorepo
 
 This project is a **monorepo**: one repository holding multiple packages.
