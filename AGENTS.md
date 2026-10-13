@@ -8,6 +8,14 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
+## Repository structure: monorepo
+
+This project is a **monorepo**: one repository holding multiple packages.
+
+- Each package's source code lives in its own directory: `packages/<package-name>/`.
+- Do not add new standalone source code at the repository root. The root holds only shared tooling and configuration (workspaces, lint, TS config, CI).
+- Shared code goes into a dedicated package under `packages/` and is imported from there, not copied.
+
 ## Project metadata: the `.ai/` folder
 
 All agents (Claude Code, Codex, etc.) MUST use these structures. Do not store specs, run logs or lessons anywhere else.
