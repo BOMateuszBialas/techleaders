@@ -182,7 +182,10 @@ All agents (Claude Code, Codex, etc.) MUST use these structures. Do not store sp
 ├── specs/                  # Specifications for Spec-Driven Development (SDD)
 │   ├── YYYY-MM-DD-slug.md  # Active specs (not yet implemented)
 │   ├── implemented/        # Specs moved here once fully implemented
-│   └── archive/            # Obsolete / superseded / abandoned specs
+│   ├── archive/            # Obsolete / superseded / abandoned specs
+│   ├── product-brief.md    # Product brief from om-discover (fixed name; protected decisions, see SDLC.md)
+│   ├── backlog.md          # Backlog map from om-backlog (fixed name)
+│   └── research/           # Discovery inputs: interviews, benchmarks, decisions/ records
 ├── runs/                   # Logs of autonomous AI runs: YYYY-MM-DD-slug.md
 ├── lessons.md              # Index of findings, lessons and improvements (long-term memory)
 ├── lessons/                # Detailed lesson write-ups: YYYY-MM-DD-slug.md
