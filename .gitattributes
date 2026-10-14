@@ -1,2 +1,7 @@
+# Normalize text files to LF in the repository and in every checkout, so the
+# local gate (Prettier `endOfLine: lf`) matches CI even with Git for Windows'
+# default `core.autocrlf=true`. Binary files are auto-detected and left alone.
+* text=auto eol=lf
+
 # Shell scripts run on Linux CI; keep them LF on every platform.
 *.sh text eol=lf
