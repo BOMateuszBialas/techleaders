@@ -28,7 +28,18 @@ Make the local validation gate behave like CI on Windows, and document the Cezar
 
 - Existing Windows clones keep CRLF files until re-checkout. After pulling, a developer can run `git rm --cached -r . && git reset --hard` (or delete and re-checkout the tracked files) to get LF. The lesson entry says so.
 
+## Outcome
+
+- The `.gitattributes` rule landed. In a fresh worktree checked out with `core.autocrlf=true`, files are LF and the full gate passes: lint, format:check (it failed before), typecheck, unit tests at 100%, build, integration 7/7, e2e 6/6.
+- `om-auto-review-pr` gave APPROVE with 1 minor finding (this section was missing). CI passed 5/5 on `f78cdb1`.
+
+## Follow-ups
+
+- `.ai/tmp/` (worktrees of `om-auto-review-pr` / `om-auto-fix-pr`) is not git-ignored. Add it to `.gitignore` if those skills run from the primary checkout.
+
 ## Progress
+
+PR: #4
 
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles.
 
