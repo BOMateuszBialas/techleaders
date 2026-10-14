@@ -184,8 +184,11 @@ All agents (Claude Code, Codex, etc.) MUST use these structures. Do not store sp
 │   └── archive/            # Obsolete / superseded / abandoned specs
 ├── runs/                   # Logs of autonomous AI runs: YYYY-MM-DD-slug.md
 ├── lessons.md              # Index of findings, lessons and improvements (long-term memory)
-└── lessons/                # Detailed lesson write-ups: YYYY-MM-DD-slug.md
+├── lessons/                # Detailed lesson write-ups: YYYY-MM-DD-slug.md
+└── cezar/                  # Cezar agent-orchestrator workspace (`npx cezar-run`)
 ```
+
+`.ai/cezar/` belongs to [Cezar](https://github.com/open-mercato/cezar). Its runtime state (task runs, worktrees, automation state, `launch-key`) is ignored by `.ai/cezar/.gitignore`. Commit only Cezar workflows (`.ai/cezar/workflows/*.yaml`) and skills, and never edit the runtime files by hand.
 
 ### Rules
 
