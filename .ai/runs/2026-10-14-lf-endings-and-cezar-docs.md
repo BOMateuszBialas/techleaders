@@ -34,8 +34,8 @@ Make the local validation gate behave like CI on Windows, and document the Cezar
 
 ### Phase 1: Line endings
 
-- [ ] 1.1 Add `* text=auto eol=lf` to .gitattributes and verify renormalization
-- [ ] 1.2 Record the CRLF lesson in .ai/lessons.md
+- [x] 1.1 Add `* text=auto eol=lf` to .gitattributes and verify renormalization — fe93651
+- [x] 1.2 Record the CRLF lesson in .ai/lessons.md — c354210
 
 ### Phase 2: Docs
 
