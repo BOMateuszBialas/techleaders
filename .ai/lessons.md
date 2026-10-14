@@ -11,6 +11,8 @@ Keep entries short; put longer write-ups in `.ai/lessons/YYYY-MM-DD-slug.md` and
 
 <!-- Newest first -->
 
+- **2026-10-14 — CRLF checkouts break `format:check` on Windows**: Git for Windows defaults to `core.autocrlf=true`, so a checkout had CRLF line endings and `npm run format:check` (Prettier `endOfLine: lf`) failed on about 85 files locally, while CI on Linux passed the same commit. `.gitattributes` now has `* text=auto eol=lf`, which pins every checkout to LF; the index was already LF. Existing clones keep CRLF files until re-checkout. Fix one with `git rm --cached -r . && git reset --hard` (commit or stash work first). When a local gate fails but CI passes, check line endings (`git ls-files --eol`) before blaming the code.
+
 - **2026-10-13 — agent-browser daemon keeps stdout open**: the first command of a session starts a background daemon that inherits the CLI's stdout pipe, so `execFile` (which resolves on stdio *close*) hung until its 30 s timeout, and a catch that read `error.stdout` silently swallowed the timeout. Run the CLI with `spawn` and resolve on the `exit` event (`packages/app/e2e/support/agent-browser.ts`); never treat a timeout as a normal result.
 - **2026-10-13 — Vitest alias `"@/"` as an object key**: it did not resolve `@/…` imports inside real modules (only mocked ones), failing with "Cannot find package '@/server/logger'". Use the array form with a regex: `{ find: /^@\//, replacement: … }`.
 - **2026-10-13 — Awilix cradle proxies in `expect`**: comparing objects whose fields are the cradle proxy with `toBe`/`not.toBe` can make Vitest walk the proxy and throw `AwilixResolutionError: Could not resolve 'size'`. Compare identity with `===` and assert the boolean.
