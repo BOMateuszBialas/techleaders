@@ -39,4 +39,4 @@ Make the local validation gate behave like CI on Windows, and document the Cezar
 
 ### Phase 2: Docs
 
-- [ ] 2.1 Document .ai/cezar/ in AGENTS.md
+- [x] 2.1 Document .ai/cezar/ in AGENTS.md — f46bf5b
