@@ -78,5 +78,12 @@
     "zamyka",
     "naprawia",
     "rozwiązuje"
-  ]
+  ],
+  "discovery": {
+    "enabled": true,
+    "roles": {
+      "domainExpert": false,
+      "designer": false
+    }
+  }
 }

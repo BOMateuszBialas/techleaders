@@ -146,6 +146,7 @@ Before starting a task, read the files listed for the area it touches.
 | Tests | Testing above, `vitest.config.mts`, `packages/app/e2e/support/` | `*.test.ts` = unit (100% coverage), `*.int.test.ts` = integration (Testcontainers), `*.e2e.test.ts` = e2e (agent-browser) |
 | CI / GitHub | `.github/workflows/ci.yml`, `.ai/trackers/github.md`, `SDLC.md` | Jobs mirror the validation gate (lint, unit + coverage, build, integration, e2e); keep the workflow and the gate in sync |
 | Code review / PR | `CODE_REVIEW.md`, `BACKWARD_COMPATIBILITY.md`, `SDLC.md` | Pipeline labels follow `SDLC.md`; severities follow `CODE_REVIEW.md` |
+| Product discovery, a brief, or a backlog | `.ai/specs/product-brief.md`, `.ai/specs/research/`, `.ai/specs/backlog.md`, the Definition of Ready and protected decisions in `SDLC.md` | Decisions in the brief (non-goals, business rules, decisions) are a protected contract; synthetic personas are hypotheses, never evidence <!-- discovery:routing --> |
 
 ## Validation
 
@@ -181,7 +182,10 @@ All agents (Claude Code, Codex, etc.) MUST use these structures. Do not store sp
 ├── specs/                  # Specifications for Spec-Driven Development (SDD)
 │   ├── YYYY-MM-DD-slug.md  # Active specs (not yet implemented)
 │   ├── implemented/        # Specs moved here once fully implemented
-│   └── archive/            # Obsolete / superseded / abandoned specs
+│   ├── archive/            # Obsolete / superseded / abandoned specs
+│   ├── product-brief.md    # Product brief from om-discover (fixed name; protected decisions, see SDLC.md)
+│   ├── backlog.md          # Backlog map from om-backlog (fixed name)
+│   └── research/           # Discovery inputs: interviews, benchmarks, decisions/ records
 ├── runs/                   # Logs of autonomous AI runs: YYYY-MM-DD-slug.md
 ├── lessons.md              # Index of findings, lessons and improvements (long-term memory)
 ├── lessons/                # Detailed lesson write-ups: YYYY-MM-DD-slug.md
