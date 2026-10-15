@@ -64,6 +64,8 @@ The home page `/` looks like a normal shop (hero, featured-products slider with 
 
 ## Progress
 
+PR: #37
+
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles.
 
 ### Phase 1: gaming demo catalog (D10)
