@@ -11,6 +11,15 @@ Keep entries short; put longer write-ups in `.ai/lessons/YYYY-MM-DD-slug.md` and
 
 <!-- Newest first -->
 
+- **2026-10-15 — Better Auth 1.7 surprises (spike for the admin auth spec)**:
+  - The rate limiter keys on `x-forwarded-for` by default, and a client can forge it when there is no proxy. Set `advanced.ipAddress.ipAddressHeaders: []` unless a trusted proxy overwrites a header; then production uses one shared `no-trusted-ip` bucket per path.
+  - `disableSignUp` also blocks server-side `auth.api.signUpEmail`. Provision users with `$context.internalAdapter.createUser(user, { method: "admin" })` + `linkAccount` + `password.hash`, and revoke with `deleteUserSessions(userId)` (`deleteSessions` takes tokens).
+  - The `Secure` flag and the `__Secure-` prefix follow the `baseURL` protocol, not `NODE_ENV`.
+  - The instance checks the schema at init, so build it lazily at request time, never at import or prerender.
+  - Details: `.ai/specs/2026-10-15-admin-authentication.md`, "Spike results".
+- **2026-10-15 — `npx skills add` installs where Claude Code does not look**: skills land in `~/.agents/skills/`, but Claude Code reads `~/.claude/skills/` and `.claude/skills/`. Copy the skill there, plus any skill it delegates to (`grill-me` only calls `grilling`).
+- **2026-10-15 — Python on Windows writes CRLF**: `open(p, "w")` in text mode turned a spec into CRLF. The index stayed LF, but the working tree showed a phantom change that blocked `git switch`. Pass `newline="\n"` when a script rewrites repo files.
+
 - **2026-10-14 — CRLF checkouts break `format:check` on Windows**: Git for Windows defaults to `core.autocrlf=true`, so a checkout had CRLF line endings and `npm run format:check` (Prettier `endOfLine: lf`) failed on about 85 files locally, while CI on Linux passed the same commit. `.gitattributes` now has `* text=auto eol=lf`, which pins every checkout to LF; the index was already LF. Existing clones keep CRLF files until re-checkout. Fix one with `git rm --cached -r . && git reset --hard` (commit or stash work first). When a local gate fails but CI passes, check line endings (`git ls-files --eol`) before blaming the code.
 
 - **2026-10-13 — agent-browser daemon keeps stdout open**: the first command of a session starts a background daemon that inherits the CLI's stdout pipe, so `execFile` (which resolves on stdio *close*) hung until its 30 s timeout, and a catch that read `error.stdout` silently swallowed the timeout. Run the CLI with `spawn` and resolve on the `exit` event (`packages/app/e2e/support/agent-browser.ts`); never treat a timeout as a normal result.
