@@ -59,6 +59,10 @@ Verify the setup:
 - http://localhost:3000/admin: redirects to `/admin/sign-in`; after signing in as the owner, the dashboard with live system status
 - http://localhost:3000/api/health: returns `200 {"status":"ok",...}` when the database is reachable, `503 {"status":"degraded",...}` otherwise
 
+Always open the app at `http://localhost:3000`, not at the "Network" address `next dev` prints:
+- From another origin, the dev server blocks hot-reload, and the page keeps reloading ("Compiling" never stops).
+- Sign-in trusts only `APP_URL`.
+
 ## Environment variables
 
 Defined and validated in `packages/app/src/server/env.ts`; invalid configuration fails with a message listing the problems.
