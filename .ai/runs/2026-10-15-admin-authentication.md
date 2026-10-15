@@ -51,7 +51,7 @@ One phase, as in the spec. Each step lands as its own commit and keeps the app w
 - [x] 1.2 Schema: admin auth entities and migration — f9458a9
 - [x] 1.3 Auth factories and container wiring — 799d687
 - [x] 1.4 createOwner and the admin:create CLI — 41c5988
-- [ ] 1.5 require-admin guard and inventory test
+- [x] 1.5 require-admin guard and inventory test — b4900c9
 - [ ] 1.6 Sign-in page, actions, auth route and protected route group
 - [ ] 1.7 GET /api/admin/me
 - [ ] 1.8 E2E suite with signInAsOwner
