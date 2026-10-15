@@ -4,3 +4,7 @@ export type AdminRole = (typeof ADMIN_ROLES)[number];
 
 /** The owner account is the only privileged account, so its password is stricter than sign-in's 8. */
 export const OWNER_PASSWORD_MIN_LENGTH = 12;
+
+export function isAdminRole(value: unknown): value is AdminRole {
+  return ADMIN_ROLES.some((role) => role === value);
+}
