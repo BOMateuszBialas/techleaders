@@ -55,6 +55,7 @@ These supersede any conflicting text elsewhere in this spec.
 | G20 | Order of delivery and column ownership | Storefront Phase 1 → **storefront Phase 1b** (adds the `featured` column, migration and seed) → admin 1a/1b (adds the "Featured on home page" checkbox) → storefront Phase 2 and the cart |
 | G21 | Remote product images (from the admin spec's grill-me, G10) | A product whose `imageUrl` is not a local `/demo/...` path renders with a plain `<img>` (`referrerpolicy="no-referrer"`, `loading="lazy"`, width/height set, `alt` = product name), never `next/image`; no `next.config.ts` change. A failed load shows the "No image" placeholder |
 | G22 | Cart slots (from the cart spec's grill-me, G8, G9, G11) | Product cards (listing and home slider) and the header leave an empty slot for "Add to cart" and the cart count; the cart spec's Phase 1 fills them. No disabled placeholder ships before the cart works |
+| G23 | Demo catalog (product owner, 2026-10-15, decision D10) | The demo store sells **gaming accessories**, not coffee: categories Mice, Keyboards, Headsets, Controllers and Mousepads, about 15 products with local SVG images, at least one out of stock, about 6 featured across at least 3 categories. Coffee slugs and names in this spec's examples (`coffee`, `brewing`, `v60-dripper`, "Yirgacheffe") describe the Phase 1 data and are replaced by the gaming catalog from Phase 1b on (seed, fixtures, tests, copy) |
 
 ## 📝 Problem Statement
 
