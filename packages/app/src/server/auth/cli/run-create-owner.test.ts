@@ -92,17 +92,26 @@ describe("runCreateOwner", () => {
   });
 
   it("reports unexpected failures generically and exits 1", async () => {
-    vi.mocked(createOwner).mockRejectedValueOnce(new Error("connect ECONNREFUSED"));
+    const refused = Object.assign(new Error("connect ECONNREFUSED postgresql://u:secret@h"), {
+      code: "ECONNREFUSED",
+    });
+    vi.mocked(createOwner).mockRejectedValueOnce(refused);
     const first = deps();
     await expect(runCreateOwner(first.all)).resolves.toBe(1);
     expect(first.log.error).toHaveBeenCalledWith(
-      "Could not create the owner account: connect ECONNREFUSED",
+      "Could not create the owner account (Error ECONNREFUSED). Check DATABASE_URL and that migrations ran.",
     );
+    expect(printed(first.log)).not.toContain("secret");
 
-    vi.mocked(createOwner).mockRejectedValueOnce("boom");
+    vi.mocked(createOwner).mockRejectedValueOnce(new TypeError("bad input"));
     const second = deps();
     await expect(runCreateOwner(second.all)).resolves.toBe(1);
-    expect(second.log.error).toHaveBeenCalledWith("Could not create the owner account: boom");
+    expect(second.log.error).toHaveBeenCalledWith(expect.stringContaining("(TypeError)"));
+
+    vi.mocked(createOwner).mockRejectedValueOnce("boom");
+    const third = deps();
+    await expect(runCreateOwner(third.all)).resolves.toBe(1);
+    expect(third.log.error).toHaveBeenCalledWith(expect.stringContaining("(unknown error)"));
   });
 
   it("passes only error-level library logs to the CLI output", async () => {

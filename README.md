@@ -124,7 +124,8 @@ Not implemented yet. The plan is Stripe Checkout in **test mode** if feasible wi
   - There is one owner account and no public sign-up.
   - A lost password is reset with `npm run admin:create -- --rotate-password`, which also signs the owner out everywhere. There is no reset email.
   - There is no account lockout (it would let anyone lock the only owner out).
-  - Without `AUTH_TRUSTED_IP_HEADER`, the sign-in rate limit is shared by all clients.
+  - Without `AUTH_TRUSTED_IP_HEADER`, the sign-in rate limit is shared by all clients, so anyone flooding the form can block sign-in for everyone. **Set it in any public deployment**, behind a proxy that overwrites that header.
+  - Protected admin pages answer HTTP 200 with a static shell (sidebar, headings, no store data), and the redirect to `/admin/sign-in` streams in. This follows from Next 16 cache components, where session reads sit inside `<Suspense>`. Never put sensitive data in an admin page's static shell.
   - Sessions end after 8 h of inactivity.
 - No LLM provider, payments, catalog UI, cart or checkout yet.
 - `npm audit` reports advisories in development tooling dependencies (e.g. `braces` via linting and test tooling); they do not affect runtime code and are tracked for a later update.

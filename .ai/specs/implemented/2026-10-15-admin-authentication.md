@@ -330,9 +330,20 @@ Implemented in the PR that closes #19. Deviations from the text above, all minor
 - **No `error.tsx`.** A failed session lookup on a page falls through to Next's default error page, which is also generic.
 - **`advanced.disableOriginCheck: false` is set explicitly.** Better Auth skips the origin check by default when `NODE_ENV=test`.
 - **`adminApiHandler` calls `connection()` before `apiHandler`.** This keeps `next build` from prerendering admin routes; inside `apiHandler`'s try/catch the prerender abort was logged as a route error.
+- **Unauthenticated requests to protected pages get HTTP 200.** They receive the static shell, and the redirect streams in (the session read sits inside `<Suspense>`). The README documents that admin static shells must hold no sensitive data.
 - **The actions live in `server/auth/auth.action.ts`.** The logic is in `sign-in.ts`, so only `signIn` / `signOut` become public action endpoints.
 
 ## 📝 Review log
+
+- **2026-10-15, code review of the implementation PR (independent agent, Claude Sonnet):** approve, with 5 minor findings and 3 nits.
+  - **Applied:**
+    - the guard inventory now covers every page, layout or default file under `app/admin/` (sign-in excepted), every `"use server"` file in `src/`, and strips comments;
+    - the README states that a public deploy must set `AUTH_TRUSTED_IP_HEADER`, and documents the 200-plus-streamed-redirect behaviour;
+    - CLI errors print only the error name and code.
+  - **Declined:**
+    - sign-out without a session throwing: Better Auth 1.7.10's `/sign-out` handles a missing cookie and returns 200 (`api/routes/sign-out.mjs`);
+    - mapping a 403 at sign-in to "invalid": it only occurs on an origin mismatch, which is a configuration fault, so it stays logged as `unavailable`;
+    - the single-owner race between two concurrent CLI runs: negligible for a manual CLI.
 
 - **2026-10-15, internal fresh-context review (Claude Sonnet):** applied the package-boundary fix for the CLI and pool, the DB-stored rate limit, `APP_URL` required in production, the 12-char owner password, and ruled out the sign-up fallback.
 - **2026-10-15, cross-model review (GPT, Gemini):**

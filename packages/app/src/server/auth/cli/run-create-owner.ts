@@ -89,10 +89,18 @@ export async function runCreateOwner(deps: RunCreateOwnerDeps): Promise<number> 
     deps.log.error(
       error instanceof ConflictError
         ? error.message
-        : `Could not create the owner account: ${error instanceof Error ? error.message : String(error)}`,
+        : `Could not create the owner account (${describeError(error)}). Check DATABASE_URL and that migrations ran.`,
     );
     return 1;
   } finally {
     await pool.end();
   }
+}
+
+/** Name and code only: a raw message could echo part of a malformed connection string. */
+function describeError(error: unknown): string {
+  if (!(error instanceof Error)) return "unknown error";
+  return "code" in error && typeof error.code === "string"
+    ? `${error.name} ${error.code}`
+    : error.name;
 }
