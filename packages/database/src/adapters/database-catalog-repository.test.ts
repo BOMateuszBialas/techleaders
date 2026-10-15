@@ -19,6 +19,7 @@ const product = {
   stockQuantity: 8,
   imageUrl: "/demo/products/vortex-wireless-mouse.svg",
   status: "published",
+  featured: true,
   sku: "DEMO-MOU-001",
   category: mice,
 };
@@ -88,13 +89,23 @@ describe("DatabaseCatalogRepository", () => {
       stockQuantity: 8,
       imageUrl: "/demo/products/vortex-wireless-mouse.svg",
       status: "published",
+      featured: true,
       category: { slug: "mice", name: "Mice" },
     });
     expect(result.items[1]).toMatchObject({ imageUrl: null, category: null });
     expect(Object.keys(result.items[0] ?? {})).not.toContain("sku");
   });
 
-  it("omits the category filter when none is given", async () => {
+  it("filters by the featured flag when it is given", async () => {
+    const { findAndCount, repository } = setup();
+    findAndCount.mockResolvedValue([[], 0] as never);
+    await repository.findProducts({ status: "published", featured: true, limit: 12 });
+    await repository.findProducts({ status: "published", featured: false, limit: 12 });
+    expect(findAndCount.mock.calls[0]?.[1]).toEqual({ status: "published", featured: true });
+    expect(findAndCount.mock.calls[1]?.[1]).toEqual({ status: "published", featured: false });
+  });
+
+  it("omits the category and featured filters when none is given", async () => {
     const { findAndCount, repository } = setup();
     findAndCount.mockResolvedValue([[], 0] as never);
     await repository.findProducts({ status: "published", limit: 48 });

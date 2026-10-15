@@ -108,6 +108,49 @@ describe("DatabaseCatalogRepository (PostgreSQL)", () => {
     expect(total).toBe(15);
   });
 
+  it("filters featured products, drafts included unless the status excludes them", async () => {
+    const published = await repository().findProducts({
+      status: "published",
+      featured: true,
+      limit: 12,
+    });
+    expect(published.items.map((product) => product.slug)).toEqual([
+      "apex-wireless-controller",
+      "echo-surround-headset",
+      "glide-xl-mousepad",
+      "nova-tkl-mechanical-keyboard",
+      "titan-mmo-mouse",
+      "vortex-wireless-mouse",
+    ]);
+    expect(published.items.every((product) => product.featured)).toBe(true);
+
+    const drafts = await repository().findProducts({ status: "draft", featured: true, limit: 12 });
+    // Sorted by name with the database collation: "[E2E] Draft Vortex…" before "…keyboard".
+    expect(drafts.items.map((product) => product.slug)).toEqual([
+      "e2e-draft-mouse",
+      "e2e-draft-keyboard",
+    ]);
+  });
+
+  it("combines the featured flag with a category and the limit", async () => {
+    const { items, total } = await repository().findProducts({
+      status: "published",
+      featured: true,
+      categoryId: await categoryId("mice"),
+      limit: 1,
+    });
+    expect(items.map((product) => product.slug)).toEqual(["titan-mmo-mouse"]);
+    expect(total).toBe(2);
+
+    const none = await repository().findProducts({
+      status: "published",
+      featured: true,
+      categoryId: await categoryId("e2e-empty"),
+      limit: 12,
+    });
+    expect(none).toEqual({ items: [], total: 0 });
+  });
+
   it("finds a product by slug in any status (the use case filters drafts)", async () => {
     expect(await repository().findProductBySlug("e2e-draft-keyboard")).toMatchObject({
       status: "draft",

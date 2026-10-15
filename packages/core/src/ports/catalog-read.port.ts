@@ -20,6 +20,8 @@ export type CatalogProductRecord = {
   stockQuantity: number;
   imageUrl: string | null;
   status: ProductStatus;
+  /** Shown in the home page's featured slider (spec G9). */
+  featured: boolean;
   category: { slug: string; name: string } | null;
 };
 
@@ -30,6 +32,8 @@ export type CatalogProductRecord = {
 export type CatalogProductCriteria = {
   status: ProductStatus;
   categoryId?: string;
+  /** When set, only products whose `featured` flag equals it. */
+  featured?: boolean;
   limit: number;
 };
 

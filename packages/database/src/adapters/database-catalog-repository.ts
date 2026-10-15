@@ -37,6 +37,7 @@ function toProductRecord(product: Product): CatalogProductRecord {
     stockQuantity: product.stockQuantity,
     imageUrl: product.imageUrl ?? null,
     status: product.status,
+    featured: product.featured,
     category: category ? { slug: category.slug, name: category.name } : null,
   };
 }
@@ -68,6 +69,7 @@ export class DatabaseCatalogRepository implements CatalogReadPort {
     const where: FilterQuery<Product> = {
       status: criteria.status,
       ...(criteria.categoryId ? { category: criteria.categoryId } : {}),
+      ...(criteria.featured === undefined ? {} : { featured: criteria.featured }),
     };
     const [products, total] = await this.deps.em.findAndCount(ProductSchema, where, {
       populate: ["category"],

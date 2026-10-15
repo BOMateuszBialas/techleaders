@@ -29,6 +29,7 @@ export function productRecord(overrides: Partial<CatalogProductRecord> = {}): Ca
     stockQuantity: 8,
     imageUrl: "/demo/products/vortex-wireless-mouse.svg",
     status: "published",
+    featured: false,
     category: { slug: MICE.slug, name: MICE.name },
     ...overrides,
   };
@@ -63,6 +64,9 @@ export class InMemoryCatalog implements CatalogReadPort {
       .filter(
         (product) =>
           !criteria.categoryId || this.productCategoryIds[product.slug] === criteria.categoryId,
+      )
+      .filter(
+        (product) => criteria.featured === undefined || product.featured === criteria.featured,
       )
       .sort((a, b) => a.name.localeCompare(b.name));
     return { items: matches.slice(0, criteria.limit), total: matches.length };
