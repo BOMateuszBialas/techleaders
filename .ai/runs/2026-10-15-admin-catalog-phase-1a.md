@@ -71,7 +71,7 @@ The signed-in owner lists, creates, edits and deletes categories in `/admin/cate
 - [x] 3.2 Action layer and admin error boundary — d8fe0ff
 - [x] 3.3 Category actions — 693eb61
 - [x] 3.4 Category pages, forms and sidebar link — 99c5ffd
-- [ ] 3.5 Category e2e tests
+- [x] 3.5 Category e2e tests — 02d3530
 
 ### Phase 4: Docs
 
