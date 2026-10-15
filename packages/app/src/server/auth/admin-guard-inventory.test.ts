@@ -12,7 +12,10 @@ import { describe, expect, it } from "vitest";
  *   must call `requireAdminPage(`
  * - every route handler under `app/api/admin/` must use `adminApiHandler(`
  * - every file under `src/` with a `"use server"` directive (each export is a public
- *   endpoint) must call `requireAdmin(`, except the sign-in/sign-out actions
+ *   endpoint) must call `requireAdmin(` or `runAdminAction(` (which calls `requireAdmin()`
+ *   before its handler), except the sign-in/sign-out actions. Whether *every* export of such
+ *   a file goes through the guard is checked by that file's unit tests (one per export,
+ *   invoked without a session).
  *
  * Comments are stripped first, so a guard that only appears in a comment does not count.
  */
@@ -22,7 +25,12 @@ const SIGN_IN_ACTIONS = "server/auth/auth.action.ts";
 const SOURCE = /\.(ts|tsx|js|jsx|mts|mjs)$/;
 const TEST = /\.test\.[a-z]+$/;
 
-type Rule = { name: string; matches: (path: string, code: string) => boolean; guard: string };
+type Rule = {
+  name: string;
+  matches: (path: string, code: string) => boolean;
+  /** Any one of these calls counts as the guard. */
+  guards: string[];
+};
 
 const RULES: Rule[] = [
   {
@@ -30,17 +38,17 @@ const RULES: Rule[] = [
     matches: (path) =>
       /^app\/admin\/.*(page|layout|default)\.(tsx|jsx|ts|js)$/.test(path) &&
       !path.startsWith("app/admin/sign-in/"),
-    guard: "requireAdminPage(",
+    guards: ["requireAdminPage("],
   },
   {
     name: "admin API routes",
     matches: (path) => /^app\/api\/admin\/.*route\.(ts|js)$/.test(path),
-    guard: "adminApiHandler(",
+    guards: ["adminApiHandler("],
   },
   {
     name: "server actions",
     matches: (path, code) => /^\s*["']use server["']/m.test(code) && path !== SIGN_IN_ACTIONS,
-    guard: "requireAdmin(",
+    guards: ["requireAdmin(", "runAdminAction("],
   },
 ];
 
@@ -53,8 +61,11 @@ function stripComments(source: string): string {
 function findUnguarded(files: Record<string, string>): string[] {
   return Object.entries(files).flatMap(([path, source]) => {
     const code = stripComments(source);
-    return RULES.filter((rule) => rule.matches(path, code) && !code.includes(rule.guard)).map(
-      (rule) => `${path} (${rule.name} must call ${rule.guard.slice(0, -1)})`,
+    return RULES.filter(
+      (rule) => rule.matches(path, code) && !rule.guards.some((guard) => code.includes(guard)),
+    ).map(
+      (rule) =>
+        `${path} (${rule.name} must call ${rule.guards.map((guard) => guard.slice(0, -1)).join(" or ")})`,
     );
   });
 }
@@ -81,6 +92,7 @@ describe("admin guard inventory", () => {
         "app/admin/(protected)/page.tsx",
         "app/admin/(protected)/layout.tsx",
         "app/api/admin/me/route.ts",
+        "server/catalog/category.action.ts",
         SIGN_IN_ACTIONS,
       ]),
     );
@@ -97,6 +109,10 @@ describe("admin guard inventory", () => {
         "server/catalog/publish.ts": "'use server'\nexport async function publish() {}",
         "app/admin/(protected)/fake/page.tsx": "// await requireAdminPage();\nexport default 1",
         "app/admin/(protected)/ok/page.tsx": "await requireAdminPage();",
+        "server/catalog/guarded.action.ts":
+          '"use server";\nexport async function a() { return runAdminAction("a", {}, h); }',
+        "server/catalog/commented.action.ts":
+          '"use server";\n// return runAdminAction("a", {}, h);\nexport async function a() {}',
         "app/admin/sign-in/page.tsx": "public sign-in page",
         "server/auth/auth.action.ts": '"use server";',
         "app/api/health/route.ts": "public by contract",
@@ -105,9 +121,10 @@ describe("admin guard inventory", () => {
       "app/api/admin/orders/route.ts (admin API routes must call adminApiHandler)",
       "app/admin/orders/page.tsx (admin pages and layouts must call requireAdminPage)",
       "app/admin/(protected)/@modal/default.tsx (admin pages and layouts must call requireAdminPage)",
-      "app/admin/(protected)/orders/save.ts (server actions must call requireAdmin)",
-      "server/catalog/publish.ts (server actions must call requireAdmin)",
+      "app/admin/(protected)/orders/save.ts (server actions must call requireAdmin or runAdminAction)",
+      "server/catalog/publish.ts (server actions must call requireAdmin or runAdminAction)",
       "app/admin/(protected)/fake/page.tsx (admin pages and layouts must call requireAdminPage)",
+      "server/catalog/commented.action.ts (server actions must call requireAdmin or runAdminAction)",
     ]);
   });
 });
