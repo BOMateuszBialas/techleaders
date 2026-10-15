@@ -9,6 +9,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const listCategories = vi.fn();
 const listProducts = vi.fn();
 const getProduct = vi.fn();
+const listFeatured = vi.fn();
 const dispose = vi.fn(async () => {});
 
 vi.mock("@/server/container", () => ({
@@ -17,12 +18,14 @@ vi.mock("@/server/container", () => ({
       listCatalogCategoriesUseCase: { execute: listCategories },
       listCatalogProductsUseCase: { execute: listProducts },
       getCatalogProductUseCase: { execute: getProduct },
+      listFeaturedProductsUseCase: { execute: listFeatured },
     },
     dispose,
   }),
 }));
 
 const { loadStorefrontCategories } = await import("./load-storefront-categories");
+const { buildFeaturedTabs, loadHomePage } = await import("./load-home-page");
 const { loadCatalogPage } = await import("./products/load-catalog-page");
 const { loadProductPage, productPageTitle } = await import("./products/[slug]/load-product-page");
 
@@ -54,6 +57,65 @@ describe("loadStorefrontCategories", () => {
   it("returns the error state when the catalog cannot be read", async () => {
     listCategories.mockRejectedValue(new Error("database down"));
     await expect(loadStorefrontCategories()).resolves.toEqual({ kind: "error" });
+  });
+});
+
+describe("loadHomePage", () => {
+  const mice = { slug: "mice", name: "Mice", description: null };
+
+  it("shows every featured product under the active All tab without a category", async () => {
+    listCategories.mockResolvedValue(categories);
+    listFeatured.mockResolvedValue({ category: null, products: [product] });
+
+    await expect(loadHomePage({})).resolves.toEqual({
+      kind: "ok",
+      data: {
+        tabs: [
+          { key: "all", label: "All", href: "/", active: true },
+          { key: "mice", label: "Mice", href: "/?category=mice", active: false },
+        ],
+        active: null,
+        products: [product],
+      },
+    });
+    expect(listFeatured).toHaveBeenCalledWith({});
+    expect(dispose).toHaveBeenCalledOnce();
+  });
+
+  it("narrows the slider to a valid category and marks its tab", async () => {
+    listCategories.mockResolvedValue(categories);
+    listFeatured.mockResolvedValue({ category: mice, products: [] });
+
+    const result = await loadHomePage({ category: ["Mice", "keyboards"] });
+
+    expect(listFeatured).toHaveBeenCalledWith({ categorySlug: "mice" });
+    expect(result).toMatchObject({ kind: "ok", data: { active: mice, products: [] } });
+    expect(result.kind === "ok" && result.data.tabs.filter((tab) => tab.active)).toEqual([
+      { key: "mice", label: "Mice", href: "/?category=mice", active: true },
+    ]);
+  });
+
+  it("shows All for a malformed category without passing it on (spec G19)", async () => {
+    listCategories.mockResolvedValue(categories);
+    listFeatured.mockResolvedValue({ category: null, products: [] });
+
+    const result = await loadHomePage({ category: "not a slug!" });
+
+    expect(listFeatured).toHaveBeenCalledWith({});
+    expect(result.kind === "ok" && result.data.tabs[0]?.active).toBe(true);
+  });
+
+  it("returns the error state when the catalog cannot be read", async () => {
+    listCategories.mockRejectedValue(new Error("database down"));
+    await expect(loadHomePage({})).resolves.toEqual({ kind: "error" });
+    expect(dispose).toHaveBeenCalledOnce();
+  });
+
+  it("builds tabs with exactly one active entry", () => {
+    expect(buildFeaturedTabs([], null)).toEqual([
+      { key: "all", label: "All", href: "/", active: true },
+    ]);
+    expect(buildFeaturedTabs(categories, "mice").map((tab) => tab.active)).toEqual([false, true]);
   });
 });
 

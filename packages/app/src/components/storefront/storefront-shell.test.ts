@@ -1,6 +1,8 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+import { money, type CatalogProductSummary } from "@commerceos/core";
+import { FeaturedSlider, FeaturedTabs } from "./featured-products";
 import { HeaderMenu } from "./header-menu";
 import { FooterCategoryLinks, SiteFooter } from "./site-footer";
 import { DEMO_NOTICE, featuredEmptyMessage, homeHref, STORE_TAGLINE } from "./storefront-copy";
@@ -60,5 +62,64 @@ describe("SiteFooter", () => {
     const html = renderToStaticMarkup(createElement(FooterCategoryLinks, { categories: [] }));
     expect(html).toContain(">All products<");
     expect(html).not.toContain("?category=");
+  });
+});
+
+const titan: CatalogProductSummary = {
+  id: "p-2",
+  slug: "titan-mmo-mouse",
+  name: "Titan MMO Mouse",
+  price: money(29900, "PLN"),
+  category: { slug: "mice", name: "Mice" },
+  availability: "out_of_stock",
+  imageUrl: "/demo/products/titan-mmo-mouse.svg",
+};
+
+describe("FeaturedTabs", () => {
+  it("renders tab links and marks only the active one as current", () => {
+    const html = renderToStaticMarkup(
+      createElement(FeaturedTabs, {
+        tabs: [
+          { key: "all", label: "All", href: "/", active: false },
+          { key: "mice", label: "Mice", href: "/?category=mice", active: true },
+        ],
+      }),
+    );
+    expect(html).toContain('aria-label="Featured categories"');
+    expect(html).toMatch(/href="\/"[^>]*>All</);
+    expect(html).toContain('href="/?category=mice"');
+    expect(html).toMatch(/aria-current="page"[^>]*>Mice</);
+    expect(html.match(/aria-current/g)).toHaveLength(1);
+  });
+});
+
+describe("FeaturedSlider", () => {
+  it("renders a scroll-snap row of product cards, out-of-stock products labelled", () => {
+    const html = renderToStaticMarkup(
+      createElement(FeaturedSlider, { category: null, products: [titan] }),
+    );
+    expect(html).toMatch(
+      /<ul aria-label="Featured products" class="[^"]*snap-x[^"]*overflow-x-auto/,
+    );
+    expect(html).toContain("snap-start");
+    expect(html).toContain('href="/products/titan-mmo-mouse"');
+    expect(html).toContain(">Out of stock<");
+  });
+
+  it("says a category has no featured products and links to its listing (spec G17)", () => {
+    const html = renderToStaticMarkup(
+      createElement(FeaturedSlider, { category: categories[1]!, products: [] }),
+    );
+    expect(html).toContain("No featured products in Mice yet.");
+    expect(html).toMatch(/href="\/products\?category=mice"[^>]*>Browse all Mice</);
+    expect(html).not.toContain("<ul");
+  });
+
+  it("links to every product when nothing is featured at all", () => {
+    const html = renderToStaticMarkup(
+      createElement(FeaturedSlider, { category: null, products: [] }),
+    );
+    expect(html).toContain("No featured products yet.");
+    expect(html).toMatch(/href="\/products"[^>]*>Browse all products</);
   });
 });
