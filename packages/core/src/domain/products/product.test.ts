@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getAvailability, isLowStock, isPurchasable } from "./product";
+import { getAvailability, isLowStock, isPurchasable, isValidSlug, slugify } from "./product";
 
 describe("product rules", () => {
   it("is purchasable only when published and in stock", () => {
@@ -19,5 +19,35 @@ describe("product rules", () => {
     expect(getAvailability({ status: "published", stockQuantity: 0 })).toBe("out_of_stock");
     // Drafts never reach shoppers, but the rule stays total for admin reuse.
     expect(getAvailability({ status: "draft", stockQuantity: 7 })).toBe("out_of_stock");
+  });
+});
+
+describe("slug rule", () => {
+  it.each([
+    ["Gaming Mice", "gaming-mice"],
+    ["Myszki bezprzewodowe żółte", "myszki-bezprzewodowe-zolte"],
+    ["Słuchawki & Głośniki", "sluchawki-glosniki"],
+    ["ŁAD", "lad"],
+    ["  --Mice---  Pads-- ", "mice-pads"],
+    ["Keyboards 60%", "keyboards-60"],
+    ["!!! ???", ""],
+  ])("slugifies %j to %j", (name, slug) => {
+    expect(slugify(name)).toBe(slug);
+  });
+
+  it("accepts lowercase words joined by single hyphens only", () => {
+    expect(isValidSlug("gaming-mice")).toBe(true);
+    expect(isValidSlug("mice2")).toBe(true);
+    for (const slug of [
+      "",
+      "Mice",
+      "gaming--mice",
+      "-mice",
+      "mice-",
+      "mice pads",
+      "myszki-żółte",
+    ]) {
+      expect(isValidSlug(slug)).toBe(false);
+    }
   });
 });

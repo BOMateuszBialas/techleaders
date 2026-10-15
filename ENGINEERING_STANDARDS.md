@@ -419,4 +419,4 @@ Deviation from the original AGENTS.md: `core` now depends on **Zod**, because sh
 
 ### Deferred until a real consumer exists
 
-Client-side `/api` helper, `makeCrudRoute`, domain events, shared form/table/feedback components. (Auth helpers and sign-in rate limiting now exist: `packages/app/src/server/auth/`.)
+Client-side `/api` helper, `makeCrudRoute`, domain events, shared table components. (Auth helpers and sign-in rate limiting now exist: `packages/app/src/server/auth/`. Admin form feedback (`FormMessage`, `FieldError`) exists since the admin catalog: `packages/app/src/components/admin/form-feedback.tsx`.)

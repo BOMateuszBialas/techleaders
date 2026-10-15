@@ -72,6 +72,27 @@ export class ConflictError extends AppError {
   }
 }
 
+/**
+ * A unique value (a slug, a SKU) is already taken. `field` names the input that caused it, so
+ * a form can show the message under that field. Raised by the repository adapters when the
+ * database's unique constraint fires: there is no check-then-write race.
+ */
+export class UniqueFieldConflictError extends ConflictError {
+  constructor(
+    readonly field: string,
+    message: string,
+  ) {
+    super(message);
+  }
+}
+
+/** True for a `UniqueFieldConflictError` from any copy of this package (see `hasAppErrorCode`). */
+export function isUniqueFieldConflict(
+  error: unknown,
+): error is Error & { readonly code: "CONFLICT"; readonly field: string } {
+  return hasAppErrorCode(error, "CONFLICT") && "field" in error && typeof error.field === "string";
+}
+
 /** Codes of the errors whose message is safe and meaningful for the client. */
 export const CLIENT_ERROR_CODES = [
   "VALIDATION_FAILED",

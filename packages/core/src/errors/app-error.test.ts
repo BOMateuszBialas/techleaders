@@ -6,9 +6,11 @@ import {
   ForbiddenError,
   NotFoundError,
   UnauthorizedError,
+  UniqueFieldConflictError,
   ValidationError,
   hasAppErrorCode,
   isNotFoundError,
+  isUniqueFieldConflict,
 } from "./app-error";
 
 describe("AppError hierarchy", () => {
@@ -65,5 +67,27 @@ describe("AppError hierarchy", () => {
   // Regression (#36): errors from another bundled copy of core must still be recognised.
   it.each(CLIENT_ERROR_CODES)("recognises a foreign error with code %s", (code) => {
     expect(hasAppErrorCode(Object.assign(new Error("foreign"), { code }), code)).toBe(true);
+  });
+
+  it("names the field of a unique conflict, which stays a ConflictError", () => {
+    const error = new UniqueFieldConflictError("slug", "This slug is already used.");
+    expect(error).toBeInstanceOf(ConflictError);
+    expect(error.name).toBe("UniqueFieldConflictError");
+    expect(error.code).toBe("CONFLICT");
+    expect(error.field).toBe("slug");
+    expect(error.message).toBe("This slug is already used.");
+  });
+
+  it("recognises a unique-field conflict by code and field, even from another copy", () => {
+    const foreign = Object.assign(new Error("Taken"), { code: "CONFLICT", field: "sku" });
+    expect(isUniqueFieldConflict(new UniqueFieldConflictError("slug", "Taken"))).toBe(true);
+    expect(isUniqueFieldConflict(foreign)).toBe(true);
+    expect(isUniqueFieldConflict(new ConflictError())).toBe(false);
+    expect(
+      isUniqueFieldConflict(Object.assign(new Error("x"), { code: "CONFLICT", field: 1 })),
+    ).toBe(false);
+    expect(isUniqueFieldConflict(Object.assign(new NotFoundError(), { field: "slug" }))).toBe(
+      false,
+    );
   });
 });

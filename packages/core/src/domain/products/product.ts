@@ -1,3 +1,26 @@
+/** Lowercase words of letters and digits joined by single hyphens, e.g. `vortex-wireless-mouse`. */
+export const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+/** True when `slug` follows `SLUG_PATTERN` (shared by product and category slugs). */
+export function isValidSlug(slug: string): boolean {
+  return SLUG_PATTERN.test(slug);
+}
+
+/**
+ * Derives a slug from a name: diacritics are removed (including Polish "ł", which Unicode
+ * does not decompose), anything that is not a letter or digit becomes one hyphen, and
+ * leading and trailing hyphens are dropped. A name made only of symbols gives "".
+ */
+export function slugify(name: string): string {
+  return name
+    .normalize("NFKD")
+    .replace(/\p{M}/gu, "")
+    .toLowerCase()
+    .replace(/ł/g, "l")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 export const PRODUCT_STATUSES = ["draft", "published"] as const;
 export type ProductStatus = (typeof PRODUCT_STATUSES)[number];
 

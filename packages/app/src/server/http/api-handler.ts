@@ -45,7 +45,7 @@ export function toClientErrorResponse(error: unknown): Response | null {
  * Reads `fieldErrors` structurally, as `ValidationError` defines it (defaulting to `{}`).
  * A missing or malformed value becomes `{}`, so the client never sees an unexpected shape.
  */
-function fieldErrorsOf(error: Error): FieldErrors {
+export function fieldErrorsOf(error: Error): FieldErrors {
   const parsed = FIELD_ERRORS_SCHEMA.safeParse("fieldErrors" in error ? error.fieldErrors : {});
   return parsed.success ? parsed.data : {};
 }
