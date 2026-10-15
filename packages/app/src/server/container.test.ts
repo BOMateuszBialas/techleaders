@@ -1,6 +1,11 @@
 import { afterAll, describe, expect, it, vi } from "vitest";
 import { createRequestScope, disposeRootContainer, getAuth, logAuthMessage } from "./container";
+import { createAuth } from "./auth/create-auth";
 import { logger } from "./logger";
+
+// betterAuth() starts initialising (a database schema check) as soon as it is built. This
+// test checks wiring only, so it gets a stub and opens no connection (it was flaky in CI).
+vi.mock("./auth/create-auth", () => ({ createAuth: vi.fn(() => ({ stub: "auth" })) }));
 
 // No database connection is opened: MikroORM connects lazily and these tests
 // only resolve registrations.
@@ -41,6 +46,10 @@ describe("composition root", () => {
     expect(first.cradle.auth === second.cradle.auth).toBe(true);
     expect(getAuth() === first.cradle.auth).toBe(true);
     expect(first.cradle.authPool === second.cradle.authPool).toBe(true);
+    const deps = vi.mocked(createAuth).mock.calls[0]?.[0];
+    expect(deps?.pool === first.cradle.authPool).toBe(true);
+    expect(deps?.log).toBe(logAuthMessage);
+    expect(deps?.env.BETTER_AUTH_SECRET).toBe(process.env.BETTER_AUTH_SECRET);
   });
 
   it("routes Better Auth log lines through the server logger", () => {

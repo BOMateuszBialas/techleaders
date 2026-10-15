@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterAll, describe, expect, it, vi } from "vitest";
 import {
   createAuth,
   createAuthOptions,
@@ -10,6 +10,7 @@ import { createAuthPool } from "./create-auth-pool";
 
 // Nothing listens on port 1, and nothing in these tests opens a connection.
 const pool = createAuthPool("postgresql://nobody@127.0.0.1:1/none");
+afterAll(() => pool.end());
 const env = {
   APP_URL: "https://shop.example",
   BETTER_AUTH_SECRET: "s".repeat(32),
