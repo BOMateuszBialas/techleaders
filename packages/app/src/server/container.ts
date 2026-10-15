@@ -103,10 +103,29 @@ export function logAuthMessage(level: AuthLogLevel, message: string): void {
 // Cached on globalThis so dev-mode hot reloads do not open a new connection pool each time.
 const globalForContainer = globalThis as typeof globalThis & {
   __commerceosContainer?: AwilixContainer<Cradle>;
+  __commerceosContainerOwner?: symbol;
 };
 
+/**
+ * Identity of this evaluation of the module. `next dev` re-evaluates this file when it or a
+ * module it registers changes; a container cached by an older evaluation lacks the new
+ * registrations (AwilixResolutionError until a restart), so it is disposed and rebuilt.
+ */
+const MODULE_INSTANCE = Symbol("commerceos-container-module");
+
 function getRootContainer(): AwilixContainer<Cradle> {
-  globalForContainer.__commerceosContainer ??= buildContainer();
+  const cached = globalForContainer.__commerceosContainer;
+  if (cached && globalForContainer.__commerceosContainerOwner !== MODULE_INSTANCE) {
+    globalForContainer.__commerceosContainer = undefined;
+    // Closes the stale connection pools in the background; a failure must not break the request.
+    cached.dispose().catch((error: unknown) => {
+      logger.warn("A stale DI container could not be disposed", { error });
+    });
+  }
+  if (!globalForContainer.__commerceosContainer) {
+    globalForContainer.__commerceosContainer = buildContainer();
+    globalForContainer.__commerceosContainerOwner = MODULE_INSTANCE;
+  }
   return globalForContainer.__commerceosContainer;
 }
 
