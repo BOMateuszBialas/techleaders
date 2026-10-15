@@ -77,21 +77,21 @@ The home page `/` looks like a normal shop (hero, featured-products slider with 
 
 ### Phase 3: featured read model (10b)
 
-- [ ] 3.1 Featured criteria, use case, adapter and wiring
+- [x] 3.1 Featured criteria, use case, adapter and wiring — 7bf08ff
 
 ### Phase 4: storefront shell (10c)
 
-- [ ] 4.1 Header menu and footer
+- [x] 4.1 Header menu and footer — 6e1e375
 
 ### Phase 5: home page (10d)
 
-- [ ] 5.1 Hero, featured tabs and slider
+- [x] 5.1 Hero, featured tabs and slider — 3e97858
 
 ### Phase 6: e2e and docs (10e)
 
-- [ ] 6.1 E2E home rewrite and updates
-- [ ] 6.2 Docs, spec notes and lessons
+- [x] 6.1 E2E home rewrite and updates — 6d70570
+- [x] 6.2 Docs, spec notes and lessons — accae98
 
 ### Phase 7: gate
 
-- [ ] 7.1 Full validation gate
+- [x] 7.1 Full validation gate — gate green 2026-10-15 (lint, format, typecheck, coverage 100%, build, integration 31, e2e 26)
