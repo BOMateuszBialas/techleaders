@@ -68,12 +68,12 @@ The home page `/` looks like a normal shop (hero, featured-products slider with 
 
 ### Phase 1: gaming demo catalog (D10)
 
-- [ ] 1.1 Decision record D10, product-brief row, spec G23
-- [ ] 1.2 Seed catalog, SVGs, fixtures and coffee references
+- [x] 1.1 Decision record D10, product-brief row, spec G23 — 2bea3fc
+- [x] 1.2 Seed catalog, SVGs, fixtures and coffee references — 89c00c6
 
 ### Phase 2: featured column (10a)
 
-- [ ] 2.1 Featured column, migration, seed and fixture flags
+- [x] 2.1 Featured column, migration, seed and fixture flags — 831b250
 
 ### Phase 3: featured read model (10b)
 
