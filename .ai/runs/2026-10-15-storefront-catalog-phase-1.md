@@ -43,17 +43,30 @@ Shoppers browse published products at `/products`, narrow them by category (`?ca
 
 ## Progress
 
+PR: #34
+
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles.
 
 ### Phase 1: browse by category and product details
 
-- [ ] 1.1 Core domain and port
-- [ ] 1.2 Core use cases and DTOs
-- [ ] 1.3 Slug and catalog query schema (category part)
-- [ ] 1.4 Seeder and fixtures
-- [ ] 1.5 Database adapter
-- [ ] 1.6 Container wiring
-- [ ] 1.7 Storefront layout and home
-- [ ] 1.8 Listing page
-- [ ] 1.9 Product page
-- [ ] 1.10 Docs and gate
+- [x] 1.1 Core domain and port — 8965872
+- [x] 1.2 Core use cases and DTOs — 8965872
+- [x] 1.3 Slug and catalog query schema (category part) — 8965872
+- [x] 1.4 Seeder and fixtures — ded8fdf
+- [x] 1.5 Database adapter — 91463ae
+- [x] 1.6 Container wiring — 8bd52ff
+- [x] 1.7 Storefront layout and home — aeb8403, ead7ba4
+- [x] 1.8 Listing page — aeb8403, 66b7c6a
+- [x] 1.9 Product page — aeb8403, 66b7c6a
+- [x] 1.10 Docs and gate — 376447d
+
+## Outcome
+
+- Full gate green locally (lint, format, typecheck, unit 183 tests at 100% coverage, build, integration 28, e2e 22).
+- Bug found by e2e and fixed: `instanceof NotFoundError` failed across Next.js server chunks; errors now match by code (`isNotFoundError`), lesson recorded.
+- Deviations recorded in the spec's "Implementation notes, Phase 1".
+
+## Follow-ups
+
+- `apiHandler` maps errors with `instanceof`, so it has the same cross-chunk risk; switch it to code matching.
+- Phase 1b (home page as a shop front) and Phase 2 (search, #15).
