@@ -81,6 +81,9 @@ The demo must work using seeded data, without depending on a large volume of rea
   - “Which products are selling best?”
   - “Which products are low on stock?”
   - “What could explain the recent change in sales?”
+  - “Where does my traffic come from?”, “Where in the funnel do visitors drop off?”, “Which products get views but few sales?” (from the demo traffic data below)
+- The full list of answered and declined questions is in decision D09 (`.ai/specs/research/decisions/D09-copilot-demo-questions.md`). For a declined question Copilot says it cannot answer and names the missing data.
+- **Demo traffic and conversion data (D08):** seeded, fictional daily sessions by source, store funnel counts (sessions → product views → add-to-cart → checkout started) and per-product views and add-to-cart counts, read through one approved tool (§6). It is always labelled as fictional demo data, and storefront visits do not write to it (no event tracking).
 - Use actual metrics queried from PostgreSQL through application services. Do not ask the LLM to invent or calculate authoritative financial figures from raw, unbounded database access.
 - Use structured output validated by a schema.
 - Each recommendation should include:
@@ -266,6 +269,7 @@ Implement only the tools required for the primary workflow:
 - `getTopProducts(dateRange, limit)`
 - `getLowStockProducts(threshold, limit)`
 - `getOrderSummary(dateRange)`
+- `getTrafficSummary(dateRange, productLimit)`: reads the fictional demo traffic data (D08). Returns sessions in total and by source, the funnel counts, store conversion rate, and up to `productLimit` products ranked by views with their add-to-cart and purchase counts. Every result carries the source label "fictional demo traffic data".
 - `getProductPerformance(productId, dateRange)` (optional if time allows)
 
 Tools must call application services, not expose arbitrary SQL or unrestricted ORM access to the model. Validate tool arguments, constrain result sizes, and enforce authorization. Prefer deterministic intent routing or a bounded tool-calling loop over an open-ended autonomous agent.
@@ -279,6 +283,10 @@ Document metric definitions in code and UI. Example definitions:
 - **Average order value (AOV):** revenue under the documented revenue definition divided by the number of included orders; show “not enough data” when the denominator is zero.
 - **Top products:** rank using paid order line items over a stated date range.
 - **Low stock:** published products whose stock quantity is at or below a configurable threshold.
+- **Sessions (demo):** fictional seeded visits per day and traffic source; not measured from real visitors.
+- **Store conversion rate (demo):** paid orders divided by demo sessions over the same date range; show “not enough data” when sessions are zero. It is not computed per source, because orders carry no traffic source.
+- **Funnel (demo):** demo sessions → product views → add-to-cart → checkout started, then paid orders from the orders table.
+- **Product view-to-purchase rate (demo):** units of the product in paid orders divided by its demo views over the date range.
 
 Do not label order totals as revenue without defining which order/payment states are included. Do not infer causal explanations from simple correlations.
 
@@ -329,6 +337,8 @@ Create a small, version-controlled evaluation set of realistic questions and see
 4. Appropriate low-stock and top-product recommendations.
 5. Resilience to prompt injection embedded in product content.
 6. Graceful behavior when the provider fails or returns invalid output.
+7. Declining questions that need data the demo does not hold (D09), naming the missing data.
+8. Labelling traffic and conversion figures as fictional demo data.
 
 Keep evaluation repeatable. If model outputs are nondeterministic, evaluate required properties and factual grounding rather than exact wording. Record known limitations in the README.
 
@@ -344,6 +354,8 @@ Finalize the schema based on the chosen authentication and payment implementatio
 - **Order:** ID, publicReference, customer name/email, shipping address fields, status, payment status/provider reference, subtotalMinor, shippingMinor, totalMinor, currency, createdAt, updatedAt.
 - **OrderItem:** ID, orderId, productId (nullable if historical item retention requires it), product name/SKU snapshot, unitPriceMinor, quantity, lineTotalMinor.
 - **CopilotRecommendation:** ID, createdAt, title, priority, observation, reasoning, suggestedAction, evidence JSON, limitations JSON, status (`new`, `saved`, `dismissed`, `completed`), related product references where appropriate.
+- **TrafficDailyStat (demo, D08):** date, source (`direct`, `organic`, `social`, `email`, `paid`), sessions, productViews, addToCarts, checkoutsStarted; unique (date, source). Seeded only.
+- **ProductViewDailyStat (demo, D08):** date, productId, views, addToCarts; unique (date, productId). Seeded only.
 - **CopilotInteraction / AuditEvent:** optional, if needed for a minimal audit trail. Store only safe, necessary data.
 
 Store snapshots of product name and price on order items so later catalog changes do not rewrite order history. Use database constraints for valid status values where practical. Avoid storing customer data in AI conversation history unless it is genuinely necessary.
@@ -429,6 +441,7 @@ A feature is not complete merely because the UI renders.
 - Define analytics service contracts and metric semantics.
 - Implement the LLM provider adapter and structured output schema.
 - Implement bounded tools, evidence grounding, and fallback behavior.
+- Seed the fictional demo traffic data and implement `getTrafficSummary` (D08). If time runs short, drop the per-product views first, then the funnel, keeping sessions by source.
 - Build the Copilot UI and recommendation status actions.
 - Add the initial AI evaluation set.
 - Deliverable: merchant asks a question and receives traceable, data-grounded advice.
@@ -509,7 +522,8 @@ The MVP is ready to present when all of the following are true:
 - [ ] The order appears in the admin panel with consistent totals and status.
 - [ ] Inventory cannot be oversold through the normal checkout flow.
 - [ ] Dashboard metrics are calculated from database data using documented definitions.
-- [ ] Copilot can answer the primary merchant question using approved tools and real store metrics.
+- [ ] Copilot can answer the primary merchant question using approved tools over database data: the store's own records (orders, catalog, stock) and the seeded fictional traffic data, which is labelled as demo data wherever it appears.
+- [ ] Copilot declines questions that need data the demo does not hold and names the missing data (D09).
 - [ ] Copilot recommendations include evidence and actionable next steps.
 - [ ] Invalid or unsupported AI claims are rejected or handled safely; provider failures do not crash the app.
 - [ ] Recommendation save/dismiss/complete actions work.
