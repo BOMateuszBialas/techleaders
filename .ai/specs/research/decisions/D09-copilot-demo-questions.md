@@ -7,7 +7,7 @@
   1. "What should I focus on to improve sales this week?" (the primary question)
   2. "Which products are selling best?"
   3. "Which products are low on stock?"
-  4. "What could explain the recent change in sales?" (Copilot names the correlations it sees and states it cannot prove causes, R05)
+  4. "What could explain the recent change in sales?" Copilot calls the tools for the current period and the previous period of the same length (a bounded pair of calls; the comparison UI stays P1). It names the correlations it sees and states it cannot prove causes (R05).
   5. "Where does my traffic come from?"
   6. "Where in the funnel do visitors drop off?"
   7. "Which products get views but few sales?"

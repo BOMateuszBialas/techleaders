@@ -3,7 +3,7 @@
 - Date: 2026-10-14
 - Mode: own; Owner: product owner (project author); Pass: full
 - Evidence basis: one practitioner account from the project author, who builds Shopify stores for clients (not an independent interview; no single dated case, no frequency or cost). Everything else is the team's decisions (D01–D07), the MVP specification, and workshop hypotheses from the discovery pack. No merchant interviews, data or checked benchmarks exist yet. Most consequential untested belief: A03, that order, catalog and stock data alone support useful "improve sales" advice.
-- Coverage: 35 claims — 32 sourced (interview 4, data 0, document 18, product 10, benchmark 0), 0 synthetic, 3 assumed; 1 entries on the collection plan. Tagged-line totals: the 4 interview lines come from one non-independent account, and the 18 document lines are the team's own decisions.
+- Coverage (last counted 2026-10-14, before D08 and D09): 35 claims — 32 sourced (interview 4, data 0, document 18, product 10, benchmark 0), 0 synthetic, 3 assumed; 1 entries on the collection plan. Tagged-line totals: the 4 interview lines come from one non-independent account, and the 18 document lines are the team's own decisions.
 - Synthetic hypotheses outside Coverage: 0
 - Definition of Ready signed by: product owner, for the portfolio path only (D04); ready for: implementation planning of the whole MVP P0 scope (D01), including the Copilot week since Q05 and Q01 were decided on 2026-10-15 (D08, D09) and the spec was updated. Not ready for any market-facing claim; the problem rests on one non-independent account (see DoR addendum).
 - Updated: 2026-10-15 (D08, D09 answer Q05 and Q01)

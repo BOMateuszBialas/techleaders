@@ -7,7 +7,9 @@
   - Daily sessions by traffic source (`direct`, `organic`, `social`, `email`, `paid`).
   - Daily store funnel counts: sessions → product views → add-to-cart → checkout started. The last step, orders, comes from the real `orders` table, so conversion is real paid orders divided by fictional sessions.
   - Daily views and add-to-cart counts per product.
-  - The seed generates the data for a rolling window that ends on the seed date, so "this week" always has data.
+  - The seed generates the data for a rolling window that ends on the seed date, so "this week" always has data. Seeded orders use the same window.
+  - Seed invariants, so the fictional numbers never contradict the real orders: per day, sessions ≥ product views ≥ add-to-cart ≥ checkouts started ≥ seeded paid orders; per product and day, views ≥ add-to-cart and views ≥ seeded units sold. A seed test checks them. Orders placed during the live demo are not backed by traffic, which is a small, documented drift.
+  - A product with no view rows (for example created in the admin after seeding) has "no demo view data", not zero views, so no rate is computed for it. View rows are deleted with their product (on-delete cascade), because they are demo data only.
 - One approved tool reads it: `getTrafficSummary(dateRange, productLimit)`. See spec §6.
 - Consequences, and what would make us revisit it:
   - Spec §3, §6, §7, §11 and §14 are updated together with this record.

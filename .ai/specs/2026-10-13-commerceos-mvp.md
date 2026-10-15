@@ -355,7 +355,8 @@ Finalize the schema based on the chosen authentication and payment implementatio
 - **OrderItem:** ID, orderId, productId (nullable if historical item retention requires it), product name/SKU snapshot, unitPriceMinor, quantity, lineTotalMinor.
 - **CopilotRecommendation:** ID, createdAt, title, priority, observation, reasoning, suggestedAction, evidence JSON, limitations JSON, status (`new`, `saved`, `dismissed`, `completed`), related product references where appropriate.
 - **TrafficDailyStat (demo, D08):** date, source (`direct`, `organic`, `social`, `email`, `paid`), sessions, productViews, addToCarts, checkoutsStarted; unique (date, source). Seeded only.
-- **ProductViewDailyStat (demo, D08):** date, productId, views, addToCarts; unique (date, productId). Seeded only.
+- **ProductViewDailyStat (demo, D08):** date, productId (FK, on delete cascade), views, addToCarts; unique (date, productId). Seeded only. A product with no rows has "no demo view data", not zero views.
+- **Demo traffic seed invariants (D08):** the traffic rows and the seeded orders cover the same rolling window ending on the seed date. Per day: sessions ≥ product views ≥ add-to-cart ≥ checkouts started ≥ seeded paid orders. Per product and day: views ≥ add-to-cart and views ≥ seeded units sold. A seed test enforces them.
 - **CopilotInteraction / AuditEvent:** optional, if needed for a minimal audit trail. Store only safe, necessary data.
 
 Store snapshots of product name and price on order items so later catalog changes do not rewrite order history. Use database constraints for valid status values where practical. Avoid storing customer data in AI conversation history unless it is genuinely necessary.
