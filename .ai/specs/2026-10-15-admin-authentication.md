@@ -1,7 +1,7 @@
 # Admin authentication and the server-side admin guard
 
 - Backlog: E03-S01 ([#19](https://github.com/BOMateuszBialas/techleaders/issues/19)), epic E03 (#10)
-- Status: draft, ready for review (Open Questions answered 2026-10-15)
+- Status: draft. Open Questions answered, cross-model review and grill-me applied (2026-10-15); waiting for the step-1 spike results (G12)
 - Design authority: `.ai/specs/product-brief.md`, `.ai/specs/2026-10-13-commerceos-mvp.md` §3, §4, §8
 
 ## 📝 TLDR
@@ -13,10 +13,27 @@ Today `/admin` is an unauthenticated shell that must not show store data or allo
 | #   | Question       | Decision                                                                                                                                     |
 | --- | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | Q1  | Auth library   | **Better Auth** (`better-auth@1.7.x`, peer `next ^16`), email + password                                                                    |
-| Q2  | Owner account  | Created and updated by a CLI command from `ADMIN_EMAIL` / `ADMIN_PASSWORD`; **no public sign-up**                                           |
+| Q2  | Owner account  | Created by a CLI command from `ADMIN_EMAIL` / `ADMIN_PASSWORD`, with the password rotated only via `--rotate-password`; **no public sign-up** |
 | Q3  | Sign-in method | Email + password only (no OAuth)                                                                                                             |
 | Q4  | Roles          | One role, `owner`, stored in a column with a check constraint (a later role is an additive migration)                                      |
 | Q5  | Session        | 8 h lifetime, sliding renewal; sign-out deletes the session row; cookie `httpOnly`, `sameSite=lax`, `secure` in production                 |
+
+### Grill-me decisions (product owner, 2026-10-15)
+
+| #   | Topic                    | Decision                                                                                                                                                                   |
+| --- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| G1  | Where the demo runs      | Local only for now; hosting is decided in week 5 (MVP spec §11). `AUTH_TRUSTED_IP_HEADER` stays unset, so the global sign-in limit applies; set the header when deploying |
+| G2  | Rate-limit numbers       | 5 attempts/min per trusted IP; without a trusted IP, 20/min globally. A one-minute lock-out by a flooder is an accepted cost                                             |
+| G3  | Absolute session cap     | None: 8 h of inactivity ends the session, and active use keeps extending it                                                                                               |
+| G4  | Seeded owner             | None. `db:seed` creates store data only; no default credentials exist anywhere in the repo; the README documents `admin:create`                                           |
+| G5  | Owner `name`             | Fixed `"Store owner"` (Better Auth requires a name); no `ADMIN_NAME` env. The UI shows the email                                                                          |
+| G6  | Session IP / user agent  | Kept in `admin_sessions` (library default, the owner's own data, helps spot hijacking). App logs carry only `userId` and an event code: no email, no IP                    |
+| G7  | Sign out everywhere      | Not offered. Sign-out ends the current session; `--rotate-password` revokes all sessions                                                                                  |
+| G8  | UI language              | English, matching the existing storefront and admin copy                                                                                                                  |
+| G9  | E2E credentials          | `owner@e2e.test` plus a random 16+ character password generated per run in the e2e global setup, handed to tests through `inject()`; nothing secret is committed           |
+| G10 | `nextCookies()` fallback | If spike item (g) fails, sign-in moves to the client: the form calls `authClient.signIn.email()` (`better-auth/react`) against `/api/auth/sign-in/email`. Zod validation and the generic message stay; server-side checks are unchanged |
+| G11 | Spike deviations         | Minor (an option or column name, `updateAge` semantics within Q5): fix the spec, record it in "Spike results", continue. Decision-changing ((b) or (d) failing, or needing our own hashing): stop and ask the product owner |
+| G12 | Delivery                 | Spike on a throwaway branch; results are added to this spec's PR (#31), which merges only with them. Steps 2–10 then ship in one implementation PR via `om-auto-implement-spec`, reviewed and CI-green |
 
 ## 📝 Problem Statement
 
@@ -119,7 +136,7 @@ flowchart LR
 | `user.additionalFields.role`                                  | `{ type: "string", input: false, defaultValue: "owner" }`             | Q4; never settable from a request               |
 | `rateLimit`                                                   | `enabled: true`; `customRules["/sign-in/email"] = { window: 60, max: 5 }`; storage `"database"` (table `admin_rate_limits`) | brute-force protection that survives restarts (see Risks) |
 | `advanced.ipAddress.ipAddressHeaders`                         | only from `AUTH_TRUSTED_IP_HEADER` (optional env, set it only behind a proxy that overwrites that header) | the rate-limit key must not come from a client-controlled header |
-| `rateLimit` fallback without a trusted header                 | if the step-1 spike shows the library would key on a spoofable header or skip limiting when no IP is known, `/sign-in/email` uses a **global** limit (20/min for all clients) | one owner account: a global limit trades a small lock-out risk for no bypass |
+| `rateLimit` fallback without a trusted header                 | while `AUTH_TRUSTED_IP_HEADER` is unset (G1: the local demo), or if the step-1 spike shows the library would key on a spoofable header or skip limiting when no IP is known, `/sign-in/email` uses a **global** limit of 20/min for all clients (G2) | one owner account: a global limit trades a small lock-out risk for no bypass |
 | cookies                                                       | library defaults: `httpOnly`, `sameSite=lax`, `Secure` and `__Secure-` prefix in production | `lax` is enough: every mutation is a POST guarded by origin checks (Better Auth `trustedOrigins`, Next server actions) |
 | `plugins`                                                     | `[nextCookies()]` (last)                                              | lets server actions set the session cookie      |
 
@@ -210,7 +227,7 @@ All additive (BACKWARD_COMPATIBILITY §2).
    - (f) which header the rate limiter keys on, and what it does when none is present;
    - (g) `signInEmail` called inside a Next 16 server action sets the cookie through `nextCookies()`.
 
-   Record every answer in this spec's "Spike results" section. If (b) or (d) fails, stop and revisit Q1.
+   Record every answer in this spec's "Spike results" section and handle any deviation per G11: minor ones are fixed in the spec, decision-changing ones go back to the product owner. If (g) fails, apply G10 (client-side sign-in).
 2. **Env and dependencies.**
    - Add `better-auth@~1.7.10` and `pg` to `@commerceos/app`.
    - Env schema: add `BETTER_AUTH_SECRET` (`min(32)`) and the optional `AUTH_TRUSTED_IP_HEADER`, and make `APP_URL` required when `NODE_ENV=production`. Update `.env.example`.
@@ -231,7 +248,7 @@ All additive (BACKWARD_COMPATIBILITY §2).
      - a spoofed `X-Forwarded-For` does not reset the limit;
      - a foreign `Origin` is rejected;
      - two concurrent requests with different cookies each see their own session.
-5. **`createOwner` and the CLI.** Add the `admin:create` script, and call it in the e2e global setup with test credentials from env.
+5. **`createOwner` and the CLI.** Add the `admin:create` script. The e2e global setup calls it with `owner@e2e.test` and a random password generated per run, and hands both to the tests through `inject()` (G9). The owner `name` is the fixed `"Store owner"` (G5).
    - *Unit tests:* `createOwner` (absent → create; exists → refuse; exists + rotate → update and revoke), and `runCreateOwner` with injected fakes (missing env, password under 12 chars, exit codes, pool closed, no secret in logs).
    - *Integration test:* the CLI as a subprocess against Testcontainers.
 6. **`require-admin.ts` and the inventory test:** `getCurrentAdmin`, `requireAdminPage`, `requireAdmin`, `adminApiHandler`, plus `admin-guard-inventory.test.ts`.
@@ -256,7 +273,7 @@ All additive (BACKWARD_COMPATIBILITY §2).
    - *Unit test:* the handler.
    - *E2E:* 401 without a cookie and 200 with one.
 9. **E2E suite.**
-   - Rewrite `admin.e2e.test.ts` with a `signInAsOwner()` helper in `e2e/support/`.
+   - Rewrite `admin.e2e.test.ts` with a `signInAsOwner()` helper in `e2e/support/` that uses the injected credentials.
    - Keep the system-status and storefront-link checks.
    - Replace "does not expose store data while admin authentication is missing" with the AC2 checks.
 10. **Docs.**
@@ -281,3 +298,4 @@ _Filled in by step 1: answers to (a)–(g), with the pinned version and the date
     - "Move MikroORM entities out of `app`": they are already in `packages/database`, and `app` does not import them.
     - "Drop `/api/admin/me`": it is the only way to prove AC2 for APIs until real admin APIs exist.
     - "Share MikroORM's pool": it would couple auth to ORM internals, for a saving of 5 connections.
+- **2026-10-15, grill-me (product owner):** 12 decisions, G1–G12 in the Decisions section. All of them followed the recommended answer; none changed the architecture. They fix the rate-limit numbers and their local-demo fallback, rule out seeded credentials, set the e2e credentials, add the client-side fallback for `nextCookies()`, the rule for spike deviations, and the delivery order.
