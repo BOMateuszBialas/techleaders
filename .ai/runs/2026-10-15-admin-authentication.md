@@ -47,8 +47,8 @@ One phase, as in the spec. Each step lands as its own commit and keeps the app w
 
 ### Phase 1: Owner sign-in with server-side enforcement
 
-- [ ] 1.1 Env and dependencies
-- [ ] 1.2 Schema: admin auth entities and migration
+- [x] 1.1 Env and dependencies — e47d889
+- [x] 1.2 Schema: admin auth entities and migration — f9458a9
 - [ ] 1.3 Auth factories and container wiring
 - [ ] 1.4 createOwner and the admin:create CLI
 - [ ] 1.5 require-admin guard and inventory test
