@@ -1,4 +1,5 @@
 import { execFile, spawn, type ChildProcess } from "node:child_process";
+import { randomBytes } from "node:crypto";
 import { existsSync } from "node:fs";
 import { createServer } from "node:net";
 import { join } from "node:path";
@@ -72,6 +73,8 @@ function startApp(options: { port: number; databaseUrl: string }): ChildProcess 
       NODE_ENV: "production",
       DATABASE_URL: options.databaseUrl,
       APP_URL: `http://127.0.0.1:${options.port}`,
+      // Fresh per run: nothing secret is committed.
+      BETTER_AUTH_SECRET: randomBytes(32).toString("base64"),
     },
     stdio: ["ignore", "pipe", "pipe"],
   });

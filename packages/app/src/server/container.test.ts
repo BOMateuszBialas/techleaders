@@ -4,6 +4,7 @@ import { createRequestScope, disposeRootContainer } from "./container";
 // No database connection is opened: MikroORM connects lazily and these tests
 // only resolve registrations.
 process.env.DATABASE_URL ??= "postgresql://postgres:postgres@localhost:5432/commerceos";
+process.env.BETTER_AUTH_SECRET ??= "unit-test-secret-unit-test-secret-1234";
 
 describe("composition root", () => {
   const first = createRequestScope();
