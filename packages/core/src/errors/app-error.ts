@@ -34,13 +34,21 @@ export class NotFoundError extends AppError {
 }
 
 /**
- * True for a `NotFoundError` from any copy of this package. Compares the stable `code`
- * instead of using `instanceof`: Next.js can bundle `@commerceos/core` into more than one
- * server chunk, and the DI container cached on `globalThis` may hold use cases built from
- * another chunk's copy, so `instanceof NotFoundError` can be false for a genuine one.
+ * True for an error carrying the given stable `code`, from any copy of this package.
+ * Compare codes instead of using `instanceof`: Next.js can bundle `@commerceos/core` into
+ * more than one server chunk, and the DI container cached on `globalThis` may hold use cases
+ * built from another chunk's copy, so `instanceof NotFoundError` can be false for a genuine one.
  */
+export function hasAppErrorCode<Code extends string>(
+  error: unknown,
+  code: Code,
+): error is Error & { readonly code: Code } {
+  return error instanceof Error && "code" in error && error.code === code;
+}
+
+/** True for a `NotFoundError` from any copy of this package (see `hasAppErrorCode`). */
 export function isNotFoundError(error: unknown): error is NotFoundError {
-  return error instanceof Error && "code" in error && error.code === "NOT_FOUND";
+  return hasAppErrorCode(error, "NOT_FOUND");
 }
 
 /** No authenticated user. */
@@ -63,3 +71,14 @@ export class ConflictError extends AppError {
     super("CONFLICT", message);
   }
 }
+
+/** Codes of the errors whose message is safe and meaningful for the client. */
+export const CLIENT_ERROR_CODES = [
+  "VALIDATION_FAILED",
+  "UNAUTHORIZED",
+  "FORBIDDEN",
+  "NOT_FOUND",
+  "CONFLICT",
+] as const;
+
+export type ClientErrorCode = (typeof CLIENT_ERROR_CODES)[number];

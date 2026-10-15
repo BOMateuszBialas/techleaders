@@ -1,10 +1,10 @@
 import "server-only";
 import {
-  ConflictError,
-  ForbiddenError,
-  NotFoundError,
-  UnauthorizedError,
+  CLIENT_ERROR_CODES,
+  type ClientErrorCode,
+  type FieldErrors,
   ValidationError,
+  hasAppErrorCode,
 } from "@commerceos/core";
 import { z } from "zod";
 import { logger } from "../logger";
@@ -12,27 +12,42 @@ import { jsonError } from "./api-result";
 
 const INTERNAL_ERROR = { code: "INTERNAL_ERROR", message: "Something went wrong." } as const;
 
-/** Only these errors carry a message that is safe and meaningful for the client. */
-const CLIENT_ERROR_STATUS = [
-  [ValidationError, 400],
-  [UnauthorizedError, 401],
-  [ForbiddenError, 403],
-  [NotFoundError, 404],
-  [ConflictError, 409],
-] as const;
+/**
+ * Only these errors carry a message that is safe and meaningful for the client.
+ * Keyed by the stable `code`, not the class: `instanceof` can fail for an error built
+ * by another bundled copy of `@commerceos/core` (see `hasAppErrorCode`).
+ */
+const CLIENT_ERROR_STATUS: Record<ClientErrorCode, number> = {
+  VALIDATION_FAILED: 400,
+  UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
+  NOT_FOUND: 404,
+  CONFLICT: 409,
+};
+
+const FIELD_ERRORS_SCHEMA = z.record(z.string(), z.array(z.string()));
 
 /**
  * Maps a known client error to an `ApiResult` response with its code and
  * message. Returns null for anything else, which callers treat as internal.
  */
 export function toClientErrorResponse(error: unknown): Response | null {
-  for (const [ErrorClass, status] of CLIENT_ERROR_STATUS) {
-    if (error instanceof ErrorClass) {
-      const fieldErrors = error instanceof ValidationError ? error.fieldErrors : undefined;
-      return jsonError({ code: error.code, message: error.message, fieldErrors }, status);
+  for (const code of CLIENT_ERROR_CODES) {
+    if (hasAppErrorCode(error, code)) {
+      const fieldErrors = code === "VALIDATION_FAILED" ? fieldErrorsOf(error) : undefined;
+      return jsonError({ code, message: error.message, fieldErrors }, CLIENT_ERROR_STATUS[code]);
     }
   }
   return null;
+}
+
+/**
+ * Reads `fieldErrors` structurally, as `ValidationError` defines it (defaulting to `{}`).
+ * A missing or malformed value becomes `{}`, so the client never sees an unexpected shape.
+ */
+function fieldErrorsOf(error: Error): FieldErrors {
+  const parsed = FIELD_ERRORS_SCHEMA.safeParse("fieldErrors" in error ? error.fieldErrors : {});
+  return parsed.success ? parsed.data : {};
 }
 
 /**
