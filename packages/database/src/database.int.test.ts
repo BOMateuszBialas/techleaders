@@ -65,6 +65,25 @@ describe("database (PostgreSQL)", () => {
     expect(await em.count(ProductSchema)).toBe(DEMO_CATALOG.products.length);
   });
 
+  it("defaults a product's featured flag to false and seeds the featured demo products", async () => {
+    const em = orm.em.fork();
+    const [inserted] = await em.execute<{ featured: boolean }[]>(
+      `insert into products (name, slug, price_minor) values ('Plain', 'plain-featured-default', 100) returning featured`,
+    );
+    expect(inserted?.featured).toBe(false);
+
+    await orm.seeder.seed(DatabaseSeeder);
+    const featured = await em
+      .fork()
+      .find(ProductSchema, { featured: true }, { orderBy: { slug: "asc" } });
+    expect(featured.map((product) => product.slug)).toEqual(
+      DEMO_CATALOG.products
+        .filter((product) => product.featured)
+        .map((product) => product.slug)
+        .sort(),
+    );
+  });
+
   it("rejects negative prices at the database level", async () => {
     const em = orm.em.fork();
     em.create(ProductSchema, { name: "Broken", slug: "broken-price", priceMinor: -1 });

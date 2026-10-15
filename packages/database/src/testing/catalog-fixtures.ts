@@ -10,6 +10,9 @@ if (!demoMice) throw new Error('DEMO_CATALOG has no "mice" category');
  * setups (storefront catalog spec, Q9). Marked "[E2E]" and never part of the demo seed:
  * - `e2e-empty`: a category with no products;
  * - `e2e-drafts-only`: a category whose only product is a draft;
+ * Both drafts are featured, so the home page's slider can prove drafts never appear there
+ * (spec G18). The demo seed's featured out-of-stock product (`titan-mmo-mouse`) covers the
+ * other half of G18, so no extra published fixture changes the demo listing.
  * - a draft in the demo `mice` category (reused unchanged), so a search for
  *   "Vortex" can prove drafts are excluded.
  */
@@ -32,6 +35,7 @@ export const E2E_CATALOG: SeedCatalog = {
       stockQuantity: 5,
       sku: "E2E-DRAFT-001",
       status: "draft",
+      featured: true,
     },
     {
       slug: "e2e-draft-mouse",
@@ -41,6 +45,7 @@ export const E2E_CATALOG: SeedCatalog = {
       stockQuantity: 5,
       sku: "E2E-DRAFT-002",
       status: "draft",
+      featured: true,
     },
   ],
 };

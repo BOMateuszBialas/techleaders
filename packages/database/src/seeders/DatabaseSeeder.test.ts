@@ -41,6 +41,7 @@ describe("seedCatalog", () => {
       slug: "vortex-wireless-mouse",
       category: "id-mice",
       status: "published",
+      featured: true,
       imageUrl: "/demo/products/vortex-wireless-mouse.svg",
       description: expect.stringMatching(/^\[DEMO] Wireless gaming mouse/),
     });
@@ -67,6 +68,13 @@ describe("seedCatalog", () => {
       expect(product.imageUrl).toBe(`/demo/products/${product.slug}.svg`);
   });
 
+  it("features about six products across at least three categories (spec G9)", () => {
+    const featured = DEMO_CATALOG.products.filter((product) => product.featured);
+    expect(featured.length).toBeGreaterThanOrEqual(6);
+    expect(new Set(featured.map((product) => product.category)).size).toBeGreaterThanOrEqual(3);
+    expect(featured.some((product) => product.stockQuantity === 0)).toBe(true);
+  });
+
   it("seeds an explicit status, a generic description and no image when none is given", async () => {
     const [category] = DEMO_CATALOG.categories;
     const draft: SeedCatalog = {
@@ -86,6 +94,7 @@ describe("seedCatalog", () => {
     await seedCatalog(stub.em, draft);
     expect(stub.upsert.mock.calls[1]?.[1]).toMatchObject({
       status: "draft",
+      featured: false,
       imageUrl: null,
       description: "[DEMO] Draft pad. Seed data for local development.",
     });

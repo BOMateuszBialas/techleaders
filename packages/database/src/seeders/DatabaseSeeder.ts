@@ -23,6 +23,8 @@ type SeedProduct = {
   sku: string;
   /** Defaults to "published"; test fixtures seed drafts. */
   status?: ProductStatus;
+  /** Shown in the home page's featured slider when published. Defaults to false. */
+  featured?: boolean;
   /** Shopper-facing text, stored with a "[DEMO]" prefix. Defaults to a generic line. */
   description?: string;
   /** A local path under `packages/app/public`, e.g. `/demo/products/<slug>.svg`. */
@@ -56,6 +58,7 @@ const demoProducts = [
     sku: "DEMO-MOU-001",
     description:
       "Wireless gaming mouse with a 26,000 DPI optical sensor, 70 hours of battery life and five programmable buttons.",
+    featured: true,
     imageUrl: "/demo/products/vortex-wireless-mouse.svg",
   },
   {
@@ -78,6 +81,7 @@ const demoProducts = [
     sku: "DEMO-MOU-003",
     description:
       "Twelve thumb buttons in a side grid for MMO and MOBA hotkeys, with on-board memory for five profiles.",
+    featured: true,
     imageUrl: "/demo/products/titan-mmo-mouse.svg",
   },
   {
@@ -89,6 +93,7 @@ const demoProducts = [
     sku: "DEMO-KEY-001",
     description:
       "Tenkeyless mechanical keyboard with hot-swappable linear switches, PBT keycaps and per-key RGB lighting.",
+    featured: true,
     imageUrl: "/demo/products/nova-tkl-mechanical-keyboard.svg",
   },
   {
@@ -122,6 +127,7 @@ const demoProducts = [
     sku: "DEMO-HEA-001",
     description:
       "Wired headset with virtual 7.1 surround sound, 50 mm drivers and a detachable noise-cancelling microphone.",
+    featured: true,
     imageUrl: "/demo/products/echo-surround-headset.svg",
   },
   {
@@ -155,6 +161,7 @@ const demoProducts = [
     sku: "DEMO-CON-001",
     description:
       "Wireless controller with Hall-effect sticks, two rear paddles and a USB-C charging cable.",
+    featured: true,
     imageUrl: "/demo/products/apex-wireless-controller.svg",
   },
   {
@@ -188,6 +195,7 @@ const demoProducts = [
     sku: "DEMO-PAD-001",
     description:
       "Extended 900 x 400 mm speed-surface mousepad with stitched edges that covers the whole desk.",
+    featured: true,
     imageUrl: "/demo/products/glide-xl-mousepad.svg",
   },
   {
@@ -227,7 +235,14 @@ export async function seedCatalog(em: EntityManager, catalog: SeedCatalog): Prom
     categoryIds.set(category.slug, saved.id);
   }
 
-  for (const { category, status, imageUrl, description, ...product } of catalog.products) {
+  for (const {
+    category,
+    status,
+    featured,
+    imageUrl,
+    description,
+    ...product
+  } of catalog.products) {
     const categoryId = categoryIds.get(category);
     if (!categoryId) throw new Error(`Seed category "${category}" missing`);
     const text = description ?? `${product.name}. Seed data for local development.`;
@@ -238,6 +253,7 @@ export async function seedCatalog(em: EntityManager, catalog: SeedCatalog): Prom
         description: `[DEMO] ${text}`,
         currency: "PLN",
         status: status ?? "published",
+        featured: featured ?? false,
         imageUrl: imageUrl ?? null,
         category: categoryId,
       },
