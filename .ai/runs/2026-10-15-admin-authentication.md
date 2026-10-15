@@ -41,7 +41,21 @@ One phase, as in the spec. Each step lands as its own commit and keeps the app w
 - Moving admin pages into a `(protected)` route group must not change URLs.
 - The auth instance must stay lazy, so it is never created during `next build` or prerendering.
 
+## Outcome
+
+- All 9 steps landed. The full gate is green locally on `04ffcb1`. CI is 5/5 on `0707c84`.
+- `om-auto-review-pr` (an independent agent) approved with 5 minor findings and 3 nits. M1 and N1 were fixed, M3 and M4 documented, and M2, M5, N2 and N3 declined with reasons (spec Review log).
+- Deviations from the spec, all minor per G11, are listed in the spec's Implementation notes. The main one: sign-in goes through `auth.handler`, because `auth.api.*` skips the rate limit and the origin check.
+- UI evidence screenshots are on the PR. Manual QA is pending (`needs-qa`, `risk-high`).
+
+## Follow-ups
+
+- Consider Better Auth `disabledPaths` for unused signed-in endpoints (`change-password`, `update-user`, `list-sessions`).
+- Delete the local throwaway branch `spike/better-auth`.
+
 ## Progress
+
+PR: #32
 
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles.
 
