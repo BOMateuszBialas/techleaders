@@ -4,7 +4,7 @@ import { initToolingOrm } from "./cli/cli-orm";
 import { createOrmConfig } from "./config";
 import { CategorySchema, ProductSchema } from "./entities";
 import { DatabaseHealthCheck } from "./adapters/database-health-check";
-import { DatabaseSeeder } from "./seeders/DatabaseSeeder";
+import { DEMO_CATALOG, DatabaseSeeder } from "./seeders/DatabaseSeeder";
 import "./testing/provided-context";
 
 const testDatabaseUrl = inject("databaseUrl");
@@ -61,8 +61,8 @@ describe("database (PostgreSQL)", () => {
     await orm.seeder.seed(DatabaseSeeder);
     await orm.seeder.seed(DatabaseSeeder);
     const em = orm.em.fork();
-    expect(await em.count(CategorySchema)).toBe(2);
-    expect(await em.count(ProductSchema)).toBe(5);
+    expect(await em.count(CategorySchema)).toBe(DEMO_CATALOG.categories.length);
+    expect(await em.count(ProductSchema)).toBe(DEMO_CATALOG.products.length);
   });
 
   it("rejects negative prices at the database level", async () => {

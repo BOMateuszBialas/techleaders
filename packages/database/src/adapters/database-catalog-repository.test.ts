@@ -8,19 +8,19 @@ afterAll(async () => {
   await orm.close();
 });
 
-const coffee = { id: "cat-1", slug: "coffee", name: "Coffee", description: "[DEMO] Beans." };
+const mice = { id: "cat-1", slug: "mice", name: "Mice", description: "[DEMO] Gaming mice." };
 const product = {
   id: "p-1",
-  slug: "v60-dripper",
-  name: "V60 Dripper",
-  description: "A dripper.",
-  priceMinor: 8900,
+  slug: "vortex-wireless-mouse",
+  name: "Vortex Wireless Mouse",
+  description: "A wireless mouse.",
+  priceMinor: 24900,
   currency: "PLN",
   stockQuantity: 8,
-  imageUrl: "/demo/products/v60-dripper.svg",
+  imageUrl: "/demo/products/vortex-wireless-mouse.svg",
   status: "published",
-  sku: "DEMO-BRW-001",
-  category: coffee,
+  sku: "DEMO-MOU-001",
+  category: mice,
 };
 
 // The stubs return plain rows shaped like the entities; the ORM's generic signatures
@@ -39,19 +39,19 @@ function setup() {
 describe("DatabaseCatalogRepository", () => {
   it("lists categories sorted by name as plain records", async () => {
     const { find, repository } = setup();
-    find.mockResolvedValue([coffee, { ...coffee, id: "cat-2", description: null }] as never);
+    find.mockResolvedValue([mice, { ...mice, id: "cat-2", description: null }] as never);
 
     expect(await repository.listCategories()).toEqual([
-      coffee,
-      { ...coffee, id: "cat-2", description: null },
+      mice,
+      { ...mice, id: "cat-2", description: null },
     ]);
     expect(find.mock.calls[0]?.[2]).toEqual({ orderBy: { name: "asc", slug: "asc" } });
   });
 
   it("finds a category by slug, or null", async () => {
     const { findOne, repository } = setup();
-    findOne.mockResolvedValueOnce({ ...coffee, description: undefined } as never);
-    expect(await repository.findCategoryBySlug("coffee")).toEqual({ ...coffee, description: null });
+    findOne.mockResolvedValueOnce({ ...mice, description: undefined } as never);
+    expect(await repository.findCategoryBySlug("mice")).toEqual({ ...mice, description: null });
     findOne.mockResolvedValueOnce(null);
     expect(await repository.findCategoryBySlug("missing")).toBeNull();
     expect(findOne.mock.calls[1]?.[1]).toEqual({ slug: "missing" });
@@ -80,15 +80,15 @@ describe("DatabaseCatalogRepository", () => {
     expect(result.total).toBe(7);
     expect(result.items[0]).toEqual({
       id: "p-1",
-      slug: "v60-dripper",
-      name: "V60 Dripper",
-      description: "A dripper.",
-      priceMinor: 8900,
+      slug: "vortex-wireless-mouse",
+      name: "Vortex Wireless Mouse",
+      description: "A wireless mouse.",
+      priceMinor: 24900,
       currency: "PLN",
       stockQuantity: 8,
-      imageUrl: "/demo/products/v60-dripper.svg",
+      imageUrl: "/demo/products/vortex-wireless-mouse.svg",
       status: "published",
-      category: { slug: "coffee", name: "Coffee" },
+      category: { slug: "mice", name: "Mice" },
     });
     expect(result.items[1]).toMatchObject({ imageUrl: null, category: null });
     expect(Object.keys(result.items[0] ?? {})).not.toContain("sku");
@@ -104,7 +104,9 @@ describe("DatabaseCatalogRepository", () => {
   it("finds a product by slug in any status, or null", async () => {
     const { findOne, repository } = setup();
     findOne.mockResolvedValueOnce({ ...product, status: "draft" } as never);
-    expect(await repository.findProductBySlug("v60-dripper")).toMatchObject({ status: "draft" });
+    expect(await repository.findProductBySlug("vortex-wireless-mouse")).toMatchObject({
+      status: "draft",
+    });
     expect(findOne.mock.calls[0]?.[2]).toEqual({ populate: ["category"] });
     findOne.mockResolvedValueOnce(null);
     expect(await repository.findProductBySlug("missing")).toBeNull();
@@ -113,7 +115,7 @@ describe("DatabaseCatalogRepository", () => {
 
 describe("toContainsPattern", () => {
   it("wraps the term and escapes LIKE wildcards and the escape character", () => {
-    expect(toContainsPattern("kettle")).toBe("%kettle%");
+    expect(toContainsPattern("mouse")).toBe("%mouse%");
     expect(toContainsPattern("100%_\\")).toBe("%100\\%\\_\\\\%");
   });
 });

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-/** Lowercase words of letters and digits joined by single hyphens, e.g. `v60-dripper`. */
+/** Lowercase words of letters and digits joined by single hyphens, e.g. `vortex-wireless-mouse`. */
 export const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 /** Column lengths of `products.slug` and `categories.slug`. */

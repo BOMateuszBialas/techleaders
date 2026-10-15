@@ -56,7 +56,7 @@ npm run dev                 # http://localhost:3000
 Verify the setup:
 
 - http://localhost:3000: storefront home with the category list
-- http://localhost:3000/products: published products, filterable with `?category=<slug>`; http://localhost:3000/products/v60-dripper: a product page
+- http://localhost:3000/products: published products, filterable with `?category=<slug>`; http://localhost:3000/products/vortex-wireless-mouse: a product page
 - http://localhost:3000/admin: redirects to `/admin/sign-in`; after signing in as the owner, the dashboard with live system status
 - http://localhost:3000/api/health: returns `200 {"status":"ok",...}` when the database is reachable, `503 {"status":"degraded",...}` otherwise
 

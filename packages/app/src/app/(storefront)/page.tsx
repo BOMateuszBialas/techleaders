@@ -15,8 +15,8 @@ export default function HomePage() {
           Welcome to the CommerceOS demo store
         </h1>
         <p className="max-w-prose text-muted-foreground">
-          Specialty coffee and brewing gear. Browse the catalog by category or see everything at
-          once.
+          Mice, keyboards, headsets, controllers and mousepads. Browse the catalog by category or
+          see everything at once.
         </p>
         <Link href="/products" className={buttonVariants({ className: "w-fit" })}>
           Shop all products

@@ -15,17 +15,17 @@ import { ProductImage } from "./product-image";
 
 const product: CatalogProductSummary = {
   id: "p-1",
-  slug: "v60-dripper",
-  name: "V60 Dripper",
-  price: money(8900, "PLN"),
-  category: { slug: "brewing", name: "Brewing gear" },
+  slug: "vortex-wireless-mouse",
+  name: "Vortex Wireless Mouse",
+  price: money(24900, "PLN"),
+  category: { slug: "mice", name: "Mice" },
   availability: "in_stock",
-  imageUrl: "/demo/products/v60-dripper.svg",
+  imageUrl: "/demo/products/vortex-wireless-mouse.svg",
 };
 
 const categories = [
-  { slug: "brewing", name: "Brewing gear", description: null },
-  { slug: "coffee", name: "Coffee", description: "Beans" },
+  { slug: "keyboards", name: "Keyboards", description: null },
+  { slug: "mice", name: "Mice", description: "Gaming mice" },
 ];
 
 /** `formatMoney` separates the amount and currency with a no-break space. */
@@ -36,7 +36,7 @@ function plainText(html: string): string {
 describe("catalog copy", () => {
   it("describes empty listings", () => {
     expect(emptyListingMessage(null)).toBe("No products are available yet.");
-    expect(emptyListingMessage(categories[1]!)).toBe("No products in Coffee yet.");
+    expect(emptyListingMessage(categories[1]!)).toBe("No products in Mice yet.");
   });
 
   it("explains the listing cap only when more products match", () => {
@@ -48,7 +48,7 @@ describe("catalog copy", () => {
 
   it("builds listing links", () => {
     expect(productsHref()).toBe("/products");
-    expect(productsHref("coffee")).toBe("/products?category=coffee");
+    expect(productsHref("mice")).toBe("/products?category=mice");
   });
 
   it("recognises local demo images", () => {
@@ -73,20 +73,20 @@ describe("ProductImage", () => {
     const html = renderToStaticMarkup(
       createElement(ProductImage, { imageUrl: product.imageUrl, name: product.name, size: 320 }),
     );
-    expect(html).toContain('src="/demo/products/v60-dripper.svg"');
-    expect(html).toContain('alt="V60 Dripper"');
+    expect(html).toContain('src="/demo/products/vortex-wireless-mouse.svg"');
+    expect(html).toContain('alt="Vortex Wireless Mouse"');
   });
 
   it("renders a remote image as a plain img without a referrer", () => {
     const html = renderToStaticMarkup(
       createElement(ProductImage, {
-        imageUrl: "https://cdn.example.com/v60.png",
+        imageUrl: "https://cdn.example.com/vortex.png",
         name: product.name,
         size: 320,
       }),
     );
     expect(html).toMatch(/^<img /);
-    expect(html).toContain('src="https://cdn.example.com/v60.png"');
+    expect(html).toContain('src="https://cdn.example.com/vortex.png"');
     expect(html).toContain('referrerPolicy="no-referrer"');
     expect(html).toContain('loading="lazy"');
   });
@@ -96,7 +96,7 @@ describe("ProductImage", () => {
       createElement(ProductImage, { imageUrl: null, name: product.name, size: 320 }),
     );
     expect(html).toContain('role="img"');
-    expect(html).toContain('aria-label="No image for V60 Dripper"');
+    expect(html).toContain('aria-label="No image for Vortex Wireless Mouse"');
     expect(html).toContain(">No image<");
   });
 });
@@ -104,10 +104,10 @@ describe("ProductImage", () => {
 describe("ProductCard", () => {
   it("shows name, link, formatted price, category and availability", () => {
     const html = plainText(renderToStaticMarkup(createElement(ProductCard, { product })));
-    expect(html).toContain('href="/products/v60-dripper"');
-    expect(html).toContain(">V60 Dripper<");
-    expect(html).toContain("89,00 zł");
-    expect(html).toContain(">Brewing gear<");
+    expect(html).toContain('href="/products/vortex-wireless-mouse"');
+    expect(html).toContain(">Vortex Wireless Mouse<");
+    expect(html).toContain("249,00 zł");
+    expect(html).toContain(">Mice<");
     expect(html).toContain(">In stock<");
   });
 
@@ -117,7 +117,7 @@ describe("ProductCard", () => {
         product: { ...product, category: null, availability: "out_of_stock" },
       }),
     );
-    expect(html).not.toContain("Brewing gear");
+    expect(html).not.toContain(">Mice<");
     expect(html).toContain(">Out of stock<");
   });
 });
@@ -131,7 +131,7 @@ describe("CategoryNav", () => {
     const html = render();
     expect(html).toContain('aria-label="Categories"');
     expect(html).toContain('href="/products"');
-    expect(html).toContain('href="/products?category=coffee"');
+    expect(html).toContain('href="/products?category=mice"');
     expect(html).not.toContain("aria-current");
   });
 
@@ -140,8 +140,8 @@ describe("CategoryNav", () => {
   });
 
   it("marks the selected category as current", () => {
-    const html = render("coffee");
-    expect(html).toMatch(/aria-current="page"[^>]*>Coffee</);
+    const html = render("mice");
+    expect(html).toMatch(/aria-current="page"[^>]*>Mice</);
     expect(html.match(/aria-current/g)).toHaveLength(1);
   });
 });

@@ -6,7 +6,7 @@ describe("storefront home page", () => {
 
   it("shows the demo banner, the introduction and every category", async () => {
     await browser().open("/");
-    await browser().waitForText("Brewing gear");
+    await browser().waitForText("Keyboards");
 
     expect(await browser().title()).toBe("CommerceOS");
     expect(await browser().text("body")).toContain(
@@ -19,7 +19,7 @@ describe("storefront home page", () => {
     });
     expect(elements).toContainEqual({ role: "navigation", name: "Main" });
     expect(elements).toContainEqual({ role: "navigation", name: "Categories" });
-    for (const name of ["Coffee", "Brewing gear", "[E2E] Empty category"]) {
+    for (const name of ["Mice", "Keyboards", "[E2E] Empty category"]) {
       expect(elements).toContainEqual({ role: "link", name });
     }
   });
@@ -34,12 +34,12 @@ describe("storefront home page", () => {
 
   it("opens a category listing from the category list", async () => {
     await browser().open("/");
-    await browser().waitForText("Brewing gear");
-    await browser().clickRole("link", "Brewing gear");
-    await browser().waitForUrl("**/products?category=brewing");
-    await browser().waitForText("V60 Dripper");
+    await browser().waitForText("Keyboards");
+    await browser().clickRole("link", "Keyboards");
+    await browser().waitForUrl("**/products?category=keyboards");
+    await browser().waitForText("Nova TKL Mechanical Keyboard");
 
-    expect(new URL(await browser().url()).searchParams.get("category")).toBe("brewing");
+    expect(new URL(await browser().url()).searchParams.get("category")).toBe("keyboards");
   });
 
   it("links to the admin panel, which asks a signed-out visitor to sign in", async () => {

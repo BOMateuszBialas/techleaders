@@ -26,14 +26,14 @@ const { loadStorefrontCategories } = await import("./load-storefront-categories"
 const { loadCatalogPage } = await import("./products/load-catalog-page");
 const { loadProductPage, productPageTitle } = await import("./products/[slug]/load-product-page");
 
-const categories = [{ slug: "coffee", name: "Coffee", description: null }];
+const categories = [{ slug: "mice", name: "Mice", description: null }];
 const listing: CatalogListing = { category: null, products: [], total: 0, limit: 48 };
 const product: CatalogProductDetail = {
   id: "p-1",
-  slug: "v60-dripper",
-  name: "V60 Dripper",
-  description: "A dripper.",
-  price: money(8900, "PLN"),
+  slug: "vortex-wireless-mouse",
+  name: "Vortex Wireless Mouse",
+  description: "A wireless mouse.",
+  price: money(24900, "PLN"),
   category: null,
   availability: "in_stock",
   imageUrl: null,
@@ -62,11 +62,11 @@ describe("loadCatalogPage", () => {
     listCategories.mockResolvedValue(categories);
     listProducts.mockResolvedValue(listing);
 
-    await expect(loadCatalogPage({ category: "coffee", categoryInvalid: false })).resolves.toEqual({
+    await expect(loadCatalogPage({ category: "mice", categoryInvalid: false })).resolves.toEqual({
       kind: "ok",
       data: { categories, listing },
     });
-    expect(listProducts).toHaveBeenCalledWith({ categorySlug: "coffee" });
+    expect(listProducts).toHaveBeenCalledWith({ categorySlug: "mice" });
     expect(dispose).toHaveBeenCalledOnce();
   });
 
@@ -101,17 +101,20 @@ describe("loadCatalogPage", () => {
 describe("loadProductPage", () => {
   it("returns a published product", async () => {
     getProduct.mockResolvedValue(product);
-    await expect(loadProductPage("v60-dripper")).resolves.toEqual({ kind: "ok", data: product });
-    expect(getProduct).toHaveBeenCalledWith({ slug: "v60-dripper" });
+    await expect(loadProductPage("vortex-wireless-mouse")).resolves.toEqual({
+      kind: "ok",
+      data: product,
+    });
+    expect(getProduct).toHaveBeenCalledWith({ slug: "vortex-wireless-mouse" });
   });
 
   it("maps a draft or missing product to not-found", async () => {
     getProduct.mockRejectedValue(new NotFoundError());
-    await expect(loadProductPage("e2e-draft-kettle")).resolves.toEqual({ kind: "not-found" });
+    await expect(loadProductPage("e2e-draft-keyboard")).resolves.toEqual({ kind: "not-found" });
   });
 
   it("titles the page without leaking anything but a published product", () => {
-    expect(productPageTitle({ kind: "ok", data: product })).toBe("V60 Dripper");
+    expect(productPageTitle({ kind: "ok", data: product })).toBe("Vortex Wireless Mouse");
     expect(productPageTitle({ kind: "not-found" })).toBe("Product not found");
     expect(productPageTitle({ kind: "error" })).toBe("Products");
   });
