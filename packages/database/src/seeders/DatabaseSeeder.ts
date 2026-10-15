@@ -1,3 +1,4 @@
+import type { ProductStatus } from "@commerceos/core";
 import type { EntityManager } from "@mikro-orm/core";
 import { Seeder } from "@mikro-orm/seeder";
 import { CategorySchema } from "../entities/categories/category.entity";
@@ -19,6 +20,10 @@ type SeedProduct = {
   priceMinor: number;
   stockQuantity: number;
   sku: string;
+  /** Defaults to "published"; test fixtures seed drafts. */
+  status?: ProductStatus;
+  /** A local path under `packages/app/public`, e.g. `/demo/products/<slug>.svg`. */
+  imageUrl?: string;
 };
 export type SeedCatalog = { categories: readonly SeedCategory[]; products: readonly SeedProduct[] };
 
@@ -35,6 +40,7 @@ const demoProducts = [
     priceMinor: 5490,
     stockQuantity: 42,
     sku: "DEMO-COF-001",
+    imageUrl: "/demo/products/ethiopia-yirgacheffe-250g.svg",
   },
   {
     slug: "colombia-huila-250g",
@@ -43,6 +49,7 @@ const demoProducts = [
     priceMinor: 4890,
     stockQuantity: 3,
     sku: "DEMO-COF-002",
+    imageUrl: "/demo/products/colombia-huila-250g.svg",
   },
   {
     slug: "brazil-santos-1kg",
@@ -51,6 +58,7 @@ const demoProducts = [
     priceMinor: 12900,
     stockQuantity: 15,
     sku: "DEMO-COF-003",
+    imageUrl: "/demo/products/brazil-santos-1kg.svg",
   },
   {
     slug: "v60-dripper",
@@ -59,6 +67,7 @@ const demoProducts = [
     priceMinor: 8900,
     stockQuantity: 8,
     sku: "DEMO-BRW-001",
+    imageUrl: "/demo/products/v60-dripper.svg",
   },
   {
     slug: "gooseneck-kettle",
@@ -67,6 +76,7 @@ const demoProducts = [
     priceMinor: 21900,
     stockQuantity: 0,
     sku: "DEMO-BRW-002",
+    imageUrl: "/demo/products/gooseneck-kettle.svg",
   },
 ] as const;
 
@@ -83,7 +93,7 @@ export async function seedCatalog(em: EntityManager, catalog: SeedCatalog): Prom
     categoryIds.set(category.slug, saved.id);
   }
 
-  for (const { category, ...product } of catalog.products) {
+  for (const { category, status, imageUrl, ...product } of catalog.products) {
     const categoryId = categoryIds.get(category);
     if (!categoryId) throw new Error(`Seed category "${category}" missing`);
     await em.upsert(
@@ -92,7 +102,8 @@ export async function seedCatalog(em: EntityManager, catalog: SeedCatalog): Prom
         ...product,
         description: `[DEMO] ${product.name}. Seed data for local development.`,
         currency: "PLN",
-        status: "published",
+        status: status ?? "published",
+        imageUrl: imageUrl ?? null,
         category: categoryId,
       },
       { onConflictFields: ["slug"] },

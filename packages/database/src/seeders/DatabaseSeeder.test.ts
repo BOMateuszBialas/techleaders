@@ -41,6 +41,7 @@ describe("seedCatalog", () => {
       slug: "ethiopia-yirgacheffe-250g",
       category: "id-coffee",
       status: "published",
+      imageUrl: "/demo/products/ethiopia-yirgacheffe-250g.svg",
     });
     expect(stub.flush).toHaveBeenCalledOnce();
   });
@@ -49,6 +50,26 @@ describe("seedCatalog", () => {
     for (const category of DEMO_CATALOG.categories)
       expect(category.description).toMatch(/^\[DEMO]/);
     for (const product of DEMO_CATALOG.products) expect(product.sku).toMatch(/^DEMO-/);
+  });
+
+  it("seeds an explicit status, and no image when none is given", async () => {
+    const [category] = DEMO_CATALOG.categories;
+    const draft: SeedCatalog = {
+      categories: [category!],
+      products: [
+        {
+          slug: "draft-beans",
+          name: "Draft beans",
+          category: category!.slug,
+          priceMinor: 100,
+          stockQuantity: 1,
+          sku: "TEST-001",
+          status: "draft",
+        },
+      ],
+    };
+    await seedCatalog(stub.em, draft);
+    expect(stub.upsert.mock.calls[1]?.[1]).toMatchObject({ status: "draft", imageUrl: null });
   });
 
   it("rejects a product that references an unknown category", async () => {

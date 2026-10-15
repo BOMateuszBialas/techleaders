@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400" role="img" aria-label="Colombia Huila (demo image)">
+  <rect width="400" height="400" fill="#f5f5f4"/>
+  <path d="M150 90h100l20 40v150a20 20 0 0 1-20 20H150a20 20 0 0 1-20-20V130z" fill="#92400e"/><rect x="155" y="160" width="90" height="60" rx="6" fill="#fff" opacity=".85"/>
+  <text x="200" y="340" text-anchor="middle" font-family="sans-serif" font-size="22" fill="#44403c">Colombia Huila</text>
+  <text x="200" y="372" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="700" fill="#a8a29e" letter-spacing="4">DEMO</text>
+</svg>
