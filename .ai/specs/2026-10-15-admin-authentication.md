@@ -1,7 +1,7 @@
 # Admin authentication and the server-side admin guard
 
 - Backlog: E03-S01 ([#19](https://github.com/BOMateuszBialas/techleaders/issues/19)), epic E03 (#10)
-- Status: draft. Open Questions answered, cross-model review and grill-me applied (2026-10-15); waiting for the step-1 spike results (G12)
+- Status: approved by the product owner (2026-10-15). Open Questions answered, cross-model review and grill-me applied, step-1 spike passed with minor deviations only (G11). Ready for implementation (steps 2–10)
 - Design authority: `.ai/specs/product-brief.md`, `.ai/specs/2026-10-13-commerceos-mvp.md` §3, §4, §8
 
 ## 📝 TLDR
@@ -135,10 +135,11 @@ flowchart LR
 | `user` / `session` / `account` / `verification` `modelName` + `fields` | `admin_users`, … with snake_case columns                         | project naming (ENGINEERING_STANDARDS §1)       |
 | `user.additionalFields.role`                                  | `{ type: "string", input: false, defaultValue: "owner" }`             | Q4; never settable from a request               |
 | `rateLimit`                                                   | `enabled: true`; `customRules["/sign-in/email"] = { window: 60, max: 5 }`; storage `"database"` (table `admin_rate_limits`) | brute-force protection that survives restarts (see Risks) |
-| `advanced.ipAddress.ipAddressHeaders`                         | only from `AUTH_TRUSTED_IP_HEADER` (optional env, set it only behind a proxy that overwrites that header) | the rate-limit key must not come from a client-controlled header |
-| `rateLimit` fallback without a trusted header                 | while `AUTH_TRUSTED_IP_HEADER` is unset (G1: the local demo), or if the step-1 spike shows the library would key on a spoofable header or skip limiting when no IP is known, `/sign-in/email` uses a **global** limit of 20/min for all clients (G2) | one owner account: a global limit trades a small lock-out risk for no bypass |
-| cookies                                                       | library defaults: `httpOnly`, `sameSite=lax`, `Secure` and `__Secure-` prefix in production | `lax` is enough: every mutation is a POST guarded by origin checks (Better Auth `trustedOrigins`, Next server actions) |
-| `plugins`                                                     | `[nextCookies()]` (last)                                              | lets server actions set the session cookie      |
+| `advanced.ipAddress.ipAddressHeaders`                         | `[AUTH_TRUSTED_IP_HEADER]` when set; **`[]` when unset**. Never the library default (`x-forwarded-for`, which a client can forge when there is no proxy, spike f) | the rate-limit key must not come from a client-controlled header |
+| `rateLimit` fallback without a trusted header                 | while `AUTH_TRUSTED_IP_HEADER` is unset (G1: the local demo), the library finds no IP and uses one shared per-path bucket (`no-trusted-ip` key, spike f), so the `/sign-in/email` custom rule is `max: 20` (G2); with the header set it is `max: 5`. Session rows then store no IP (G6 applies once a trusted header exists) | one owner account: a global limit trades a small lock-out risk for no bypass |
+| cookies                                                       | library defaults: `better-auth.session_token`, `HttpOnly`, `SameSite=Lax`, `Max-Age=28800`. `Secure` and the `__Secure-` prefix follow the **`APP_URL` protocol** (https), not `NODE_ENV` (spike b) | `lax` is enough: every mutation is a POST guarded by origin checks (Better Auth `trustedOrigins`, Next server actions) |
+| `plugins`                                                     | `[nextCookies()]` (last)                                              | lets server actions set the session cookie (spike g) |
+| `logger`                                                      | routes Better Auth's own log lines through `server/logger.ts`         | no direct `console.*` output (AGENTS.md); its warnings name no email |
 
 ## 📝 Data Model
 
@@ -181,7 +182,7 @@ All additive (BACKWARD_COMPATIBILITY §2).
 
 | Case                                                     | Behaviour                                                                                         |
 | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| Wrong password, or unknown email                         | Same generic message, status and body (AC3, tested); logged as `auth.sign_in_failed` without email or password. Timing: the step-1 spike checks whether the library hashes a dummy password for an unknown email. If it does not, `signIn` calls the **library's own** `password.hash` on a fixed string before returning (no hand-rolled crypto). No statistical timing test: the guarantee is "same message and response", and the timing mitigation is best-effort |
+| Wrong password, or unknown email                         | Same generic message, status and body (AC3, tested); logged as `auth.sign_in_failed` without email or password. Timing: the library already hashes for an unknown email (spike e: about 55 ms either way), so no extra code is needed. No statistical timing test: the guarantee is "same message and response" |
 | 6th attempt within 60 s from the same IP                 | 429 → "Too many attempts…"; no credential check performed                                         |
 | Session expired (no activity for 8 h)                    | `getSession` returns null → redirect to sign-in (pages) / 401 (API)                              |
 | Session row deleted (sign-out in another tab)            | Same as expired; immediate, because the cookie cache is off                                      |
@@ -195,7 +196,7 @@ All additive (BACKWARD_COMPATIBILITY §2).
 
 ## 📝 Risks & Impact Review
 
-- **Owner creation with sign-up disabled is unverified:** whether `auth.api.signUpEmail` bypasses `disableSignUp` on the server is undocumented. Step 4 starts with a spike. The fallback is `(await auth.$context)` → `password.hash` plus `internalAdapter.createUser` / `linkAccount` / `updatePassword`, which still uses the library's hashing. Enabling sign-up, even in the CLI's own instance, is **ruled out**: a wiring bug would expose public sign-up. If neither path works, stop and revisit Q1.
+- **Owner creation uses `$context.internalAdapter` (verified, spike d).** Server-side `signUpEmail` is blocked by `disableSignUp`. The working path is `password.hash` plus `createUser(user, { method: "admin" })` + `linkAccount`, and rotation is `updatePassword` + `deleteUserSessions`. All of these use the library's hashing. These are internal-adapter APIs and can move between minor versions, so the version stays pinned and the CLI integration test guards them. Enabling sign-up, even in the CLI's own instance, is **ruled out**.
 - **Second connection pool:** Better Auth uses its own `pg.Pool` (max 5) next to MikroORM's. That is acceptable for the MVP. Sharing MikroORM's Kysely instance was not chosen, because it couples the auth singleton to ORM internals.
 - **Brute force:** the IP limit (5 per minute, stored in the DB) slows a single attacker. There is **no per-account lockout**: with one owner account, a lockout would let anyone lock the owner out (a denial of service). The owner's 12+ character password makes a distributed guess impractical. This is a documented limitation.
 - **Library-owned endpoints under `/api/auth/*`:** a Better Auth upgrade can change them. The version is pinned to `~1.7.10`, and the e2e sign-in test covers the path we use.
@@ -229,7 +230,7 @@ All additive (BACKWARD_COMPATIBILITY §2).
 
    Record every answer in this spec's "Spike results" section and handle any deviation per G11: minor ones are fixed in the spec, decision-changing ones go back to the product owner. If (g) fails, apply G10 (client-side sign-in).
 2. **Env and dependencies.**
-   - Add `better-auth@~1.7.10` and `pg` to `@commerceos/app`.
+   - Add `better-auth@~1.7.10` and `pg` to `@commerceos/app`, and `@types/pg` as a dev dependency.
    - Env schema: add `BETTER_AUTH_SECRET` (`min(32)`) and the optional `AUTH_TRUSTED_IP_HEADER`, and make `APP_URL` required when `NODE_ENV=production`. Update `.env.example`.
    - *Test:* `parseEnv` unit tests (missing or short secret, production without `APP_URL`).
 3. **Schema.**
@@ -287,7 +288,38 @@ Every step keeps `npm run test:coverage` at 100% with **no new coverage exclusio
 
 ## 📝 Spike results
 
-_Filled in by step 1: answers to (a)–(g), with the pinned version and the date._
+`better-auth@1.7.10` (core `1.7.10`), PostgreSQL 17 (Testcontainers), Next 16.4 production build, 2026-10-15. Evidence lives on the local throwaway branch `spike/better-auth`: `packages/app/spike/spike.mts` and `results.json`, plus a server-action page and e2e test. Nothing was merged.
+
+| Item | Result | Spec impact |
+| --- | --- | --- |
+| (a) Types | All options in the config table compile under `strict`. `nextCookies` and `toNextJsHandler` are exported from `better-auth/next-js`. `pg` needs `@types/pg` (dev dependency) | add `@types/pg` |
+| (b) Session cycle | Sign-in 200 sets `better-auth.session_token` (HttpOnly, Lax, Max-Age 28800); `getSession` with the cookie returns the user with `role: "owner"`; sign-out 200 deletes the row and the cookie no longer works | none |
+| (c) Renewal / expiry | A session older than `updateAge` is extended to now + 8 h on `getSession`. A row whose `expires_at` has passed returns `null` | none |
+| (d) Owner creation | `auth.api.signUpEmail` → `EMAIL_PASSWORD_SIGN_UP_DISABLED` (public `POST /sign-up/email` → 400). `internalAdapter.createUser(user, { method: "admin" })` + `linkAccount` + `password.hash` works; `role` defaults to `owner`. Rotation: `updatePassword` + `deleteUserSessions` (new password 200, old 401) | Risks updated |
+| (e) Unknown-email timing | Wrong password and unknown email both about 53–59 ms (dummy hash present). Both return 401 `{"message":"Invalid email or password","code":"INVALID_EMAIL_OR_PASSWORD"}`, byte-identical | no own dummy hash |
+| (f) IP / rate limit | The default header is `x-forwarded-for` (one value trusted, no proxy check). With `ipAddressHeaders: []` in production the key is `no-trusted-ip` + path: a different spoofed XFF on every request still hit 429 after 5. Foreign `Origin` → 403 `INVALID_ORIGIN`. A `/sign-up/email` attempt also counts in its own bucket | config table: `[]` by default, max 20 / 5 |
+| (g) `nextCookies()` in a server action | In a production build, a server action calling `auth.api.signInEmail({ headers: await headers() })` then `redirect()` sets the cookie, and the next request's `getSession` sees the owner (e2e passed). G10 is not needed | none |
+
+Generated schema (`getMigrations(...).compileMigrations()`), to be mirrored by the MikroORM entities in step 3:
+
+```sql
+create table "admin_users" ("id" uuid default pg_catalog.gen_random_uuid() not null primary key, "name" text not null, "email" text not null unique, "email_verified" boolean not null, "image" text, "created_at" timestamptz default CURRENT_TIMESTAMP not null, "updated_at" timestamptz default CURRENT_TIMESTAMP not null, "role" text not null);
+create table "admin_sessions" ("id" uuid default pg_catalog.gen_random_uuid() not null primary key, "expires_at" timestamptz not null, "token" text not null unique, "created_at" timestamptz default CURRENT_TIMESTAMP not null, "updated_at" timestamptz not null, "ip_address" text, "user_agent" text, "user_id" uuid not null references "admin_users" ("id") on delete cascade);
+create table "admin_accounts" ("id" uuid default pg_catalog.gen_random_uuid() not null primary key, "account_id" text not null, "provider_id" text not null, "user_id" uuid not null references "admin_users" ("id") on delete cascade, "access_token" text, "refresh_token" text, "id_token" text, "access_token_expires_at" timestamptz, "refresh_token_expires_at" timestamptz, "scope" text, "password" text, "created_at" timestamptz default CURRENT_TIMESTAMP not null, "updated_at" timestamptz not null);
+create table "admin_verifications" ("id" uuid default pg_catalog.gen_random_uuid() not null primary key, "identifier" text not null, "value" text not null, "expires_at" timestamptz not null, "created_at" timestamptz default CURRENT_TIMESTAMP not null, "updated_at" timestamptz default CURRENT_TIMESTAMP not null);
+create table "admin_rate_limits" ("id" uuid default pg_catalog.gen_random_uuid() not null primary key, "key" text not null unique, "count" integer not null, "last_request" bigint not null);
+create index "admin_sessions_user_id_idx" on "admin_sessions" ("user_id");
+create index "admin_accounts_user_id_idx" on "admin_accounts" ("user_id");
+create index "admin_verifications_identifier_idx" on "admin_verifications" ("identifier");
+```
+
+Our additions on top: `check (role in ('owner'))` on `admin_users.role`. `rateLimit` accepts `modelName`/`fields` like the other models.
+
+Other observations:
+- **Lazy init:** Better Auth checks the schema when the instance initialises, and logs "Database schema mismatch" if tables are missing. It did so during `next build` when a module built the instance at import. The container's lazy `getAuth()` must stay request-time only, and must never be called while prerendering.
+- **Logging:** the library logs `Invalid password` / `User not found` warnings without the email. These go through the `logger` option (config table).
+
+**Deviations:** all minor per G11 (the IP-header default, `Secure` following the `APP_URL` protocol, the `createUser` signature, `deleteUserSessions`, `@types/pg`, the `logger` option). None changes a decision.
 
 ## 📝 Review log
 
@@ -299,3 +331,4 @@ _Filled in by step 1: answers to (a)–(g), with the pinned version and the date
     - "Drop `/api/admin/me`": it is the only way to prove AC2 for APIs until real admin APIs exist.
     - "Share MikroORM's pool": it would couple auth to ORM internals, for a saving of 5 connections.
 - **2026-10-15, grill-me (product owner):** 12 decisions, G1–G12 in the Decisions section. All of them followed the recommended answer; none changed the architecture. They fix the rate-limit numbers and their local-demo fallback, rule out seeded credentials, set the e2e credentials, add the client-side fallback for `nextCookies()`, the rule for spike deviations, and the delivery order.
+- **2026-10-15, step-1 spike:** passed (a)–(g); see "Spike results". Minor deviations were applied to the config table, Edge Cases and Risks. Spec approved by the product owner.
