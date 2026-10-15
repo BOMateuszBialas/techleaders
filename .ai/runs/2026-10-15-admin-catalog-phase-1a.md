@@ -75,5 +75,5 @@ The signed-in owner lists, creates, edits and deletes categories in `/admin/cate
 
 ### Phase 4: Docs
 
-- [ ] 4.1 Contract docs, AGENTS.md, lessons, spec deviations
-- [ ] 4.2 Gaming examples in the catalog and cart specs
+- [x] 4.1 Contract docs, AGENTS.md, lessons, spec deviations — 45b0275
+- [x] 4.2 Gaming examples in the catalog and cart specs — 45b0275, be105c8
