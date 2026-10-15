@@ -1,7 +1,7 @@
 # Admin authentication and the server-side admin guard
 
 - Backlog: E03-S01 ([#19](https://github.com/BOMateuszBialas/techleaders/issues/19)), epic E03 (#10)
-- Status: approved by the product owner (2026-10-15). Open Questions answered, cross-model review and grill-me applied, step-1 spike passed with minor deviations only (G11). Ready for implementation (steps 2–10)
+- Status: **implemented** (2026-10-15); approved by the product owner (2026-10-15). Open Questions answered, cross-model review and grill-me applied, step-1 spike passed with minor deviations only (G11). Ready for implementation (steps 2–10)
 - Design authority: `.ai/specs/product-brief.md`, `.ai/specs/2026-10-13-commerceos-mvp.md` §3, §4, §8
 
 ## 📝 TLDR
@@ -320,6 +320,17 @@ Other observations:
 - **Logging:** the library logs `Invalid password` / `User not found` warnings without the email. These go through the `logger` option (config table).
 
 **Deviations:** all minor per G11 (the IP-header default, `Secure` following the `APP_URL` protocol, the `createUser` signature, `deleteUserSessions`, `@types/pg`, the `logger` option). None changes a decision.
+
+## 📝 Implementation notes (2026-10-15)
+
+Implemented in the PR that closes #19. Deviations from the text above, all minor per G11:
+
+- **Sign-in goes through `auth.handler()`, not `auth.api.signInEmail`.** Better Auth applies the rate limit and the origin check only in its HTTP router; `auth.api.*` skips both. The router path also skips `nextCookies()`, so `sign-in.ts` copies the session cookie into Next's store with the library's `parseSetCookieHeader` / `toCookieOptions`. Sign-out still uses `auth.api.signOut`, where `nextCookies()` expires the cookie.
+- **The sign-in form has no client component.** Errors come back as a fixed `?error=` code mapped in `sign-in-errors.ts`. The form works without JavaScript and needs no coverage exclusion. Trade-off: no pending state and no programmatic focus on the error (it is announced through `role="alert"`).
+- **No `error.tsx`.** A failed session lookup on a page falls through to Next's default error page, which is also generic.
+- **`advanced.disableOriginCheck: false` is set explicitly.** Better Auth skips the origin check by default when `NODE_ENV=test`.
+- **`adminApiHandler` calls `connection()` before `apiHandler`.** This keeps `next build` from prerendering admin routes; inside `apiHandler`'s try/catch the prerender abort was logged as a route error.
+- **The actions live in `server/auth/auth.action.ts`.** The logic is in `sign-in.ts`, so only `signIn` / `signOut` become public action endpoints.
 
 ## 📝 Review log
 

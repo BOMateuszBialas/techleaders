@@ -40,7 +40,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 | UI | Tailwind CSS v4, **shadcn/ui** (style `base-nova`, Base UI primitives, `lucide-react`) |
 | Validation | **Zod 4** (env, request input, AI output) |
 | Tests / quality | Vitest 5 (`unit`, `integration`, `e2e` projects) with v8 coverage, Testcontainers (PostgreSQL), agent-browser (e2e), ESLint 9 (`eslint-config-next`), Prettier 3, GitHub Actions CI |
-| Not chosen yet | Auth library, LLM provider, Stripe. Each is a separate decision; do not add one silently |
+| Admin auth | **Better Auth `~1.7.10`**: email + password, DB-backed revocable sessions, one `owner` role (spec `.ai/specs/implemented/2026-10-15-admin-authentication.md`) |
+| Not chosen yet | LLM provider, Stripe. Each is a separate decision; do not add one silently |
 
 Do not add libraries without a stated reason. TS 7 and ESLint 10 were deliberately not adopted (compatibility with Next 16.4 is unverified).
 
@@ -82,7 +83,13 @@ Do not add libraries without a stated reason. TS 7 and ESLint 10 were deliberate
 ### Security and validation
 
 - Validate all untrusted input at the boundary with Zod (route handlers, server actions, AI output). Read env only through `getEnv()`.
-- Enforce authorization on the server for every admin and Copilot operation; hiding UI is not authorization. **Admin auth is not implemented yet. Until it is, the `/admin` shell must not expose store data or mutations.**
+- Enforce authorization on the server for every admin and Copilot operation; hiding UI is not authorization.
+- **Every admin entry point goes through `packages/app/src/server/auth/require-admin.ts`.**
+  - Pages under `src/app/admin/(protected)/` call `requireAdminPage()`. Read the session only inside `<Suspense>`.
+  - Routes under `src/app/api/admin/` use `adminApiHandler`.
+  - Admin server actions (`*.action.ts` under `src/app/admin/`) call `requireAdmin()` as their first statement.
+  - `admin-guard-inventory.test.ts` fails when one of them skips the guard.
+  - Never call Better Auth (`getAuth()`) or read the session cookie directly.
 - Never trust client-submitted prices, totals, payment status or stock. Never store card data.
 - Never return stack traces, raw provider or DB errors, or secrets to users. Log with context through `logger` (`packages/app/src/server/logger.ts`, redacts sensitive keys and URL credentials); never call `console.*` directly in server code.
 - Server-only modules start with `import "server-only"`.
@@ -136,6 +143,7 @@ Before starting a task, read the files listed for the area it touches.
 | Domain rules / use cases | `packages/core/src/`, `ENGINEERING_STANDARDS.md` §1–3 | Pure TS (+ Zod), no framework imports; `<name>.use-case.ts` / `<name>.service.ts`; ports end in `Port`/`Gateway`; errors extend `AppError`; unit-test with fakes |
 | Entities, migrations, seeds | `packages/database/src/`, Database conventions above | `defineEntity` in `entities/<concept>/<name>.entity.ts`; register in `entities/index.ts`; migration plus integration test with every schema change |
 | Dependency wiring | `packages/app/src/server/container.ts` | Deliberate lifetimes; strict mode; scoped EM |
+| Admin auth, sessions, the owner account | `packages/app/src/server/auth/`, `.ai/specs/implemented/2026-10-15-admin-authentication.md` | Guard every admin entry point with `require-admin.ts`. Sign-in goes through Better Auth's HTTP handler (its router applies the rate limit and origin check; `auth.api.*` does not). Owner via `npm run admin:create` |
 | Env variables | `packages/app/src/server/env.ts`, `.env.example` | Add to the Zod schema and `.env.example` together; read via `getEnv()` |
 | Pages, layouts, routing (UI) | `packages/app/src/app/`, `node_modules/next/dist/docs/` | Server Components by default; `cacheComponents` is on, so wrap request-time data in `<Suspense>` and call `connection()`; use Next.js 16 APIs |
 | UI components, styles | `packages/app/components.json`, `packages/app/src/components/ui/`, `packages/app/src/app/globals.css` | Add components with `npx shadcn@latest add <name>` (run in `packages/app`); Tailwind utilities; accessible states |

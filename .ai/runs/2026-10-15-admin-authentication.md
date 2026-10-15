@@ -2,7 +2,7 @@
 
 - **Date:** 2026-10-15
 - **Trigger:** `/om-auto-implement-spec .ai/specs/2026-10-15-admin-authentication.md` (user request)
-- **Source doc:** `.ai/specs/2026-10-15-admin-authentication.md` (merged in #31; step 1 spike already done)
+- **Source doc:** `.ai/specs/implemented/2026-10-15-admin-authentication.md` (merged in #31; step 1 spike already done)
 - **Issue:** #19
 - **Engine:** om-auto-create-pr (steps: 9, --loop: no)
 

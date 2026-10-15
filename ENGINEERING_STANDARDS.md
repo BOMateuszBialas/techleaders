@@ -400,6 +400,7 @@ Deviation from the original AGENTS.md: `core` now depends on **Zod**, because sh
 
 - `AppError` (`code`, `message`) and `ValidationError` (`fieldErrors`), `NotFoundError`, `UnauthorizedError`, `ForbiddenError`, `ConflictError` live in `packages/core/src/errors/`. Every domain or application error extends `AppError`.
 - `packages/app/src/server/http/` maps them to HTTP: 400 / 401 / 403 / 404 / 409; any other error (including other `AppError` subclasses, which signal broken invariants) becomes a generic 500. Responses use the `ApiResult<T>` envelope and never include stack traces or internal messages for 500s.
+- Admin route handlers use `adminApiHandler` (`server/auth/require-admin.ts`), which adds `connection()` and the session check around `apiHandler`.
 - Route handlers wrap their body with `apiHandler`. **Exception:** `GET /api/health` keeps its own response shape, which is a protected contract (`BACKWARD_COMPATIBILITY.md`).
 - Server code logs through `packages/app/src/server/logger.ts`, which redacts sensitive keys. Do not call `console.*` directly in app server code.
 
@@ -418,4 +419,4 @@ Deviation from the original AGENTS.md: `core` now depends on **Zod**, because sh
 
 ### Deferred until a real consumer exists
 
-Client-side `/api` helper, `makeCrudRoute`, auth helpers, rate limiting, domain events, shared form/table/feedback components.
+Client-side `/api` helper, `makeCrudRoute`, domain events, shared form/table/feedback components. (Auth helpers and sign-in rate limiting now exist: `packages/app/src/server/auth/`.)

@@ -11,12 +11,15 @@ Keep entries short; put longer write-ups in `.ai/lessons/YYYY-MM-DD-slug.md` and
 
 <!-- Newest first -->
 
+- **2026-10-15 — Better Auth: `auth.api.*` skips the rate limit and the origin check**: both run only in the HTTP router (`auth.handler`). A server action calling `auth.api.signInEmail` would sign in with no brute-force limit. `server/auth/sign-in.ts` therefore posts through `auth.handler()` and copies the cookie with `parseSetCookieHeader` / `toCookieOptions`; `nextCookies()` does nothing on the router path. Also, Better Auth silently disables the origin check when `NODE_ENV=test` unless `advanced.disableOriginCheck: false` is set; we set it, and integration tests caught the difference.
+- **2026-10-15 — `try/catch` around `headers()`/`connection()` breaks `next build`**: a route handler wrapped in `apiHandler` logged "During prerendering, `connection()` rejects…" as an unhandled route error at build time. Call `await connection()` before entering the try/catch (as `/api/health` and `adminApiHandler` do), or `unstable_rethrow(error)` in the catch.
+- **2026-10-15 — `packages/app` scripts run as CommonJS under tsx**: the package has no `"type": "module"`, so top-level `await` fails in a `.ts` entry run by tsx. Use `run().then(...)` in CLI entry points, and keep the logic in an injectable, unit-tested `run*` function so the entry needs no coverage exclusion.
 - **2026-10-15 — Better Auth 1.7 surprises (spike for the admin auth spec)**:
   - The rate limiter keys on `x-forwarded-for` by default, and a client can forge it when there is no proxy. Set `advanced.ipAddress.ipAddressHeaders: []` unless a trusted proxy overwrites a header; then production uses one shared `no-trusted-ip` bucket per path.
   - `disableSignUp` also blocks server-side `auth.api.signUpEmail`. Provision users with `$context.internalAdapter.createUser(user, { method: "admin" })` + `linkAccount` + `password.hash`, and revoke with `deleteUserSessions(userId)` (`deleteSessions` takes tokens).
   - The `Secure` flag and the `__Secure-` prefix follow the `baseURL` protocol, not `NODE_ENV`.
   - The instance checks the schema at init, so build it lazily at request time, never at import or prerender.
-  - Details: `.ai/specs/2026-10-15-admin-authentication.md`, "Spike results".
+  - Details: `.ai/specs/implemented/2026-10-15-admin-authentication.md`, "Spike results".
 - **2026-10-15 — `npx skills add` installs where Claude Code does not look**: skills land in `~/.agents/skills/`, but Claude Code reads `~/.claude/skills/` and `.claude/skills/`. Copy the skill there, plus any skill it delegates to (`grill-me` only calls `grilling`).
 - **2026-10-15 — Python on Windows writes CRLF**: `open(p, "w")` in text mode turned a spec into CRLF. The index stayed LF, but the working tree showed a phantom change that blocked `git switch`. Pass `newline="\n"` when a script rewrites repo files.
 
