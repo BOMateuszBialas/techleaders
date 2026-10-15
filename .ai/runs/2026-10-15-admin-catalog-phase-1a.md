@@ -54,6 +54,8 @@ The signed-in owner lists, creates, edits and deletes categories in `/admin/cate
 
 ## Progress
 
+PR: #39
+
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles.
 
 ### Phase 1: Core
