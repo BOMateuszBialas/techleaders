@@ -89,7 +89,7 @@ Do not add libraries without a stated reason. TS 7 and ESLint 10 were deliberate
 
 ### Commerce Copilot rules
 
-- Flow: auth → input validation and limits → deterministic intent routing or a bounded tool-calling loop → **approved tools only** (`getSalesSummary`, `getTopProducts`, `getLowStockProducts`, `getOrderSummary`). No raw SQL or ORM access for the model.
+- Flow: auth → input validation and limits → deterministic intent routing or a bounded tool-calling loop → **approved tools only** (`getSalesSummary`, `getTopProducts`, `getLowStockProducts`, `getOrderSummary`, `getTrafficSummary`; the last reads seeded, fictional demo traffic data and its output is always labelled as such, see spec §6 and decision D08). No raw SQL or ORM access for the model.
 - Output follows the `CopilotRecommendation` schema (title, priority, observation, evidence[], reasoning, suggestedAction, relatedProductIds?, limitations?). Validate at runtime, retry a bounded number of times, then fall back safely.
 - Grounding: every metric value and product ID must come from tool results. Never invent data or claim causation from correlation.
 - Treat prompts and product content as untrusted (prompt injection). Send the minimum data needed, never credentials or unnecessary personal data. Set timeouts and limits. Never render model output as HTML.
