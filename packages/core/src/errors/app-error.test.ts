@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { AppError, ConflictError, NotFoundError, ValidationError } from "./app-error";
+import {
+  AppError,
+  ConflictError,
+  NotFoundError,
+  ValidationError,
+  isNotFoundError,
+} from "./app-error";
 
 describe("AppError hierarchy", () => {
   it("keeps the subclass name, code and instanceof chain", () => {
@@ -18,5 +24,18 @@ describe("AppError hierarchy", () => {
 
   it("accepts a custom message", () => {
     expect(new ConflictError("Slug already exists").message).toBe("Slug already exists");
+  });
+
+  // Regression: a NotFoundError from another bundled copy of core failed `instanceof`,
+  // so the storefront showed "catalog unavailable" instead of "not found".
+  it("recognises a NotFoundError by its code, even from another copy of the class", () => {
+    class ForeignNotFoundError extends Error {
+      readonly code = "NOT_FOUND";
+    }
+    expect(isNotFoundError(new NotFoundError())).toBe(true);
+    expect(isNotFoundError(new ForeignNotFoundError())).toBe(true);
+    expect(isNotFoundError(new ConflictError())).toBe(false);
+    expect(isNotFoundError(new Error("plain"))).toBe(false);
+    expect(isNotFoundError({ code: "NOT_FOUND" })).toBe(false);
   });
 });

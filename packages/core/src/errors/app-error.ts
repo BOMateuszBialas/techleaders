@@ -33,6 +33,16 @@ export class NotFoundError extends AppError {
   }
 }
 
+/**
+ * True for a `NotFoundError` from any copy of this package. Compares the stable `code`
+ * instead of using `instanceof`: Next.js can bundle `@commerceos/core` into more than one
+ * server chunk, and the DI container cached on `globalThis` may hold use cases built from
+ * another chunk's copy, so `instanceof NotFoundError` can be false for a genuine one.
+ */
+export function isNotFoundError(error: unknown): error is NotFoundError {
+  return error instanceof Error && "code" in error && error.code === "NOT_FOUND";
+}
+
 /** No authenticated user. */
 export class UnauthorizedError extends AppError {
   constructor(message = "Authentication is required.") {
