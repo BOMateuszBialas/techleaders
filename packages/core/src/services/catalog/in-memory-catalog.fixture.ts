@@ -5,11 +5,11 @@ import type {
   CatalogReadPort,
 } from "../../ports/catalog-read.port";
 
-export const COFFEE: CatalogCategoryRecord = {
-  id: "cat-coffee",
-  slug: "coffee",
-  name: "Coffee",
-  description: "Beans",
+export const MICE: CatalogCategoryRecord = {
+  id: "cat-mice",
+  slug: "mice",
+  name: "Mice",
+  description: "Gaming mice",
 };
 export const EMPTY: CatalogCategoryRecord = {
   id: "cat-empty",
@@ -21,15 +21,16 @@ export const EMPTY: CatalogCategoryRecord = {
 export function productRecord(overrides: Partial<CatalogProductRecord> = {}): CatalogProductRecord {
   return {
     id: "p-1",
-    slug: "v60-dripper",
-    name: "V60 Dripper",
-    description: "A dripper.",
-    priceMinor: 8900,
+    slug: "vortex-wireless-mouse",
+    name: "Vortex Wireless Mouse",
+    description: "A wireless mouse.",
+    priceMinor: 24900,
     currency: "PLN",
     stockQuantity: 8,
-    imageUrl: "/demo/products/v60-dripper.svg",
+    imageUrl: "/demo/products/vortex-wireless-mouse.svg",
     status: "published",
-    category: { slug: COFFEE.slug, name: COFFEE.name },
+    featured: false,
+    category: { slug: MICE.slug, name: MICE.name },
     ...overrides,
   };
 }
@@ -63,6 +64,9 @@ export class InMemoryCatalog implements CatalogReadPort {
       .filter(
         (product) =>
           !criteria.categoryId || this.productCategoryIds[product.slug] === criteria.categoryId,
+      )
+      .filter(
+        (product) => criteria.featured === undefined || product.featured === criteria.featured,
       )
       .sort((a, b) => a.name.localeCompare(b.name));
     return { items: matches.slice(0, criteria.limit), total: matches.length };

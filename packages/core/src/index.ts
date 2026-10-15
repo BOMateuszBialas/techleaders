@@ -8,6 +8,7 @@ export * from "./services/catalog/catalog.dto";
 export * from "./services/catalog/get-catalog-product.use-case";
 export * from "./services/catalog/list-catalog-categories.use-case";
 export * from "./services/catalog/list-catalog-products.use-case";
+export * from "./services/catalog/list-featured-products.use-case";
 export * from "./services/health/get-system-health.use-case";
 export * from "./validators/auth/sign-in.schema";
 export * from "./validators/catalog/catalog-query.schema";

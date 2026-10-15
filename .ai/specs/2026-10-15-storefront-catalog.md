@@ -1,7 +1,7 @@
 # Storefront catalog: browse by category, product details, search
 
 - Backlog: E01-S01 ([#14](https://github.com/BOMateuszBialas/techleaders/issues/14)) and E01-S02 ([#15](https://github.com/BOMateuszBialas/techleaders/issues/15)), epic E01 (#8)
-- Status: Phase 1 implemented in PR #34 (Phase 1b and Phase 2 pending); written autonomously (`om-spec-writing --autonomous`); cross-model review and grill-me applied (2026-10-15). Open Questions were resolved with defaults; see "Resolved assumptions". The two ⚠ items (Q2, Q4) were confirmed by the product owner on 2026-10-15; the other defaults stand unless review changes them.
+- Status: Phase 1 implemented in PR #34, Phase 1b in PR #37 (Phase 2 pending); written autonomously (`om-spec-writing --autonomous`); cross-model review and grill-me applied (2026-10-15). Open Questions were resolved with defaults; see "Resolved assumptions". The two ⚠ items (Q2, Q4) were confirmed by the product owner on 2026-10-15; the other defaults stand unless review changes them.
 - Design authority: `.ai/specs/product-brief.md`, `.ai/specs/2026-10-13-commerceos-mvp.md` §3 (P0 storefront), §5, §9
 
 ## 📝 TLDR
@@ -55,6 +55,7 @@ These supersede any conflicting text elsewhere in this spec.
 | G20 | Order of delivery and column ownership | Storefront Phase 1 → **storefront Phase 1b** (adds the `featured` column, migration and seed) → admin 1a/1b (adds the "Featured on home page" checkbox) → storefront Phase 2 and the cart |
 | G21 | Remote product images (from the admin spec's grill-me, G10) | A product whose `imageUrl` is not a local `/demo/...` path renders with a plain `<img>` (`referrerpolicy="no-referrer"`, `loading="lazy"`, width/height set, `alt` = product name), never `next/image`; no `next.config.ts` change. A failed load shows the "No image" placeholder |
 | G22 | Cart slots (from the cart spec's grill-me, G8, G9, G11) | Product cards (listing and home slider) and the header leave an empty slot for "Add to cart" and the cart count; the cart spec's Phase 1 fills them. No disabled placeholder ships before the cart works |
+| G23 | Demo catalog (product owner, 2026-10-15, decision D10) | The demo store sells **gaming accessories**, not coffee: categories Mice, Keyboards, Headsets, Controllers and Mousepads, about 15 products with local SVG images, at least one out of stock, about 6 featured across at least 3 categories. Coffee slugs and names in this spec's examples (`coffee`, `brewing`, `v60-dripper`, "Yirgacheffe") describe the Phase 1 data and are replaced by the gaming catalog from Phase 1b on (seed, fixtures, tests, copy) |
 
 ## 📝 Problem Statement
 
@@ -145,7 +146,7 @@ flowchart LR
 - `testing/catalog-fixtures.ts` (new, test infrastructure): `E2E_CATALOG`, seeded through the same `seedCatalog`:
   - category `e2e-empty` ("[E2E] Empty category", no products);
   - category `e2e-drafts-only` holding the draft `e2e-draft-kettle` ("[E2E] Draft kettle");
-  - the demo `coffee` category row, reused from `DEMO_CATALOG` so the upsert leaves it unchanged, holding the draft `e2e-draft-beans` ("[E2E] Draft Yirgacheffe beans"). A search for "Yirgacheffe" then proves drafts are excluded from search results.
+  - the demo `mice` category row, reused from `DEMO_CATALOG` so the upsert leaves it unchanged, holding the draft `e2e-draft-mouse` ("[E2E] Draft Vortex mouse"). A search for "Vortex" then proves drafts are excluded from search results. (Phase 1 used the coffee catalog; see G23.)
 - `index.ts` exports the adapter.
 
 ### `packages/app`
@@ -266,12 +267,12 @@ Every step keeps `npm run test:coverage` at 100% and the app working. Run the fu
 
 11. **Query schema and use case.** Add `q` to `catalogQuerySchema` (trim, collapse whitespace, empty → undefined, max 100 → field error); `ListCatalogProductsUseCase` accepts `search` and forwards it. Unit tests: each `q` branch; search forwarded together with the category id and the published status.
 12. **Adapter search.** Wire `search` into `findProducts` (`$or` over name and description with `toContainsPattern`). Integration tests: case-insensitive match on name and on description; `%`/`_` matched literally; search + category returns the intersection; the `[E2E]` draft matching "Yirgacheffe" is never returned.
-13. **Search UI.** Add shadcn `input` via the CLI; the search form, the result count, the no-results state with "Clear search", and the too-long message; `load-catalog-page.ts` handles the validation result (+ unit tests). E2E in `catalog.e2e.test.ts`: S02-AC1 (search "colombia" lists only `colombia-huila-250g`), S02-AC2 (search "250" with `category=coffee` returns exactly `ethiopia-yirgacheffe-250g` and `colombia-huila-250g` from `DEMO_CATALOG`, not `brazil-santos-1kg`; the same term with `category=brewing` returns none), S02-AC3 (a nonsense term shows the no-results state; "Yirgacheffe" lists the published product but not the draft), and the form keeps its values after submit.
+13. **Search UI.** Add shadcn `input` via the CLI; the search form, the result count, the no-results state with "Clear search", and the too-long message; `load-catalog-page.ts` handles the validation result (+ unit tests). E2E in `catalog.e2e.test.ts`: S02-AC1 (search "fight" lists only `arena-fight-stick`), S02-AC2 (search "wireless" with `category=mice` returns exactly `vortex-wireless-mouse` from `DEMO_CATALOG`, not `apex-wireless-controller` or `drift-wireless-headset`; the same term with `category=mousepads` returns none), S02-AC3 (a nonsense term shows the no-results state; "Vortex" lists the published product but not the `[E2E]` draft), and the form keeps its values after submit. (Examples use the gaming catalog, G23.)
 14. **Docs, spec and gate.** Add `?q` to `BACKWARD_COMPATIBILITY.md` §1; run the full gate; move this spec to `.ai/specs/implemented/` once both phases are merged.
 
 ### Manual verification (beyond the automated tests)
 
-- `npm run db:seed`, `npm run dev`, open `/`, `/products`, `/products?category=brewing`, `/products/v60-dripper`, then `/products?q=%25` (literal `%`, expect no results), with the database stopped (expect the error state, not a crash).
+- `npm run db:seed`, `npm run dev`, open `/`, `/?category=mice`, `/products`, `/products?category=keyboards`, `/products/vortex-wireless-mouse`, then `/products?q=%25` (literal `%`, expect no results), with the database stopped (expect the error state, not a crash).
 
 ## 📝 Implementation notes, Phase 1 (PR #34, 2026-10-15)
 
@@ -285,6 +286,18 @@ Deviations from the text above, made while implementing Phase 1:
 - **DB-down status check:** the e2e suite asserts status and `noindex` for published, draft and missing products, but not with the database stopped mid-run; the loader unit tests cover the error state, and the manual verification below covers the page.
 - **Home heading:** "Welcome to the CommerceOS demo store" replaces the old "Storefront" heading; the admin e2e step "navigates back to the storefront" now waits for "Shop all products".
 - **Category order:** categories sort by name with the database collation, which puts the `[E2E]` fixtures after letters.
+
+## 📝 Implementation notes, Phase 1b (PR #37, 2026-10-15)
+
+Deviations from the text above, made while implementing Phase 1b:
+
+- **No `findFeatured` port method:** `CatalogProductCriteria` gains `featured?: boolean` and `CatalogProductRecord` gains `featured`, and `ListFeaturedProductsUseCase` calls the existing `findProducts` with `status: "published"`, `featured: true` and `limit: 12`. Visibility stays decided in core, as for the listing, and the adapter gets no second query path.
+- **Unknown category on `/`:** the use case returns `category: null` instead of a `{ kind: "all" }` flag; the home loader treats a malformed slug the same way, so `/?category=…` never shows an error (G19).
+- **Featured out-of-stock fixture:** the demo seed's featured `titan-mmo-mouse` (stock 0) covers G18's out-of-stock half. Only the two `[E2E]` drafts are featured fixtures, so no extra published product changes the demo listing.
+- **Header and footer categories:** both stream in inside `<Suspense>` and share one query per request through React `cache()` on `loadStorefrontCategories`. While loading, or if the catalog is unavailable, the menus keep their static links ("Shop all", "All products") and the failure is logged; the home page's featured section shows the error message.
+- **Hero illustration:** `public/demo/hero.svg`, rendered as a decorative image (`alt=""`).
+- **Seed descriptions:** `SeedProduct` gains an optional `description` (stored with the `[DEMO]` prefix), so gaming products have realistic text for Phase 2 search.
+- **E2E helpers:** category links now repeat in the header, footer and page navigation, so tests click them by CSS selector (`BrowserSession.click`); the narrow-screen menu is tested with `setViewport(390, 844)`.
 
 ## 📝 Cross-model review (GPT, Gemini), 2026-10-15
 

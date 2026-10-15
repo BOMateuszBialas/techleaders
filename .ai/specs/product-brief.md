@@ -6,8 +6,8 @@
 - Coverage (last counted 2026-10-14, before D08 and D09): 35 claims — 32 sourced (interview 4, data 0, document 18, product 10, benchmark 0), 0 synthetic, 3 assumed; 1 entries on the collection plan. Tagged-line totals: the 4 interview lines come from one non-independent account, and the 18 document lines are the team's own decisions.
 - Synthetic hypotheses outside Coverage: 0
 - Definition of Ready signed by: product owner, for the portfolio path only (D04); ready for: implementation planning of the whole MVP P0 scope (D01), including the Copilot week since Q05 and Q01 were decided on 2026-10-15 (D08, D09) and the spec was updated. Not ready for any market-facing claim; the problem rests on one non-independent account (see DoR addendum).
-- Updated: 2026-10-15 (D08, D09 answer Q05 and Q01)
-- Sources: `.ai/specs/research/interviews/2026-10-14-practitioner-shopify-builder.md`, `.ai/specs/research/decisions/D01`–`D09`, `.ai/specs/2026-10-13-commerceos-mvp.md`, `.ai/specs/research/2026-10-14-*.md` (discovery pack: hypotheses, plans and templates, no research results)
+- Updated: 2026-10-15 (D08, D09 answer Q05 and Q01; D10 switches the demo catalog to gaming accessories)
+- Sources: `.ai/specs/research/interviews/2026-10-14-practitioner-shopify-builder.md`, `.ai/specs/research/decisions/D01`–`D10`, `.ai/specs/2026-10-13-commerceos-mvp.md`, `.ai/specs/research/2026-10-14-*.md` (discovery pack: hypotheses, plans and templates, no research results)
 
 ## Decision summary
 
@@ -119,6 +119,7 @@ Deferred: the pack holds a benchmark plan only (`2026-10-14-miro-board-competito
 | D08 | 2026-10-15 | Fictional traffic data is P0 (minimal): daily sessions by source, store funnel, per-product views; read by `getTrafficSummary`; conversion is store-wide only | without it the demo misses the practitioner's gap; per-product views make recommendations actionable | product owner | active | trigger: Copilot week runs short (cut per-product views, then funnel) or a real tracking source (Q04) | superseding row approved by product owner | `[DOCUMENT]` decisions/D08 | none |
 | D09 | 2026-10-15 | Copilot answers the four spec questions plus traffic sources, funnel drop-off and views-without-sales; declines margin, ad spend/ROAS, demographics, competitors, forecasts, per-source conversion and causal claims | traffic questions are answerable once D08 is P0 | product owner | active | trigger: a new data source (Q04) or P1 item | superseding row approved by product owner | `[DOCUMENT]` decisions/D09 | none |
 | D05 | 2026-10-14 | Primary user is a small-store owner (medium and large later); store management is part of the value, not plumbing | the owner rejected treating the admin as data plumbing; cause and effect must be clear to the owner | product owner | active | trigger: leaving the portfolio path | superseding row approved by product owner | `[DOCUMENT]` decisions/D05 | none |
+| D10 | 2026-10-15 | The demo store sells gaming accessories (mice, keyboards, headsets, controllers, mousepads) instead of coffee | the product owner wants a gaming shop; switching before orders and Copilot data refer to the catalog is cheapest | product owner | active | trigger: the product owner picks another demo vertical | superseding row approved by product owner | `[DOCUMENT]` decisions/D10 | none |
 
 ## Riskiest assumptions
 

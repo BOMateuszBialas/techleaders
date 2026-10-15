@@ -54,6 +54,7 @@ describe("composition root", () => {
       "listCatalogCategoriesUseCase",
       "listCatalogProductsUseCase",
       "getCatalogProductUseCase",
+      "listFeaturedProductsUseCase",
     ] as const) {
       expect(first.cradle[key] === second.cradle[key]).toBe(false);
     }

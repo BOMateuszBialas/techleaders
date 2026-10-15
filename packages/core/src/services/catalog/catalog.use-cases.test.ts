@@ -2,29 +2,29 @@ import { describe, expect, it } from "vitest";
 import { InvalidMoneyError } from "../../domain/money";
 import { NotFoundError } from "../../errors/app-error";
 import { GetCatalogProductUseCase } from "./get-catalog-product.use-case";
-import { COFFEE, EMPTY, InMemoryCatalog, productRecord } from "./in-memory-catalog.fixture";
+import { MICE, EMPTY, InMemoryCatalog, productRecord } from "./in-memory-catalog.fixture";
 import { ListCatalogCategoriesUseCase } from "./list-catalog-categories.use-case";
 import { CATALOG_PAGE_LIMIT, ListCatalogProductsUseCase } from "./list-catalog-products.use-case";
 
-const dripper = productRecord();
-const kettle = productRecord({
+const vortex = productRecord();
+const titan = productRecord({
   id: "p-2",
-  slug: "gooseneck-kettle",
-  name: "Gooseneck Kettle",
+  slug: "titan-mmo-mouse",
+  name: "Titan MMO Mouse",
   stockQuantity: 0,
   category: null,
 });
 const draft = productRecord({
   id: "p-3",
-  slug: "draft-beans",
-  name: "Draft beans",
+  slug: "draft-mouse",
+  name: "Draft mouse",
   status: "draft",
 });
 
 function catalog() {
-  return new InMemoryCatalog([EMPTY, COFFEE], [kettle, draft, dripper], {
-    [dripper.slug]: COFFEE.id,
-    [draft.slug]: COFFEE.id,
+  return new InMemoryCatalog([EMPTY, MICE], [titan, draft, vortex], {
+    [vortex.slug]: MICE.id,
+    [draft.slug]: MICE.id,
   });
 }
 
@@ -34,8 +34,8 @@ describe("ListCatalogCategoriesUseCase", () => {
       catalogRepository: catalog(),
     }).execute();
     expect(result).toEqual([
-      { slug: "coffee", name: "Coffee", description: "Beans" },
       { slug: "empty", name: "Empty", description: null },
+      { slug: "mice", name: "Mice", description: "Gaming mice" },
     ]);
   });
 });
@@ -49,7 +49,10 @@ describe("ListCatalogProductsUseCase", () => {
 
     expect(repository.criteria).toEqual([{ status: "published", limit: CATALOG_PAGE_LIMIT }]);
     expect(result.category).toBeNull();
-    expect(result.products.map((p) => p.slug)).toEqual(["gooseneck-kettle", "v60-dripper"]);
+    expect(result.products.map((p) => p.slug)).toEqual([
+      "titan-mmo-mouse",
+      "vortex-wireless-mouse",
+    ]);
     expect(result.total).toBe(2);
     expect(result.limit).toBe(48);
   });
@@ -57,14 +60,14 @@ describe("ListCatalogProductsUseCase", () => {
   it("filters by category and always keeps the published criterion", async () => {
     const repository = catalog();
     const result = await new ListCatalogProductsUseCase({ catalogRepository: repository }).execute({
-      categorySlug: "coffee",
+      categorySlug: "mice",
     });
 
     expect(repository.criteria).toEqual([
-      { status: "published", categoryId: COFFEE.id, limit: CATALOG_PAGE_LIMIT },
+      { status: "published", categoryId: MICE.id, limit: CATALOG_PAGE_LIMIT },
     ]);
-    expect(result.category).toEqual({ slug: "coffee", name: "Coffee", description: "Beans" });
-    expect(result.products.map((p) => p.slug)).toEqual(["v60-dripper"]);
+    expect(result.category).toEqual({ slug: "mice", name: "Mice", description: "Gaming mice" });
+    expect(result.products.map((p) => p.slug)).toEqual(["vortex-wireless-mouse"]);
   });
 
   it("returns an empty listing for an empty category", async () => {
@@ -86,20 +89,20 @@ describe("ListCatalogProductsUseCase", () => {
 
   it("maps records to shopper DTOs without internal fields", async () => {
     const result = await new ListCatalogProductsUseCase({ catalogRepository: catalog() }).execute();
-    const [kettleSummary, dripperSummary] = result.products;
+    const [titanSummary, vortexSummary] = result.products;
 
-    expect(dripperSummary).toEqual({
+    expect(vortexSummary).toEqual({
       id: "p-1",
-      slug: "v60-dripper",
-      name: "V60 Dripper",
-      price: { amountMinor: 8900, currency: "PLN" },
-      category: { slug: "coffee", name: "Coffee" },
+      slug: "vortex-wireless-mouse",
+      name: "Vortex Wireless Mouse",
+      price: { amountMinor: 24900, currency: "PLN" },
+      category: { slug: "mice", name: "Mice" },
       availability: "in_stock",
-      imageUrl: "/demo/products/v60-dripper.svg",
+      imageUrl: "/demo/products/vortex-wireless-mouse.svg",
     });
-    expect(kettleSummary).toMatchObject({ category: null, availability: "out_of_stock" });
+    expect(titanSummary).toMatchObject({ category: null, availability: "out_of_stock" });
     for (const key of ["status", "sku", "stockQuantity", "description"])
-      expect(Object.keys(dripperSummary ?? {})).not.toContain(key);
+      expect(Object.keys(vortexSummary ?? {})).not.toContain(key);
   });
 
   it("fails loudly on a broken price invariant", async () => {
@@ -115,15 +118,18 @@ describe("ListCatalogProductsUseCase", () => {
 describe("GetCatalogProductUseCase", () => {
   it("returns a published product with its description", async () => {
     const result = await new GetCatalogProductUseCase({ catalogRepository: catalog() }).execute({
-      slug: "v60-dripper",
+      slug: "vortex-wireless-mouse",
     });
-    expect(result).toMatchObject({ slug: "v60-dripper", description: "A dripper." });
+    expect(result).toMatchObject({
+      slug: "vortex-wireless-mouse",
+      description: "A wireless mouse.",
+    });
     expect(Object.keys(result)).not.toContain("status");
   });
 
   it("treats a draft exactly like a missing product", async () => {
     const useCase = new GetCatalogProductUseCase({ catalogRepository: catalog() });
-    await expect(useCase.execute({ slug: "draft-beans" })).rejects.toBeInstanceOf(NotFoundError);
+    await expect(useCase.execute({ slug: "draft-mouse" })).rejects.toBeInstanceOf(NotFoundError);
     await expect(useCase.execute({ slug: "missing" })).rejects.toBeInstanceOf(NotFoundError);
   });
 
@@ -131,7 +137,7 @@ describe("GetCatalogProductUseCase", () => {
     const repository = catalog();
     await expect(
       new GetCatalogProductUseCase({ catalogRepository: repository }).execute({
-        slug: "V60 Dripper",
+        slug: "Vortex Wireless Mouse",
       }),
     ).rejects.toBeInstanceOf(NotFoundError);
     expect(repository.productLookups).toEqual([]);

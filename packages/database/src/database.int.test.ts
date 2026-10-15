@@ -4,7 +4,7 @@ import { initToolingOrm } from "./cli/cli-orm";
 import { createOrmConfig } from "./config";
 import { CategorySchema, ProductSchema } from "./entities";
 import { DatabaseHealthCheck } from "./adapters/database-health-check";
-import { DatabaseSeeder } from "./seeders/DatabaseSeeder";
+import { DEMO_CATALOG, DatabaseSeeder } from "./seeders/DatabaseSeeder";
 import "./testing/provided-context";
 
 const testDatabaseUrl = inject("databaseUrl");
@@ -61,8 +61,27 @@ describe("database (PostgreSQL)", () => {
     await orm.seeder.seed(DatabaseSeeder);
     await orm.seeder.seed(DatabaseSeeder);
     const em = orm.em.fork();
-    expect(await em.count(CategorySchema)).toBe(2);
-    expect(await em.count(ProductSchema)).toBe(5);
+    expect(await em.count(CategorySchema)).toBe(DEMO_CATALOG.categories.length);
+    expect(await em.count(ProductSchema)).toBe(DEMO_CATALOG.products.length);
+  });
+
+  it("defaults a product's featured flag to false and seeds the featured demo products", async () => {
+    const em = orm.em.fork();
+    const [inserted] = await em.execute<{ featured: boolean }[]>(
+      `insert into products (name, slug, price_minor) values ('Plain', 'plain-featured-default', 100) returning featured`,
+    );
+    expect(inserted?.featured).toBe(false);
+
+    await orm.seeder.seed(DatabaseSeeder);
+    const featured = await em
+      .fork()
+      .find(ProductSchema, { featured: true }, { orderBy: { slug: "asc" } });
+    expect(featured.map((product) => product.slug)).toEqual(
+      DEMO_CATALOG.products
+        .filter((product) => product.featured)
+        .map((product) => product.slug)
+        .sort(),
+    );
   });
 
   it("rejects negative prices at the database level", async () => {

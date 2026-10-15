@@ -18,6 +18,8 @@ export const ProductSchema = defineEntity({
     stockQuantity: p.integer().default(0).check("stock_quantity >= 0"),
     imageUrl: p.string().length(2048).nullable(),
     status: p.enum(PRODUCT_STATUSES).default("draft").index(),
+    /** Shown in the home page's featured slider when published (storefront spec G9). */
+    featured: p.boolean().default(false).index(),
     createdAt: p
       .datetime()
       .defaultRaw("now()")

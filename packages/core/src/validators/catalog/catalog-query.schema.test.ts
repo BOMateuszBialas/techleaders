@@ -4,13 +4,20 @@ import { categorySlugSchema, productSlugSchema } from "./slug.schema";
 
 describe("slug schemas", () => {
   it("accepts lowercase hyphenated slugs only", () => {
-    expect(productSlugSchema.safeParse("v60-dripper").success).toBe(true);
-    for (const bad of ["V60-Dripper", "v60--dripper", "-v60", "v60 dripper", "", "x".repeat(221)])
+    expect(productSlugSchema.safeParse("vortex-wireless-mouse").success).toBe(true);
+    for (const bad of [
+      "Vortex-Mouse",
+      "vortex--mouse",
+      "-vortex",
+      "vortex mouse",
+      "",
+      "x".repeat(221),
+    ])
       expect(productSlugSchema.safeParse(bad).success).toBe(false);
   });
 
   it("normalises a category slug before checking it", () => {
-    expect(categorySlugSchema.parse("  Coffee ")).toBe("coffee");
+    expect(categorySlugSchema.parse("  Mice ")).toBe("mice");
     expect(categorySlugSchema.safeParse("x".repeat(141)).success).toBe(false);
   });
 });
@@ -22,15 +29,15 @@ describe("parseCatalogQuery", () => {
   });
 
   it("parses a category slug", () => {
-    expect(parseCatalogQuery({ category: " Brewing " })).toEqual({
-      category: "brewing",
+    expect(parseCatalogQuery({ category: " Keyboards " })).toEqual({
+      category: "keyboards",
       categoryInvalid: false,
     });
   });
 
   it("uses the first value of a repeated parameter", () => {
-    expect(parseCatalogQuery({ category: ["coffee", "brewing"] })).toEqual({
-      category: "coffee",
+    expect(parseCatalogQuery({ category: ["mice", "keyboards"] })).toEqual({
+      category: "mice",
       categoryInvalid: false,
     });
     expect(parseCatalogQuery({ category: [] })).toEqual({ categoryInvalid: false });

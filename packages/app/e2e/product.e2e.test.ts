@@ -8,40 +8,40 @@ describe("storefront product page (E01-S01)", () => {
   const baseUrl = inject("baseUrl");
 
   it("shows description, price, availability, category and image (AC2)", async () => {
-    await browser().open("/products/v60-dripper");
-    await browser().waitForText("[DEMO] V60 Dripper");
+    await browser().open("/products/vortex-wireless-mouse");
+    await browser().waitForText("[DEMO] Wireless gaming mouse");
 
-    expect(await browser().title()).toBe("V60 Dripper · CommerceOS");
+    expect(await browser().title()).toBe("Vortex Wireless Mouse · CommerceOS");
     const main = await browser().text("main");
-    expect(main).toMatch(/89,00\s*zł/);
+    expect(main).toMatch(/249,00\s*zł/);
     expect(main).toContain("In stock");
-    expect(main).toContain("Brewing gear");
+    expect(main).toContain("Mice");
     const { refs, snapshot } = await browser().snapshot();
-    expect(Object.values(refs)).toContainEqual({ role: "heading", name: "V60 Dripper" });
-    expect(snapshot).toContain('image "V60 Dripper"');
+    expect(Object.values(refs)).toContainEqual({ role: "heading", name: "Vortex Wireless Mouse" });
+    expect(snapshot).toContain('image "Vortex Wireless Mouse"');
   });
 
   it("shows an out-of-stock product as out of stock", async () => {
-    await browser().open("/products/gooseneck-kettle");
-    await browser().waitForText("Gooseneck Kettle");
+    await browser().open("/products/titan-mmo-mouse");
+    await browser().waitForText("Titan MMO Mouse");
 
     expect(await browser().text("main")).toContain("Out of stock");
   });
 
   it("opens a product from the listing", async () => {
     await browser().open("/products");
-    await browser().waitForText("Brazil Santos 1 kg");
-    await browser().clickRole("link", "Brazil Santos 1 kg");
-    await browser().waitForUrl("**/products/brazil-santos-1kg");
-    await browser().waitForText("[DEMO] Brazil Santos 1 kg");
+    await browser().waitForText("Arena Fight Stick");
+    await browser().clickRole("link", "Arena Fight Stick");
+    await browser().waitForUrl("**/products/arena-fight-stick");
+    await browser().waitForText("[DEMO] Arcade fight stick");
   });
 
   it("treats a draft as not found and never shows it (AC3)", async () => {
-    await browser().open("/products/e2e-draft-kettle");
+    await browser().open("/products/e2e-draft-keyboard");
     await browser().waitForText("Product not found");
 
     expect(await browser().title()).toBe("Product not found · CommerceOS");
-    expect(await browser().text("body")).not.toContain("Draft kettle");
+    expect(await browser().text("body")).not.toContain("Draft keyboard");
   });
 
   it("shows not found for an unknown or malformed slug", async () => {
@@ -54,17 +54,17 @@ describe("storefront product page (E01-S01)", () => {
   // Spec Q4 (confirmed by the product owner): the not-found UI streams after the shell,
   // so the status stays 200 and Next.js adds a noindex robots tag.
   it("answers 200 with noindex for drafts and unknown slugs, and 200 without it for products", async () => {
-    const published = await fetch(`${baseUrl}/products/v60-dripper`);
+    const published = await fetch(`${baseUrl}/products/vortex-wireless-mouse`);
     expect(published.status).toBe(200);
     expect(await published.text()).not.toMatch(NOINDEX);
 
-    for (const slug of ["e2e-draft-kettle", "no-such-product"]) {
+    for (const slug of ["e2e-draft-keyboard", "no-such-product"]) {
       const response = await fetch(`${baseUrl}/products/${slug}`);
       const html = await response.text();
       expect(response.status).toBe(200);
       expect(html).toMatch(NOINDEX);
       expect(html).toContain("Product not found");
-      expect(html).not.toContain("Draft kettle");
+      expect(html).not.toContain("Draft keyboard");
     }
   });
 });

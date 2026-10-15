@@ -31,7 +31,7 @@ describe("loadWithRequestScope", () => {
 
   it("logs any other error with context and returns the error state", async () => {
     const log = vi.spyOn(console, "error").mockImplementation(() => {});
-    const result = await loadWithRequestScope({ page: "/products", slug: "coffee" }, () =>
+    const result = await loadWithRequestScope({ page: "/products", slug: "mice" }, () =>
       Promise.reject(new Error("connection refused")),
     );
     expect(result).toEqual({ kind: "error" });
@@ -39,7 +39,7 @@ describe("loadWithRequestScope", () => {
     expect(JSON.parse(String(log.mock.calls[0]?.[0]))).toMatchObject({
       level: "error",
       page: "/products",
-      slug: "coffee",
+      slug: "mice",
       error: { message: "connection refused" },
     });
     expect(dispose).toHaveBeenCalledOnce();

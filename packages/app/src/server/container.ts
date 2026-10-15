@@ -5,6 +5,7 @@ import {
   GetSystemHealthUseCase,
   ListCatalogCategoriesUseCase,
   ListCatalogProductsUseCase,
+  ListFeaturedProductsUseCase,
   type CatalogReadPort,
   type HealthCheckPort,
 } from "@commerceos/core";
@@ -54,6 +55,7 @@ export type Cradle = {
   listCatalogCategoriesUseCase: ListCatalogCategoriesUseCase;
   listCatalogProductsUseCase: ListCatalogProductsUseCase;
   getCatalogProductUseCase: GetCatalogProductUseCase;
+  listFeaturedProductsUseCase: ListFeaturedProductsUseCase;
   authPool: Pool;
   auth: Auth;
 };
@@ -84,6 +86,7 @@ function buildContainer(): AwilixContainer<Cradle> {
     listCatalogCategoriesUseCase: asClass(ListCatalogCategoriesUseCase).scoped(),
     listCatalogProductsUseCase: asClass(ListCatalogProductsUseCase).scoped(),
     getCatalogProductUseCase: asClass(GetCatalogProductUseCase).scoped(),
+    listFeaturedProductsUseCase: asClass(ListFeaturedProductsUseCase).scoped(),
     authPool: asFunction(() => createAuthPool(env.DATABASE_URL))
       .singleton()
       .disposer((pool) => pool.end()),

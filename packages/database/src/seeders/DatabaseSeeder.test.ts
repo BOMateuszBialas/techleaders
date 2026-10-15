@@ -38,10 +38,12 @@ describe("seedCatalog", () => {
     expect(calls).toHaveLength(DEMO_CATALOG.categories.length + DEMO_CATALOG.products.length);
     for (const call of calls) expect(call[2]).toEqual({ onConflictFields: ["slug"] });
     expect(calls[DEMO_CATALOG.categories.length]?.[1]).toMatchObject({
-      slug: "ethiopia-yirgacheffe-250g",
-      category: "id-coffee",
+      slug: "vortex-wireless-mouse",
+      category: "id-mice",
       status: "published",
-      imageUrl: "/demo/products/ethiopia-yirgacheffe-250g.svg",
+      featured: true,
+      imageUrl: "/demo/products/vortex-wireless-mouse.svg",
+      description: expect.stringMatching(/^\[DEMO] Wireless gaming mouse/),
     });
     expect(stub.flush).toHaveBeenCalledOnce();
   });
@@ -52,14 +54,35 @@ describe("seedCatalog", () => {
     for (const product of DEMO_CATALOG.products) expect(product.sku).toMatch(/^DEMO-/);
   });
 
-  it("seeds an explicit status, and no image when none is given", async () => {
+  it("is a gaming-accessories store with an out-of-stock product (decision D10)", () => {
+    expect(DEMO_CATALOG.categories.map((category) => category.slug)).toEqual([
+      "mice",
+      "keyboards",
+      "headsets",
+      "controllers",
+      "mousepads",
+    ]);
+    expect(DEMO_CATALOG.products.length).toBeGreaterThanOrEqual(15);
+    expect(DEMO_CATALOG.products.some((product) => product.stockQuantity === 0)).toBe(true);
+    for (const product of DEMO_CATALOG.products)
+      expect(product.imageUrl).toBe(`/demo/products/${product.slug}.svg`);
+  });
+
+  it("features about six products across at least three categories (spec G9)", () => {
+    const featured = DEMO_CATALOG.products.filter((product) => product.featured);
+    expect(featured.length).toBeGreaterThanOrEqual(6);
+    expect(new Set(featured.map((product) => product.category)).size).toBeGreaterThanOrEqual(3);
+    expect(featured.some((product) => product.stockQuantity === 0)).toBe(true);
+  });
+
+  it("seeds an explicit status, a generic description and no image when none is given", async () => {
     const [category] = DEMO_CATALOG.categories;
     const draft: SeedCatalog = {
       categories: [category!],
       products: [
         {
-          slug: "draft-beans",
-          name: "Draft beans",
+          slug: "draft-pad",
+          name: "Draft pad",
           category: category!.slug,
           priceMinor: 100,
           stockQuantity: 1,
@@ -69,7 +92,12 @@ describe("seedCatalog", () => {
       ],
     };
     await seedCatalog(stub.em, draft);
-    expect(stub.upsert.mock.calls[1]?.[1]).toMatchObject({ status: "draft", imageUrl: null });
+    expect(stub.upsert.mock.calls[1]?.[1]).toMatchObject({
+      status: "draft",
+      featured: false,
+      imageUrl: null,
+      description: "[DEMO] Draft pad. Seed data for local development.",
+    });
   });
 
   it("rejects a product that references an unknown category", async () => {

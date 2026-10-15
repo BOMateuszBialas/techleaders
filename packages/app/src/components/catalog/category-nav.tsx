@@ -6,8 +6,8 @@ import { productsHref } from "./catalog-copy";
 type CategoryNavProps = {
   categories: CatalogCategory[];
   /**
-   * The current listing: `null` for all products, a slug for one category. Omit it where
-   * no listing is shown (the home page) or the requested category does not exist.
+   * The current listing: `null` for all products, a slug for one category. Omit it when the
+   * requested category does not exist.
    */
   activeSlug?: string | null;
 };

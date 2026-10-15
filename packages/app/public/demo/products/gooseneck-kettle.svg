@@ -1,6 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400" role="img" aria-label="Gooseneck Kettle (demo image)">
-  <rect width="400" height="400" fill="#f5f5f4"/>
-  <rect x="130" y="140" width="140" height="140" rx="24" fill="#334155"/><path d="M130 180 C80 170 70 120 60 100" stroke="#334155" stroke-width="12" fill="none" stroke-linecap="round"/><rect x="175" y="118" width="50" height="22" rx="8" fill="#334155"/>
-  <text x="200" y="340" text-anchor="middle" font-family="sans-serif" font-size="22" fill="#44403c">Gooseneck Kettle</text>
-  <text x="200" y="372" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="700" fill="#a8a29e" letter-spacing="4">DEMO</text>
-</svg>

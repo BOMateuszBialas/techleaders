@@ -4,7 +4,7 @@ CommerceOS is a lightweight, single-store e-commerce platform: a customer storef
 
 This is a 5-week AI Engineering portfolio MVP. The full specification is in [`.ai/specs/2026-10-13-commerceos-mvp.md`](.ai/specs/2026-10-13-commerceos-mvp.md), the agent rules are in [`AGENTS.md`](AGENTS.md), and the day-to-day coding conventions are in [`ENGINEERING_STANDARDS.md`](ENGINEERING_STANDARDS.md).
 
-> **Current state: foundation, admin sign-in and storefront browsing.** The monorepo, database layer, DI container, env validation, health check, tests, owner authentication for `/admin` and the storefront catalog (browse by category, product pages) exist. Search, cart, checkout and the Copilot workflow are **not implemented yet** (see [Roadmap](#roadmap)).
+> **Current state: foundation, admin sign-in and storefront browsing.** The monorepo, database layer, DI container, env validation, health check, tests, owner authentication for `/admin` and the storefront (a shop-front home page with featured products, browse by category, product pages) exist. The demo store sells fictional gaming accessories. Search, cart, checkout and the Copilot workflow are **not implemented yet** (see [Roadmap](#roadmap)).
 
 ## Monorepo structure
 
@@ -48,6 +48,7 @@ cp .env.example .env        # one .env for the whole repo, at the root
 npm run db:up               # starts PostgreSQL for local development
 npm run db:migrate          # applies migrations
 npm run db:seed             # loads demo data (repeatable; marked [DEMO])
+                            # (a gaming-accessories store; see "Demo data" below)
 ADMIN_EMAIL=you@example.com ADMIN_PASSWORD='at-least-12-chars' npm run admin:create
                             # creates the single store owner (or put both in .env)
 npm run dev                 # http://localhost:3000
@@ -55,8 +56,8 @@ npm run dev                 # http://localhost:3000
 
 Verify the setup:
 
-- http://localhost:3000: storefront home with the category list
-- http://localhost:3000/products: published products, filterable with `?category=<slug>`; http://localhost:3000/products/v60-dripper: a product page
+- http://localhost:3000: storefront home with a hero, featured products (tabs: `/?category=<slug>`), a header menu and a footer
+- http://localhost:3000/products: published products, filterable with `?category=<slug>`; http://localhost:3000/products/vortex-wireless-mouse: a product page
 - http://localhost:3000/admin: redirects to `/admin/sign-in`; after signing in as the owner, the dashboard with live system status
 - http://localhost:3000/api/health: returns `200 {"status":"ok",...}` when the database is reachable, `503 {"status":"degraded",...}` otherwise
 
@@ -136,6 +137,8 @@ Not implemented yet. The plan is Stripe Checkout in **test mode** if feasible wi
   - A listing shows at most 48 products (sorted by name) and says "Showing 48 of N" when more match. Larger catalogues need pagination, which is out of scope for the demo.
   - A draft or unknown product URL shows "Product not found" with HTTP 200 and a `noindex` robots tag, because the not-found UI streams after the page shell (Next 16 cache components).
   - Every catalog view reads the database at request time (no caching).
+  - The home page's featured slider shows up to 12 products flagged `featured` (seeded; the admin checkbox comes with the admin catalog work). Plain shadcn/Tailwind styling for now: the visual design follows the design-system lesson.
+- **Demo data:** the seed is a fictional gaming-accessories store (decision D10): 5 categories, 15 products, 6 featured, one out of stock. Seeding upserts by slug and never deletes, so a database seeded before 2026-10-15 still holds the old coffee products. To start clean, drop the local database and seed again: `docker compose down -v`, then `npm run db:up`, `npm run db:migrate`, `npm run db:seed` and `npm run admin:create` (this also deletes the owner account and sessions).
 - No LLM provider, payments, search, cart or checkout yet.
 - `npm audit` reports advisories in development tooling dependencies (e.g. `braces` via linting and test tooling); they do not affect runtime code and are tracked for a later update.
 
