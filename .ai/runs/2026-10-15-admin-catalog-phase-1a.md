@@ -58,12 +58,12 @@ The signed-in owner lists, creates, edits and deletes categories in `/admin/cate
 
 ### Phase 1: Core
 
-- [ ] 1.1 Slug rule, unique-field conflict error, category input schema
-- [ ] 1.2 Category port and use cases
+- [x] 1.1 Slug rule, unique-field conflict error, category input schema — 89ec213
+- [x] 1.2 Category port and use cases — 89ec213
 
 ### Phase 2: Database
 
-- [ ] 2.1 Category repository adapter and error mapping
+- [x] 2.1 Category repository adapter and error mapping — 160b47f
 
 ### Phase 3: App
 
