@@ -1,4 +1,5 @@
 import { execFile, spawn, type ChildProcess } from "node:child_process";
+import { randomBytes } from "node:crypto";
 import { existsSync } from "node:fs";
 import { createServer } from "node:net";
 import { join } from "node:path";
@@ -8,6 +9,10 @@ import { startPostgresContainer } from "@commerceos/database/testing";
 import type { TestProject } from "vitest/node";
 import "@commerceos/database/testing";
 import { assertAgentBrowserInstalled, resolveAgentBrowserBin } from "./agent-browser";
+import "./provided-context";
+
+/** The owner every admin e2e test signs in as (spec G9); the password is new on every run. */
+export const E2E_OWNER_EMAIL = "owner@e2e.test";
 
 const run = promisify(execFile);
 
@@ -21,9 +26,9 @@ const POLL_INTERVAL_MS = 250;
 
 /**
  * Vitest global setup for `*.e2e.test.ts`. Instantiates the whole app
- * ephemerally: PostgreSQL container → real migrate and seed CLI → production
- * `next start` on a free port → wait until `/api/health` is ok. The base URL
- * is handed to the tests through `inject("baseUrl")`.
+ * ephemerally: PostgreSQL container → real migrate, seed and `admin:create` CLI →
+ * production `next start` on a free port → wait until `/api/health` is ok. The base
+ * URL and the owner's credentials reach the tests through `inject()`.
  */
 export default async function setup(project: TestProject): Promise<() => Promise<void>> {
   if (!existsSync(new URL("../../.next/BUILD_ID", import.meta.url))) {
@@ -34,16 +39,26 @@ export default async function setup(project: TestProject): Promise<() => Promise
   const postgres = await startPostgresContainer();
   let server: ChildProcess | undefined;
   try {
-    await runDatabaseCli(postgres.url, "packages/database/src/cli/migrate.ts", "up");
+    await runDatabaseCli(postgres.url, "packages/database/src/cli/migrate.ts", {}, "up");
     await runDatabaseCli(postgres.url, "packages/database/src/cli/seed.ts");
+    // Fresh per run: nothing secret is committed.
+    const authSecret = randomBytes(32).toString("base64");
+    const ownerPassword = randomBytes(18).toString("base64url");
+    await runDatabaseCli(postgres.url, "packages/app/src/server/auth/cli/create-owner.ts", {
+      BETTER_AUTH_SECRET: authSecret,
+      ADMIN_EMAIL: E2E_OWNER_EMAIL,
+      ADMIN_PASSWORD: ownerPassword,
+    });
 
     const port = await findFreePort();
     const baseUrl = `http://127.0.0.1:${port}`;
-    server = startApp({ port, databaseUrl: postgres.url });
+    server = startApp({ port, databaseUrl: postgres.url, authSecret });
     await waitUntilHealthy(baseUrl, server);
 
     project.provide("databaseUrl", postgres.url);
     project.provide("baseUrl", baseUrl);
+    project.provide("ownerEmail", E2E_OWNER_EMAIL);
+    project.provide("ownerPassword", ownerPassword);
   } catch (error) {
     server?.kill();
     await postgres.stop();
@@ -56,14 +71,23 @@ export default async function setup(project: TestProject): Promise<() => Promise
   };
 }
 
-async function runDatabaseCli(databaseUrl: string, script: string, ...args: string[]) {
+async function runDatabaseCli(
+  databaseUrl: string,
+  script: string,
+  extraEnv: Record<string, string> = {},
+  ...args: string[]
+) {
   await run(process.execPath, [tsxCli, script, ...args], {
     cwd: repoRoot,
-    env: { ...process.env, DATABASE_URL: databaseUrl },
+    env: { ...process.env, ...extraEnv, DATABASE_URL: databaseUrl },
   });
 }
 
-function startApp(options: { port: number; databaseUrl: string }): ChildProcess {
+function startApp(options: {
+  port: number;
+  databaseUrl: string;
+  authSecret: string;
+}): ChildProcess {
   const server = spawn(process.execPath, [nextBin, "start", appDir, "-p", String(options.port)], {
     cwd: repoRoot,
     // Real environment variables take precedence over the root .env (see next.config.ts).
@@ -72,6 +96,7 @@ function startApp(options: { port: number; databaseUrl: string }): ChildProcess 
       NODE_ENV: "production",
       DATABASE_URL: options.databaseUrl,
       APP_URL: `http://127.0.0.1:${options.port}`,
+      BETTER_AUTH_SECRET: options.authSecret,
     },
     stdio: ["ignore", "pipe", "pipe"],
   });

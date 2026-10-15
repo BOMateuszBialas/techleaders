@@ -14,7 +14,10 @@ The contract surfaces this project protects, and how changes to them must be han
 
 ### 2. HTTP API (Route Handlers)
 
-- **Where:** `packages/app/src/app/**/route.ts`. Current endpoints: `GET /api/health` (response: `{ status: "ok" | "degraded", components: [{ name, status, latencyMs }] }`, 200/503).
+- **Where:** `packages/app/src/app/**/route.ts`. Current endpoints:
+  - `GET /api/health` (response: `{ status: "ok" | "degraded", components: [{ name, status, latencyMs }] }`, 200/503).
+  - `GET /api/admin/me` (`ApiResult<{ id, email, role }>`, 200/401).
+  - `/api/auth/*`: Better Auth's own endpoints (`POST /sign-in/email`, `POST /sign-out`, `GET /get-session`). Their shapes belong to the library pinned at `~1.7.10`; upgrades are reviewed against the admin e2e suite.
 - **Breaking:** removing an endpoint or method; removing or renaming a response field; changing a field's type; adding a new required request field; changing status codes or the error format.
 - **Required path:** make additive changes only, or ship a new versioned endpoint. Mark the old one deprecated and keep it for at least one release, and write a migration note in the PR.
 
@@ -27,6 +30,11 @@ The contract surfaces this project protects, and how changes to them must be han
 ### 4. Configuration and environment variables
 
 - **Where:** `packages/app/next.config.ts`, env variables validated in `packages/app/src/server/env.ts` (documented in `.env.example`), `.ai/agentic.config.json`.
+- **Added 2026-10-15:**
+  - `BETTER_AUTH_SECRET` (required);
+  - `AUTH_TRUSTED_IP_HEADER` (optional);
+  - `ADMIN_EMAIL` / `ADMIN_PASSWORD` (read only by `npm run admin:create`);
+  - `APP_URL` became required when `NODE_ENV=production`.
 - **Breaking:** renaming or removing an environment variable, or changing a config key's format.
 - **Required path:** support the old name as a fallback for one release and document the change in the PR and README.
 

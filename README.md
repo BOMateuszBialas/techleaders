@@ -4,7 +4,7 @@ CommerceOS is a lightweight, single-store e-commerce platform: a customer storef
 
 This is a 5-week AI Engineering portfolio MVP. The full specification is in [`.ai/specs/2026-10-13-commerceos-mvp.md`](.ai/specs/2026-10-13-commerceos-mvp.md), the agent rules are in [`AGENTS.md`](AGENTS.md), and the day-to-day coding conventions are in [`ENGINEERING_STANDARDS.md`](ENGINEERING_STANDARDS.md).
 
-> **Current state: foundation only.** The monorepo, database layer, DI container, env validation, health check, tests and basic UI shells exist. Catalog, cart, checkout, admin auth and the Copilot workflow are **not implemented yet** (see [Roadmap](#roadmap)).
+> **Current state: foundation plus admin sign-in.** The monorepo, database layer, DI container, env validation, health check, tests, basic UI shells and owner authentication for `/admin` exist. Catalog, cart, checkout and the Copilot workflow are **not implemented yet** (see [Roadmap](#roadmap)).
 
 ## Monorepo structure
 
@@ -44,16 +44,19 @@ Next.js 16.4 (App Router, Turbopack, Cache Components) · React 19.3 · TypeScri
 ```bash
 npm install                 # installs all workspaces
 cp .env.example .env        # one .env for the whole repo, at the root
+                            # then set BETTER_AUTH_SECRET (openssl rand -base64 32)
 npm run db:up               # starts PostgreSQL for local development
 npm run db:migrate          # applies migrations
 npm run db:seed             # loads demo data (repeatable; marked [DEMO])
+ADMIN_EMAIL=you@example.com ADMIN_PASSWORD='at-least-12-chars' npm run admin:create
+                            # creates the single store owner (or put both in .env)
 npm run dev                 # http://localhost:3000
 ```
 
 Verify the setup:
 
 - http://localhost:3000: storefront shell
-- http://localhost:3000/admin: admin shell with live system status
+- http://localhost:3000/admin: redirects to `/admin/sign-in`; after signing in as the owner, the dashboard with live system status
 - http://localhost:3000/api/health: returns `200 {"status":"ok",...}` when the database is reachable, `503 {"status":"degraded",...}` otherwise
 
 ## Environment variables
@@ -64,7 +67,10 @@ Defined and validated in `packages/app/src/server/env.ts`; invalid configuration
 |---|---|---|
 | `DATABASE_URL` | yes | PostgreSQL connection string for the app and CLI |
 | `DATABASE_DEBUG` | no (`false`) | Log SQL queries |
-| `APP_URL` | no (`http://localhost:3000`) | Public base URL |
+| `APP_URL` | no (`http://localhost:3000`); **yes in production** | Public base URL and the only origin trusted for sign-in |
+| `BETTER_AUTH_SECRET` | yes (32+ chars) | Signs Better Auth cookies and tokens |
+| `AUTH_TRUSTED_IP_HEADER` | no | Client-IP header set by a trusted proxy (e.g. `x-real-ip`). Unset: sign-in is rate-limited globally (20/min); set: 5/min per IP |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | CLI only | Read by `npm run admin:create` (password: 12+ chars), never by the app |
 | `NODE_ENV` | no | Standard Node environment |
 
 AI provider and payment variables will be added when those integrations are implemented.
@@ -114,13 +120,19 @@ Not implemented yet. The plan is Stripe Checkout in **test mode** if feasible wi
 
 ## Known limitations
 
-- **Admin authentication is not implemented.** `/admin` is an unprotected shell that shows only system status, with no store data and no mutations. Do not deploy publicly in this state.
+- **Admin access:**
+  - There is one owner account and no public sign-up.
+  - A lost password is reset with `npm run admin:create -- --rotate-password`, which also signs the owner out everywhere. There is no reset email.
+  - There is no account lockout (it would let anyone lock the only owner out).
+  - Without `AUTH_TRUSTED_IP_HEADER`, the sign-in rate limit is shared by all clients, so anyone flooding the form can block sign-in for everyone. **Set it in any public deployment**, behind a proxy that overwrites that header.
+  - Protected admin pages answer HTTP 200 with a static shell (sidebar, headings, no store data), and the redirect to `/admin/sign-in` streams in. This follows from Next 16 cache components, where session reads sit inside `<Suspense>`. Never put sensitive data in an admin page's static shell.
+  - Sessions end after 8 h of inactivity.
 - No LLM provider, payments, catalog UI, cart or checkout yet.
 - `npm audit` reports advisories in development tooling dependencies (e.g. `braces` via linting and test tooling); they do not affect runtime code and are tracked for a later update.
 
 ## Roadmap
 
-1. **Week 1:** foundation (done: this commit), then admin authentication, then product/category model and admin CRUD.
+1. **Week 1:** foundation (done), admin authentication (done), then product/category model and admin CRUD.
 2. **Week 2:** storefront listing and detail, search/filter, cart, server-side price and stock validation.
 3. **Week 3:** checkout and transactional order creation, payment test mode or demo payment, orders admin, dashboard metrics.
 4. **Week 4:** Commerce Copilot: analytics tools, LLM adapter, structured output, grounding, fallback, recommendation actions, eval set.

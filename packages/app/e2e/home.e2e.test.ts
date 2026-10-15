@@ -15,11 +15,11 @@ describe("storefront home page", () => {
     expect(await browser().text("main")).toContain("The product catalog is not implemented yet");
   });
 
-  it("links to the admin panel", async () => {
+  it("links to the admin panel, which asks a signed-out visitor to sign in", async () => {
     await browser().open("/");
     await browser().clickRole("link", "Admin");
-    await browser().waitForUrl("**/admin");
+    await browser().waitForUrl("**/admin/sign-in");
 
-    expect(new URL(await browser().url()).pathname).toBe("/admin");
+    expect(new URL(await browser().url()).pathname).toBe("/admin/sign-in");
   });
 });
