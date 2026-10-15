@@ -4,7 +4,7 @@ import { createAuth } from "./auth/create-auth";
 import { logger } from "./logger";
 
 // betterAuth() starts initialising (a database schema check) as soon as it is built. This
-// test checks wiring only, so it gets a stub and opens no connection (it was flaky in CI).
+// test checks wiring only, so it gets a stub and opens no connection.
 vi.mock("./auth/create-auth", () => ({ createAuth: vi.fn(() => ({ stub: "auth" })) }));
 
 // No database connection is opened: MikroORM connects lazily and these tests
@@ -22,7 +22,9 @@ describe("composition root", () => {
   });
 
   it("gives every request its own EntityManager fork", () => {
-    expect(first.cradle.em).not.toBe(second.cradle.em);
+    // Identity via ===: a failing-or-negated matcher on ORM objects makes Vitest serialise
+    // their metadata, which took seconds in CI (see .ai/lessons.md).
+    expect(first.cradle.em === second.cradle.em).toBe(false);
     expect(first.cradle.em).toBe(first.cradle.em);
   });
 
@@ -63,22 +65,18 @@ describe("composition root", () => {
     info.mockRestore();
   });
 
-  it("closes the auth pool when the container is disposed", async () => {
-    const pool = first.cradle.authPool;
-    const end = vi.spyOn(pool, "end");
-    await disposeRootContainer();
-    expect(end).toHaveBeenCalled();
-  });
-
-  it("closes the ORM and rebuilds the container after disposal", async () => {
-    const first = createRequestScope();
+  it("closes the ORM and the auth pool, and rebuilds the container after disposal", async () => {
+    // One disposal of the original container, as before auth existed: closing a second,
+    // freshly built ORM without a database took over 5 s in CI.
     const orm = first.cradle.orm;
     const close = vi.spyOn(orm, "close");
+    const end = vi.spyOn(first.cradle.authPool, "end");
     await disposeRootContainer();
     expect(close).toHaveBeenCalled();
+    expect(end).toHaveBeenCalled();
 
     const fresh = createRequestScope();
-    expect(fresh.cradle.orm).not.toBe(orm);
+    expect(fresh.cradle.orm === orm).toBe(false);
     await fresh.dispose();
     await disposeRootContainer();
   });
