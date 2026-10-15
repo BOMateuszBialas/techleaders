@@ -4,15 +4,42 @@ import { useBrowser } from "./support/browser-test";
 describe("storefront home page", () => {
   const browser = useBrowser();
 
-  it("renders the storefront shell", async () => {
+  it("shows the demo banner, the introduction and every category", async () => {
     await browser().open("/");
+    await browser().waitForText("Brewing gear");
 
     expect(await browser().title()).toBe("CommerceOS");
-    const { refs } = await browser().snapshot();
-    const elements = Object.values(refs);
-    expect(elements).toContainEqual({ role: "heading", name: "Storefront" });
+    expect(await browser().text("body")).toContain(
+      "Demo store. Products and prices are fictional; no real orders or payments.",
+    );
+    const elements = Object.values((await browser().snapshot()).refs);
+    expect(elements).toContainEqual({
+      role: "heading",
+      name: "Welcome to the CommerceOS demo store",
+    });
     expect(elements).toContainEqual({ role: "navigation", name: "Main" });
-    expect(await browser().text("main")).toContain("The product catalog is not implemented yet");
+    expect(elements).toContainEqual({ role: "navigation", name: "Categories" });
+    for (const name of ["Coffee", "Brewing gear", "[E2E] Empty category"]) {
+      expect(elements).toContainEqual({ role: "link", name });
+    }
+  });
+
+  it("goes to the full listing from “Shop all products”", async () => {
+    await browser().open("/");
+    await browser().clickRole("link", "Shop all products");
+    await browser().waitForUrl("**/products");
+
+    expect(new URL(await browser().url()).pathname).toBe("/products");
+  });
+
+  it("opens a category listing from the category list", async () => {
+    await browser().open("/");
+    await browser().waitForText("Brewing gear");
+    await browser().clickRole("link", "Brewing gear");
+    await browser().waitForUrl("**/products?category=brewing");
+    await browser().waitForText("V60 Dripper");
+
+    expect(new URL(await browser().url()).searchParams.get("category")).toBe("brewing");
   });
 
   it("links to the admin panel, which asks a signed-out visitor to sign in", async () => {
