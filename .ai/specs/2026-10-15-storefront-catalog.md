@@ -1,7 +1,7 @@
 # Storefront catalog: browse by category, product details, search
 
 - Backlog: E01-S01 ([#14](https://github.com/BOMateuszBialas/techleaders/issues/14)) and E01-S02 ([#15](https://github.com/BOMateuszBialas/techleaders/issues/15)), epic E01 (#8)
-- Status: draft, written autonomously (`om-spec-writing --autonomous`); cross-model review and grill-me applied (2026-10-15). Open Questions were resolved with defaults; see "Resolved assumptions". The two ⚠ items (Q2, Q4) were confirmed by the product owner on 2026-10-15; the other defaults stand unless review changes them.
+- Status: Phase 1 implemented in PR #34 (Phase 1b and Phase 2 pending); written autonomously (`om-spec-writing --autonomous`); cross-model review and grill-me applied (2026-10-15). Open Questions were resolved with defaults; see "Resolved assumptions". The two ⚠ items (Q2, Q4) were confirmed by the product owner on 2026-10-15; the other defaults stand unless review changes them.
 - Design authority: `.ai/specs/product-brief.md`, `.ai/specs/2026-10-13-commerceos-mvp.md` §3 (P0 storefront), §5, §9
 
 ## 📝 TLDR
@@ -272,6 +272,19 @@ Every step keeps `npm run test:coverage` at 100% and the app working. Run the fu
 ### Manual verification (beyond the automated tests)
 
 - `npm run db:seed`, `npm run dev`, open `/`, `/products`, `/products?category=brewing`, `/products/v60-dripper`, then `/products?q=%25` (literal `%`, expect no results), with the database stopped (expect the error state, not a crash).
+
+## 📝 Implementation notes, Phase 1 (PR #34, 2026-10-15)
+
+Deviations from the text above, made while implementing Phase 1:
+
+- **Error matching by code:** loaders use `isNotFoundError(error)` (new in `core/errors/app-error.ts`), not `instanceof NotFoundError`. Next.js bundles `@commerceos/core` into several server chunks and the container cached on `globalThis` can hold use cases from another chunk's copy, so `instanceof` failed in e2e (see `.ai/lessons.md`).
+- **One loader helper:** the three loaders share `packages/app/src/server/load-with-request-scope.ts` (`LoadResult<T>`, one request scope, `NotFoundError` → `not-found`, anything else logged → `error`). It also turns a failure to build the scope (invalid env) into the error state.
+- **Query parser name:** the category part ships as `parseCatalogQuery(raw)` plus `categorySlugSchema` / `productSlugSchema` in `slug.schema.ts`, instead of an exported `catalogQuerySchema` object. Phase 2 adds `q` to the same function.
+- **Port criteria:** `CatalogProductCriteria` has no `search` field yet, so no adapter can silently ignore a search; Phase 2 adds it with the wiring. `toContainsPattern` ships now and is unit-tested.
+- **Remote images (G21):** the plain `<img>` branch ships, but a failed remote load shows the browser's alt text rather than swapping to the "No image" placeholder, which would need a client component. No remote URL can be stored before the admin catalog spec (E03); that spec owns the swap.
+- **DB-down status check:** the e2e suite asserts status and `noindex` for published, draft and missing products, but not with the database stopped mid-run; the loader unit tests cover the error state, and the manual verification below covers the page.
+- **Home heading:** "Welcome to the CommerceOS demo store" replaces the old "Storefront" heading; the admin e2e step "navigates back to the storefront" now waits for "Shop all products".
+- **Category order:** categories sort by name with the database collation, which puts the `[E2E]` fixtures after letters.
 
 ## 📝 Cross-model review (GPT, Gemini), 2026-10-15
 

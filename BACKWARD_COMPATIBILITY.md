@@ -2,13 +2,16 @@
 
 The contract surfaces this project protects, and how changes to them must be handled. Review skills check changes against this file, and implementation skills warn when a change breaks it.
 
-> **Current state (2026-10-13):** foundation only. There is one API route (`/api/health`), internal workspace packages (not published) and an initial catalog schema. There are no external consumers yet. The surfaces below are the ones the project will have. Update this file whenever a new surface appears.
+> **Current state (2026-10-15):** foundation, admin sign-in and storefront browsing. There are a few API routes (listed below), public storefront URLs, internal workspace packages (not published) and the catalog and admin auth schema. There are no external consumers yet. Update this file whenever a new surface appears.
 
 ## Protected surfaces
 
 ### 1. Public URLs (App Router routes)
 
-- **Where:** `packages/app/src/app/**/page.tsx`.
+- **Where:** `packages/app/src/app/**/page.tsx`. Current storefront URLs (added 2026-10-15, storefront catalog spec Phase 1):
+  - `/` (home);
+  - `/products`, with the optional query parameter `category` (a category slug; unknown or malformed values show "This category does not exist");
+  - `/products/<slug>` (`<slug>` is the product slug; drafts and unknown slugs show "Product not found").
 - **Breaking:** removing or renaming a public route, or changing the meaning of its query parameters.
 - **Required path:** add a redirect in `next.config.ts` (`redirects()`) and note the change in the PR description.
 

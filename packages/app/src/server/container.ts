@@ -1,7 +1,15 @@
 import "server-only";
 import { UnconfiguredLlmProvider, type LlmProviderPort } from "@commerceos/ai";
-import { GetSystemHealthUseCase, type HealthCheckPort } from "@commerceos/core";
 import {
+  GetCatalogProductUseCase,
+  GetSystemHealthUseCase,
+  ListCatalogCategoriesUseCase,
+  ListCatalogProductsUseCase,
+  type CatalogReadPort,
+  type HealthCheckPort,
+} from "@commerceos/core";
+import {
+  DatabaseCatalogRepository,
   DatabaseHealthCheck,
   MikroORM,
   createOrmConfig,
@@ -42,6 +50,10 @@ export type Cradle = {
   healthChecks: HealthCheckPort[];
   databaseHealthCheck: DatabaseHealthCheck;
   getSystemHealthUseCase: GetSystemHealthUseCase;
+  catalogRepository: CatalogReadPort;
+  listCatalogCategoriesUseCase: ListCatalogCategoriesUseCase;
+  listCatalogProductsUseCase: ListCatalogProductsUseCase;
+  getCatalogProductUseCase: GetCatalogProductUseCase;
   authPool: Pool;
   auth: Auth;
 };
@@ -67,6 +79,11 @@ function buildContainer(): AwilixContainer<Cradle> {
       databaseHealthCheck,
     ]).singleton(),
     getSystemHealthUseCase: asClass(GetSystemHealthUseCase).scoped(),
+    // Storefront catalog: the adapter uses the request's EntityManager, so it and its use cases are scoped.
+    catalogRepository: asClass(DatabaseCatalogRepository).scoped(),
+    listCatalogCategoriesUseCase: asClass(ListCatalogCategoriesUseCase).scoped(),
+    listCatalogProductsUseCase: asClass(ListCatalogProductsUseCase).scoped(),
+    getCatalogProductUseCase: asClass(GetCatalogProductUseCase).scoped(),
     authPool: asFunction(() => createAuthPool(env.DATABASE_URL))
       .singleton()
       .disposer((pool) => pool.end()),

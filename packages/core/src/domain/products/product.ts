@@ -12,3 +12,13 @@ export function isPurchasable(product: StockState): boolean {
 export function isLowStock(product: StockState, threshold: number): boolean {
   return product.status === "published" && product.stockQuantity <= threshold;
 }
+
+export type Availability = "in_stock" | "out_of_stock";
+
+/**
+ * What a shopper sees: "in stock" when the product can be bought, otherwise "out of stock".
+ * Exact quantities are never shown to shoppers (storefront catalog spec, Q7).
+ */
+export function getAvailability(product: StockState): Availability {
+  return isPurchasable(product) ? "in_stock" : "out_of_stock";
+}

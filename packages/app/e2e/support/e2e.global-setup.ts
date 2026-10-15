@@ -5,7 +5,7 @@ import { createServer } from "node:net";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
-import { startPostgresContainer } from "@commerceos/database/testing";
+import { seedE2eCatalog, startPostgresContainer } from "@commerceos/database/testing";
 import type { TestProject } from "vitest/node";
 import "@commerceos/database/testing";
 import { assertAgentBrowserInstalled, resolveAgentBrowserBin } from "./agent-browser";
@@ -26,7 +26,8 @@ const POLL_INTERVAL_MS = 250;
 
 /**
  * Vitest global setup for `*.e2e.test.ts`. Instantiates the whole app
- * ephemerally: PostgreSQL container → real migrate, seed and `admin:create` CLI →
+ * ephemerally: PostgreSQL container → real migrate, seed and `admin:create` CLI (plus the
+ * `[E2E]` catalog fixtures) →
  * production `next start` on a free port → wait until `/api/health` is ok. The base
  * URL and the owner's credentials reach the tests through `inject()`.
  */
@@ -41,6 +42,8 @@ export default async function setup(project: TestProject): Promise<() => Promise
   try {
     await runDatabaseCli(postgres.url, "packages/database/src/cli/migrate.ts", {}, "up");
     await runDatabaseCli(postgres.url, "packages/database/src/cli/seed.ts");
+    // [E2E] drafts and empty categories on top of the demo catalog (storefront spec, Q9).
+    await seedE2eCatalog(postgres.url);
     // Fresh per run: nothing secret is committed.
     const authSecret = randomBytes(32).toString("base64");
     const ownerPassword = randomBytes(18).toString("base64url");

@@ -70,7 +70,7 @@ describe("admin panel", () => {
     await signInAsOwner(browser());
     await browser().waitForText("Signed in as");
     await browser().clickRole("link", "View storefront");
-    await browser().waitForText("Storefront");
+    await browser().waitForText("Shop all products");
 
     expect(new URL(await browser().url()).pathname).toBe("/");
   });

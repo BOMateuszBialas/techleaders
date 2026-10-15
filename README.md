@@ -4,7 +4,7 @@ CommerceOS is a lightweight, single-store e-commerce platform: a customer storef
 
 This is a 5-week AI Engineering portfolio MVP. The full specification is in [`.ai/specs/2026-10-13-commerceos-mvp.md`](.ai/specs/2026-10-13-commerceos-mvp.md), the agent rules are in [`AGENTS.md`](AGENTS.md), and the day-to-day coding conventions are in [`ENGINEERING_STANDARDS.md`](ENGINEERING_STANDARDS.md).
 
-> **Current state: foundation plus admin sign-in.** The monorepo, database layer, DI container, env validation, health check, tests, basic UI shells and owner authentication for `/admin` exist. Catalog, cart, checkout and the Copilot workflow are **not implemented yet** (see [Roadmap](#roadmap)).
+> **Current state: foundation, admin sign-in and storefront browsing.** The monorepo, database layer, DI container, env validation, health check, tests, owner authentication for `/admin` and the storefront catalog (browse by category, product pages) exist. Search, cart, checkout and the Copilot workflow are **not implemented yet** (see [Roadmap](#roadmap)).
 
 ## Monorepo structure
 
@@ -55,7 +55,8 @@ npm run dev                 # http://localhost:3000
 
 Verify the setup:
 
-- http://localhost:3000: storefront shell
+- http://localhost:3000: storefront home with the category list
+- http://localhost:3000/products: published products, filterable with `?category=<slug>`; http://localhost:3000/products/v60-dripper: a product page
 - http://localhost:3000/admin: redirects to `/admin/sign-in`; after signing in as the owner, the dashboard with live system status
 - http://localhost:3000/api/health: returns `200 {"status":"ok",...}` when the database is reachable, `503 {"status":"degraded",...}` otherwise
 
@@ -131,7 +132,11 @@ Not implemented yet. The plan is Stripe Checkout in **test mode** if feasible wi
   - Without `AUTH_TRUSTED_IP_HEADER`, the sign-in rate limit is shared by all clients, so anyone flooding the form can block sign-in for everyone. **Set it in any public deployment**, behind a proxy that overwrites that header.
   - Protected admin pages answer HTTP 200 with a static shell (sidebar, headings, no store data), and the redirect to `/admin/sign-in` streams in. This follows from Next 16 cache components, where session reads sit inside `<Suspense>`. Never put sensitive data in an admin page's static shell.
   - Sessions end after 8 h of inactivity.
-- No LLM provider, payments, catalog UI, cart or checkout yet.
+- **Storefront catalog:**
+  - A listing shows at most 48 products (sorted by name) and says "Showing 48 of N" when more match. Larger catalogues need pagination, which is out of scope for the demo.
+  - A draft or unknown product URL shows "Product not found" with HTTP 200 and a `noindex` robots tag, because the not-found UI streams after the page shell (Next 16 cache components).
+  - Every catalog view reads the database at request time (no caching).
+- No LLM provider, payments, search, cart or checkout yet.
 - `npm audit` reports advisories in development tooling dependencies (e.g. `braces` via linting and test tooling); they do not affect runtime code and are tracked for a later update.
 
 ## Roadmap

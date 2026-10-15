@@ -1,4 +1,6 @@
 import { afterAll, describe, expect, it, vi } from "vitest";
+import { ListCatalogProductsUseCase } from "@commerceos/core";
+import { DatabaseCatalogRepository } from "@commerceos/database";
 import { createRequestScope, disposeRootContainer, getAuth, logAuthMessage } from "./container";
 import { createAuth } from "./auth/create-auth";
 import { logger } from "./logger";
@@ -42,6 +44,22 @@ describe("composition root", () => {
     // Compared by identity: printing a cradle-backed object in a diff would query the container.
     const isShared = first.cradle.getSystemHealthUseCase === second.cradle.getSystemHealthUseCase;
     expect(isShared).toBe(false);
+  });
+
+  it("wires the storefront catalog per request on the request's EntityManager", () => {
+    const repository = first.cradle.catalogRepository;
+    expect(repository instanceof DatabaseCatalogRepository).toBe(true);
+    expect(repository === second.cradle.catalogRepository).toBe(false);
+    for (const key of [
+      "listCatalogCategoriesUseCase",
+      "listCatalogProductsUseCase",
+      "getCatalogProductUseCase",
+    ] as const) {
+      expect(first.cradle[key] === second.cradle[key]).toBe(false);
+    }
+    expect(first.cradle.listCatalogProductsUseCase instanceof ListCatalogProductsUseCase).toBe(
+      true,
+    );
   });
 
   it("shares one Better Auth instance and pool, reachable without a request scope", () => {
