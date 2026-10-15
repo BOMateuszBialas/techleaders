@@ -12,5 +12,8 @@
   },
   "devDependencies": {
     "@commerceos/config": "*"
+  },
+  "dependencies": {
+    "zod": "^4.6.7"
   }
 }

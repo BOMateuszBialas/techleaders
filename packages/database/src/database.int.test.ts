@@ -71,6 +71,41 @@ describe("database (PostgreSQL)", () => {
     await expect(em.flush()).rejects.toThrow(/price_minor_check/);
   });
 
+  it("creates the admin auth tables with the owner-only role check", async () => {
+    const em = orm.em.fork();
+    const [user] = await em.execute<{ id: string; role: string }[]>(
+      `insert into admin_users (name, email, email_verified) values ('Store owner', 'owner@db.test', true) returning id, role`,
+    );
+    expect(user?.role).toBe("owner");
+    await expect(
+      em.execute(
+        `insert into admin_users (name, email, email_verified, role) values ('x', 'staff@db.test', true, 'staff')`,
+      ),
+    ).rejects.toThrow(/admin_users_role_check/);
+  });
+
+  it("deletes an admin user's sessions and accounts with the user", async () => {
+    const em = orm.em.fork();
+    const [user] = await em.execute<{ id: string }[]>(
+      `insert into admin_users (name, email, email_verified) values ('Store owner', 'cascade@db.test', true) returning id`,
+    );
+    const userId = user!.id;
+    await em.execute(
+      `insert into admin_sessions (user_id, token, expires_at) values (?, 'tok-cascade', now() + interval '1 hour')`,
+      [userId],
+    );
+    await em.execute(
+      `insert into admin_accounts (user_id, account_id, provider_id, password) values (?, ?, 'credential', 'hash')`,
+      [userId, userId],
+    );
+    await em.execute(`delete from admin_users where id = ?`, [userId]);
+    const [counts] = await em.execute<{ sessions: string; accounts: string }[]>(
+      `select (select count(*) from admin_sessions where user_id = ?) as sessions, (select count(*) from admin_accounts where user_id = ?) as accounts`,
+      [userId, userId],
+    );
+    expect([Number(counts?.sessions), Number(counts?.accounts)]).toEqual([0, 0]);
+  });
+
   it("rejects negative stock at the database level", async () => {
     const em = orm.em.fork();
     em.create(ProductSchema, {
