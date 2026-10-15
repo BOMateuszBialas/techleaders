@@ -47,7 +47,8 @@ describe("storefront catalog listing (E01-S01)", () => {
   it("narrows the listing to one category and marks it as current", async () => {
     await browser().open("/products");
     await browser().waitForText("Vortex Wireless Mouse");
-    await browser().clickRole("link", "Mice");
+    // "Mice" also appears in the header menu and the footer; click the listing's own link.
+    await browser().click('nav[aria-label="Categories"] a[href="/products?category=mice"]');
     await browser().waitForUrl("**/products?category=mice");
     await browser().waitForText("Pulse Ultralight Mouse");
 
