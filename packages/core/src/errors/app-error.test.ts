@@ -1,9 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
   AppError,
+  CLIENT_ERROR_CODES,
   ConflictError,
+  ForbiddenError,
   NotFoundError,
+  UnauthorizedError,
   ValidationError,
+  hasAppErrorCode,
   isNotFoundError,
 } from "./app-error";
 
@@ -37,5 +41,29 @@ describe("AppError hierarchy", () => {
     expect(isNotFoundError(new ConflictError())).toBe(false);
     expect(isNotFoundError(new Error("plain"))).toBe(false);
     expect(isNotFoundError({ code: "NOT_FOUND" })).toBe(false);
+  });
+
+  it("matches any error by its code, but never a non-Error object", () => {
+    const foreign = Object.assign(new Error("Taken"), { code: "CONFLICT" });
+    expect(hasAppErrorCode(foreign, "CONFLICT")).toBe(true);
+    expect(hasAppErrorCode(foreign, "NOT_FOUND")).toBe(false);
+    expect(hasAppErrorCode(new Error("plain"), "CONFLICT")).toBe(false);
+    expect(hasAppErrorCode({ code: "CONFLICT" }, "CONFLICT")).toBe(false);
+  });
+
+  it.each([
+    [new ValidationError(), "VALIDATION_FAILED"],
+    [new UnauthorizedError(), "UNAUTHORIZED"],
+    [new ForbiddenError(), "FORBIDDEN"],
+    [new NotFoundError(), "NOT_FOUND"],
+    [new ConflictError(), "CONFLICT"],
+  ] as const)("lists the code of %o as a client error code", (error, code) => {
+    expect(CLIENT_ERROR_CODES).toContain(error.code);
+    expect(hasAppErrorCode(error, code)).toBe(true);
+  });
+
+  // Regression (#36): errors from another bundled copy of core must still be recognised.
+  it.each(CLIENT_ERROR_CODES)("recognises a foreign error with code %s", (code) => {
+    expect(hasAppErrorCode(Object.assign(new Error("foreign"), { code }), code)).toBe(true);
   });
 });
