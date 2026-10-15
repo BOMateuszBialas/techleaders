@@ -67,10 +67,10 @@ The signed-in owner lists, creates, edits and deletes categories in `/admin/cate
 
 ### Phase 3: App
 
-- [ ] 3.1 Container wiring
-- [ ] 3.2 Action layer and admin error boundary
-- [ ] 3.3 Category actions
-- [ ] 3.4 Category pages, forms and sidebar link
+- [x] 3.1 Container wiring — 2ee59be
+- [x] 3.2 Action layer and admin error boundary — d8fe0ff
+- [x] 3.3 Category actions — 693eb61
+- [x] 3.4 Category pages, forms and sidebar link — 99c5ffd
 - [ ] 3.5 Category e2e tests
 
 ### Phase 4: Docs
