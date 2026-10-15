@@ -1,7 +1,5 @@
 import { z } from "zod";
-
-/** Lowercase words of letters and digits joined by single hyphens, e.g. `vortex-wireless-mouse`. */
-export const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+import { SLUG_PATTERN } from "../../domain/products/product";
 
 /** Column lengths of `products.slug` and `categories.slug`. */
 export const PRODUCT_SLUG_MAX_LENGTH = 220;
