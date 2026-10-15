@@ -165,6 +165,12 @@ export class BrowserSession {
     return z.object({ text: z.string() }).parse(await this.command(["get", "text", selector])).text;
   }
 
+  /** The current value of an input or textarea (e.g. typed values kept after a failed submit). */
+  async value(selector: string): Promise<string> {
+    const data = await this.command(["get", "value", selector]);
+    return z.object({ value: z.string() }).parse(data).value;
+  }
+
   async screenshot(path: string): Promise<void> {
     const absolute = resolve(path);
     mkdirSync(dirname(absolute), { recursive: true });
