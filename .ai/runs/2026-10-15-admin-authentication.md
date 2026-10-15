@@ -55,4 +55,4 @@ One phase, as in the spec. Each step lands as its own commit and keeps the app w
 - [x] 1.6 Sign-in page, actions, auth route and protected route group — dad85e3
 - [x] 1.7 GET /api/admin/me — f10e630
 - [x] 1.8 E2E suite with signInAsOwner — f14528d
-- [ ] 1.9 Docs
+- [x] 1.9 Docs — 4a82260
