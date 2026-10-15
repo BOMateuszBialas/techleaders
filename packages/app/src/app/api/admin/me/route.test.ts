@@ -3,6 +3,7 @@ import { getAuth } from "@/server/container";
 import { GET } from "./route";
 
 vi.mock("next/headers", () => ({ headers: vi.fn(async () => new Headers()) }));
+vi.mock("next/server", () => ({ connection: vi.fn(async () => {}) }));
 vi.mock("@/server/container", () => ({ getAuth: vi.fn() }));
 
 const getSession = vi.fn();

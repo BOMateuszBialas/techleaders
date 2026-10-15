@@ -2,6 +2,7 @@ import "server-only";
 import { isAdminRole, UnauthorizedError, type AdminRole } from "@commerceos/core";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { getAuth } from "../container";
 import { apiHandler } from "../http/api-handler";
 
@@ -42,7 +43,13 @@ export function adminApiHandler<Rest extends unknown[]>(
   route: string,
   handler: (request: Request, admin: AdminPrincipal, ...rest: Rest) => Promise<Response>,
 ): (request: Request, ...rest: Rest) => Promise<Response> {
-  return apiHandler(route, async (request: Request, ...rest: Rest) =>
+  const guarded = apiHandler(route, async (request: Request, ...rest: Rest) =>
     handler(request, await requireAdmin(), ...rest),
   );
+  return async (request, ...rest) => {
+    // Request time only, and outside apiHandler's try/catch: during `next build` this
+    // rejects to stop the prerender, which must not be logged as a route error.
+    await connection();
+    return guarded(request, ...rest);
+  };
 }

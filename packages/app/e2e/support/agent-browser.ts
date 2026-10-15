@@ -127,6 +127,15 @@ export class BrowserSession {
     await this.command(["find", "role", role, "click", "--name", name, "--exact"]);
   }
 
+  /** Fills the input labelled exactly `label` (clears it first). */
+  async fillLabel(label: string, text: string): Promise<void> {
+    await this.command(["find", "label", label, "fill", text, "--exact"]);
+  }
+
+  async clearCookies(): Promise<void> {
+    await this.command(["cookies", "clear"]);
+  }
+
   async waitForText(text: string): Promise<void> {
     await this.command(["wait", "--text", text]);
   }

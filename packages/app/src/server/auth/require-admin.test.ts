@@ -18,6 +18,7 @@ vi.mock("next/navigation", () => ({
     throw new Error(`NEXT_REDIRECT ${url}`);
   }),
 }));
+vi.mock("next/server", () => ({ connection: vi.fn(async () => {}) }));
 vi.mock("../container", () => ({ getAuth: vi.fn() }));
 
 const ownerSession = {
