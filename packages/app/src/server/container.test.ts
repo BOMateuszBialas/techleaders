@@ -1,6 +1,6 @@
 import { afterAll, describe, expect, it, vi } from "vitest";
-import { ListCatalogProductsUseCase } from "@commerceos/core";
-import { DatabaseCatalogRepository } from "@commerceos/database";
+import { DeleteCategoryUseCase, ListCatalogProductsUseCase } from "@commerceos/core";
+import { DatabaseCatalogRepository, DatabaseCategoryRepository } from "@commerceos/database";
 import { createRequestScope, disposeRootContainer, getAuth, logAuthMessage } from "./container";
 import { createAuth } from "./auth/create-auth";
 import { logger } from "./logger";
@@ -61,6 +61,22 @@ describe("composition root", () => {
     expect(first.cradle.listCatalogProductsUseCase instanceof ListCatalogProductsUseCase).toBe(
       true,
     );
+  });
+
+  it("wires the admin category repository and use cases per request", () => {
+    const repository = first.cradle.categoryRepository;
+    expect(repository instanceof DatabaseCategoryRepository).toBe(true);
+    expect(repository === second.cradle.categoryRepository).toBe(false);
+    for (const key of [
+      "listCategoriesUseCase",
+      "getCategoryUseCase",
+      "createCategoryUseCase",
+      "updateCategoryUseCase",
+      "deleteCategoryUseCase",
+    ] as const) {
+      expect(first.cradle[key] === second.cradle[key]).toBe(false);
+    }
+    expect(first.cradle.deleteCategoryUseCase instanceof DeleteCategoryUseCase).toBe(true);
   });
 
   it("shares one Better Auth instance and pool, reachable without a request scope", () => {

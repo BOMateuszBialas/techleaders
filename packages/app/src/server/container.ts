@@ -1,16 +1,23 @@
 import "server-only";
 import { UnconfiguredLlmProvider, type LlmProviderPort } from "@commerceos/ai";
 import {
+  CreateCategoryUseCase,
+  DeleteCategoryUseCase,
   GetCatalogProductUseCase,
+  GetCategoryUseCase,
   GetSystemHealthUseCase,
   ListCatalogCategoriesUseCase,
   ListCatalogProductsUseCase,
+  ListCategoriesUseCase,
   ListFeaturedProductsUseCase,
+  UpdateCategoryUseCase,
   type CatalogReadPort,
+  type CategoryRepositoryPort,
   type HealthCheckPort,
 } from "@commerceos/core";
 import {
   DatabaseCatalogRepository,
+  DatabaseCategoryRepository,
   DatabaseHealthCheck,
   MikroORM,
   createOrmConfig,
@@ -56,6 +63,12 @@ export type Cradle = {
   listCatalogProductsUseCase: ListCatalogProductsUseCase;
   getCatalogProductUseCase: GetCatalogProductUseCase;
   listFeaturedProductsUseCase: ListFeaturedProductsUseCase;
+  categoryRepository: CategoryRepositoryPort;
+  listCategoriesUseCase: ListCategoriesUseCase;
+  getCategoryUseCase: GetCategoryUseCase;
+  createCategoryUseCase: CreateCategoryUseCase;
+  updateCategoryUseCase: UpdateCategoryUseCase;
+  deleteCategoryUseCase: DeleteCategoryUseCase;
   authPool: Pool;
   auth: Auth;
 };
@@ -87,6 +100,13 @@ function buildContainer(): AwilixContainer<Cradle> {
     listCatalogProductsUseCase: asClass(ListCatalogProductsUseCase).scoped(),
     getCatalogProductUseCase: asClass(GetCatalogProductUseCase).scoped(),
     listFeaturedProductsUseCase: asClass(ListFeaturedProductsUseCase).scoped(),
+    // Admin catalog: the category adapter writes through the request's EntityManager.
+    categoryRepository: asClass(DatabaseCategoryRepository).scoped(),
+    listCategoriesUseCase: asClass(ListCategoriesUseCase).scoped(),
+    getCategoryUseCase: asClass(GetCategoryUseCase).scoped(),
+    createCategoryUseCase: asClass(CreateCategoryUseCase).scoped(),
+    updateCategoryUseCase: asClass(UpdateCategoryUseCase).scoped(),
+    deleteCategoryUseCase: asClass(DeleteCategoryUseCase).scoped(),
     authPool: asFunction(() => createAuthPool(env.DATABASE_URL))
       .singleton()
       .disposer((pool) => pool.end()),
