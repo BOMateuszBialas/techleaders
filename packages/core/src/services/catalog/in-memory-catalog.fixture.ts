@@ -76,4 +76,11 @@ export class InMemoryCatalog implements CatalogReadPort {
     this.productLookups.push(slug);
     return this.products.find((product) => product.slug === slug) ?? null;
   }
+
+  readonly idLookups: (readonly string[])[] = [];
+
+  async findProductsByIds(ids: readonly string[]): Promise<CatalogProductRecord[]> {
+    this.idLookups.push(ids);
+    return this.products.filter((product) => ids.includes(product.id));
+  }
 }

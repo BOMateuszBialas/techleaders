@@ -48,4 +48,10 @@ export interface CatalogReadPort {
   ): Promise<{ items: CatalogProductRecord[]; total: number }>;
   /** A product in any status; the use case decides whether a shopper may see it. */
   findProductBySlug(slug: string): Promise<CatalogProductRecord | null>;
+  /**
+   * The products with these ids, in any status and in no particular order; unknown ids are
+   * skipped. The cart prices its lines with them (cart spec, step 2) and decides itself what a
+   * shopper may buy.
+   */
+  findProductsByIds(ids: readonly string[]): Promise<CatalogProductRecord[]>;
 }

@@ -158,4 +158,27 @@ describe("DatabaseCatalogRepository (PostgreSQL)", () => {
     });
     expect(await repository().findProductBySlug("missing")).toBeNull();
   });
+
+  it("finds products by id in any status and skips unknown ids (cart spec, step 2)", async () => {
+    const vortex = await repository().findProductBySlug("vortex-wireless-mouse");
+    const draft = await repository().findProductBySlug("e2e-draft-keyboard");
+    if (!vortex || !draft) throw new Error("seeded products missing");
+
+    const found = await repository().findProductsByIds([
+      vortex.id,
+      draft.id,
+      "00000000-0000-4000-8000-000000000000",
+    ]);
+    expect(found.map((product) => product.slug).sort()).toEqual([
+      "e2e-draft-keyboard",
+      "vortex-wireless-mouse",
+    ]);
+    expect(found.find((product) => product.id === vortex.id)).toMatchObject({
+      priceMinor: 24900,
+      currency: "PLN",
+      status: "published",
+      category: { slug: "mice" },
+    });
+    expect(await repository().findProductsByIds([])).toEqual([]);
+  });
 });

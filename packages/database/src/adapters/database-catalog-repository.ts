@@ -83,4 +83,14 @@ export class DatabaseCatalogRepository implements CatalogReadPort {
     const product = await this.deps.em.findOne(ProductSchema, { slug }, { populate: ["category"] });
     return product ? toProductRecord(product) : null;
   }
+
+  async findProductsByIds(ids: readonly string[]): Promise<CatalogProductRecord[]> {
+    if (ids.length === 0) return [];
+    const products = await this.deps.em.find(
+      ProductSchema,
+      { id: { $in: [...ids] } },
+      { populate: ["category"] },
+    );
+    return products.map(toProductRecord);
+  }
 }
