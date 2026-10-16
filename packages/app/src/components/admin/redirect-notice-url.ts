@@ -12,13 +12,20 @@ export function addressWithoutNotice(href: string): string | null {
   return `${url.pathname}${url.search}${url.hash}`;
 }
 
+/** The id of the rendered notice, so the submit listener can hide it. */
+export const REDIRECT_NOTICE_ID = "redirect-notice";
+
 /**
- * Removes `?notice=` from the address bar once the notice is on screen (#41), so the next
- * `refresh()` after a save, or a reload, renders the page without it. Next.js keeps its router
- * in sync with `history.replaceState` ("Native History API" in the Next 16 docs). Runs in the
- * browser only, as an effect of `RedirectNotice`.
+ * Retires a redirect notice once it is on screen (#41). It drops `?notice=` from the address bar
+ * (Next.js keeps its router in sync with `history.replaceState`, "Native History API" in the
+ * Next 16 docs), so a reload does not show it again, and it hides the notice on the next form
+ * submit on the page, so a later save, publish or stock change shows only its own message.
+ * Runs in the browser only, as the effect of `RedirectNotice`; returns the effect cleanup.
  */
-export function dropNoticeFromAddressBar(): void {
+export function retireRedirectNotice(): () => void {
   const next = addressWithoutNotice(window.location.href);
   if (next !== null) window.history.replaceState(window.history.state, "", next);
+  const hide = () => document.getElementById(REDIRECT_NOTICE_ID)?.setAttribute("hidden", "");
+  document.addEventListener("submit", hide, { once: true });
+  return () => document.removeEventListener("submit", hide);
 }

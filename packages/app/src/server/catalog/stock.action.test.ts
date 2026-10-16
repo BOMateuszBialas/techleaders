@@ -152,6 +152,41 @@ describe("adjustStock", () => {
     });
   });
 
+  it("says to reload when the hidden quantity was broken, and keeps a visible field error", async () => {
+    adjustStockUseCase.execute.mockRejectedValue(
+      new ValidationError("Check the highlighted fields.", {
+        expectedQuantity: ["Enter a whole number from 0 to 1,000,000."],
+        newQuantity: ["Enter a whole number from 0 to 1,000,000."],
+      }),
+    );
+    const state = await adjustStock(
+      IDLE_ACTION_STATE,
+      form({ ...posted, expectedQuantity: "<b>x</b>", newQuantity: "-1" }),
+    );
+    expect(state).toEqual({
+      status: "error",
+      message: "This form is out of date. Reload the page and try again.",
+      fieldErrors: { newQuantity: ["Enter a whole number from 0 to 1,000,000."] },
+      values: { newQuantity: "-1" },
+    });
+  });
+
+  it("says to reload when only the hidden quantity was broken", async () => {
+    adjustStockUseCase.execute.mockRejectedValue(
+      new ValidationError("Check the highlighted fields.", {
+        expectedQuantity: ["Enter a whole number from 0 to 1,000,000."],
+      }),
+    );
+    const data = form(posted);
+    data.delete("expectedQuantity");
+    const state = await adjustStock(IDLE_ACTION_STATE, data);
+    expect(state).toEqual({
+      status: "error",
+      message: "This form is out of date. Reload the page and try again.",
+      values: { newQuantity: "0" },
+    });
+  });
+
   it("reports a product deleted meanwhile", async () => {
     adjustStockUseCase.execute.mockRejectedValue(new NotFoundError("Product not found."));
     const state = await adjustStock(IDLE_ACTION_STATE, form(posted));
