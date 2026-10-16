@@ -135,4 +135,33 @@ describe("database (PostgreSQL)", () => {
     });
     await expect(em.flush()).rejects.toThrow(/stock_quantity_check/);
   });
+
+  // The stock history migration is additive (BACKWARD_COMPATIBILITY §5): its `down` drops only
+  // `stock_adjustments`, leaves the products and their stock intact, and `up` reapplies it.
+  it("reverts and reapplies the stock history migration without touching products", async () => {
+    const tableOf = async (name: string) => {
+      const [row] = await orm.em
+        .fork()
+        .execute<{ name: string | null }[]>("select to_regclass(?)::text as name", [name]);
+      return row?.name ?? null;
+    };
+    const products = async () =>
+      orm.em
+        .fork()
+        .execute<{ slug: string; stock_quantity: number }[]>(
+          "select slug, stock_quantity from products order by slug",
+        );
+    const before = await products();
+    expect(before.length).toBeGreaterThan(0);
+    expect(await tableOf("stock_adjustments")).toBe("stock_adjustments");
+
+    await orm.migrator.down({ migrations: ["Migration20261016115407_stock_adjustments"] });
+    expect(await tableOf("stock_adjustments")).toBeNull();
+    expect(await products()).toEqual(before);
+
+    await orm.migrator.up();
+    expect(await tableOf("stock_adjustments")).toBe("stock_adjustments");
+    const diff = await orm.schema.getUpdateSchemaSQL({ wrap: false });
+    expect(diff.trim()).toBe("");
+  });
 });

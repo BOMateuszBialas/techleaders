@@ -49,6 +49,7 @@ The contract surfaces this project protects, and how changes to them must be han
 - **Where:** `packages/database/src/migrations/`, `packages/database/src/entities/`.
 - **Breaking:** dropping or renaming a column or table, narrowing a type, adding a NOT NULL column without a default, or editing an already-applied migration.
 - **Required path:** migrations only move forward and committed migrations are never edited. Destructive changes are rolled out in steps (add the new column → backfill → switch code → drop the old one in a later migration).
+- `stock_adjustments` (added 2026-10-16, admin catalog spec Phase 2): the manual stock history (`product_id`, `previous_quantity`, `new_quantity`, `created_at`; checks `>= 0` and `new_quantity <> previous_quantity`; `on delete cascade` from `products`). A later `reason` or `source` column (for example checkout decrements) is added with a default, never as a required column.
 
 ## General rules
 

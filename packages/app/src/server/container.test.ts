@@ -1,5 +1,6 @@
 import { afterAll, describe, expect, it, vi } from "vitest";
 import {
+  AdjustStockUseCase,
   DeleteCategoryUseCase,
   ListCatalogProductsUseCase,
   SetProductStatusUseCase,
@@ -8,6 +9,7 @@ import {
   DatabaseCatalogRepository,
   DatabaseCategoryRepository,
   DatabaseProductRepository,
+  DatabaseStockRepository,
 } from "@commerceos/database";
 import { createRequestScope, disposeRootContainer, getAuth, logAuthMessage } from "./container";
 import { createAuth } from "./auth/create-auth";
@@ -101,6 +103,16 @@ describe("composition root", () => {
       expect(first.cradle[key] === second.cradle[key]).toBe(false);
     }
     expect(first.cradle.setProductStatusUseCase instanceof SetProductStatusUseCase).toBe(true);
+  });
+
+  it("wires the stock repository and use cases per request", () => {
+    const repository = first.cradle.stockRepository;
+    expect(repository instanceof DatabaseStockRepository).toBe(true);
+    expect(repository === second.cradle.stockRepository).toBe(false);
+    for (const key of ["adjustStockUseCase", "listStockAdjustmentsUseCase"] as const) {
+      expect(first.cradle[key] === second.cradle[key]).toBe(false);
+    }
+    expect(first.cradle.adjustStockUseCase instanceof AdjustStockUseCase).toBe(true);
   });
 
   it("shares one Better Auth instance and pool, reachable without a request scope", () => {

@@ -93,6 +93,28 @@ export function isUniqueFieldConflict(
   return hasAppErrorCode(error, "CONFLICT") && "field" in error && typeof error.field === "string";
 }
 
+/**
+ * A stock change was refused because the stored quantity is no longer the one the form showed
+ * (admin catalog spec A5): a checkout or another tab changed it meanwhile. Nothing was written.
+ * `currentQuantity` lets the form reset itself to the value now stored.
+ */
+export class StaleStockError extends ConflictError {
+  constructor(readonly currentQuantity: number) {
+    super(`Stock changed to ${currentQuantity} since this page loaded. Check it and try again.`);
+  }
+}
+
+/** True for a `StaleStockError` from any copy of this package (see `hasAppErrorCode`). */
+export function isStaleStockError(
+  error: unknown,
+): error is Error & { readonly code: "CONFLICT"; readonly currentQuantity: number } {
+  return (
+    hasAppErrorCode(error, "CONFLICT") &&
+    "currentQuantity" in error &&
+    typeof error.currentQuantity === "number"
+  );
+}
+
 /** Codes of the errors whose message is safe and meaningful for the client. */
 export const CLIENT_ERROR_CODES = [
   "VALIDATION_FAILED",

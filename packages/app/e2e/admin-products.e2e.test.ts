@@ -72,8 +72,9 @@ describe("admin products", () => {
     expect(await browser().value("#product-slug")).toBe("e2e-phantom-pro-mouse");
     expect(await browser().value("#product-sku")).toBe("E2E-PHA-001");
     expect(await browser().value("#product-price")).toBe("199.90");
-    // Spec A14: stock is set on create only; the edit form shows it read-only.
-    expect(await browser().text("main")).toContain("Stock: 5");
+    // Spec A14: stock is set on create only; afterwards the stock panel shows and changes it.
+    expect(await browser().text("main")).toContain("Current stock: 5");
+    expect(await browser().text("main")).not.toContain("Stock quantity");
 
     // A featured draft says it will not show until it is published.
     await browser().click("#product-featured");

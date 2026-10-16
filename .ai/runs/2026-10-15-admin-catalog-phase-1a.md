@@ -2,7 +2,7 @@
 
 - Date: 2026-10-15
 - Brief: Implement Phase 1a (categories and the shared action layer) of the spec; Phase 1b and Phase 2 are separate PRs.
-- Source doc: `.ai/specs/2026-10-15-admin-catalog-management.md`
+- Source doc: `.ai/specs/implemented/2026-10-15-admin-catalog-management.md`
 - Issue: #20 (part 1; the issue closes with Phase 1b, so the PR says "Refs #20")
 - Branch: `feat/admin-catalog-phase-1a`
 - Engine: om-auto-create-pr (steps: 10, --loop: no)

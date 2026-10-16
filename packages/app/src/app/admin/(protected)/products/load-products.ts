@@ -1,5 +1,5 @@
 import "server-only";
-import type { AdminProduct } from "@commerceos/core";
+import type { AdminProduct, StockAdjustment } from "@commerceos/core";
 import type { ProductCategoryOption } from "@/components/admin/products/product-form-view";
 import type { Cradle } from "@/server/container";
 import { loadWithRequestScope, type LoadResult } from "@/server/load-with-request-scope";
@@ -25,12 +25,18 @@ export function loadNewProductForm(): Promise<LoadResult<ProductCategoryOption[]
 export type AdminProductPageData = {
   product: AdminProduct;
   categories: ProductCategoryOption[];
+  /** The last stock changes, newest first (spec Phase 2, "Stock panel"). */
+  stockHistory: StockAdjustment[];
 };
 
-/** One product and the category options; a malformed or unknown id is "not-found". */
+/**
+ * One product, the category options and its stock history; a malformed or unknown id is
+ * "not-found".
+ */
 export function loadAdminProduct(id: string): Promise<LoadResult<AdminProductPageData>> {
   return loadWithRequestScope({ page: "/admin/products/[id]" }, async (cradle) => ({
     product: await cradle.getProductUseCase.execute({ id }),
     categories: await categoryOptions(cradle),
+    stockHistory: await cradle.listStockAdjustmentsUseCase.execute({ productId: id }),
   }));
 }

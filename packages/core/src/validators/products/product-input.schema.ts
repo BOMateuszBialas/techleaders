@@ -4,21 +4,19 @@ import { normalizeSku, PRODUCT_STATUSES, slugify } from "../../domain/products/p
 import type { ProductCreate, ProductWrite } from "../../ports/catalog.port";
 import { PRODUCT_SLUG_MAX_LENGTH, slugProblem } from "../catalog/slug.schema";
 import { isUuid } from "../common/uuid.schema";
+import { stockQuantitySchema } from "../inventory/stock-quantity.schema";
 
 /** Column lengths of `products`; the description is a text column with a form limit. */
 export const PRODUCT_NAME_MAX_LENGTH = 200;
 export const PRODUCT_DESCRIPTION_MAX_LENGTH = 5000;
 export const PRODUCT_SKU_MAX_LENGTH = 64;
 export const PRODUCT_IMAGE_URL_MAX_LENGTH = 2048;
-/** The largest stock quantity the admin accepts (spec, `setStockSchema`). */
-export const MAX_STOCK_QUANTITY = 1_000_000;
 
 export const PRICE_EMPTY_MESSAGE = "Enter a price.";
 export const PRICE_FORMAT_MESSAGE =
   "Enter a price such as 249.90 or 249,90: digits and at most two decimals.";
 export const CATEGORY_CHOICE_MESSAGE = "Choose an existing category.";
 export const IMAGE_URL_MESSAGE = "Enter an address starting with https://, or leave it blank.";
-export const STOCK_QUANTITY_MESSAGE = "Enter a whole number from 0 to 1,000,000.";
 export const STATUS_MESSAGE = "Choose draft or published.";
 
 /** Seeded demo images are local files under `public/demo/` (storefront spec G6, G21). */
@@ -140,12 +138,7 @@ export const createProductInputSchema = productFieldsSchema
       (value) => (value === "" ? undefined : value),
       z.enum(PRODUCT_STATUSES, STATUS_MESSAGE).default("draft"),
     ),
-    stockQuantity: z
-      .string()
-      .trim()
-      .regex(/^\d{1,7}$/, STOCK_QUANTITY_MESSAGE)
-      .transform(Number)
-      .refine((quantity) => quantity <= MAX_STOCK_QUANTITY, STOCK_QUANTITY_MESSAGE),
+    stockQuantity: stockQuantitySchema,
   })
   .transform((fields, context): ProductCreate => {
     const resolved = resolveSlug(fields);

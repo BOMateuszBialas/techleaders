@@ -35,7 +35,6 @@ const vortex: ProductFormProduct = {
   priceMinor: 24990,
   currency: "PLN",
   sku: "DEMO-MOU-001",
-  stockQuantity: 8,
   imageUrl: "https://images.example.com/vortex.png",
   status: "published",
   featured: true,
@@ -44,6 +43,7 @@ const vortex: ProductFormProduct = {
 
 const adminProduct: AdminProduct = {
   ...vortex,
+  stockQuantity: 8,
   category: { id: "c-1", slug: "mice", name: "Mice" },
   availability: "available",
 };
@@ -196,7 +196,7 @@ describe("ProductFormView", () => {
     expect(html).toContain('aria-describedby="product-stock-hint product-stock-error"');
   });
 
-  it("edits a published product: stored values, read-only stock, the slug warning and the preview", () => {
+  it("edits a published product: stored values, no stock field, the slug warning and the preview", () => {
     const html = renderForm(
       { status: "success", message: "Saved. Visible in the store and can be bought." },
       { product: vortex },
@@ -206,8 +206,8 @@ describe("ProductFormView", () => {
     expect(html).toContain('value="DEMO-MOU-001"');
     expect(html).toMatch(/<option value="[^"]+2d02" selected="">Mousepads/);
     expect(html).toMatch(/name="featured"[^>]*checked=""/);
-    expect(html).toContain("Stock: 8");
-    expect(html).toContain("Stock is set when the product is created.");
+    // Spec A14: after creation, stock changes only through the stock panel.
+    expect(html).not.toContain("Stock");
     expect(html).not.toContain('name="stockQuantity"');
     expect(html).not.toContain('name="status"');
     expect(html).toContain("Changing the slug changes the store URL; old links stop working.");

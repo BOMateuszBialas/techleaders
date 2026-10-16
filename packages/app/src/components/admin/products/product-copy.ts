@@ -83,10 +83,6 @@ export const STATUS_OPTIONS: { value: ProductStatus; label: string }[] = [
 export const INITIAL_STOCK_HINT =
   "The quantity in stock when the product is created. A published product with 0 shows as out of stock.";
 
-/** Spec A14: after creation, stock changes only through the recorded stock adjustment. */
-export const STOCK_READ_ONLY_HINT =
-  "Stock is set when the product is created. Changing it later comes with stock adjustment, which records every change.";
-
 export const EMPTY_PRODUCTS_MESSAGE = "No products yet. Create the first one.";
 
 /** Fixed notices after a redirect (`?notice=`), so no free text travels in the URL. */
