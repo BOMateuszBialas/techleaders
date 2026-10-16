@@ -167,6 +167,13 @@ describe("DatabaseOrderRepository.placeOrder", () => {
     const other = new Error("connection reset");
     transactional.mockRejectedValueOnce(other);
     await expect(repository.placeOrder(command())).rejects.toBe(other);
+
+    const driver = Object.assign(new Error("insert … values ('ada@example.test')"), {
+      name: "DriverException",
+    });
+    transactional.mockRejectedValueOnce(driver);
+    const sanitized = await repository.placeOrder(command()).catch((caught: unknown) => caught);
+    expect((sanitized as Error).message).toBe("Order placement failed: DriverException");
   });
 });
 

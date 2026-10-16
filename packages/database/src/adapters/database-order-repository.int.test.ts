@@ -366,6 +366,49 @@ describe("DatabaseOrderRepository (PostgreSQL)", () => {
     expect(await stockOf(VORTEX)).toBe(8);
   });
 
+  it("never puts customer data or the reference into a database error it throws", async () => {
+    const error = await repository()
+      .placeOrder({
+        idempotencyKey: randomUUID(),
+        requestFingerprint: "x",
+        customer: {
+          customerName: "Ada Lovelace",
+          customerEmail: "ada@example.test",
+          shippingLine1: "ul. 1",
+          shippingLine2: null,
+          shippingCity: "Warszawa",
+          shippingPostalCode: "00-950",
+          shippingCountry: "PL",
+        },
+        lines: [line(VORTEX, 1)],
+        newReference: () => "CO-00000-00000-00000-0000S",
+        // A total that breaks orders_total_check reaches the database.
+        buildDraft: (reserved) => ({
+          currency: "PLN",
+          items: reserved.map((item) => ({
+            productId: item.productId,
+            name: item.name,
+            sku: item.sku,
+            unitPriceMinor: item.unitPriceMinor,
+            quantity: item.quantity,
+            lineTotalMinor: item.unitPriceMinor,
+          })),
+          subtotalMinor: 24900,
+          shippingMinor: 0,
+          totalMinor: 1,
+        }),
+      })
+      .catch((caught: unknown) => caught);
+
+    expect((error as Error).name).toBe("DatabaseOperationError");
+    const text = `${(error as Error).message} ${(error as Error).stack}`;
+    expect(text).toContain("orders_total_check");
+    for (const secret of ["Ada", "ada@example.test", "CO-00000-00000-00000-0000S"]) {
+      expect(text).not.toContain(secret);
+    }
+    expect(await stockOf(VORTEX)).toBe(10);
+  });
+
   it("enforces the order check constraints", async () => {
     const lines = [line(VORTEX, 1)];
     const { reference } = await placeOrderUseCase().execute({

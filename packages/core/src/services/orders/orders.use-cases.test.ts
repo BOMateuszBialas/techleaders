@@ -189,6 +189,12 @@ describe("PlaceOrderUseCase", () => {
     expect(orders.stock.get(VORTEX_ID)).toBe(23);
   });
 
+  it("returns the order for a repeat that arrives after the cart was cleared (second tab)", async () => {
+    const first = await placeOrder().execute({ lines, request: form() });
+    const again = await placeOrder().execute({ lines: [], request: form() });
+    expect(again).toEqual({ orderId: first.orderId, reference: first.reference, replayed: true });
+  });
+
   it("refuses a reused form with another customer", async () => {
     await placeOrder().execute({ lines, request: form() });
     const error = await rejection(

@@ -383,6 +383,8 @@ Shipped together in PR 2 (closes #29, #17, #18).
 - **Rate limit (A15):** counted on `/orders/<reference>`, `/checkout/pay/<reference>` and in `confirmDemoPayment` (every read of an order by reference). `lookupOrder` only checks the format and redirects, so it reads nothing and is not counted separately (the order page counts it). The bucket key follows `AUTH_TRUSTED_IP_HEADER` exactly like admin sign-in; the limiter fails closed.
 - **Country and postal code:** `shippingCountry` accepts only `PL` (G6) and the postal code must look like `00-950`.
 - **Checkout decrements are not written to `stock_adjustments`** (the spec does not ask for it; the table records manual changes). Follow-up: an additive `source` column if the owner wants one history.
+- **Sanitized database errors (review of PR 2):** the order repository and the rate limiter replace MikroORM driver exceptions with `DatabaseOperationError` (operation, class, SQLSTATE, constraint), because the driver's message inlines the query parameters (customer data, the reference, a client IP) and the app logs unexpected errors.
+- **Idempotency before the cart (review of PR 2):** the key is looked up right after parsing the form, so a repeat whose cart cookie the first submit already cleared still gets its order.
 - **No access log:** `next start` writes no per-request log with paths; the reference in the URL is a known exposure only if a host adds one (README).
 - **For #22 (cancel):** the cancel transition must be `update orders … where status = 'pending_payment'` and restore stock in the same transaction (posted on the issue).
 

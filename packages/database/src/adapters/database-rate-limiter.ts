@@ -1,5 +1,6 @@
 import type { RateLimiterPort } from "@commerceos/core";
 import type { EntityManager } from "@mikro-orm/postgresql";
+import { withSanitizedErrors } from "./sanitize-database-error";
 
 /**
  * One atomic statement per request (cart spec A15): the row for (key, current window) is
@@ -23,6 +24,15 @@ export class DatabaseRateLimiter implements RateLimiterPort {
   constructor(private readonly deps: { em: EntityManager }) {}
 
   async consume(
+    key: string,
+    limit: number,
+    windowSeconds: number,
+  ): Promise<{ allowed: boolean; remaining: number }> {
+    // The key can hold a client IP: keep it out of a logged error message.
+    return withSanitizedErrors("Rate limit", () => this.consumeNow(key, limit, windowSeconds));
+  }
+
+  private async consumeNow(
     key: string,
     limit: number,
     windowSeconds: number,

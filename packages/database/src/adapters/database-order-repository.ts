@@ -13,6 +13,7 @@ import type { EntityManager, QueryResult } from "@mikro-orm/postgresql";
 import { OrderItemSchema, type OrderItem } from "../entities/orders/order-item.entity";
 import { OrderSchema, type Order } from "../entities/orders/order.entity";
 import { readConstraintViolation } from "./catalog-write-error";
+import { sanitizeDatabaseError, withSanitizedErrors } from "./sanitize-database-error";
 
 const UNIQUE_VIOLATION = "23505";
 const REFERENCE_UNIQUE = "orders_public_reference_unique";
@@ -89,20 +90,32 @@ export class DatabaseOrderRepository implements OrderRepositoryPort {
         const constraint = uniqueConstraintOf(error);
         if (constraint === REFERENCE_UNIQUE && attempt === 1) continue;
         if (constraint === IDEMPOTENCY_UNIQUE) throw new ConflictError(DUPLICATE_SUBMIT_MESSAGE);
-        throw error;
+        // Never let the failed SQL (customer data, the reference) reach a log.
+        throw sanitizeDatabaseError("Order placement", error);
       }
     }
   }
 
   async findByIdempotencyKey(idempotencyKey: string): Promise<OrderRecord | null> {
-    return this.load(await this.deps.em.findOne(OrderSchema, { idempotencyKey }));
+    return withSanitizedErrors("Order read", async () =>
+      this.load(await this.deps.em.findOne(OrderSchema, { idempotencyKey })),
+    );
   }
 
   async findByReference(reference: string): Promise<OrderRecord | null> {
-    return this.load(await this.deps.em.findOne(OrderSchema, { publicReference: reference }));
+    return withSanitizedErrors("Order read", async () =>
+      this.load(await this.deps.em.findOne(OrderSchema, { publicReference: reference })),
+    );
   }
 
   async markPaid(
+    orderId: string,
+    payment: { provider: PaymentProvider; reference: string },
+  ): Promise<MarkPaidResult> {
+    return withSanitizedErrors("Order payment", () => this.markPaidNow(orderId, payment));
+  }
+
+  private async markPaidNow(
     orderId: string,
     payment: { provider: PaymentProvider; reference: string },
   ): Promise<MarkPaidResult> {

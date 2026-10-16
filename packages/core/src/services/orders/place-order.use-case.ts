@@ -27,7 +27,7 @@ export type PlaceOrderResult = { orderId: string; reference: string; replayed: b
  *    (sold out, unpublished, above the stock: G12, G13) is a `cart_changed` conflict carrying
  *    those notices, and the lines must match the `cartFingerprint` the checkout rendered, so a
  *    cart changed meanwhile is never ordered. Prices never come from the client: the form's total is only compared (A6).
- * 3. Idempotency (A7): a known key returns its order when the request fingerprint (cart plus
+ * 3. Idempotency (A7), checked before the cart: a known key returns its order when the request fingerprint (cart plus
  *    customer fields, hashed) matches, otherwise `form_reused`. The same lookup runs after a
  *    failed placement, so a double submit that lost the race for the last unit still gets the
  *    order the first submit placed.
@@ -50,6 +50,12 @@ export class PlaceOrderUseCase {
     const form = parseInput(checkoutSchema, input.request);
     const { idempotencyKey, expectedTotalMinor, cartFingerprint: shown, ...customer } = form;
 
+    // A known form first: its repeat must return the order even when the first submit already
+    // cleared the cart (a second tab). The fingerprint needs only what the form carries.
+    const requestFingerprint = await this.deps.sha256Hex(JSON.stringify({ cart: shown, customer }));
+    const known = await this.deps.orderRepository.findByIdempotencyKey(idempotencyKey);
+    if (known) return replay(known, requestFingerprint);
+
     if (input.lines.length === 0) throw new ValidationError(EMPTY_CART_MESSAGE);
     const { cart } = await loadPricedCart(this.deps.catalogRepository, input.lines);
     // A line sold out, was unpublished or exceeds the stock now: say what changed (G12, G13).
@@ -57,10 +63,6 @@ export class PlaceOrderUseCase {
     if (cartFingerprint(cart.storedLines) !== shown) {
       throw new OrderConflictError("cart_changed", CART_CHANGED_MESSAGE);
     }
-
-    const requestFingerprint = await this.deps.sha256Hex(JSON.stringify({ cart: shown, customer }));
-    const known = await this.deps.orderRepository.findByIdempotencyKey(idempotencyKey);
-    if (known) return replay(known, requestFingerprint);
 
     try {
       const order = await this.deps.orderRepository.placeOrder({
