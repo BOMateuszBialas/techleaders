@@ -1,7 +1,7 @@
 # Storefront catalog: browse by category, product details, search
 
 - Backlog: E01-S01 ([#14](https://github.com/BOMateuszBialas/techleaders/issues/14)) and E01-S02 ([#15](https://github.com/BOMateuszBialas/techleaders/issues/15)), epic E01 (#8)
-- Status: Phase 1 implemented in PR #34, Phase 1b in PR #37 (Phase 2 pending); written autonomously (`om-spec-writing --autonomous`); cross-model review and grill-me applied (2026-10-15). Open Questions were resolved with defaults; see "Resolved assumptions". The two ⚠ items (Q2, Q4) were confirmed by the product owner on 2026-10-15; the other defaults stand unless review changes them.
+- Status: **Implemented.** Phase 1 in PR #34, Phase 1b in PR #37, Phase 2 in the E01-S02 PR (2026-10-16, closes #15); written autonomously (`om-spec-writing --autonomous`); cross-model review and grill-me applied (2026-10-15). Open Questions were resolved with defaults; see "Resolved assumptions". The two ⚠ items (Q2, Q4) were confirmed by the product owner on 2026-10-15; the other defaults stand unless review changes them.
 - Design authority: `.ai/specs/product-brief.md`, `.ai/specs/2026-10-13-commerceos-mvp.md` §3 (P0 storefront), §5, §9
 
 ## 📝 TLDR
@@ -268,7 +268,7 @@ Every step keeps `npm run test:coverage` at 100% and the app working. Run the fu
 11. **Query schema and use case.** Add `q` to `catalogQuerySchema` (trim, collapse whitespace, empty → undefined, max 100 → field error); `ListCatalogProductsUseCase` accepts `search` and forwards it. Unit tests: each `q` branch; search forwarded together with the category id and the published status.
 12. **Adapter search.** Wire `search` into `findProducts` (`$or` over name and description with `toContainsPattern`). Integration tests: case-insensitive match on name and on description; `%`/`_` matched literally; search + category returns the intersection; the `[E2E]` draft matching "Yirgacheffe" is never returned.
 13. **Search UI.** Add shadcn `input` via the CLI; the search form, the result count, the no-results state with "Clear search", and the too-long message; `load-catalog-page.ts` handles the validation result (+ unit tests). E2E in `catalog.e2e.test.ts`: S02-AC1 (search "fight" lists only `arena-fight-stick`), S02-AC2 (search "wireless" with `category=mice` returns exactly `vortex-wireless-mouse` from `DEMO_CATALOG`, not `apex-wireless-controller` or `drift-wireless-headset`; the same term with `category=mousepads` returns none), S02-AC3 (a nonsense term shows the no-results state; "Vortex" lists the published product but not the `[E2E]` draft), and the form keeps its values after submit. (Examples use the gaming catalog, G23.)
-14. **Docs, spec and gate.** Add `?q` to `BACKWARD_COMPATIBILITY.md` §1; run the full gate; move this spec to `.ai/specs/implemented/` once both phases are merged.
+14. **Docs, spec and gate.** Add `?q` to `BACKWARD_COMPATIBILITY.md` §1; run the full gate; move this spec to `.ai/specs/implemented/` once both phases are merged (done in the Phase 2 PR).
 
 ### Manual verification (beyond the automated tests)
 
@@ -298,6 +298,20 @@ Deviations from the text above, made while implementing Phase 1b:
 - **Hero illustration:** `public/demo/hero.svg`, rendered as a decorative image (`alt=""`).
 - **Seed descriptions:** `SeedProduct` gains an optional `description` (stored with the `[DEMO]` prefix), so gaming products have realistic text for Phase 2 search.
 - **E2E helpers:** category links now repeat in the header, footer and page navigation, so tests click them by CSS selector (`BrowserSession.click`); the narrow-screen menu is tested with `setViewport(390, 844)`.
+
+## 📝 Implementation notes, Phase 2 (E01-S02, 2026-10-16)
+
+Deviations from the text above, made while implementing Phase 2:
+
+- **Gaming examples (G23):** step 12's "Yirgacheffe" draft is the `[E2E] Draft Vortex mouse` fixture; the tests search "Vortex", "wireless", "fight" and "hall-effect" in the gaming catalog.
+- **Header search box (G13):** a static GET form in the layout header (`components/storefront/header-search.tsx`) beside the menu, labelled "Search products", submitting `q` only. The layout has no search params, so it is never pre-filled; the listing's own form (`components/catalog/catalog-search-form.tsx`, "Search term" plus a native "Category" select styled like the admin selects) shows the current term and category. Both are `role="search"` landmarks with distinct names. shadcn `input` was already installed, so nothing was added through the CLI; the base-nova registry's native select was not needed.
+- **Category links keep the search:** the listing's category navigation carries `q`, so picking a category narrows the current search (S02-AC2 from either control). The header and footer category links do not.
+- **Query parser:** `parseCatalogQuery` gains `q` / `qError` and exports `catalogSearchSchema` and `CATALOG_SEARCH_MAX_LENGTH` (100). `ListCatalogProductsUseCase` re-validates `search` with the same schema and throws `ValidationError` for a too-long term before any query (defence in depth: the use case does not trust its caller).
+- **Port:** `CatalogProductCriteria.search` is added with the wiring, as the Phase 1 note planned. The adapter adds `$or: [name $ilike, description $ilike]` with `toContainsPattern`.
+- **Too-long term:** the input has `maxLength="100"`, so the message ("Use at most 100 characters in a search.") appears only for a hand-edited URL; no product query runs and the listing area stays empty. When the category is also malformed, "This category does not exist" shows as well.
+- **States:** the listing area moved from `page.tsx` into `components/catalog/catalog-results.tsx` (unit-covered). The heading reads `Results for "<q>" in <Category | All products>` with a count ("1 product", "3 products"). No results: `No products match "<q>"` (plus ` in <Category>` when filtered) and "Clear search", which keeps the category. The loader returns an `unknownCategory` flag instead of overloading `listing: null`.
+- **Logging:** the loaders never add the term to the log context, but an unexpected database error is logged as it is, and a driver error message can quote the SQL parameters, so a term could appear there. Accepted for the demo; the term is shopper-typed text, not an account identifier.
+- **Mobile header:** the search input is narrower on small screens (`w-28`) and the "Menu" summary no longer wraps.
 
 ## 📝 Cross-model review (GPT, Gemini), 2026-10-15
 

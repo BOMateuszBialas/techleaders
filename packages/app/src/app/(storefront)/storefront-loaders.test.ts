@@ -126,9 +126,9 @@ describe("loadCatalogPage", () => {
 
     await expect(loadCatalogPage({ category: "mice", categoryInvalid: false })).resolves.toEqual({
       kind: "ok",
-      data: { categories, listing },
+      data: { categories, listing, unknownCategory: false },
     });
-    expect(listProducts).toHaveBeenCalledWith({ categorySlug: "mice" });
+    expect(listProducts).toHaveBeenCalledWith({ categorySlug: "mice", search: undefined });
     expect(dispose).toHaveBeenCalledOnce();
   });
 
@@ -137,7 +137,7 @@ describe("loadCatalogPage", () => {
     listProducts.mockRejectedValue(new NotFoundError());
 
     await expect(loadCatalogPage({ category: "missing", categoryInvalid: false })).resolves.toEqual(
-      { kind: "ok", data: { categories, listing: null } },
+      { kind: "ok", data: { categories, listing: null, unknownCategory: true } },
     );
   });
 
@@ -146,7 +146,25 @@ describe("loadCatalogPage", () => {
 
     await expect(loadCatalogPage({ categoryInvalid: true })).resolves.toEqual({
       kind: "ok",
-      data: { categories, listing: null },
+      data: { categories, listing: null, unknownCategory: true },
+    });
+    expect(listProducts).not.toHaveBeenCalled();
+  });
+
+  it("passes the search term together with the category", async () => {
+    listCategories.mockResolvedValue(categories);
+    listProducts.mockResolvedValue(listing);
+
+    await loadCatalogPage({ category: "mice", categoryInvalid: false, q: "wireless" });
+    expect(listProducts).toHaveBeenCalledWith({ categorySlug: "mice", search: "wireless" });
+  });
+
+  it("runs no product query for a too-long search term but keeps the navigation", async () => {
+    listCategories.mockResolvedValue(categories);
+
+    await expect(loadCatalogPage({ categoryInvalid: false, qError: "too_long" })).resolves.toEqual({
+      kind: "ok",
+      data: { categories, listing: null, unknownCategory: false },
     });
     expect(listProducts).not.toHaveBeenCalled();
   });
