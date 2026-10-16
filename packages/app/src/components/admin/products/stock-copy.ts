@@ -18,6 +18,12 @@ export const STOCK_HISTORY_HEADING = "Stock history";
 export const STOCK_HISTORY_NOTE =
   "Changes since the product was created, newest first (last 20). Initial stock: not recorded.";
 export const EMPTY_STOCK_HISTORY = "No stock changes recorded yet.";
+/**
+ * The hidden quantity the form showed arrived missing or broken (only by editing the page):
+ * there is no visible field to highlight, so the panel says this instead (#43).
+ */
+export const STOCK_FORM_OUTDATED_MESSAGE =
+  "This form is out of date. Reload the page and try again.";
 
 /**
  * The availability after a change, stated before the click. It depends on the quantity only

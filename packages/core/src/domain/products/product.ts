@@ -26,6 +26,17 @@ export type ProductStatus = (typeof PRODUCT_STATUSES)[number];
 
 type StockState = { status: ProductStatus; stockQuantity: number };
 
+/**
+ * A published product must cost more than 0.00; a draft may be saved at 0.00 while the owner
+ * works on it (admin catalog spec, implementation notes: zero prices, #41).
+ */
+export function hasPublishablePrice(product: {
+  status: ProductStatus;
+  priceMinor: number;
+}): boolean {
+  return product.status !== "published" || product.priceMinor > 0;
+}
+
 /** A product can be bought only when it is published and has stock left. */
 export function isPurchasable(product: StockState): boolean {
   return product.status === "published" && product.stockQuantity > 0;

@@ -8,6 +8,7 @@ import {
   productCountLabel,
 } from "@/components/admin/categories/category-copy";
 import { buttonVariants } from "@/components/ui/button";
+import { RedirectNotice } from "@/components/admin/redirect-notice";
 import {
   Table,
   TableBody,
@@ -54,11 +55,7 @@ async function CategoryList({
 
   return (
     <div className="flex flex-col gap-4">
-      {notice ? (
-        <p role="status" className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
-          {notice}
-        </p>
-      ) : null}
+      {notice ? <RedirectNotice message={notice} /> : null}
       {categories.length === 0 ? (
         <p className="text-sm text-muted-foreground">{EMPTY_CATEGORIES_MESSAGE}</p>
       ) : (

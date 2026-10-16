@@ -15,6 +15,7 @@ import { ProductForm } from "@/components/admin/products/product-form";
 import { PublishControl } from "@/components/admin/products/publish-control";
 import { ownerLocale, toStockHistoryRows } from "@/components/admin/products/stock-copy";
 import { StockPanel } from "@/components/admin/products/stock-panel";
+import { RedirectNotice } from "@/components/admin/redirect-notice";
 import { requireAdminPage } from "@/server/auth/require-admin";
 import { setProductStatus, updateProduct } from "@/server/catalog/product.action";
 import { adjustStock } from "@/server/catalog/stock.action";
@@ -72,11 +73,7 @@ async function ProductDetails({ params, searchParams }: ProductPageProps) {
           <p className="text-sm text-muted-foreground">Store URL once published: {storeHref}</p>
         )}
         {featured ? <p className="text-sm text-muted-foreground">{featured}</p> : null}
-        {notice ? (
-          <p role="status" className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
-            {notice}
-          </p>
-        ) : null}
+        {notice ? <RedirectNotice message={notice} /> : null}
       </div>
       <PublishControl
         action={setProductStatus}
