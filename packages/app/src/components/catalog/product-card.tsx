@@ -1,9 +1,14 @@
 import Link from "next/link";
 import { formatMoney, type CatalogProductSummary } from "@commerceos/core";
+import { AddToCart } from "@/components/cart/add-to-cart";
+import { addToCart } from "@/server/cart/cart.action";
 import { AvailabilityBadge } from "./availability-badge";
 import { ProductImage } from "./product-image";
 
-/** One product in a listing: image, name (links to its page), price, category, availability. */
+/**
+ * One product in a listing: image, name (links to its page), price, category, availability
+ * and a quick "Add to cart" of one (cart spec G8), disabled when out of stock.
+ */
 export function ProductCard({ product }: { product: CatalogProductSummary }) {
   return (
     <article className="flex h-full flex-col gap-3 rounded-lg border p-3">
@@ -20,9 +25,14 @@ export function ProductCard({ product }: { product: CatalogProductSummary }) {
       {product.category ? (
         <p className="text-sm text-muted-foreground">{product.category.name}</p>
       ) : null}
-      <div className="mt-auto flex items-center justify-between gap-2">
+      <div className="mt-auto flex flex-wrap items-start justify-between gap-2">
         <AvailabilityBadge availability={product.availability} />
-        {/* The cart spec fills this slot with "Add to cart" (spec G22). */}
+        <AddToCart
+          action={addToCart}
+          productId={product.id}
+          available={product.availability === "in_stock"}
+          withQuantity={false}
+        />
       </div>
     </article>
   );

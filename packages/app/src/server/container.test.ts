@@ -1,5 +1,6 @@
 import { afterAll, describe, expect, it, vi } from "vitest";
 import {
+  AddToCartUseCase,
   AdjustStockUseCase,
   DeleteCategoryUseCase,
   ListCatalogProductsUseCase,
@@ -113,6 +114,18 @@ describe("composition root", () => {
       expect(first.cradle[key] === second.cradle[key]).toBe(false);
     }
     expect(first.cradle.adjustStockUseCase instanceof AdjustStockUseCase).toBe(true);
+  });
+
+  it("wires the cart use cases per request", () => {
+    for (const key of [
+      "getCartUseCase",
+      "addToCartUseCase",
+      "updateCartLineUseCase",
+      "removeCartLineUseCase",
+    ] as const) {
+      expect(first.cradle[key] === second.cradle[key]).toBe(false);
+    }
+    expect(first.cradle.addToCartUseCase instanceof AddToCartUseCase).toBe(true);
   });
 
   it("shares one Better Auth instance and pool, reachable without a request scope", () => {

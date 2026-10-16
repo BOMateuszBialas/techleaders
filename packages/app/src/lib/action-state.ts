@@ -17,8 +17,11 @@ export type ActionState = {
   values?: FormValues;
 };
 
-/** The signature `useActionState` expects from an admin form action. */
-export type AdminFormAction = (previous: ActionState, formData: FormData) => Promise<ActionState>;
+/** The signature `useActionState` expects from a form action (admin or shopper). */
+export type FormAction = (previous: ActionState, formData: FormData) => Promise<ActionState>;
+
+/** An admin form action (same signature as `FormAction`). */
+export type AdminFormAction = FormAction;
 
 export const IDLE_ACTION_STATE: ActionState = { status: "idle" };
 

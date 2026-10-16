@@ -1,17 +1,12 @@
 import "server-only";
-import {
-  CLIENT_ERROR_CODES,
-  INVALID_FIELDS_MESSAGE,
-  hasAppErrorCode,
-  isUniqueFieldConflict,
-} from "@commerceos/core";
+import { hasAppErrorCode } from "@commerceos/core";
 import type { AwilixContainer } from "awilix";
 import { refresh, updateTag } from "next/cache";
 import { redirect, unstable_rethrow } from "next/navigation";
 import type { ActionState, FormValues } from "@/lib/action-state";
 import { requireAdmin, SIGN_IN_PAGE } from "../auth/require-admin";
 import { createRequestScope, type Cradle } from "../container";
-import { fieldErrorsOf } from "../http/api-handler";
+import { GENERIC_ACTION_ERROR, toActionErrorState } from "../http/action-error-state";
 import { logger } from "../logger";
 import { CATALOG_CACHE_TAG } from "./cache-tags";
 
@@ -24,7 +19,7 @@ export type AdminActionSuccess = { event: string; id: string } & (
   { message: string } | { redirectTo: string }
 );
 
-export const GENERIC_ACTION_ERROR = "Something went wrong. Try again.";
+export { GENERIC_ACTION_ERROR };
 
 type Outcome =
   | { kind: "state"; state: ActionState; changed: boolean }
@@ -77,20 +72,8 @@ export async function runAdminAction(
 
 /** Maps a failure to the form state; only client errors carry their own message. */
 function toErrorState(name: string, error: unknown, values: FormValues): ActionState {
-  if (isUniqueFieldConflict(error)) {
-    return {
-      status: "error",
-      message: INVALID_FIELDS_MESSAGE,
-      fieldErrors: { [error.field]: [error.message] },
-      values,
-    };
-  }
-  if (hasAppErrorCode(error, "VALIDATION_FAILED")) {
-    return { status: "error", message: error.message, fieldErrors: fieldErrorsOf(error), values };
-  }
-  for (const code of CLIENT_ERROR_CODES) {
-    if (hasAppErrorCode(error, code)) return { status: "error", message: error.message, values };
-  }
+  const known = toActionErrorState(error, values);
+  if (known) return known;
   logger.error("Admin action failed", { action: name, error });
   return { status: "error", message: GENERIC_ACTION_ERROR, values };
 }
