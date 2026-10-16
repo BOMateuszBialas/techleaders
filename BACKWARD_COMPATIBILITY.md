@@ -2,7 +2,7 @@
 
 The contract surfaces this project protects, and how changes to them must be handled. Review skills check changes against this file, and implementation skills warn when a change breaks it.
 
-> **Current state (2026-10-15):** foundation, admin sign-in, storefront browsing, the shop-front home page and admin category management. There are a few API routes (listed below), public storefront URLs, internal workspace packages (not published) and the catalog and admin auth schema. There are no external consumers yet. Update this file whenever a new surface appears.
+> **Current state (2026-10-15):** foundation, admin sign-in, storefront browsing, the shop-front home page and admin catalog management (categories and products). There are a few API routes (listed below), public storefront URLs, internal workspace packages (not published) and the catalog and admin auth schema. There are no external consumers yet. Update this file whenever a new surface appears.
 
 ## Protected surfaces
 
@@ -13,7 +13,8 @@ The contract surfaces this project protects, and how changes to them must be han
   - `/products`, with the optional query parameter `category` (a category slug; unknown or malformed values show "This category does not exist");
   - `/products/<slug>` (`<slug>` is the product slug; drafts and unknown slugs show "Product not found").
 - Protected admin URLs (sign-in required; added 2026-10-15, admin catalog spec Phase 1a): `/admin/categories` (optional `notice=deleted`), `/admin/categories/new`, `/admin/categories/<id>` (`<id>` is the category uuid; optional `notice=created`; a malformed or unknown id shows the admin "Not found" page). The `notice` values are fixed codes; anything else is ignored.
-- Admin server actions (`createCategory`, `updateCategory`, `deleteCategory` in `packages/app/src/server/catalog/category.action.ts`) are POST endpoints used only by this app's forms. Their `FormData` field names and the `ActionState` shape are internal and may change with the forms.
+- Protected admin URLs (added 2026-10-16, admin catalog spec Phase 1b): `/admin/products`, `/admin/products/new`, `/admin/products/<id>` (`<id>` is the product uuid; optional `notice=created`; a malformed or unknown id shows the admin "Not found" page). The `notice` values are fixed codes; anything else is ignored.
+- Admin server actions (`createCategory`, `updateCategory`, `deleteCategory` in `packages/app/src/server/catalog/category.action.ts`; `createProduct`, `updateProduct`, `setProductStatus` in `packages/app/src/server/catalog/product.action.ts`) are POST endpoints used only by this app's forms. Their `FormData` field names and the `ActionState` shape are internal and may change with the forms.
 - **Breaking:** removing or renaming a public route, or changing the meaning of its query parameters.
 - **Required path:** add a redirect in `next.config.ts` (`redirects()`) and note the change in the PR description.
 
