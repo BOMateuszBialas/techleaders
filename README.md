@@ -149,7 +149,13 @@ Not implemented yet. The plan is Stripe Checkout in **test mode** if feasible wi
   - Lists have no pagination, search or filters (fine for the demo catalog).
   - **`npm run db:seed` overwrites owner edits to the demo products**, including stock and the "Featured" flag (#24): demo products are upserted by slug. A re-seed sets their stock back to the seed values **without** a stock history row, and keeps the history already recorded, so the last "new" value in a demo product's history can differ from its current stock. Products created in the admin are not touched. Seeding is a dev tool, not a store operation.
 - **Demo data:** the seed is a fictional gaming-accessories store (decision D10): 5 categories, 15 products, 6 featured, one out of stock. Seeding upserts by slug and never deletes, so a database seeded before 2026-10-15 still holds the old coffee products. To start clean, drop the local database and seed again: `docker compose down -v`, then `npm run db:up`, `npm run db:migrate`, `npm run db:seed` and `npm run admin:create` (this also deletes the owner account and sessions).
-- No LLM provider, payments, cart or checkout yet.
+- **Cart:**
+  - The cart lives in an `httpOnly` cookie (`commerceos_cart`) holding only product ids and quantities, never prices; every page and action re-reads prices, availability and stock from the catalog. A tampered or unreadable cookie is treated as an empty cart. It needs cookies enabled and does not follow the shopper to another browser.
+  - Adding to the cart **does not reserve stock**: the quantity is checked against the current stock for feedback only, and the order placement (checkout, next PR) will be the authoritative check.
+  - Up to 20 different products and 99 of each; one currency per cart.
+  - A product that is unpublished or sold out while in a cart disappears from it, and a quantity above the stock is lowered to it, each with a message on the cart page. The cookie itself is corrected by the next cart change (a page render cannot set cookies), so until then the message shows again and the header count may include the removed item.
+  - Checkout is not available yet: the cart page says "Checkout is coming soon."
+- No LLM provider, payments or checkout yet.
 - `npm audit` reports advisories in development tooling dependencies (e.g. `braces` via linting and test tooling); they do not affect runtime code and are tracked for a later update.
 
 ## Roadmap

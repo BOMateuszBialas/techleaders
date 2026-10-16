@@ -40,7 +40,7 @@ Conservative default: a **published** product must cost more than 0.00 PLN; a **
 ## Risks
 
 - The update and publish checks read the product, then write it (no conditional write). A concurrent publish and price change by the single owner in two tabs could still produce a published 0.00 product; acceptable for the one-owner MVP, a DB check would close it later.
-- `window.history.replaceState` must stay in sync with the Next router so a later `refresh()` renders the bare URL (Next 16 docs, "Native History API"); the e2e test proves it.
+- `window.history.replaceState` keeps a reload from showing the notice again; a later `refresh()` still renders the original `?notice`, so the notice also hides itself on the next form submit (see Deviations). The e2e test covers both.
 
 ## Progress
 

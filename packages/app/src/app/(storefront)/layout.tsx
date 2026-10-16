@@ -1,17 +1,21 @@
 import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
+import { cartItemCount } from "@commerceos/core";
+import { CartLink } from "@/components/cart/cart-link";
 import { FooterCategoryLinks, SiteFooter } from "@/components/storefront/site-footer";
 import { HeaderMenu } from "@/components/storefront/header-menu";
 import { HeaderSearch } from "@/components/storefront/header-search";
 import { DEMO_NOTICE, STORE_NAME } from "@/components/storefront/storefront-copy";
+import { readCartLines } from "@/server/cart/cart-cookie";
 import { loadStorefrontCategories } from "./load-storefront-categories";
 
 /**
  * Storefront shell shared by the home page, the listing and product pages: demo banner (R07),
- * header search box and menu (spec G13) and footer (G14). The shell itself prerenders; the
- * category links are read at request time inside `<Suspense>`. Without categories (still
- * loading, or the catalog is unavailable) the menus keep their static links.
+ * header search box, menu (spec G13), the cart link with its count (cart spec G9) and footer
+ * (G14). The shell itself prerenders; the category links and the cart count are read at request
+ * time inside `<Suspense>`. Without categories (still loading, or the catalog is unavailable)
+ * the menus keep their static links.
  */
 export default function StorefrontLayout({ children }: LayoutProps<"/">) {
   return (
@@ -28,6 +32,9 @@ export default function StorefrontLayout({ children }: LayoutProps<"/">) {
             <HeaderSearch />
             <Suspense fallback={<HeaderMenu categories={[]} />}>
               <LoadedHeaderMenu />
+            </Suspense>
+            <Suspense fallback={<CartLink itemCount={null} />}>
+              <LoadedCartLink />
             </Suspense>
           </div>
         </div>
@@ -50,6 +57,11 @@ async function LoadedHeaderMenu() {
   await connection();
   const result = await loadStorefrontCategories();
   return <HeaderMenu categories={result.kind === "ok" ? result.data : []} />;
+}
+
+/** The cart count comes from the cookie only (no database read, cart spec UI/UX). */
+async function LoadedCartLink() {
+  return <CartLink itemCount={cartItemCount(await readCartLines())} />;
 }
 
 async function LoadedFooterCategoryLinks() {
