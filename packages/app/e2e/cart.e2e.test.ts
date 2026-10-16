@@ -36,7 +36,7 @@ describe("storefront cart (E02-S01)", () => {
     await openCart();
     expect(await browser().value('ul[aria-label="Cart items"] input[name="quantity"]')).toBe("1");
     expect(await browser().text('[data-testid="cart-subtotal"]')).toMatch(/249,00\s*zł/);
-    expect(await browser().text("main")).toContain("Checkout is coming soon.");
+    expect(await browser().count('main a[href="/checkout"]')).toBe(1);
   });
 
   it("changes the quantity and removes the line, updating the totals (AC2)", async () => {
