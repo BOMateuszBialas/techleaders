@@ -1,3 +1,6 @@
+import type { CurrencyCode } from "../domain/money";
+import type { ProductStatus } from "../domain/products/product";
+
 /** A category as the admin sees it: plain data mapped by the adapter (never an ORM entity). */
 export type AdminCategoryRecord = {
   id: string;
@@ -36,4 +39,53 @@ export interface CategoryRepositoryPort {
    * `for update` first, so a concurrent product write waits or fails its foreign key.
    */
   deleteIfEmpty(id: string): Promise<CategoryDeleteResult>;
+}
+
+/** A product as the admin sees it: plain data mapped by the adapter (never an ORM entity). */
+export type AdminProductRecord = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string;
+  priceMinor: number;
+  currency: CurrencyCode;
+  sku: string | null;
+  stockQuantity: number;
+  imageUrl: string | null;
+  status: ProductStatus;
+  /** Shown in the home page's featured slider when published (storefront spec G9). */
+  featured: boolean;
+  category: { id: string; slug: string; name: string } | null;
+};
+
+/** The values a product edit writes. Already validated and normalised by core. */
+export type ProductWrite = {
+  name: string;
+  slug: string;
+  description: string;
+  priceMinor: number;
+  sku: string | null;
+  categoryId: string | null;
+  imageUrl: string | null;
+  featured: boolean;
+};
+
+/** A new product: the edit values plus its initial status and stock (spec A14). */
+export type ProductCreate = ProductWrite & { status: ProductStatus; stockQuantity: number };
+
+/**
+ * Product persistence for the admin, implemented by the database package. Writes raise
+ * `UniqueFieldConflictError` (field `slug` or `sku`) when the value is taken, and a
+ * `ValidationError` on `categoryId` when the category does not exist: the database decides.
+ * An edit never changes stock (spec A14): stock moves only through the recorded adjustment.
+ */
+export interface ProductRepositoryPort {
+  /** Every product in any status, sorted by name (spec G7). */
+  list(): Promise<AdminProductRecord[]>;
+  findById(id: string): Promise<AdminProductRecord | null>;
+  create(input: ProductCreate): Promise<AdminProductRecord>;
+  /** Null when the product does not exist. */
+  update(id: string, input: ProductWrite): Promise<AdminProductRecord | null>;
+  /** Null when the product does not exist. */
+  setStatus(id: string, status: ProductStatus): Promise<AdminProductRecord | null>;
 }

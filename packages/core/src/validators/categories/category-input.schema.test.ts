@@ -2,11 +2,8 @@ import { describe, expect, it } from "vitest";
 import { hasAppErrorCode } from "../../errors/app-error";
 import { isUuid } from "../common/uuid.schema";
 import { INVALID_FIELDS_MESSAGE, parseInput } from "../parse-input";
-import {
-  categoryInputSchema,
-  SLUG_EMPTY_MESSAGE,
-  SLUG_FORMAT_MESSAGE,
-} from "./category-input.schema";
+import { SLUG_EMPTY_MESSAGE, SLUG_FORMAT_MESSAGE } from "../catalog/slug.schema";
+import { categoryInputSchema } from "./category-input.schema";
 
 function fieldErrorsFor(input: unknown): Record<string, string[] | undefined> {
   const result = categoryInputSchema.safeParse(input);

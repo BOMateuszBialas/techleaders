@@ -1,6 +1,14 @@
 import { afterAll, describe, expect, it, vi } from "vitest";
-import { DeleteCategoryUseCase, ListCatalogProductsUseCase } from "@commerceos/core";
-import { DatabaseCatalogRepository, DatabaseCategoryRepository } from "@commerceos/database";
+import {
+  DeleteCategoryUseCase,
+  ListCatalogProductsUseCase,
+  SetProductStatusUseCase,
+} from "@commerceos/core";
+import {
+  DatabaseCatalogRepository,
+  DatabaseCategoryRepository,
+  DatabaseProductRepository,
+} from "@commerceos/database";
 import { createRequestScope, disposeRootContainer, getAuth, logAuthMessage } from "./container";
 import { createAuth } from "./auth/create-auth";
 import { logger } from "./logger";
@@ -77,6 +85,22 @@ describe("composition root", () => {
       expect(first.cradle[key] === second.cradle[key]).toBe(false);
     }
     expect(first.cradle.deleteCategoryUseCase instanceof DeleteCategoryUseCase).toBe(true);
+  });
+
+  it("wires the admin product repository and use cases per request", () => {
+    const repository = first.cradle.productRepository;
+    expect(repository instanceof DatabaseProductRepository).toBe(true);
+    expect(repository === second.cradle.productRepository).toBe(false);
+    for (const key of [
+      "listProductsUseCase",
+      "getProductUseCase",
+      "createProductUseCase",
+      "updateProductUseCase",
+      "setProductStatusUseCase",
+    ] as const) {
+      expect(first.cradle[key] === second.cradle[key]).toBe(false);
+    }
+    expect(first.cradle.setProductStatusUseCase instanceof SetProductStatusUseCase).toBe(true);
   });
 
   it("shares one Better Auth instance and pool, reachable without a request scope", () => {

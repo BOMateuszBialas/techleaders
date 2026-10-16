@@ -93,6 +93,7 @@ describe("admin guard inventory", () => {
         "app/admin/(protected)/layout.tsx",
         "app/api/admin/me/route.ts",
         "server/catalog/category.action.ts",
+        "server/catalog/product.action.ts",
         SIGN_IN_ACTIONS,
       ]),
     );

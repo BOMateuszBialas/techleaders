@@ -45,3 +45,36 @@ export type Availability = "in_stock" | "out_of_stock";
 export function getAvailability(product: StockState): Availability {
   return isPurchasable(product) ? "in_stock" : "out_of_stock";
 }
+
+/**
+ * Where a product stands in the store, as the owner sees it (admin catalog spec, Proposed
+ * Solution 1): `hidden` (a draft), `out_of_stock` (published, no stock) or `available`.
+ * The one availability rule the admin uses; the shopper view (`getAvailability`) is built on
+ * the same `isPurchasable` rule (R05).
+ */
+export type StoreAvailability = "hidden" | "out_of_stock" | "available";
+
+export function getStoreAvailability(product: StockState): StoreAvailability {
+  if (product.status !== "published") return "hidden";
+  return isPurchasable(product) ? "available" : "out_of_stock";
+}
+
+const STORE_AVAILABILITY_SENTENCES: Record<StoreAvailability, string> = {
+  available: "Visible in the store and can be bought.",
+  out_of_stock: "Visible in the store, shown as out of stock.",
+  hidden: "Hidden: shoppers cannot see or buy it.",
+};
+
+/** The sentence the admin shows next to the availability badge (spec D05). */
+export function describeStoreAvailability(state: StoreAvailability): string {
+  return STORE_AVAILABILITY_SENTENCES[state];
+}
+
+/**
+ * A SKU as stored (spec A11, G9): trimmed and upper-cased, so `demo-mou-001` and
+ * `DEMO-MOU-001` cannot both pass the unique constraint. Blank means "no SKU" (`null`).
+ */
+export function normalizeSku(raw: string): string | null {
+  const sku = raw.trim().toUpperCase();
+  return sku === "" ? null : sku;
+}
