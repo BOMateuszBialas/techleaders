@@ -138,6 +138,20 @@ describe("DatabaseCatalogRepository", () => {
     findOne.mockResolvedValueOnce(null);
     expect(await repository.findProductBySlug("missing")).toBeNull();
   });
+
+  it("finds products by id with their category, and skips the query for no ids", async () => {
+    const { find, repository } = setup();
+    find.mockResolvedValue([product] as never);
+
+    expect(await repository.findProductsByIds(["p-1", "p-2"])).toEqual([
+      expect.objectContaining({ id: "p-1", category: { slug: "mice", name: "Mice" } }),
+    ]);
+    expect(find.mock.calls[0]?.[1]).toEqual({ id: { $in: ["p-1", "p-2"] } });
+    expect(find.mock.calls[0]?.[2]).toEqual({ populate: ["category"] });
+
+    expect(await repository.findProductsByIds([])).toEqual([]);
+    expect(find).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe("toContainsPattern", () => {

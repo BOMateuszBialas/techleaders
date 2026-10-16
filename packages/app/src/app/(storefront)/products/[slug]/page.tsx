@@ -4,9 +4,11 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { formatMoney } from "@commerceos/core";
+import { AddToCart } from "@/components/cart/add-to-cart";
 import { AvailabilityBadge } from "@/components/catalog/availability-badge";
 import { CATALOG_UNAVAILABLE_MESSAGE, productsHref } from "@/components/catalog/catalog-copy";
 import { ProductImage } from "@/components/catalog/product-image";
+import { addToCart } from "@/server/cart/cart.action";
 import { loadProductPage, productPageTitle } from "./load-product-page";
 
 type ProductPageProps = PageProps<"/products/[slug]">;
@@ -49,6 +51,12 @@ async function ProductDetails({ params }: { params: ProductPageProps["params"] }
         <h1 className="text-3xl font-semibold tracking-tight">{product.name}</h1>
         <p className="text-2xl font-semibold">{formatMoney(product.price)}</p>
         <AvailabilityBadge availability={product.availability} />
+        <AddToCart
+          action={addToCart}
+          productId={product.id}
+          available={product.availability === "in_stock"}
+          withQuantity
+        />
         {product.category ? (
           <p className="text-sm text-muted-foreground">
             Category:{" "}

@@ -1,10 +1,12 @@
 import "server-only";
 import { UnconfiguredLlmProvider, type LlmProviderPort } from "@commerceos/ai";
 import {
+  AddToCartUseCase,
   AdjustStockUseCase,
   CreateCategoryUseCase,
   CreateProductUseCase,
   DeleteCategoryUseCase,
+  GetCartUseCase,
   GetCatalogProductUseCase,
   GetCategoryUseCase,
   GetProductUseCase,
@@ -15,7 +17,9 @@ import {
   ListFeaturedProductsUseCase,
   ListProductsUseCase,
   ListStockAdjustmentsUseCase,
+  RemoveCartLineUseCase,
   SetProductStatusUseCase,
+  UpdateCartLineUseCase,
   UpdateCategoryUseCase,
   UpdateProductUseCase,
   type CatalogReadPort,
@@ -89,6 +93,10 @@ export type Cradle = {
   stockRepository: StockRepositoryPort;
   adjustStockUseCase: AdjustStockUseCase;
   listStockAdjustmentsUseCase: ListStockAdjustmentsUseCase;
+  getCartUseCase: GetCartUseCase;
+  addToCartUseCase: AddToCartUseCase;
+  updateCartLineUseCase: UpdateCartLineUseCase;
+  removeCartLineUseCase: RemoveCartLineUseCase;
   authPool: Pool;
   auth: Auth;
 };
@@ -138,6 +146,11 @@ function buildContainer(): AwilixContainer<Cradle> {
     stockRepository: asClass(DatabaseStockRepository).scoped(),
     adjustStockUseCase: asClass(AdjustStockUseCase).scoped(),
     listStockAdjustmentsUseCase: asClass(ListStockAdjustmentsUseCase).scoped(),
+    // Cart (cart spec): prices the cookie's lines with the request-scoped catalog repository.
+    getCartUseCase: asClass(GetCartUseCase).scoped(),
+    addToCartUseCase: asClass(AddToCartUseCase).scoped(),
+    updateCartLineUseCase: asClass(UpdateCartLineUseCase).scoped(),
+    removeCartLineUseCase: asClass(RemoveCartLineUseCase).scoped(),
     authPool: asFunction(() => createAuthPool(env.DATABASE_URL))
       .singleton()
       .disposer((pool) => pool.end()),
