@@ -132,6 +132,11 @@ export class BrowserSession {
     await this.command(["click", selector]);
   }
 
+  /** Chooses the option with this value in the `<select>` matching a CSS selector. */
+  async select(selector: string, value: string): Promise<void> {
+    await this.command(["select", selector, value]);
+  }
+
   async setViewport(width: number, height: number): Promise<void> {
     await this.command(["set", "viewport", String(width), String(height)]);
   }
