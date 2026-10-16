@@ -3,14 +3,15 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 import { FooterCategoryLinks, SiteFooter } from "@/components/storefront/site-footer";
 import { HeaderMenu } from "@/components/storefront/header-menu";
+import { HeaderSearch } from "@/components/storefront/header-search";
 import { DEMO_NOTICE, STORE_NAME } from "@/components/storefront/storefront-copy";
 import { loadStorefrontCategories } from "./load-storefront-categories";
 
 /**
  * Storefront shell shared by the home page, the listing and product pages: demo banner (R07),
- * header menu (spec G13) and footer (G14). The shell itself prerenders; the category links
- * are read at request time inside `<Suspense>`. Without categories (still loading, or the
- * catalog is unavailable) the menus keep their static links.
+ * header search box and menu (spec G13) and footer (G14). The shell itself prerenders; the
+ * category links are read at request time inside `<Suspense>`. Without categories (still
+ * loading, or the catalog is unavailable) the menus keep their static links.
  */
 export default function StorefrontLayout({ children }: LayoutProps<"/">) {
   return (
@@ -23,9 +24,12 @@ export default function StorefrontLayout({ children }: LayoutProps<"/">) {
           <Link href="/" className="font-semibold tracking-tight">
             {STORE_NAME}
           </Link>
-          <Suspense fallback={<HeaderMenu categories={[]} />}>
-            <LoadedHeaderMenu />
-          </Suspense>
+          <div className="flex items-center gap-3">
+            <HeaderSearch />
+            <Suspense fallback={<HeaderMenu categories={[]} />}>
+              <LoadedHeaderMenu />
+            </Suspense>
+          </div>
         </div>
       </header>
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-10">

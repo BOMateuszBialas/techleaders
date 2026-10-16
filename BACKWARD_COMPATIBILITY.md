@@ -2,7 +2,7 @@
 
 The contract surfaces this project protects, and how changes to them must be handled. Review skills check changes against this file, and implementation skills warn when a change breaks it.
 
-> **Current state (2026-10-15):** foundation, admin sign-in, storefront browsing, the shop-front home page and admin catalog management (categories and products). There are a few API routes (listed below), public storefront URLs, internal workspace packages (not published) and the catalog and admin auth schema. There are no external consumers yet. Update this file whenever a new surface appears.
+> **Current state (2026-10-16):** foundation, admin sign-in, storefront browsing and search, the shop-front home page and admin catalog management (categories and products). There are a few API routes (listed below), public storefront URLs, internal workspace packages (not published) and the catalog and admin auth schema. There are no external consumers yet. Update this file whenever a new surface appears.
 
 ## Protected surfaces
 
@@ -10,7 +10,7 @@ The contract surfaces this project protects, and how changes to them must be han
 
 - **Where:** `packages/app/src/app/**/page.tsx`. Current storefront URLs (added 2026-10-15, storefront catalog spec Phase 1):
   - `/` (home), with the optional query parameter `category` (added 2026-10-15, Phase 1b: a category slug selecting the featured-products tab; same slug rules as on `/products`; unknown or malformed values silently show all featured products);
-  - `/products`, with the optional query parameter `category` (a category slug; unknown or malformed values show "This category does not exist");
+  - `/products`, with the optional query parameters `category` (a category slug; unknown or malformed values show "This category does not exist") and `q` (added 2026-10-16, storefront catalog spec Phase 2: a search term, 1 to 100 characters after trimming, matched case-insensitively against names and descriptions and combined with `category` as AND; blank means no search; a longer value shows a validation message; a repeated parameter uses its first value). The header search box and the listing's search form submit these names with `GET`;
   - `/products/<slug>` (`<slug>` is the product slug; drafts and unknown slugs show "Product not found").
 - Protected admin URLs (sign-in required; added 2026-10-15, admin catalog spec Phase 1a): `/admin/categories` (optional `notice=deleted`), `/admin/categories/new`, `/admin/categories/<id>` (`<id>` is the category uuid; optional `notice=created`; a malformed or unknown id shows the admin "Not found" page). The `notice` values are fixed codes; anything else is ignored.
 - Protected admin URLs (added 2026-10-16, admin catalog spec Phase 1b): `/admin/products`, `/admin/products/new`, `/admin/products/<id>` (`<id>` is the product uuid; optional `notice=created`; a malformed or unknown id shows the admin "Not found" page). The `notice` values are fixed codes; anything else is ignored.

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { InvalidMoneyError } from "../../domain/money";
-import { NotFoundError } from "../../errors/app-error";
+import { NotFoundError, ValidationError } from "../../errors/app-error";
 import { GetCatalogProductUseCase } from "./get-catalog-product.use-case";
 import { MICE, EMPTY, InMemoryCatalog, productRecord } from "./in-memory-catalog.fixture";
 import { ListCatalogCategoriesUseCase } from "./list-catalog-categories.use-case";
@@ -84,6 +84,49 @@ describe("ListCatalogProductsUseCase", () => {
         categorySlug: "missing",
       }),
     ).rejects.toBeInstanceOf(NotFoundError);
+    expect(repository.criteria).toEqual([]);
+  });
+
+  it("forwards a search term together with the category and the published status", async () => {
+    const repository = catalog();
+    const result = await new ListCatalogProductsUseCase({ catalogRepository: repository }).execute({
+      categorySlug: "mice",
+      search: "  WIRELESS  ",
+    });
+
+    expect(repository.criteria).toEqual([
+      { status: "published", categoryId: MICE.id, search: "WIRELESS", limit: CATALOG_PAGE_LIMIT },
+    ]);
+    // The draft in the same category also says "wireless" but is never listed.
+    expect(result.products.map((p) => p.slug)).toEqual(["vortex-wireless-mouse"]);
+  });
+
+  it("searches every category when none is given", async () => {
+    const repository = catalog();
+    const result = await new ListCatalogProductsUseCase({ catalogRepository: repository }).execute({
+      search: "titan",
+    });
+    expect(repository.criteria).toEqual([
+      { status: "published", search: "titan", limit: CATALOG_PAGE_LIMIT },
+    ]);
+    expect(result.products.map((p) => p.slug)).toEqual(["titan-mmo-mouse"]);
+  });
+
+  it("treats a blank search term as no search", async () => {
+    const repository = catalog();
+    await new ListCatalogProductsUseCase({ catalogRepository: repository }).execute({
+      search: "   ",
+    });
+    expect(repository.criteria).toEqual([{ status: "published", limit: CATALOG_PAGE_LIMIT }]);
+  });
+
+  it("rejects a search term over the limit without querying", async () => {
+    const repository = catalog();
+    await expect(
+      new ListCatalogProductsUseCase({ catalogRepository: repository }).execute({
+        search: "x".repeat(101),
+      }),
+    ).rejects.toBeInstanceOf(ValidationError);
     expect(repository.criteria).toEqual([]);
   });
 

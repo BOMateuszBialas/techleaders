@@ -85,3 +85,89 @@ describe("storefront catalog listing (E01-S01)", () => {
     }
   });
 });
+
+describe("storefront search and category filter (E01-S02)", () => {
+  const browser = useBrowser();
+  const SEARCH_FORM = 'form[aria-label="Search the catalog"]';
+
+  it("searches from the header and lists only published matches (AC1)", async () => {
+    await browser().open("/");
+    await browser().waitForText("Shop all products");
+    await browser().fillLabel("Search products", "fight");
+    await browser().click('form[aria-label="Site search"] button[type="submit"]');
+    await browser().waitForUrl("**/products?q=fight");
+    await browser().waitForText('Results for "fight" in All products');
+
+    const main = await browser().text("main");
+    expect(main).toContain("Arena Fight Stick");
+    expect(main).toContain("1 product");
+    for (const name of ALL_PUBLISHED.filter((name) => name !== "Arena Fight Stick"))
+      expect(main).not.toContain(name);
+    // The listing's own form shows the term that was searched.
+    expect(await browser().value("#catalog-search-q")).toBe("fight");
+  });
+
+  it("combines a search with a category; results satisfy both (AC2)", async () => {
+    await browser().open("/products");
+    await browser().waitForText("Vortex Wireless Mouse");
+    await browser().fillLabel("Search term", "wireless");
+    await browser().select("#catalog-search-category", "mice");
+    await browser().click(`${SEARCH_FORM} button[type="submit"]`);
+    await browser().waitForUrl("**/products?q=wireless&category=mice");
+    await browser().waitForText('Results for "wireless" in Mice');
+
+    const main = await browser().text("main");
+    expect(main).toContain("Vortex Wireless Mouse");
+    for (const other of ["Apex Wireless Controller", "Drift Wireless Headset", "Pulse Ultralight"])
+      expect(main).not.toContain(other);
+    // The form keeps its values after the submit.
+    expect(await browser().value("#catalog-search-q")).toBe("wireless");
+    expect(await browser().value("#catalog-search-category")).toBe("mice");
+
+    // The same term in another category matches nothing; "Clear search" keeps the category.
+    await browser().open("/products?category=mousepads&q=wireless");
+    await browser().waitForText('No products match "wireless" in Mousepads.');
+    await browser().clickRole("link", "Clear search");
+    await browser().waitForUrl("**/products?category=mousepads");
+    await browser().waitForText("Glide XL Mousepad");
+  });
+
+  it("keeps the search term when switching category", async () => {
+    await browser().open("/products?q=wireless");
+    await browser().waitForText("Drift Wireless Headset");
+    await browser().click(
+      'nav[aria-label="Categories"] a[href="/products?category=headsets&q=wireless"]',
+    );
+    await browser().waitForUrl("**/products?category=headsets&q=wireless");
+    await browser().waitForText('Results for "wireless" in Headsets');
+    const main = await browser().text("main");
+    expect(main).toContain("Drift Wireless Headset");
+    expect(main).not.toContain("Vortex Wireless Mouse");
+  });
+
+  it("shows a no-results state and never returns drafts (AC3)", async () => {
+    await browser().open("/products?q=zzqx-no-such-product");
+    await browser().waitForText('No products match "zzqx-no-such-product".');
+    expect(await browser().text("main")).toContain("Clear search");
+
+    // "[E2E] Draft Vortex mouse" matches "Vortex" too, but it is a draft.
+    await browser().open("/products?q=Vortex");
+    await browser().waitForText("Vortex Wireless Mouse");
+    const main = await browser().text("main");
+    expect(main).toContain("1 product");
+    expect(main).not.toContain("Draft Vortex");
+  });
+
+  it("matches LIKE wildcards literally", async () => {
+    await browser().open("/products?q=%25");
+    await browser().waitForText('No products match "%".');
+  });
+
+  it("refuses a search term over 100 characters without listing products", async () => {
+    await browser().open(`/products?q=${"a".repeat(101)}`);
+    await browser().waitForText("Use at most 100 characters in a search.");
+    const main = await browser().text("main");
+    expect(main).not.toContain("Vortex Wireless Mouse");
+    expect(main).not.toContain("does not exist");
+  });
+});

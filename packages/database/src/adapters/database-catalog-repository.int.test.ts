@@ -158,4 +158,96 @@ describe("DatabaseCatalogRepository (PostgreSQL)", () => {
     });
     expect(await repository().findProductBySlug("missing")).toBeNull();
   });
+
+  it("searches names case-insensitively and never returns a matching draft", async () => {
+    const { items, total } = await repository().findProducts({
+      status: "published",
+      search: "VORTEX",
+      limit: 48,
+    });
+    // "[E2E] Draft Vortex mouse" matches the term too, but it is a draft.
+    expect(items.map((product) => product.slug)).toEqual(["vortex-wireless-mouse"]);
+    expect(total).toBe(1);
+  });
+
+  it("searches descriptions and counts every match", async () => {
+    const byDescription = await repository().findProducts({
+      status: "published",
+      search: "hall-effect",
+      limit: 48,
+    });
+    expect(byDescription.items.map((product) => product.slug)).toEqual([
+      "apex-wireless-controller",
+    ]);
+
+    const { items, total } = await repository().findProducts({
+      status: "published",
+      search: "wireless",
+      limit: 2,
+    });
+    expect(items.map((product) => product.slug)).toEqual([
+      "apex-wireless-controller",
+      "drift-wireless-headset",
+    ]);
+    expect(total).toBe(3);
+  });
+
+  it("returns the intersection of a search and a category", async () => {
+    const inMice = await repository().findProducts({
+      status: "published",
+      categoryId: await categoryId("mice"),
+      search: "wireless",
+      limit: 48,
+    });
+    expect(inMice.items.map((product) => product.slug)).toEqual(["vortex-wireless-mouse"]);
+
+    const inMousepads = await repository().findProducts({
+      status: "published",
+      categoryId: await categoryId("mousepads"),
+      search: "wireless",
+      limit: 48,
+    });
+    expect(inMousepads).toEqual({ items: [], total: 0 });
+  });
+
+  // Last in the file: it adds a published product that the listings above must not see.
+  it("matches %, _ and \\ literally", async () => {
+    const search = (term: string) =>
+      repository()
+        .findProducts({ status: "published", search: term, limit: 48 })
+        .then(({ items }) => items.map((product) => product.slug));
+
+    // No seeded product contains these characters, so a wildcard would match everything.
+    expect(await search("%")).toEqual([]);
+    expect(await search("_")).toEqual([]);
+    expect(await search("\\")).toEqual([]);
+
+    await seedCatalog(orm.em.fork(), {
+      categories: [{ slug: "int-search", name: "[INT] Search", description: "[INT] Search." }],
+      products: [
+        {
+          slug: "int-wildcards",
+          name: "[INT] 100% wool_pad \\ edition",
+          category: "int-search",
+          priceMinor: 1000,
+          stockQuantity: 1,
+          sku: "INT-SEARCH-001",
+        },
+        {
+          slug: "int-woolypad",
+          name: "[INT] Woolypad",
+          category: "int-search",
+          priceMinor: 1000,
+          stockQuantity: 1,
+          sku: "INT-SEARCH-002",
+        },
+      ],
+    });
+    expect(await search("100%")).toEqual(["int-wildcards"]);
+    // An unescaped "_" would also match "Woolypad".
+    expect(await search("wool_pad")).toEqual(["int-wildcards"]);
+    expect(await search("\\ edition")).toEqual(["int-wildcards"]);
+    // An unescaped "%" would match "100% wool" here.
+    expect(await search("100%wool")).toEqual([]);
+  });
 });

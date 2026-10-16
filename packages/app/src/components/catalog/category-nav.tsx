@@ -10,15 +10,22 @@ type CategoryNavProps = {
    * requested category does not exist.
    */
   activeSlug?: string | null;
+  /** The current search term; the links keep it, so a category narrows the search. */
+  search?: string;
 };
 
 /** "All products" plus one link per category; the current one has `aria-current="page"`. */
-export function CategoryNav({ categories, activeSlug }: CategoryNavProps) {
+export function CategoryNav({ categories, activeSlug, search }: CategoryNavProps) {
   const links = [
-    { key: "all", href: productsHref(), label: "All products", active: activeSlug === null },
+    {
+      key: "all",
+      href: productsHref(undefined, search),
+      label: "All products",
+      active: activeSlug === null,
+    },
     ...categories.map((category) => ({
       key: category.slug,
-      href: productsHref(category.slug),
+      href: productsHref(category.slug, search),
       label: category.name,
       active: activeSlug === category.slug,
     })),
