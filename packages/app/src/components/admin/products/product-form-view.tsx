@@ -199,7 +199,7 @@ export function ProductFormView({
             type="checkbox"
             value="on"
             defaultChecked={featured}
-            aria-describedby="product-featured-hint"
+            {...fieldA11y("product-featured-error", errors.featured, ["product-featured-hint"])}
             className="size-4 accent-primary"
           />
           <Label htmlFor="product-featured">{FEATURED_LABEL}</Label>
@@ -207,6 +207,7 @@ export function ProductFormView({
         <p id="product-featured-hint" className="text-sm text-muted-foreground">
           {FEATURED_HINT}
         </p>
+        <FieldError id="product-featured-error" messages={errors.featured} />
       </div>
       {product ? (
         <div className="flex flex-col gap-1">

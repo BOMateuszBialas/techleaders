@@ -71,7 +71,7 @@ describe("product copy", () => {
 
   it("states the featured effect for published products, drafts and unfeatured ones", () => {
     expect(featuredNote({ featured: true, status: "published" })).toBe(
-      "It appears in the home page slider.",
+      "It is in the home page slider, which shows up to 12 featured products by name.",
     );
     expect(featuredNote({ featured: true, status: "draft" })).toBe(
       "It is featured, but it will not show in the home page slider until it is published.",
@@ -81,7 +81,7 @@ describe("product copy", () => {
 
   it("describes the store effect of a save", () => {
     expect(productSavedMessage(adminProduct)).toBe(
-      "Saved. Visible in the store and can be bought. It appears in the home page slider.",
+      "Saved. Visible in the store and can be bought. It is in the home page slider, which shows up to 12 featured products by name.",
     );
     expect(
       productSavedMessage({ ...adminProduct, featured: false, availability: "out_of_stock" }),
@@ -143,6 +143,18 @@ describe("ProductFormView", () => {
     expect(html).not.toContain("<img");
     expect(html).toContain(">Create product<");
     expect(html).not.toContain("role=");
+  });
+
+  it("shows an error under the Featured checkbox", () => {
+    const html = renderForm({
+      status: "error",
+      message: "Check the highlighted fields.",
+      fieldErrors: { featured: ["Invalid input"] },
+      values: { featured: "yes" },
+    });
+    expect(html).toMatch(/id="product-featured"[^>]*aria-invalid="true"/);
+    expect(html).toContain('aria-describedby="product-featured-hint product-featured-error"');
+    expect(html).toContain('id="product-featured-error"');
   });
 
   it("disables the button while pending", () => {

@@ -91,6 +91,8 @@ describe("admin products", () => {
       "Published. Visible in the store and can be bought. Shoppers find it at /products/e2e-phantom-pro-mouse.",
     );
     expect(await browser().text("main")).toContain("Available");
+    // The details form's message written for the draft does not outlive the publish click.
+    expect(await browser().text("main")).not.toContain("until it is published");
 
     await browser().open("/");
     await browser().waitForText("Vortex Wireless Mouse");

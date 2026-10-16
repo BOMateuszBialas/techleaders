@@ -33,11 +33,15 @@ export const FEATURED_BADGE = "Featured";
 export const FEATURED_LABEL = "Featured on home page";
 export const FEATURED_HINT = "Shown in the home page slider when the product is published.";
 
-/** What "Featured" means for this product right now, or null when it is not featured. */
+/**
+ * What "Featured" means for this product right now, or null when it is not featured. The
+ * slider shows at most `FEATURED_PRODUCTS_LIMIT` (12) products by name, so the note says so
+ * instead of promising a place (spec D05).
+ */
 export function featuredNote(product: { featured: boolean; status: ProductStatus }): string | null {
   if (!product.featured) return null;
   return product.status === "published"
-    ? "It appears in the home page slider."
+    ? "It is in the home page slider, which shows up to 12 featured products by name."
     : "It is featured, but it will not show in the home page slider until it is published.";
 }
 

@@ -54,7 +54,7 @@ The signed-in owner lists products (sorted by name, with availability and "Featu
 
 ## Progress
 
-PR: (pending)
+PR: #40
 
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles.
 
@@ -77,7 +77,7 @@ PR: (pending)
 
 - [x] 4.1 Docs, spec notes, lessons — 479e125
 - [x] 4.2 Full validation gate (lint, format:check, typecheck, test:coverage 100%, build, test:integration 46/46, test:e2e 39/39)
-- [ ] 4.3 PR, review, QA evidence
+- [x] 4.3 PR, review, QA evidence — review fixes: the details form remounts on a status change (no stale save message after Publish), the slider note states the 12-product limit, the SKU length is checked after upper-casing, the Featured checkbox shows its field error, stronger stock/featured integration assertions
 
 ## Outcome
 

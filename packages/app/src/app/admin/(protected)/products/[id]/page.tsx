@@ -51,7 +51,7 @@ async function ProductDetails({ params, searchParams }: ProductPageProps) {
     <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-2">
         <h1 className="text-2xl font-semibold tracking-tight">{product.name}</h1>
-        <div className="flex flex-wrap items-center gap-2" aria-label="In the store">
+        <div className="flex flex-wrap items-center gap-2" role="group" aria-label="In the store">
           <StoreAvailabilityBadge availability={product.availability} />
           {product.featured ? <FeaturedBadge /> : null}
           <span className="text-sm">{describeStoreAvailability(product.availability)}</span>
@@ -86,7 +86,10 @@ async function ProductDetails({ params, searchParams }: ProductPageProps) {
         <h2 id="details-heading" className="text-lg font-semibold">
           Details
         </h2>
+        {/* Remounted when the status changes, so a save message written for the old status
+            (e.g. "will not show until it is published") never outlives a publish click. */}
         <ProductForm
+          key={product.status}
           action={updateProduct}
           categories={categories}
           product={{

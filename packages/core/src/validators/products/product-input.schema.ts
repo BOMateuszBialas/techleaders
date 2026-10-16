@@ -72,9 +72,13 @@ const productFieldsSchema = z.object({
   sku: z
     .string()
     .trim()
-    .max(PRODUCT_SKU_MAX_LENGTH, `Use at most ${PRODUCT_SKU_MAX_LENGTH} characters.`)
     .default("")
-    .transform(normalizeSku),
+    .transform(normalizeSku)
+    // Checked after upper-casing, which can lengthen a string ("ß" → "SS"): the column is 64.
+    .refine(
+      (sku) => sku === null || sku.length <= PRODUCT_SKU_MAX_LENGTH,
+      `Use at most ${PRODUCT_SKU_MAX_LENGTH} characters.`,
+    ),
   categoryId: z
     .string()
     .trim()

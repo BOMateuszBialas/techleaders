@@ -81,7 +81,7 @@ describe("DatabaseProductRepository (PostgreSQL)", () => {
   it("creates, reads and edits a product; an edit keeps stock and status", async () => {
     const mice = await categoryId("mice");
     const created = await repository().create(
-      phantom({ categoryId: mice, status: "published", stockQuantity: 0, featured: true }),
+      phantom({ categoryId: mice, status: "published", stockQuantity: 7, featured: true }),
     );
     expect(created).toEqual({
       id: expect.any(String),
@@ -91,7 +91,7 @@ describe("DatabaseProductRepository (PostgreSQL)", () => {
       priceMinor: 19990,
       currency: "PLN",
       sku: "DEMO-MOU-009",
-      stockQuantity: 0,
+      stockQuantity: 7,
       imageUrl: null,
       status: "published",
       featured: true,
@@ -109,7 +109,7 @@ describe("DatabaseProductRepository (PostgreSQL)", () => {
     expect(updated).toMatchObject({
       name: "Phantom Pro Mouse 2",
       featured: false,
-      stockQuantity: 0,
+      stockQuantity: 7,
       status: "published",
       imageUrl: "https://images.example.com/phantom.png",
       category: { slug: "keyboards" },
@@ -117,6 +117,9 @@ describe("DatabaseProductRepository (PostgreSQL)", () => {
 
     const uncategorized = await repository().update(created.id, { ...edit, categoryId: null });
     expect(uncategorized?.category).toBeNull();
+    const featuredAgain = await repository().update(created.id, { ...edit, featured: true });
+    expect(featuredAgain).toMatchObject({ featured: true, stockQuantity: 7 });
+    expect((await repository().findById(created.id))?.featured).toBe(true);
     expect(await repository().update(MISSING_ID, edit)).toBeNull();
   });
 

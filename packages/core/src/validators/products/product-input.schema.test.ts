@@ -111,6 +111,10 @@ describe("productInputSchema", () => {
     expect(editErrors({ ...valid, sku: "X".repeat(65) })).toEqual({
       sku: ["Use at most 64 characters."],
     });
+    // Upper-casing "ß" gives "SS", so the limit is checked after normalising.
+    expect(editErrors({ ...valid, sku: "ß".repeat(33) })).toEqual({
+      sku: ["Use at most 64 characters."],
+    });
     expect(editErrors({ ...valid, imageUrl: `https://x.test/${"a".repeat(2040)}` })).toEqual({
       imageUrl: ["Use at most 2048 characters."],
     });
