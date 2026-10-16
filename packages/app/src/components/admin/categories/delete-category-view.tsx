@@ -1,7 +1,9 @@
 import type { AdminCategoryDetail } from "@commerceos/core";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import type { ActionState } from "@/lib/action-state";
 import { FormMessage } from "../form-feedback";
+import { productPath } from "../products/product-copy";
 import {
   DELETE_EMPTY_HINT,
   DELETE_REFUSED_HINT,
@@ -34,7 +36,11 @@ export function DeleteCategoryView({ action, state, pending, category }: DeleteC
           <p className="text-sm font-medium">{usedByMessage(category.productCount)}</p>
           <ul aria-label="Products in this category" className="list-disc pl-5 text-sm">
             {category.products.map((product) => (
-              <li key={product.id}>{product.name}</li>
+              <li key={product.id}>
+                <Link href={productPath(product.id)} className="underline-offset-4 hover:underline">
+                  {product.name}
+                </Link>
+              </li>
             ))}
           </ul>
           {more ? <p className="text-sm text-muted-foreground">{more}</p> : null}
