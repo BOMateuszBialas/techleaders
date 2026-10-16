@@ -12,8 +12,8 @@ import {
   productInputSchema,
   productStatusSchema,
   STATUS_MESSAGE,
-  STOCK_QUANTITY_MESSAGE,
 } from "./product-input.schema";
+import { STOCK_QUANTITY_MESSAGE } from "../inventory/stock-quantity.schema";
 
 const MICE_ID = "6f1c2a52-6d0e-4a8b-9a51-3f3a1c1b2d01";
 
