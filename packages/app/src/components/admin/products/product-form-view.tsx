@@ -25,7 +25,6 @@ import {
   PRICE_HINT,
   SKU_HINT,
   STATUS_OPTIONS,
-  STOCK_READ_ONLY_HINT,
 } from "./product-copy";
 
 /** The stored product an edit form starts from. */
@@ -38,7 +37,6 @@ export type ProductFormProduct = Pick<
   | "priceMinor"
   | "currency"
   | "sku"
-  | "stockQuantity"
   | "imageUrl"
   | "status"
   | "featured"
@@ -65,8 +63,8 @@ const SELECT_CLASS =
 /**
  * The product form in one given state (spec A15): no hooks, so a unit test renders every
  * state directly. `ProductForm` connects it to `useActionState`. Status and stock are
- * fields only when creating; afterwards stock is read-only (spec A14) and status has its
- * own publish control.
+ * fields only when creating; afterwards status has its own publish control and stock its own
+ * recorded stock panel (spec A14).
  */
 export function ProductFormView({
   action,
@@ -209,12 +207,7 @@ export function ProductFormView({
         </p>
         <FieldError id="product-featured-error" messages={errors.featured} />
       </div>
-      {product ? (
-        <div className="flex flex-col gap-1">
-          <p className="text-sm font-medium">Stock: {product.stockQuantity}</p>
-          <p className="text-sm text-muted-foreground">{STOCK_READ_ONLY_HINT}</p>
-        </div>
-      ) : (
+      {product ? null : (
         <>
           <div className="flex flex-col gap-2">
             <Label htmlFor="product-status">Status</Label>

@@ -5,6 +5,7 @@ import { logger } from "@/server/logger";
 const listProducts = vi.fn();
 const getProduct = vi.fn();
 const listCategories = vi.fn();
+const listStockAdjustments = vi.fn();
 const dispose = vi.fn(async () => {});
 
 vi.mock("@/server/container", () => ({
@@ -13,6 +14,7 @@ vi.mock("@/server/container", () => ({
       listProductsUseCase: { execute: listProducts },
       getProductUseCase: { execute: getProduct },
       listCategoriesUseCase: { execute: listCategories },
+      listStockAdjustmentsUseCase: { execute: listStockAdjustments },
     },
     dispose,
   }),
@@ -43,13 +45,19 @@ describe("admin product loaders", () => {
     });
   });
 
-  it("loads one product with the category options, or reports not-found", async () => {
+  it("loads one product with the category options and its stock history, or reports not-found", async () => {
     getProduct.mockResolvedValueOnce({ id: "p-1" });
+    listStockAdjustments.mockResolvedValueOnce([{ id: "adj-1" }]);
     await expect(loadAdminProduct("p-1")).resolves.toEqual({
       kind: "ok",
-      data: { product: { id: "p-1" }, categories: [{ id: "c-1", name: "Mice" }] },
+      data: {
+        product: { id: "p-1" },
+        categories: [{ id: "c-1", name: "Mice" }],
+        stockHistory: [{ id: "adj-1" }],
+      },
     });
     expect(getProduct).toHaveBeenCalledWith({ id: "p-1" });
+    expect(listStockAdjustments).toHaveBeenCalledWith({ productId: "p-1" });
 
     getProduct.mockRejectedValueOnce(new NotFoundError());
     await expect(loadAdminProduct("missing")).resolves.toEqual({ kind: "not-found" });

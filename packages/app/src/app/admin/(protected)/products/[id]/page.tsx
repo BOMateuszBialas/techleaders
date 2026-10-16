@@ -1,5 +1,6 @@
 import { describeStoreAvailability } from "@commerceos/core";
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
@@ -12,8 +13,11 @@ import {
 } from "@/components/admin/products/product-copy";
 import { ProductForm } from "@/components/admin/products/product-form";
 import { PublishControl } from "@/components/admin/products/publish-control";
+import { ownerLocale, toStockHistoryRows } from "@/components/admin/products/stock-copy";
+import { StockPanel } from "@/components/admin/products/stock-panel";
 import { requireAdminPage } from "@/server/auth/require-admin";
 import { setProductStatus, updateProduct } from "@/server/catalog/product.action";
+import { adjustStock } from "@/server/catalog/stock.action";
 import { AdminPageLoadError } from "../../categories/load-categories";
 import { loadAdminProduct } from "../load-products";
 
@@ -43,7 +47,8 @@ async function ProductDetails({ params, searchParams }: ProductPageProps) {
   // Control flow runs after the loader has mapped every error (never inside a try block).
   if (result.kind === "not-found") notFound();
   if (result.kind === "error") throw new AdminPageLoadError();
-  const { product, categories } = result.data;
+  const { product, categories, stockHistory } = result.data;
+  const locale = ownerLocale((await headers()).get("accept-language"));
   const storeHref = storefrontProductHref(product.slug);
   const featured = featuredNote(product);
 
@@ -82,6 +87,15 @@ async function ProductDetails({ params, searchParams }: ProductPageProps) {
           stockQuantity: product.stockQuantity,
         }}
       />
+      <StockPanel
+        action={adjustStock}
+        product={{
+          id: product.id,
+          status: product.status,
+          stockQuantity: product.stockQuantity,
+        }}
+        history={toStockHistoryRows(stockHistory, locale)}
+      />
       <section aria-labelledby="details-heading" className="flex flex-col gap-3">
         <h2 id="details-heading" className="text-lg font-semibold">
           Details
@@ -100,7 +114,6 @@ async function ProductDetails({ params, searchParams }: ProductPageProps) {
             priceMinor: product.priceMinor,
             currency: product.currency,
             sku: product.sku,
-            stockQuantity: product.stockQuantity,
             imageUrl: product.imageUrl,
             status: product.status,
             featured: product.featured,

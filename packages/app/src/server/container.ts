@@ -1,6 +1,7 @@
 import "server-only";
 import { UnconfiguredLlmProvider, type LlmProviderPort } from "@commerceos/ai";
 import {
+  AdjustStockUseCase,
   CreateCategoryUseCase,
   CreateProductUseCase,
   DeleteCategoryUseCase,
@@ -13,6 +14,7 @@ import {
   ListCategoriesUseCase,
   ListFeaturedProductsUseCase,
   ListProductsUseCase,
+  ListStockAdjustmentsUseCase,
   SetProductStatusUseCase,
   UpdateCategoryUseCase,
   UpdateProductUseCase,
@@ -20,12 +22,14 @@ import {
   type CategoryRepositoryPort,
   type HealthCheckPort,
   type ProductRepositoryPort,
+  type StockRepositoryPort,
 } from "@commerceos/core";
 import {
   DatabaseCatalogRepository,
   DatabaseCategoryRepository,
   DatabaseHealthCheck,
   DatabaseProductRepository,
+  DatabaseStockRepository,
   MikroORM,
   createOrmConfig,
   type EntityManager,
@@ -82,6 +86,9 @@ export type Cradle = {
   createProductUseCase: CreateProductUseCase;
   updateProductUseCase: UpdateProductUseCase;
   setProductStatusUseCase: SetProductStatusUseCase;
+  stockRepository: StockRepositoryPort;
+  adjustStockUseCase: AdjustStockUseCase;
+  listStockAdjustmentsUseCase: ListStockAdjustmentsUseCase;
   authPool: Pool;
   auth: Auth;
 };
@@ -127,6 +134,10 @@ function buildContainer(): AwilixContainer<Cradle> {
     createProductUseCase: asClass(CreateProductUseCase).scoped(),
     updateProductUseCase: asClass(UpdateProductUseCase).scoped(),
     setProductStatusUseCase: asClass(SetProductStatusUseCase).scoped(),
+    // Stock adjustment: the conditional update and its history row share the request's EntityManager.
+    stockRepository: asClass(DatabaseStockRepository).scoped(),
+    adjustStockUseCase: asClass(AdjustStockUseCase).scoped(),
+    listStockAdjustmentsUseCase: asClass(ListStockAdjustmentsUseCase).scoped(),
     authPool: asFunction(() => createAuthPool(env.DATABASE_URL))
       .singleton()
       .disposer((pool) => pool.end()),
