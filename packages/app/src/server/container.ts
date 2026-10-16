@@ -2,23 +2,30 @@ import "server-only";
 import { UnconfiguredLlmProvider, type LlmProviderPort } from "@commerceos/ai";
 import {
   CreateCategoryUseCase,
+  CreateProductUseCase,
   DeleteCategoryUseCase,
   GetCatalogProductUseCase,
   GetCategoryUseCase,
+  GetProductUseCase,
   GetSystemHealthUseCase,
   ListCatalogCategoriesUseCase,
   ListCatalogProductsUseCase,
   ListCategoriesUseCase,
   ListFeaturedProductsUseCase,
+  ListProductsUseCase,
+  SetProductStatusUseCase,
   UpdateCategoryUseCase,
+  UpdateProductUseCase,
   type CatalogReadPort,
   type CategoryRepositoryPort,
   type HealthCheckPort,
+  type ProductRepositoryPort,
 } from "@commerceos/core";
 import {
   DatabaseCatalogRepository,
   DatabaseCategoryRepository,
   DatabaseHealthCheck,
+  DatabaseProductRepository,
   MikroORM,
   createOrmConfig,
   type EntityManager,
@@ -69,6 +76,12 @@ export type Cradle = {
   createCategoryUseCase: CreateCategoryUseCase;
   updateCategoryUseCase: UpdateCategoryUseCase;
   deleteCategoryUseCase: DeleteCategoryUseCase;
+  productRepository: ProductRepositoryPort;
+  listProductsUseCase: ListProductsUseCase;
+  getProductUseCase: GetProductUseCase;
+  createProductUseCase: CreateProductUseCase;
+  updateProductUseCase: UpdateProductUseCase;
+  setProductStatusUseCase: SetProductStatusUseCase;
   authPool: Pool;
   auth: Auth;
 };
@@ -107,6 +120,13 @@ function buildContainer(): AwilixContainer<Cradle> {
     createCategoryUseCase: asClass(CreateCategoryUseCase).scoped(),
     updateCategoryUseCase: asClass(UpdateCategoryUseCase).scoped(),
     deleteCategoryUseCase: asClass(DeleteCategoryUseCase).scoped(),
+    // Admin catalog: the product adapter writes through the request's EntityManager too.
+    productRepository: asClass(DatabaseProductRepository).scoped(),
+    listProductsUseCase: asClass(ListProductsUseCase).scoped(),
+    getProductUseCase: asClass(GetProductUseCase).scoped(),
+    createProductUseCase: asClass(CreateProductUseCase).scoped(),
+    updateProductUseCase: asClass(UpdateProductUseCase).scoped(),
+    setProductStatusUseCase: asClass(SetProductStatusUseCase).scoped(),
     authPool: asFunction(() => createAuthPool(env.DATABASE_URL))
       .singleton()
       .disposer((pool) => pool.end()),

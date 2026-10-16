@@ -131,7 +131,11 @@ export const productInputSchema = productFieldsSchema.transform((fields, context
 /** A new product: the edit fields plus its initial status and stock (spec A14). */
 export const createProductInputSchema = productFieldsSchema
   .extend({
-    status: z.enum(PRODUCT_STATUSES, STATUS_MESSAGE).default("draft"),
+    // A form posts "" for a missing field (`readFormValues`); that means the default, draft.
+    status: z.preprocess(
+      (value) => (value === "" ? undefined : value),
+      z.enum(PRODUCT_STATUSES, STATUS_MESSAGE).default("draft"),
+    ),
     stockQuantity: z
       .string()
       .trim()

@@ -177,6 +177,9 @@ describe("createProductInputSchema", () => {
 
   it("defaults the status to draft", () => {
     expect(createProductInputSchema.parse({ ...valid, stockQuantity: "5" }).status).toBe("draft");
+    expect(
+      createProductInputSchema.parse({ ...valid, stockQuantity: "5", status: "" }).status,
+    ).toBe("draft");
   });
 
   it.each(["", "-1", "1.5", "abc", "1000001", "99999999"])(
