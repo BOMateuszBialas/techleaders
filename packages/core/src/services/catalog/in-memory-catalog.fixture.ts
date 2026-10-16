@@ -71,8 +71,8 @@ export class InMemoryCatalog implements CatalogReadPort {
       .filter(
         (product) =>
           !criteria.search ||
-          `${product.name}
-${product.description}`
+          [product.name, product.description]
+            .join(" ")
             .toLowerCase()
             .includes(criteria.search.toLowerCase()),
       )

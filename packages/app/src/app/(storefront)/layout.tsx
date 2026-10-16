@@ -9,9 +9,9 @@ import { loadStorefrontCategories } from "./load-storefront-categories";
 
 /**
  * Storefront shell shared by the home page, the listing and product pages: demo banner (R07),
- * header search box and menu (spec G13) and footer (G14). The shell itself prerenders; the category links
- * are read at request time inside `<Suspense>`. Without categories (still loading, or the
- * catalog is unavailable) the menus keep their static links.
+ * header search box and menu (spec G13) and footer (G14). The shell itself prerenders; the
+ * category links are read at request time inside `<Suspense>`. Without categories (still
+ * loading, or the catalog is unavailable) the menus keep their static links.
  */
 export default function StorefrontLayout({ children }: LayoutProps<"/">) {
   return (

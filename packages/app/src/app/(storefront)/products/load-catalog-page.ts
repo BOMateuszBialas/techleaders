@@ -21,8 +21,8 @@ export type CatalogPageData = {
 /**
  * Categories for the navigation and the search form, plus the listing for the parsed query
  * (category and search term combined). An unknown or malformed category, or a too-long search
- * term, keeps the navigation and yields `listing: null`, not an error. The search term is never
- * logged.
+ * term, keeps the navigation and yields `listing: null`, not an error. The search term is not
+ * added to the log context (an unexpected database error is logged as it is).
  */
 export function loadCatalogPage(query: CatalogQuery): Promise<LoadResult<CatalogPageData>> {
   return loadWithRequestScope({ page: "/products", slug: query.category }, async (cradle) => {
