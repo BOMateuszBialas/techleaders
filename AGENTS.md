@@ -76,6 +76,7 @@ Do not add libraries without a stated reason. TS 7 and ESLint 10 were deliberate
 - `allowGlobalContext: false`: always work on a forked EntityManager (request scope or explicit `orm.em.fork()`).
 - Money is stored as integer minor units (`priceMinor`, `totalMinor`) in `int` columns with `check (>= 0)`. Use the `Money` helpers in `core`; never use floats.
 - Order creation and stock changes run in one transaction (`em.transactional`) with an atomic conditional stock decrement (no overselling). Order items store name and price snapshots.
+- A manual stock change goes only through `StockRepositoryPort.setStock` (`packages/database/src/adapters/database-stock-repository.ts`): a conditional update on the expected quantity plus a `stock_adjustments` row in one transaction. Never write `products.stock_quantity` anywhere else (product edits never touch it; the seeder is the documented dev-only exception).
 - Add unique constraints and indexes for slugs, SKUs, order references and frequently queried foreign keys. Use DB `check` constraints for enums and invariants.
 - Seeders are repeatable (upsert by unique key), and demo data is visibly marked (`[DEMO]`, `DEMO-` SKUs).
 - Do not return ORM entities from API routes. Map them to explicit DTOs.

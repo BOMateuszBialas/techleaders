@@ -2,7 +2,7 @@
 
 - Date: 2026-10-16
 - Brief: Implement Phase 1b (products, publish/unpublish with the stated effect, duplicate slug/SKU errors, "Featured on home page") of the spec; Phase 2 (stock adjustment) is a separate PR.
-- Source doc: `.ai/specs/2026-10-15-admin-catalog-management.md`
+- Source doc: `.ai/specs/implemented/2026-10-15-admin-catalog-management.md`
 - Issue: #20 (closes with this phase)
 - Branch: `feat/admin-catalog-phase-1b`
 - Engine: om-auto-create-pr (steps: 9, --loop: no)
