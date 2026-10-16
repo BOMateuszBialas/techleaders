@@ -5,7 +5,11 @@ import type { OrderRepositoryPort } from "../../ports/order-repository.port";
 import type { PaymentGateway } from "../../ports/payment-gateway.port";
 import { ORDER_NOT_FOUND_MESSAGE, findOrderByReference } from "../orders/order.dto";
 
-export type ConfirmPaymentResult = { reference: string; outcome: "paid" | "already_paid" };
+export type ConfirmPaymentResult = {
+  orderId: string;
+  reference: string;
+  outcome: "paid" | "already_paid";
+};
 
 /**
  * Confirms the demo payment of an order (cart spec, Phase 3, A9). Idempotent: an order already
@@ -22,7 +26,9 @@ export class ConfirmDemoPaymentUseCase {
 
   async execute(input: { reference: string }): Promise<ConfirmPaymentResult> {
     const order = await findOrderByReference(this.deps.orderRepository, input.reference);
-    if (order.paidAt !== null) return { reference: order.reference, outcome: "already_paid" };
+    if (order.paidAt !== null) {
+      return { orderId: order.id, reference: order.reference, outcome: "already_paid" };
+    }
     if (order.status !== "pending_payment") throw new OrderNotPayableError();
 
     const { providerReference } = await this.deps.paymentGateway.authorize({
@@ -35,6 +41,6 @@ export class ConfirmDemoPaymentUseCase {
     });
     if (result === "not_found") throw new NotFoundError(ORDER_NOT_FOUND_MESSAGE);
     if (result === "not_payable") throw new OrderNotPayableError();
-    return { reference: order.reference, outcome: result };
+    return { orderId: order.id, reference: order.reference, outcome: result };
   }
 }

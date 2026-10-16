@@ -449,6 +449,7 @@ describe("DatabaseOrderRepository (PostgreSQL)", () => {
       );
       expect(row).toMatchObject({ status: "paid", paid: true, ref: `DEMO-PAY-${row?.id}` });
       expect(await confirm().execute({ reference })).toEqual({
+        orderId: row?.id,
         reference,
         outcome: "already_paid",
       });

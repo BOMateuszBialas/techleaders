@@ -54,7 +54,8 @@ export const checkoutSchema = z.object({
   cartFingerprint: z.string().max(2000, STALE_CHECKOUT_FORM_MESSAGE),
 });
 
-export type CheckoutRequest = Record<(typeof CHECKOUT_FORM_FIELDS)[number], string>;
+/** What the form posts, as text; a missing field is parsed (and refused) like a blank one. */
+export type CheckoutRequest = Partial<Record<(typeof CHECKOUT_FORM_FIELDS)[number], string>>;
 export type CheckoutInput = z.output<typeof checkoutSchema>;
 export type CustomerDetails = Omit<
   CheckoutInput,

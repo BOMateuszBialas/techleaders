@@ -184,7 +184,7 @@ describe("PlaceOrderUseCase", () => {
   it("returns the same order for a repeated submit without touching stock again", async () => {
     const first = await placeOrder().execute({ lines, request: form() });
     const again = await placeOrder().execute({ lines, request: form() });
-    expect(again).toEqual({ reference: first.reference, replayed: true });
+    expect(again).toEqual({ orderId: first.orderId, reference: first.reference, replayed: true });
     expect(orders.placeCalls).toBe(1);
     expect(orders.stock.get(VORTEX_ID)).toBe(23);
   });
@@ -205,7 +205,11 @@ describe("PlaceOrderUseCase", () => {
     orders.failNextPlacement = new InsufficientStockError(["Pulse Ultralight Mouse"]);
 
     const result = await placeOrder().execute({ lines, request: form() });
-    expect(result).toEqual({ reference: winner.reference, replayed: true });
+    expect(result).toEqual({
+      orderId: winner.orderId,
+      reference: winner.reference,
+      replayed: true,
+    });
     expect(missOnce).toHaveBeenCalledTimes(2);
   });
 
@@ -273,7 +277,7 @@ describe("GetOrderByReferenceUseCase and ConfirmDemoPaymentUseCase", () => {
 
   it("marks a pending order paid with the order id as the gateway's idempotency key", async () => {
     const reference = await placed();
-    expect(await confirm().execute({ reference })).toEqual({ reference, outcome: "paid" });
+    expect(await confirm().execute({ reference })).toMatchObject({ reference, outcome: "paid" });
     const order = orders.orders[0];
     expect(authorize).toHaveBeenCalledWith({
       idempotencyKey: order?.id,
@@ -289,7 +293,7 @@ describe("GetOrderByReferenceUseCase and ConfirmDemoPaymentUseCase", () => {
   it("is idempotent: a second confirmation succeeds without a second authorize", async () => {
     const reference = await placed();
     await confirm().execute({ reference });
-    expect(await confirm().execute({ reference })).toEqual({
+    expect(await confirm().execute({ reference })).toMatchObject({
       reference,
       outcome: "already_paid",
     });
@@ -299,7 +303,7 @@ describe("GetOrderByReferenceUseCase and ConfirmDemoPaymentUseCase", () => {
   it("reports a concurrent winner as already paid", async () => {
     const reference = await placed();
     const markPaid = vi.spyOn(orders, "markPaid").mockResolvedValueOnce("already_paid");
-    expect(await confirm().execute({ reference })).toEqual({
+    expect(await confirm().execute({ reference })).toMatchObject({
       reference,
       outcome: "already_paid",
     });

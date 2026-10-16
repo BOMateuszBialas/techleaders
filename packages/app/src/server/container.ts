@@ -3,11 +3,13 @@ import { UnconfiguredLlmProvider, type LlmProviderPort } from "@commerceos/ai";
 import {
   AddToCartUseCase,
   AdjustStockUseCase,
+  ConfirmDemoPaymentUseCase,
   CreateCategoryUseCase,
   CreateProductUseCase,
   DeleteCategoryUseCase,
   GetCartUseCase,
   GetCatalogProductUseCase,
+  GetOrderByReferenceUseCase,
   GetCategoryUseCase,
   GetProductUseCase,
   GetSystemHealthUseCase,
@@ -17,6 +19,7 @@ import {
   ListFeaturedProductsUseCase,
   ListProductsUseCase,
   ListStockAdjustmentsUseCase,
+  PlaceOrderUseCase,
   RemoveCartLineUseCase,
   SetProductStatusUseCase,
   UpdateCartLineUseCase,
@@ -25,14 +28,21 @@ import {
   type CatalogReadPort,
   type CategoryRepositoryPort,
   type HealthCheckPort,
+  type OrderRepositoryPort,
+  type PaymentGateway,
   type ProductRepositoryPort,
+  type RandomBytes,
+  type RateLimiterPort,
+  type Sha256Hex,
   type StockRepositoryPort,
 } from "@commerceos/core";
 import {
   DatabaseCatalogRepository,
   DatabaseCategoryRepository,
   DatabaseHealthCheck,
+  DatabaseOrderRepository,
   DatabaseProductRepository,
+  DatabaseRateLimiter,
   DatabaseStockRepository,
   MikroORM,
   createOrmConfig,
@@ -51,6 +61,8 @@ import { createAuth, type Auth, type AuthLogLevel } from "./auth/create-auth";
 import { createAuthPool } from "./auth/create-auth-pool";
 import { getEnv, type Env } from "./env";
 import { logger } from "./logger";
+import { randomBytes, sha256Hex } from "./orders/order-crypto";
+import { DemoPaymentGateway } from "./payments/demo-payment-gateway";
 
 /**
  * Composition root: the only place where infrastructure is instantiated
@@ -97,6 +109,14 @@ export type Cradle = {
   addToCartUseCase: AddToCartUseCase;
   updateCartLineUseCase: UpdateCartLineUseCase;
   removeCartLineUseCase: RemoveCartLineUseCase;
+  randomBytes: RandomBytes;
+  sha256Hex: Sha256Hex;
+  orderRepository: OrderRepositoryPort;
+  paymentGateway: PaymentGateway;
+  rateLimiter: RateLimiterPort;
+  placeOrderUseCase: PlaceOrderUseCase;
+  getOrderByReferenceUseCase: GetOrderByReferenceUseCase;
+  confirmDemoPaymentUseCase: ConfirmDemoPaymentUseCase;
   authPool: Pool;
   auth: Auth;
 };
@@ -151,6 +171,16 @@ function buildContainer(): AwilixContainer<Cradle> {
     addToCartUseCase: asClass(AddToCartUseCase).scoped(),
     updateCartLineUseCase: asClass(UpdateCartLineUseCase).scoped(),
     removeCartLineUseCase: asClass(RemoveCartLineUseCase).scoped(),
+    // Orders (cart spec, Phases 2–3): the repository and the limiter use the request's
+    // EntityManager; the demo gateway and the crypto helpers are stateless singletons.
+    randomBytes: asValue(randomBytes),
+    sha256Hex: asValue(sha256Hex),
+    orderRepository: asClass(DatabaseOrderRepository).scoped(),
+    paymentGateway: asClass(DemoPaymentGateway).singleton(),
+    rateLimiter: asClass(DatabaseRateLimiter).scoped(),
+    placeOrderUseCase: asClass(PlaceOrderUseCase).scoped(),
+    getOrderByReferenceUseCase: asClass(GetOrderByReferenceUseCase).scoped(),
+    confirmDemoPaymentUseCase: asClass(ConfirmDemoPaymentUseCase).scoped(),
     authPool: asFunction(() => createAuthPool(env.DATABASE_URL))
       .singleton()
       .disposer((pool) => pool.end()),

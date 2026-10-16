@@ -16,7 +16,8 @@ export const FORM_REUSED_MESSAGE =
 /** SHA-256 as lowercase hex; the app passes Node's crypto, tests a fake. */
 export type Sha256Hex = (text: string) => Promise<string>;
 
-export type PlaceOrderResult = { reference: string; replayed: boolean };
+/** `orderId` is for logs; the reference is a bearer secret and is never logged (spec A8). */
+export type PlaceOrderResult = { orderId: string; reference: string; replayed: boolean };
 
 /**
  * Places an order from the cart (cart spec, Phase 2, API Contracts `placeOrder`).
@@ -70,7 +71,7 @@ export class PlaceOrderUseCase {
         newReference: () => generateOrderReference(this.deps.randomBytes),
         buildDraft: (reserved) => buildOrderDraft(reserved, expectedTotalMinor),
       });
-      return { reference: order.reference, replayed: false };
+      return { orderId: order.id, reference: order.reference, replayed: false };
     } catch (error) {
       // After the rollback: did an identical submit win the race (same key)?
       const winner = await this.deps.orderRepository.findByIdempotencyKey(idempotencyKey);
@@ -84,5 +85,5 @@ function replay(order: OrderRecord, requestFingerprint: string): PlaceOrderResul
   if (order.requestFingerprint !== requestFingerprint) {
     throw new OrderConflictError("form_reused", FORM_REUSED_MESSAGE);
   }
-  return { reference: order.reference, replayed: true };
+  return { orderId: order.id, reference: order.reference, replayed: true };
 }

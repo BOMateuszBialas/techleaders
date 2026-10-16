@@ -3,7 +3,7 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 import { CART_HEADING, CART_UNAVAILABLE_MESSAGE } from "@/components/cart/cart-copy";
 import { CartSummary } from "@/components/cart/cart-summary";
-import { removeCartLine, updateCartLine } from "@/server/cart/cart.action";
+import { acceptCartChanges, removeCartLine, updateCartLine } from "@/server/cart/cart.action";
 import { loadCartPage } from "./load-cart-page";
 
 export const metadata: Metadata = { title: "Cart" };
@@ -31,7 +31,12 @@ async function CartContents() {
     );
   }
   return (
-    <CartSummary cart={result.data} updateAction={updateCartLine} removeAction={removeCartLine} />
+    <CartSummary
+      cart={result.data}
+      updateAction={updateCartLine}
+      removeAction={removeCartLine}
+      acceptAction={acceptCartChanges}
+    />
   );
 }
 
