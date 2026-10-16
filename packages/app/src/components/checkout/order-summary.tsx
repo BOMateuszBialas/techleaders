@@ -20,7 +20,10 @@ export function OrderSummary({
   total: Money;
 }) {
   return (
-    <section aria-label="Order summary" className="flex flex-col gap-3 rounded-lg border p-4">
+    <section
+      aria-label="Order summary"
+      className="flex flex-col gap-3 self-start rounded-lg border p-4"
+    >
       <ul className="flex flex-col divide-y text-sm">
         {items.map((item) => (
           <li key={item.name} className="flex justify-between gap-4 py-2">
