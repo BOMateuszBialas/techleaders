@@ -25,8 +25,9 @@ export function OrderSummary({
       className="flex flex-col gap-3 self-start rounded-lg border p-4"
     >
       <ul className="flex flex-col divide-y text-sm">
-        {items.map((item) => (
-          <li key={item.name} className="flex justify-between gap-4 py-2">
+        {/* Names are snapshots and need not be unique, so the position is part of the key. */}
+        {items.map((item, index) => (
+          <li key={`${index}-${item.name}`} className="flex justify-between gap-4 py-2">
             <span>
               {item.name} × {item.quantity}
               <span className="block text-muted-foreground">
