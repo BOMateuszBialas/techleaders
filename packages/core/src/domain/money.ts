@@ -59,3 +59,28 @@ export function formatMoney(value: Money, locale = "pl-PL"): string {
     value.amountMinor / 100,
   );
 }
+
+/** The largest price the `int` column `products.price_minor` holds. */
+export const MAX_PRICE_MINOR = 2_147_483_647;
+
+/** Digits, then optionally a dot or comma and one or two decimals: "249", "249.9", "249,90". */
+const PRICE_INPUT_PATTERN = /^(\d{1,10})(?:[.,](\d{1,2}))?$/;
+
+/**
+ * Parses the price the owner typed ("249.90" or "249,90") into minor units (24990) by string
+ * parsing, never float maths (spec A8, G4). Returns `null` for anything else: more than two
+ * decimals, a sign, an exponent, thousands separators, or more than `MAX_PRICE_MINOR`.
+ */
+export function parsePriceInput(text: string): number | null {
+  const match = PRICE_INPUT_PATTERN.exec(text.trim());
+  if (!match) return null;
+  const [, units = "", decimals = ""] = match;
+  const minor = Number(units) * 100 + Number(decimals.padEnd(2, "0"));
+  return minor <= MAX_PRICE_MINOR ? minor : null;
+}
+
+/** The inverse of `parsePriceInput`, used to prefill the price input: 24990 → "249.90". */
+export function formatPriceInput(amountMinor: number): string {
+  const units = Math.floor(amountMinor / 100);
+  return `${units}.${String(amountMinor % 100).padStart(2, "0")}`;
+}
