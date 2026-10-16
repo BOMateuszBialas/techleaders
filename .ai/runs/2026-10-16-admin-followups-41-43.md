@@ -26,6 +26,17 @@ After create → save only the save message shows; a published product always co
 
 Conservative default: a **published** product must cost more than 0.00 PLN; a **draft** may be saved at 0.00 PLN (work in progress). Enforced in core on every path that can produce a published zero-price product: create with "Published", saving a published product at 0, and publishing a draft priced at 0.
 
+## Validation
+
+- `npm run lint`, `format:check`, `typecheck` exit 0
+- `npm run test:coverage` exit 0: 585 tests, 100% statements, branches, functions, lines
+- `npm run build` exit 0; `npm run test:integration` exit 0 (60); `npm run test:e2e` exit 0 (49)
+
+## Deviations found while implementing
+
+- `replaceState` alone did not clear the notice: a later save's `refresh()` re-rendered the page with the original `?notice`, so the notice also hides itself on the next form submit.
+- Two extra e2e sign-ins pushed the run over the shared sign-in rate limit; the new tests reuse the owner session and share its cookies with a second browser.
+
 ## Risks
 
 - The update and publish checks read the product, then write it (no conditional write). A concurrent publish and price change by the single owner in two tabs could still produce a published 0.00 product; acceptable for the one-owner MVP, a DB check would close it later.
@@ -33,22 +44,24 @@ Conservative default: a **published** product must cost more than 0.00 PLN; a **
 
 ## Progress
 
+PR: #47
+
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles.
 
 ### Phase 1: Zero-price rule (#41.2)
 
-- [ ] 1.1 Core rule and messages for create, update and publish
-- [ ] 1.2 Admin e2e for the zero-price paths
+- [x] 1.1 Core rule and messages for create, update and publish — 462ed58
+- [x] 1.2 Admin e2e for the zero-price paths — 28b7576
 
 ### Phase 2: Notice cleared after later actions (#41.1)
 
-- [ ] 2.1 Drop `notice` from the URL once shown, on product and category pages, with e2e
+- [x] 2.1 Drop `notice` from the URL once shown, on product and category pages, with e2e — 5ee7660, 28b7576
 
 ### Phase 3: Stock panel follow-ups (#43)
 
-- [ ] 3.1 Visible message for a broken `expectedQuantity`
-- [ ] 3.2 E2E for the stale stock path
+- [x] 3.1 Visible message for a broken `expectedQuantity` — 28b7576
+- [x] 3.2 E2E for the stale stock path — 28b7576
 
 ### Phase 4: Docs and gate
 
-- [ ] 4.1 Spec notes, README, lessons, full validation gate
+- [x] 4.1 Spec notes, README, lessons, full validation gate — 28b7576
