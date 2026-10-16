@@ -25,7 +25,11 @@ export async function adjustStock(
   const values = readFormValues(formData, STOCK_FIELDS);
   return runAdminAction("inventory.stock.adjust", values, async ({ adjustStockUseCase }) => {
     const result = await adjustStockUseCase
-      .execute({ productId, ...values })
+      .execute({
+        productId,
+        expectedQuantity: values.expectedQuantity,
+        newQuantity: values.newQuantity,
+      })
       .catch((error: unknown) => {
         if (isStaleStockError(error)) {
           values.expectedQuantity = String(error.currentQuantity);
