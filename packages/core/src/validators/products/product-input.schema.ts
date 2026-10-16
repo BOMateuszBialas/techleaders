@@ -1,6 +1,11 @@
 import { z } from "zod";
 import { parsePriceInput } from "../../domain/money";
-import { normalizeSku, PRODUCT_STATUSES, slugify } from "../../domain/products/product";
+import {
+  hasPublishablePrice,
+  normalizeSku,
+  PRODUCT_STATUSES,
+  slugify,
+} from "../../domain/products/product";
 import type { ProductCreate, ProductWrite } from "../../ports/catalog.port";
 import { PRODUCT_SLUG_MAX_LENGTH, slugProblem } from "../catalog/slug.schema";
 import { isUuid } from "../common/uuid.schema";
@@ -18,6 +23,11 @@ export const PRICE_FORMAT_MESSAGE =
 export const CATEGORY_CHOICE_MESSAGE = "Choose an existing category.";
 export const IMAGE_URL_MESSAGE = "Enter an address starting with https://, or leave it blank.";
 export const STATUS_MESSAGE = "Choose draft or published.";
+/** Under the price field: a published product cannot cost 0.00 (#41). */
+export const PUBLISHED_PRICE_MESSAGE =
+  "A published product needs a price above 0.00 PLN. Enter a price, or keep it as a draft.";
+/** On the publish control: a draft priced at 0.00 cannot be published (#41). */
+export const PUBLISH_PRICE_MESSAGE = "Set a price above 0.00 PLN before publishing.";
 
 /** Seeded demo images are local files under `public/demo/` (storefront spec G6, G21). */
 const LOCAL_DEMO_IMAGE_PATTERN = /^\/demo\/[a-z0-9/-]+\.(?:svg|png|jpe?g|webp)$/;
@@ -142,10 +152,15 @@ export const createProductInputSchema = productFieldsSchema
   })
   .transform((fields, context): ProductCreate => {
     const resolved = resolveSlug(fields);
+    const priceAllowed = hasPublishablePrice({ status: fields.status, priceMinor: fields.price });
+    // Both problems are reported together, so the owner fixes them in one pass.
     if ("problem" in resolved) {
       context.addIssue({ code: "custom", path: ["slug"], message: resolved.problem });
-      return z.NEVER;
     }
+    if (!priceAllowed) {
+      context.addIssue({ code: "custom", path: ["price"], message: PUBLISHED_PRICE_MESSAGE });
+    }
+    if ("problem" in resolved || !priceAllowed) return z.NEVER;
     return {
       ...toProductWrite(fields, resolved.slug),
       status: fields.status,

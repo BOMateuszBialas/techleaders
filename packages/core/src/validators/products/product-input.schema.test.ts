@@ -11,6 +11,7 @@ import {
   PRICE_FORMAT_MESSAGE,
   productInputSchema,
   productStatusSchema,
+  PUBLISHED_PRICE_MESSAGE,
   STATUS_MESSAGE,
 } from "./product-input.schema";
 import { STOCK_QUANTITY_MESSAGE } from "../inventory/stock-quantity.schema";
@@ -208,6 +209,37 @@ describe("createProductInputSchema", () => {
     expect(createErrors({ ...valid, stockQuantity: "1", name: "???", slug: "" })).toEqual({
       slug: [SLUG_EMPTY_MESSAGE],
     });
+  });
+});
+
+describe("createProductInputSchema: zero prices (#41)", () => {
+  it("lets a draft be created at 0.00", () => {
+    expect(
+      createProductInputSchema.parse({ ...valid, price: "0", stockQuantity: "1" }).priceMinor,
+    ).toBe(0);
+  });
+
+  it("refuses a published product at 0.00 under the price field", () => {
+    expect(
+      createErrors({ ...valid, price: "0,00", stockQuantity: "1", status: "published" }),
+    ).toEqual({ price: [PUBLISHED_PRICE_MESSAGE] });
+  });
+
+  it("reports a zero price together with a bad slug", () => {
+    expect(
+      createErrors({ ...valid, price: "0", stockQuantity: "1", status: "published", name: "???" }),
+    ).toEqual({ slug: [SLUG_EMPTY_MESSAGE], price: [PUBLISHED_PRICE_MESSAGE] });
+  });
+
+  it("publishes at the smallest price", () => {
+    expect(
+      createProductInputSchema.parse({
+        ...valid,
+        price: "0,01",
+        stockQuantity: "1",
+        status: "published",
+      }).priceMinor,
+    ).toBe(1);
   });
 });
 
