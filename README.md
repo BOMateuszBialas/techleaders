@@ -4,7 +4,7 @@ CommerceOS is a lightweight, single-store e-commerce platform: a customer storef
 
 This is a 5-week AI Engineering portfolio MVP. The full specification is in [`.ai/specs/2026-10-13-commerceos-mvp.md`](.ai/specs/2026-10-13-commerceos-mvp.md), the agent rules are in [`AGENTS.md`](AGENTS.md), and the day-to-day coding conventions are in [`ENGINEERING_STANDARDS.md`](ENGINEERING_STANDARDS.md).
 
-> **Current state: foundation, admin sign-in, admin catalog management and storefront browsing.** The monorepo, database layer, DI container, env validation, health check, tests, owner authentication for `/admin`, admin product and category management, manual stock adjustment with a recorded history, and the storefront (a shop-front home page with featured products, browse by category, product pages) exist. The demo store sells fictional gaming accessories. Search, cart, checkout and the Copilot workflow are **not implemented yet** (see [Roadmap](#roadmap)).
+> **Current state: foundation, admin sign-in, admin catalog management and storefront browsing.** The monorepo, database layer, DI container, env validation, health check, tests, owner authentication for `/admin`, admin product and category management, manual stock adjustment with a recorded history, and the storefront (a shop-front home page with featured products, browse by category, search, product pages) exist. The demo store sells fictional gaming accessories. Cart, checkout and the Copilot workflow are **not implemented yet** (see [Roadmap](#roadmap)).
 
 ## Monorepo structure
 
@@ -57,7 +57,7 @@ npm run dev                 # http://localhost:3000
 Verify the setup:
 
 - http://localhost:3000: storefront home with a hero, featured products (tabs: `/?category=<slug>`), a header menu and a footer
-- http://localhost:3000/products: published products, filterable with `?category=<slug>`; http://localhost:3000/products/vortex-wireless-mouse: a product page
+- http://localhost:3000/products: published products, filterable with `?category=<slug>` and searchable with `?q=<term>` (the header search box and the listing's search form); http://localhost:3000/products/vortex-wireless-mouse: a product page
 - http://localhost:3000/admin: redirects to `/admin/sign-in`; after signing in as the owner, the dashboard with live system status
 - http://localhost:3000/admin/products and http://localhost:3000/admin/categories (signed in): catalog management. Create and edit products and categories, publish or unpublish a product (the page says what shoppers will see), and tick "Featured on home page" to put a published product in the home page slider
 - http://localhost:3000/api/health: returns `200 {"status":"ok",...}` when the database is reachable, `503 {"status":"degraded",...}` otherwise
@@ -138,6 +138,7 @@ Not implemented yet. The plan is Stripe Checkout in **test mode** if feasible wi
   - A listing shows at most 48 products (sorted by name) and says "Showing 48 of N" when more match. Larger catalogues need pagination, which is out of scope for the demo.
   - A draft or unknown product URL shows "Product not found" with HTTP 200 and a `noindex` robots tag, because the not-found UI streams after the page shell (Next 16 cache components).
   - Every catalog view reads the database at request time (no caching).
+  - Search is a case-insensitive substring match of the whole term (1 to 100 characters after trimming) against product names and descriptions, combined with the category filter. There is no ranking, stemming or typo tolerance, and Polish diacritics are not folded ("zolty" does not find "żółty"). `%`, `_` and `\` match literally. Each search scans the published products, which is fine at demo scale.
   - The home page's featured slider shows up to 12 published products flagged `featured` (the "Featured on home page" checkbox in the admin product form). Plain shadcn/Tailwind styling for now: the visual design follows the design-system lesson.
 - **Admin catalog:**
   - Products are never deleted (spec A4); unpublishing is how a product leaves the store.
@@ -153,7 +154,7 @@ Not implemented yet. The plan is Stripe Checkout in **test mode** if feasible wi
   - Up to 20 different products and 99 of each; one currency per cart.
   - A product that is unpublished or sold out while in a cart disappears from it, and a quantity above the stock is lowered to it, each with a message on the cart page. The cookie itself is corrected by the next cart change (a page render cannot set cookies), so until then the message shows again and the header count may include the removed item.
   - Checkout is not available yet: the cart page says "Checkout is coming soon."
-- No LLM provider, payments, search or checkout yet.
+- No LLM provider, payments or checkout yet.
 - `npm audit` reports advisories in development tooling dependencies (e.g. `braces` via linting and test tooling); they do not affect runtime code and are tracked for a later update.
 
 ## Roadmap

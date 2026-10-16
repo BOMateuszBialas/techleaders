@@ -34,6 +34,11 @@ export type CatalogProductCriteria = {
   categoryId?: string;
   /** When set, only products whose `featured` flag equals it. */
   featured?: boolean;
+  /**
+   * When set, only products whose name or description contains this term, case-insensitively
+   * and with LIKE wildcards matched literally (spec Q5).
+   */
+  search?: string;
   limit: number;
 };
 

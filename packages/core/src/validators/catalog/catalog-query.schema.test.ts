@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { parseCatalogQuery } from "./catalog-query.schema";
+import {
+  CATALOG_SEARCH_MAX_LENGTH,
+  catalogSearchSchema,
+  parseCatalogQuery,
+} from "./catalog-query.schema";
 import { categorySlugSchema, productSlugSchema } from "./slug.schema";
 
 describe("slug schemas", () => {
@@ -49,5 +53,54 @@ describe("parseCatalogQuery", () => {
 
   it("ignores unrelated parameters", () => {
     expect(parseCatalogQuery({ utm_source: "x" })).toEqual({ categoryInvalid: false });
+  });
+});
+
+describe("catalog search term (q)", () => {
+  it("trims the term and collapses whitespace", () => {
+    expect(parseCatalogQuery({ q: "  wireless 	  mouse " })).toEqual({
+      categoryInvalid: false,
+      q: "wireless mouse",
+    });
+  });
+
+  it("treats a missing, empty or whitespace-only term as no search", () => {
+    for (const raw of [{}, { q: "" }, { q: "   " }, { q: [] }])
+      expect(parseCatalogQuery(raw)).toEqual({ categoryInvalid: false });
+  });
+
+  it("uses the first value of a repeated parameter", () => {
+    expect(parseCatalogQuery({ q: ["fight", "mouse"] })).toEqual({
+      categoryInvalid: false,
+      q: "fight",
+    });
+  });
+
+  it("accepts the maximum length and flags a longer term without keeping it", () => {
+    const longest = "a".repeat(CATALOG_SEARCH_MAX_LENGTH);
+    expect(parseCatalogQuery({ q: ` ${longest} ` })).toEqual({
+      categoryInvalid: false,
+      q: longest,
+    });
+    expect(parseCatalogQuery({ q: `${longest}a` })).toEqual({
+      categoryInvalid: false,
+      qError: "too_long",
+    });
+  });
+
+  it("combines the term with the category, keeping each problem separate", () => {
+    expect(parseCatalogQuery({ category: "mice", q: "wireless" })).toEqual({
+      category: "mice",
+      categoryInvalid: false,
+      q: "wireless",
+    });
+    expect(parseCatalogQuery({ category: "bad slug!", q: "x".repeat(101) })).toEqual({
+      categoryInvalid: true,
+      qError: "too_long",
+    });
+  });
+
+  it("keeps LIKE wildcards as ordinary characters", () => {
+    expect(catalogSearchSchema.parse(" 100% _x\\ ")).toBe("100% _x\\");
   });
 });

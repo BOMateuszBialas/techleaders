@@ -68,6 +68,14 @@ export class InMemoryCatalog implements CatalogReadPort {
       .filter(
         (product) => criteria.featured === undefined || product.featured === criteria.featured,
       )
+      .filter(
+        (product) =>
+          !criteria.search ||
+          [product.name, product.description]
+            .join(" ")
+            .toLowerCase()
+            .includes(criteria.search.toLowerCase()),
+      )
       .sort((a, b) => a.name.localeCompare(b.name));
     return { items: matches.slice(0, criteria.limit), total: matches.length };
   }
