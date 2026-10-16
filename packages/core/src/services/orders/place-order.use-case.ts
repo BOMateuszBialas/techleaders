@@ -22,9 +22,10 @@ export type PlaceOrderResult = { reference: string; replayed: boolean };
  * Places an order from the cart (cart spec, Phase 2, API Contracts `placeOrder`).
  *
  * 1. The form is validated (field errors, no order).
- * 2. The cookie's lines are priced and corrected like the cart page does (G12, G13); they must
- *    match the `cartFingerprint` the checkout rendered, so a cart changed meanwhile is never
- *    ordered. Prices never come from the client: the form's total is only compared (A6).
+ * 2. The cookie's lines are priced like the cart page does. A line that must be corrected
+ *    (sold out, unpublished, above the stock: G12, G13) is a `cart_changed` conflict carrying
+ *    those notices, and the lines must match the `cartFingerprint` the checkout rendered, so a
+ *    cart changed meanwhile is never ordered. Prices never come from the client: the form's total is only compared (A6).
  * 3. Idempotency (A7): a known key returns its order when the request fingerprint (cart plus
  *    customer fields, hashed) matches, otherwise `form_reused`. The same lookup runs after a
  *    failed placement, so a double submit that lost the race for the last unit still gets the
@@ -48,8 +49,10 @@ export class PlaceOrderUseCase {
     const form = parseInput(checkoutSchema, input.request);
     const { idempotencyKey, expectedTotalMinor, cartFingerprint: shown, ...customer } = form;
 
+    if (input.lines.length === 0) throw new ValidationError(EMPTY_CART_MESSAGE);
     const { cart } = await loadPricedCart(this.deps.catalogRepository, input.lines);
-    if (cart.storedLines.length === 0) throw new ValidationError(EMPTY_CART_MESSAGE);
+    // A line sold out, was unpublished or exceeds the stock now: say what changed (G12, G13).
+    if (cart.changed) throw new OrderConflictError("cart_changed", cart.notices.join(" "));
     if (cartFingerprint(cart.storedLines) !== shown) {
       throw new OrderConflictError("cart_changed", CART_CHANGED_MESSAGE);
     }

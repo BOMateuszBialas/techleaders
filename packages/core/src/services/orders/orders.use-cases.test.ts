@@ -148,7 +148,7 @@ describe("PlaceOrderUseCase", () => {
     expect(orders.placeCalls).toBe(0);
   });
 
-  it("refuses an empty cart, also when every line became unavailable", async () => {
+  it("refuses an empty cart, and a cart whose lines had to be corrected", async () => {
     const empty = await rejection(placeOrder().execute({ lines: [], request: form() }));
     expect(empty).toMatchObject({ message: EMPTY_CART_MESSAGE });
     const gone = await rejection(
@@ -157,7 +157,10 @@ describe("PlaceOrderUseCase", () => {
         request: form(),
       }),
     );
-    expect(gone).toMatchObject({ message: EMPTY_CART_MESSAGE });
+    expect(isOrderConflict(gone, "cart_changed")).toBe(true);
+    expect(gone).toMatchObject({
+      message: "A product in your cart is no longer available and was removed.",
+    });
   });
 
   it("refuses a cart that changed after the checkout rendered", async () => {
