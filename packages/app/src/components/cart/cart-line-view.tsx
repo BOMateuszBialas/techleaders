@@ -57,7 +57,10 @@ export function CartLineView({ line, update, remove }: CartLineViewProps) {
         >
           <input type="hidden" name="productId" value={line.productId} />
           <div className="flex flex-col gap-1">
-            <Label htmlFor={inputId}>{QUANTITY_LABEL}</Label>
+            <Label htmlFor={inputId}>
+              {QUANTITY_LABEL}
+              <span className="sr-only"> of {line.name}</span>
+            </Label>
             <Input
               id={inputId}
               name="quantity"
