@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { hasAppErrorCode, isUniqueFieldConflict } from "@commerceos/core";
-import { toCatalogWriteError } from "./catalog-write-error";
+import {
+  STOCK_QUANTITY_CHECK_MESSAGE,
+  toCatalogWriteError,
+  toStockWriteError,
+} from "./catalog-write-error";
 
 /** Shaped like MikroORM's DriverException, which copies the pg error's own properties. */
 function dbError(code: string, constraint?: string): Error {
@@ -45,5 +49,27 @@ describe("toCatalogWriteError", () => {
   it("returns a non-Error value unchanged", () => {
     const thrown = { code: "23505", constraint: "categories_slug_unique" };
     expect(toCatalogWriteError(thrown) === thrown).toBe(true);
+  });
+});
+
+describe("toStockWriteError", () => {
+  it.each(["products_stock_quantity_check", "stock_adjustments_new_quantity_check"])(
+    "maps the check %s to a field error on newQuantity",
+    (constraint) => {
+      const mapped = toStockWriteError(dbError("23514", constraint));
+      expect(hasAppErrorCode(mapped, "VALIDATION_FAILED")).toBe(true);
+      expect(mapped).toMatchObject({
+        fieldErrors: { newQuantity: [STOCK_QUANTITY_CHECK_MESSAGE] },
+      });
+    },
+  );
+
+  it.each([
+    ["the no-op check", dbError("23514", "stock_adjustments_quantity_changed_check")],
+    ["a stock constraint with another SQLSTATE", dbError("23505", "products_stock_quantity_check")],
+    ["a foreign-key violation", dbError("23503", "stock_adjustments_product_id_foreign")],
+    ["a plain error", new Error("connection refused")],
+  ])("returns %s unchanged", (_label, error) => {
+    expect(toStockWriteError(error)).toBe(error);
   });
 });

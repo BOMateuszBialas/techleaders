@@ -67,3 +67,29 @@ export function toCatalogWriteError(error: unknown): unknown {
   }
   return error;
 }
+
+/** Check constraints a stock change can hit → the stock panel's quantity field. */
+const STOCK_CHECK_CONSTRAINTS = new Set([
+  "products_stock_quantity_check",
+  "stock_adjustments_new_quantity_check",
+]);
+
+export const STOCK_QUANTITY_CHECK_MESSAGE = "Enter a quantity of 0 or more.";
+
+/**
+ * Translates a stock write failure (admin catalog spec, Edge Cases): a negative quantity that
+ * reached the database despite the schema becomes a `ValidationError` on `newQuantity`, the
+ * field the stock panel shows. Anything else is returned unchanged, so the caller rethrows it.
+ */
+export function toStockWriteError(error: unknown): unknown {
+  const violation = readConstraintViolation(error);
+  if (
+    violation?.sqlState === CHECK_VIOLATION &&
+    STOCK_CHECK_CONSTRAINTS.has(violation.constraint)
+  ) {
+    return new ValidationError(INVALID_FIELDS_MESSAGE, {
+      newQuantity: [STOCK_QUANTITY_CHECK_MESSAGE],
+    });
+  }
+  return error;
+}
