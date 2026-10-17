@@ -1,3 +1,4 @@
+import { ConflictError, hasAppErrorCode } from "../../errors/app-error";
 import { ORDER_STATUSES, type OrderStatus } from "./order";
 
 /**
@@ -59,4 +60,28 @@ export function restocksOnTransition(from: OrderStatus, to: OrderStatus): boolea
 /** True for a status that records a fact without any effect: "refunded" moves no money (N02). */
 export function isRecordOnlyStatus(status: OrderStatus): boolean {
   return status === "refunded";
+}
+
+/**
+ * The order is no longer in the status the owner's page showed (a second tab, or the shopper's
+ * demo payment won the race): nothing was written. `currentStatus` lets the page say what it
+ * is now (orders spec, API Contracts).
+ */
+export class StaleOrderStatusError extends ConflictError {
+  constructor(readonly currentStatus: OrderStatus) {
+    super(
+      `This order changed to ${ORDER_STATUS_LABELS[currentStatus]} in the meantime. Review it and try again.`,
+    );
+  }
+}
+
+/** True for a `StaleOrderStatusError` from any copy of this package (see `hasAppErrorCode`). */
+export function isStaleOrderStatusError(
+  error: unknown,
+): error is Error & { readonly code: "CONFLICT"; readonly currentStatus: OrderStatus } {
+  return (
+    hasAppErrorCode(error, "CONFLICT") &&
+    "currentStatus" in error &&
+    isOrderStatus(error.currentStatus)
+  );
 }

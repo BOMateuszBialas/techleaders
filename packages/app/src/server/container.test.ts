@@ -1,6 +1,7 @@
 import { afterAll, describe, expect, it, vi } from "vitest";
 import {
   AddToCartUseCase,
+  ChangeOrderStatusUseCase,
   PlaceOrderUseCase,
   AdjustStockUseCase,
   DeleteCategoryUseCase,
@@ -10,6 +11,7 @@ import {
 import {
   DatabaseCatalogRepository,
   DatabaseCategoryRepository,
+  DatabaseOrderAdminRepository,
   DatabaseProductRepository,
   DatabaseStockRepository,
 } from "@commerceos/database";
@@ -144,6 +146,20 @@ describe("composition root", () => {
     expect(gateway === second.cradle.paymentGateway).toBe(true);
     expect(gateway.isLive).toBe(false);
     expect(first.cradle.randomBytes(20)).toHaveLength(20);
+  });
+
+  it("wires the order admin repository and use cases per request", () => {
+    const repository = first.cradle.orderAdminRepository;
+    expect(repository instanceof DatabaseOrderAdminRepository).toBe(true);
+    expect(repository === second.cradle.orderAdminRepository).toBe(false);
+    for (const key of [
+      "listAdminOrdersUseCase",
+      "getAdminOrderUseCase",
+      "changeOrderStatusUseCase",
+    ] as const) {
+      expect(first.cradle[key] === second.cradle[key]).toBe(false);
+    }
+    expect(first.cradle.changeOrderStatusUseCase instanceof ChangeOrderStatusUseCase).toBe(true);
   });
 
   it("shares one Better Auth instance and pool, reachable without a request scope", () => {

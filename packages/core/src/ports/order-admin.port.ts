@@ -67,7 +67,7 @@ export type ChangeOrderStatusCommand = {
  * the products that still exist), refused because the order is no longer in `from` (`stale`,
  * nothing written), or found no order.
  */
-export type ChangeOrderStatusResult =
+export type ChangeOrderStatusOutcome =
   | { kind: "changed"; order: AdminOrderRecord; restockedUnits: number }
   | { kind: "stale"; currentStatus: OrderStatus }
   | { kind: "not_found" };
@@ -85,5 +85,5 @@ export interface OrderAdminPort {
     total: number;
   }>;
   findOrderById(id: string): Promise<AdminOrderRecord | null>;
-  changeStatus(command: ChangeOrderStatusCommand): Promise<ChangeOrderStatusResult>;
+  changeStatus(command: ChangeOrderStatusCommand): Promise<ChangeOrderStatusOutcome>;
 }

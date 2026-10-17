@@ -3,16 +3,19 @@ import { UnconfiguredLlmProvider, type LlmProviderPort } from "@commerceos/ai";
 import {
   AddToCartUseCase,
   AdjustStockUseCase,
+  ChangeOrderStatusUseCase,
   ConfirmDemoPaymentUseCase,
   CreateCategoryUseCase,
   CreateProductUseCase,
   DeleteCategoryUseCase,
   GetCartUseCase,
+  GetAdminOrderUseCase,
   GetCatalogProductUseCase,
   GetOrderByReferenceUseCase,
   GetCategoryUseCase,
   GetProductUseCase,
   GetSystemHealthUseCase,
+  ListAdminOrdersUseCase,
   ListCatalogCategoriesUseCase,
   ListCatalogProductsUseCase,
   ListCategoriesUseCase,
@@ -28,6 +31,7 @@ import {
   type CatalogReadPort,
   type CategoryRepositoryPort,
   type HealthCheckPort,
+  type OrderAdminPort,
   type OrderRepositoryPort,
   type PaymentGateway,
   type ProductRepositoryPort,
@@ -40,6 +44,7 @@ import {
   DatabaseCatalogRepository,
   DatabaseCategoryRepository,
   DatabaseHealthCheck,
+  DatabaseOrderAdminRepository,
   DatabaseOrderRepository,
   DatabaseProductRepository,
   DatabaseRateLimiter,
@@ -117,6 +122,10 @@ export type Cradle = {
   placeOrderUseCase: PlaceOrderUseCase;
   getOrderByReferenceUseCase: GetOrderByReferenceUseCase;
   confirmDemoPaymentUseCase: ConfirmDemoPaymentUseCase;
+  orderAdminRepository: OrderAdminPort;
+  listAdminOrdersUseCase: ListAdminOrdersUseCase;
+  getAdminOrderUseCase: GetAdminOrderUseCase;
+  changeOrderStatusUseCase: ChangeOrderStatusUseCase;
   authPool: Pool;
   auth: Auth;
 };
@@ -181,6 +190,12 @@ function buildContainer(): AwilixContainer<Cradle> {
     placeOrderUseCase: asClass(PlaceOrderUseCase).scoped(),
     getOrderByReferenceUseCase: asClass(GetOrderByReferenceUseCase).scoped(),
     confirmDemoPaymentUseCase: asClass(ConfirmDemoPaymentUseCase).scoped(),
+    // Admin orders (orders spec, Phase 1): the status change and its cancel restock run in one
+    // transaction on the request's EntityManager.
+    orderAdminRepository: asClass(DatabaseOrderAdminRepository).scoped(),
+    listAdminOrdersUseCase: asClass(ListAdminOrdersUseCase).scoped(),
+    getAdminOrderUseCase: asClass(GetAdminOrderUseCase).scoped(),
+    changeOrderStatusUseCase: asClass(ChangeOrderStatusUseCase).scoped(),
     authPool: asFunction(() => createAuthPool(env.DATABASE_URL))
       .singleton()
       .disposer((pool) => pool.end()),

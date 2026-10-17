@@ -2,7 +2,7 @@ import type {
   AdminOrderListRecord,
   AdminOrderRecord,
   ChangeOrderStatusCommand,
-  ChangeOrderStatusResult,
+  ChangeOrderStatusOutcome,
   OrderAdminPort,
   OrderStatus,
 } from "@commerceos/core";
@@ -91,7 +91,7 @@ export class DatabaseOrderAdminRepository implements OrderAdminPort {
     return withSanitizedErrors("Order read", () => this.load(this.deps.em, id));
   }
 
-  async changeStatus(command: ChangeOrderStatusCommand): Promise<ChangeOrderStatusResult> {
+  async changeStatus(command: ChangeOrderStatusCommand): Promise<ChangeOrderStatusOutcome> {
     return withSanitizedErrors("Order status change", () =>
       this.deps.em.transactional((em) => this.changeStatusIn(em, command)),
     );
@@ -100,7 +100,7 @@ export class DatabaseOrderAdminRepository implements OrderAdminPort {
   private async changeStatusIn(
     em: EntityManager,
     { orderId, from, to, restock }: ChangeOrderStatusCommand,
-  ): Promise<ChangeOrderStatusResult> {
+  ): Promise<ChangeOrderStatusOutcome> {
     const updated = await em.execute<QueryResult>(
       "update orders set status = ?, updated_at = now() where id = ? and status = ?",
       [to, orderId, from],
