@@ -26,6 +26,10 @@ const CONFIRMED_TARGETS: readonly string[] = ["cancelled", "refunded"];
  * When the order changed meanwhile (stale), nothing was written, so `runAdminAction` does not
  * refresh; this action refreshes the page itself, so it shows the current status and only the
  * buttons that status allows. Only the order id is logged (never the reference, A16).
+ *
+ * `runAdminAction` updates the `catalog` cache tag after every change, although only a cancel
+ * changes stock; storefront reads are request-time today, so the extra invalidation is free
+ * and accepted (review of #50).
  */
 export async function changeOrderStatus(
   _previous: ActionState,

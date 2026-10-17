@@ -141,5 +141,9 @@ describe("admin orders (E04-S01)", () => {
     await browser().waitForText("No further status changes.");
 
     expect(await adminStock()).toBe(before);
+
+    // An unknown order id shows the admin "Not found" page.
+    await browser().open("/admin/orders/00000000-0000-4000-8000-000000000000");
+    await browser().waitForText("This record does not exist or was deleted.");
   });
 });

@@ -9,7 +9,8 @@ import "./provided-context";
  * header every sign-in of the run shares one limit of 20 per minute (`SIGN_IN_LIMIT`), so
  * suites that sign in often failed at random once the suite grew (see `.ai/lessons.md`). The
  * limiter itself is covered by the auth integration tests; e2e tests exercise the flows behind
- * it. Never used outside the e2e database.
+ * it. Never used outside the e2e database. An e2e test of the lockout itself must not call these
+ * helpers between its attempts.
  */
 export async function resetSignInRateLimit(): Promise<void> {
   const client = new Client({ connectionString: inject("databaseUrl") });
