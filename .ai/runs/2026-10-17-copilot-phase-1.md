@@ -44,6 +44,26 @@ A signed-in owner opens `/admin/copilot`, asks one of the D09 questions (button 
 
 Recorded while implementing; see the PR body for the final list.
 
+- **Resumed run.** The first agent stopped at a usage limit after step 1.3 (commits unpushed, step 1.4 uncommitted). A second agent kept the step 1.4 work in progress (sound), added its tests, fixed two plural slips in rule text, and continued from step 1.5. `origin/main` (orders admin #50) was merged in at that point without conflicts.
+- **No `llmProvider` dependency in Phase 1.** `AskCopilotUseCase` has no generation path, so it does not take the provider at all; every answered question reports `fallbackReason: "not_configured"` by construction (no adapter exists, the container still wires `UnconfiguredLlmProvider`). Phase 2 adds the dependency together with the call.
+- **`ToolPlan.topProducts` is required** (every answered plan names best sellers) and `compareWithPrevious` carries its own `topProducts` limit, which removes unreachable branches.
+- **Traffic intents** (`traffic_sources`, `funnel`, `views_without_sales`) are `kind: "answered"` with the deterministic "Traffic data is not available yet" summary, no tools, no period.
+- **DTO additions over the spec** (additive, documented in `BACKWARD_COMPATIBILITY.md` §2): `question` (the canonical D09 question the answer is for), top-level `limitations`, `period.name`, and `relatedProducts` (id + name for the admin links) on each recommendation.
+- **Rule text grounding** is tested by construction: after removing every cited fact's value and metric name and the period text, no digit may remain (`rule-insights.test.ts`).
+- **The panel uses `useActionState` over a browser-side action** (`createAskCopilotAction`, unit-tested with a stubbed `fetch`) that calls the JSON route, so the form follows the hook-free view + thin wrapper pattern. No character counter (it would need extra client state); the textarea has `maxLength` 500 and a hint.
+- **E2E data.** The seed has no order history and other suites rely on Pulse's 3 units, so the e2e test buys one Arena Fight Stick (2 in stock, used by no other suite for stock) and confirms its demo payment; rule 1 then flags it. The integration test (`packages/app/src/server/copilot/ask-copilot.int.test.ts`) runs the real container on PostgreSQL with a fixed clock and two hand-inserted paid orders, and compares every shown value to the E04 use cases.
+- **Provider wording.** The product owner chose the Gemini API (spec PR #52, 8baf9c1) after this run started; Phase 1 docs and copy name no provider.
+
+## Validation (full gate, 2026-10-17, after merging origin/main)
+
+- `npm run lint` ✓ (after fixing one `consistent-type-imports` error in the integration test)
+- `npm run format:check` ✓
+- `npm run typecheck` ✓
+- `npm run test:coverage` ✓ 1106 tests, 100% statements, branches, functions, lines
+- `npm run build` ✓ (`/admin/copilot` partial prerender, `/api/admin/copilot/answers` dynamic)
+- `npm run test:integration` ✓ 12 files, 94 tests
+- `npm run test:e2e` ✓ 13 files, 71 tests
+
 ## Progress
 
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles.
@@ -55,4 +75,4 @@ Recorded while implementing; see the PR body for the final list.
 - [x] 1.3 Tools and facts — 4886460
 - [x] 1.4 Rule insights and expansion — 199d55a
 - [x] 1.5 Use case, log port, container — 8122926
-- [ ] 1.6 Route, page, e2e, integration, docs
+- [x] 1.6 Route, page, e2e, integration, docs — 35ceee8

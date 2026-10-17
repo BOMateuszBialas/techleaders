@@ -6,6 +6,7 @@ import { AskCopilotUseCase, type CopilotAnswerDto } from "@commerceos/ai";
 import { formatMoney, money, resolvePeriod } from "@commerceos/core";
 import { Pool } from "pg";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
+import type * as ContainerModule from "../container";
 
 // Mirrors the augmentation in `@commerceos/database/testing`, which app code must not import.
 declare module "vitest" {
@@ -69,7 +70,7 @@ async function insertPaidOrder(slug: string, quantity: number, paidAt: string) {
  * and asking writes nothing but the rate-limit counter.
  */
 describe("AskCopilotUseCase (PostgreSQL, real container)", () => {
-  let container: typeof import("../container");
+  let container: typeof ContainerModule;
   let answer: CopilotAnswerDto;
   const before = { orders: 0, items: 0, products: 0, adjustments: 0 };
 
