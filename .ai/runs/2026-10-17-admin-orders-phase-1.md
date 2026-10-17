@@ -50,9 +50,13 @@ Non-goals: metrics, dashboard, `clock` registration (Phase 3, lane B); demo seed
 
 ## Outcome
 
-(filled at completion)
+- Full gate green locally: lint, format:check, typecheck, test:coverage (100 %, 903+ unit tests), build, test:integration, test:e2e (11 files, 63 tests; the first run failed only on the shared sign-in limit, fixed by d456574).
+- New integration suite `database-order-admin-repository.int.test.ts` (8 tests): list order and pagination, snapshots after rename and delete, stale and not-found, cancel restock in one transaction (and its rollback on failure), cancel racing `markPaid` (exactly one wins, 5 rounds), refund keeps `paid_at` and stock, E02 `paid_at` checks.
+- E2E `admin-orders.e2e.test.ts` (3 tests): no-session redirect; storefront purchase → listed first → detail (snapshots, totals, customer, demo payment) → processing → shipped → only refund left; unpaid order cancelled → stock back to its old value.
 
 ## Progress
+
+PR: #50
 
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles.
 
@@ -62,4 +66,4 @@ Non-goals: metrics, dashboard, `clock` registration (Phase 3, lane B); demo seed
 - [x] 1.2 Port, repository adapter, unit and integration tests — a449a96
 - [x] 1.3 Use cases, validator, container registrations — 9445615
 - [x] 1.4 Admin pages, action, components, guard inventory, e2e — 9af9fbd
-- [ ] 1.5 Docs, #22 AC amendment, full gate
+- [x] 1.5 Docs, #22 AC amendment, full gate — f71aed0, d456574
