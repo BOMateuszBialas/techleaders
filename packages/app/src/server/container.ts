@@ -79,7 +79,12 @@ import {
   type AwilixContainer,
 } from "awilix";
 import type { Pool } from "pg";
-import { createAuth, type Auth, type AuthLogLevel } from "./auth/create-auth";
+import {
+  createAuth,
+  type Auth,
+  type AuthErrorSummary,
+  type AuthLogLevel,
+} from "./auth/create-auth";
 import { createAuthPool } from "./auth/create-auth-pool";
 import { getEnv, type Env } from "./env";
 import { logger } from "./logger";
@@ -261,8 +266,14 @@ export const copilotLog: CopilotLogPort = {
 };
 
 /** Routes Better Auth's own log lines through the redacting server logger. */
-export function logAuthMessage(level: AuthLogLevel, message: string): void {
-  logger[level === "debug" ? "info" : level](message);
+export function logAuthMessage(
+  level: AuthLogLevel,
+  message: string,
+  error?: AuthErrorSummary,
+): void {
+  const write = logger[level === "debug" ? "info" : level];
+  if (error) write(message, { error });
+  else write(message);
 }
 
 // Cached on globalThis so dev-mode hot reloads do not open a new connection pool each time.
@@ -278,9 +289,23 @@ const globalForContainer = globalThis as typeof globalThis & {
  */
 const MODULE_INSTANCE = Symbol("commerceos-container-module");
 
+/**
+ * One owner for every evaluation in a production build (#57). The bundler evaluates this file
+ * once per server layer (route handlers, pages and server actions), and all of them come from
+ * the same build, so they share one container. With a per-evaluation owner they disposed each
+ * other's container on every alternating request, closing the connection pools under requests
+ * still in flight ("Failed to get session" from Better Auth).
+ */
+const PRODUCTION_OWNER = Symbol.for("commerceos-container-production");
+
+function containerOwner(): symbol {
+  return getEnv().NODE_ENV === "production" ? PRODUCTION_OWNER : MODULE_INSTANCE;
+}
+
 function getRootContainer(): AwilixContainer<Cradle> {
+  const owner = containerOwner();
   const cached = globalForContainer.__commerceosContainer;
-  if (cached && globalForContainer.__commerceosContainerOwner !== MODULE_INSTANCE) {
+  if (cached && globalForContainer.__commerceosContainerOwner !== owner) {
     globalForContainer.__commerceosContainer = undefined;
     // Closes the stale connection pools in the background; a failure must not break the request.
     cached.dispose().catch((error: unknown) => {
@@ -289,7 +314,7 @@ function getRootContainer(): AwilixContainer<Cradle> {
   }
   if (!globalForContainer.__commerceosContainer) {
     globalForContainer.__commerceosContainer = buildContainer();
-    globalForContainer.__commerceosContainerOwner = MODULE_INSTANCE;
+    globalForContainer.__commerceosContainerOwner = owner;
   }
   return globalForContainer.__commerceosContainer;
 }

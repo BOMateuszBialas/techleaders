@@ -60,3 +60,31 @@ describe("composition root after a dev hot reload", () => {
     expect(first.cradle.orm === second.cradle.orm).toBe(true);
   });
 });
+
+describe("composition root in a production build (#57)", () => {
+  it("shares one container between evaluations of container.ts, one per server layer", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("APP_URL", "https://shop.example");
+    try {
+      // Route handlers and pages evaluate their own copy of the module in a production build.
+      vi.resetModules();
+      const routeLayer = await import("./container");
+      const routeScope = routeLayer.createRequestScope();
+      const orm = routeScope.cradle.orm;
+      const close = vi.spyOn(orm, "close");
+
+      vi.resetModules();
+      const pageLayer = await import("./container");
+      const pageScope = pageLayer.createRequestScope();
+
+      // Before the fix the page layer disposed the route layer's container (and its pools)
+      // while the route's request was still using it.
+      expect(close).not.toHaveBeenCalled();
+      expect(pageScope.cradle.orm === orm).toBe(true);
+      await routeScope.dispose();
+      await pageScope.dispose();
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+});
