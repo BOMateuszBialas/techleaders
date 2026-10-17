@@ -2,8 +2,11 @@ import { addLine, cartItemCount, findLine, type CartLine } from "../../domain/ca
 import { isPurchasable } from "../../domain/products/product";
 import { ConflictError, NotFoundError, ValidationError } from "../../errors/app-error";
 import type { CatalogReadPort } from "../../ports/catalog-read.port";
-import { addToCartSchema, type AddToCartRequest } from "../../validators/cart/cart-line.schema";
-import { parseInput } from "../../validators/parse-input";
+import {
+  addToCartSchema,
+  parseCartLineInput,
+  type AddToCartRequest,
+} from "../../validators/cart/cart-line.schema";
 import { loadPricedCart, type CartChange } from "./load-priced-cart";
 
 export const PRODUCT_UNAVAILABLE_MESSAGE = "This product is no longer available.";
@@ -32,7 +35,7 @@ export class AddToCartUseCase {
     lines: readonly CartLine[];
     request: AddToCartRequest;
   }): Promise<CartChange & { productName: string }> {
-    const { productId, quantity } = parseInput(addToCartSchema, input.request);
+    const { productId, quantity } = parseCartLineInput(addToCartSchema, input.request);
     const { cart, products } = await loadPricedCart(this.deps.catalogRepository, input.lines, [
       productId,
     ]);

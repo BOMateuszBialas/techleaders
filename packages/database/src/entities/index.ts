@@ -9,6 +9,8 @@ import { OrderItemSchema } from "./orders/order-item.entity";
 import { OrderSchema } from "./orders/order.entity";
 import { ProductSchema } from "./products/product.entity";
 import { RateLimitBucketSchema } from "./rate-limits/rate-limit-bucket.entity";
+import { ProductViewDailyStatSchema } from "./traffic/product-view-daily-stat.entity";
+import { TrafficDailyStatSchema } from "./traffic/traffic-daily-stat.entity";
 
 export * from "./auth/admin-account.entity";
 export * from "./auth/admin-rate-limit.entity";
@@ -21,6 +23,8 @@ export * from "./orders/order-item.entity";
 export * from "./orders/order.entity";
 export * from "./products/product.entity";
 export * from "./rate-limits/rate-limit-bucket.entity";
+export * from "./traffic/product-view-daily-stat.entity";
+export * from "./traffic/traffic-daily-stat.entity";
 
 /** Every entity must be registered here; the ORM config uses this list (no folder discovery). */
 export const entities = [
@@ -30,6 +34,8 @@ export const entities = [
   OrderSchema,
   OrderItemSchema,
   RateLimitBucketSchema,
+  TrafficDailyStatSchema,
+  ProductViewDailyStatSchema,
   AdminUserSchema,
   AdminSessionSchema,
   AdminAccountSchema,

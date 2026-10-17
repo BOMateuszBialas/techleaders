@@ -3,16 +3,24 @@ import { UnconfiguredLlmProvider, type LlmProviderPort } from "@commerceos/ai";
 import {
   AddToCartUseCase,
   AdjustStockUseCase,
+  ChangeOrderStatusUseCase,
   ConfirmDemoPaymentUseCase,
   CreateCategoryUseCase,
   CreateProductUseCase,
   DeleteCategoryUseCase,
   GetCartUseCase,
+  GetAdminOrderUseCase,
   GetCatalogProductUseCase,
+  GetDashboardUseCase,
+  GetLowStockProductsUseCase,
   GetOrderByReferenceUseCase,
+  GetOrderSummaryUseCase,
   GetCategoryUseCase,
   GetProductUseCase,
+  GetSalesSummaryUseCase,
   GetSystemHealthUseCase,
+  ListAdminOrdersUseCase,
+  GetTopProductsUseCase,
   ListCatalogCategoriesUseCase,
   ListCatalogProductsUseCase,
   ListCategoriesUseCase,
@@ -26,8 +34,10 @@ import {
   UpdateCategoryUseCase,
   UpdateProductUseCase,
   type CatalogReadPort,
+  type Clock,
   type CategoryRepositoryPort,
   type HealthCheckPort,
+  type OrderAdminPort,
   type OrderRepositoryPort,
   type PaymentGateway,
   type ProductRepositoryPort,
@@ -35,15 +45,18 @@ import {
   type RateLimiterPort,
   type Sha256Hex,
   type StockRepositoryPort,
+  type StoreMetricsPort,
 } from "@commerceos/core";
 import {
   DatabaseCatalogRepository,
   DatabaseCategoryRepository,
   DatabaseHealthCheck,
+  DatabaseOrderAdminRepository,
   DatabaseOrderRepository,
   DatabaseProductRepository,
   DatabaseRateLimiter,
   DatabaseStockRepository,
+  DatabaseStoreMetrics,
   MikroORM,
   createOrmConfig,
   type EntityManager,
@@ -117,6 +130,17 @@ export type Cradle = {
   placeOrderUseCase: PlaceOrderUseCase;
   getOrderByReferenceUseCase: GetOrderByReferenceUseCase;
   confirmDemoPaymentUseCase: ConfirmDemoPaymentUseCase;
+  orderAdminRepository: OrderAdminPort;
+  listAdminOrdersUseCase: ListAdminOrdersUseCase;
+  getAdminOrderUseCase: GetAdminOrderUseCase;
+  changeOrderStatusUseCase: ChangeOrderStatusUseCase;
+  clock: Clock;
+  storeMetrics: StoreMetricsPort;
+  getSalesSummaryUseCase: GetSalesSummaryUseCase;
+  getOrderSummaryUseCase: GetOrderSummaryUseCase;
+  getTopProductsUseCase: GetTopProductsUseCase;
+  getLowStockProductsUseCase: GetLowStockProductsUseCase;
+  getDashboardUseCase: GetDashboardUseCase;
   authPool: Pool;
   auth: Auth;
 };
@@ -181,6 +205,22 @@ function buildContainer(): AwilixContainer<Cradle> {
     placeOrderUseCase: asClass(PlaceOrderUseCase).scoped(),
     getOrderByReferenceUseCase: asClass(GetOrderByReferenceUseCase).scoped(),
     confirmDemoPaymentUseCase: asClass(ConfirmDemoPaymentUseCase).scoped(),
+    // Admin orders (orders spec, Phase 1): the status change and its cancel restock run in one
+    // transaction on the request's EntityManager.
+    orderAdminRepository: asClass(DatabaseOrderAdminRepository).scoped(),
+    listAdminOrdersUseCase: asClass(ListAdminOrdersUseCase).scoped(),
+    getAdminOrderUseCase: asClass(GetAdminOrderUseCase).scoped(),
+    changeOrderStatusUseCase: asClass(ChangeOrderStatusUseCase).scoped(),
+    // Store metrics (orders spec, Phase 3): aggregate SQL on the request's EntityManager. The
+    // four metric use cases are the Copilot's future tool layer; the clock is a stateless
+    // singleton so tests can fix "now".
+    clock: asValue((): Date => new Date()),
+    storeMetrics: asClass(DatabaseStoreMetrics).scoped(),
+    getSalesSummaryUseCase: asClass(GetSalesSummaryUseCase).scoped(),
+    getOrderSummaryUseCase: asClass(GetOrderSummaryUseCase).scoped(),
+    getTopProductsUseCase: asClass(GetTopProductsUseCase).scoped(),
+    getLowStockProductsUseCase: asClass(GetLowStockProductsUseCase).scoped(),
+    getDashboardUseCase: asClass(GetDashboardUseCase).scoped(),
     authPool: asFunction(() => createAuthPool(env.DATABASE_URL))
       .singleton()
       .disposer((pool) => pool.end()),

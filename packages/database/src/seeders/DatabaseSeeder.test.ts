@@ -1,6 +1,13 @@
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
+import type { EntityManager } from "@mikro-orm/postgresql";
 import { createUnitTestOrm } from "../testing/unit-orm";
-import { DEMO_CATALOG, DatabaseSeeder, seedCatalog, type SeedCatalog } from "./DatabaseSeeder";
+import {
+  DEMO_CATALOG,
+  DatabaseSeeder,
+  seedCatalog,
+  seedDemoStore,
+  type SeedCatalog,
+} from "./DatabaseSeeder";
 
 const orm = createUnitTestOrm();
 
@@ -8,44 +15,67 @@ afterAll(async () => {
   await orm.close();
 });
 
-function fakeRow(data: unknown): { id: string } {
-  const slug = typeof data === "object" && data !== null && "slug" in data ? data.slug : "?";
-  return { id: `id-${String(slug)}` };
-}
+const SEED_DATE = new Date("2026-10-16T14:00:00.000Z");
 
-function stubEntityManager() {
+/**
+ * A stubbed EntityManager: query-builder inserts are recorded, `find` answers from `rows` (by
+ * slug), and `transactional` runs on a second stubbed fork whose writes are recorded too. The
+ * ORM's generic signatures cannot be satisfied by plain objects, so results are typed loosely.
+ */
+function stubEntityManager(options: { missing?: string[] } = {}) {
   const em = orm.em.fork();
-  // `upsert` is generic over every entity type; the stub returns only the `id`
-  // the seeder reads, so its result is typed loosely on purpose.
-  const upsert = vi
-    .spyOn(em, "upsert")
-    .mockImplementation(async (_entity: unknown, data: unknown) => fakeRow(data) as never);
-  const flush = vi.spyOn(em, "flush").mockResolvedValue();
-  return { em, upsert, flush };
+  const tx = orm.em.fork();
+  const inserts: { entity: string; rows: Record<string, unknown>[] }[] = [];
+  vi.spyOn(em, "createQueryBuilder").mockImplementation(((entity: {
+    meta?: { className: string };
+  }) => {
+    const chain = {
+      insert: (rows: Record<string, unknown>[]) => {
+        inserts.push({ entity: entity.meta?.className ?? "?", rows });
+        return chain;
+      },
+      onConflict: () => chain,
+      ignore: () => chain,
+      execute: async () => ({}),
+    };
+    return chain;
+  }) as never);
+  const find = vi
+    .spyOn(em, "find")
+    .mockImplementation((async (_entity: unknown, where: { slug: { $in: string[] } }) =>
+      where.slug.$in
+        .filter((slug) => !(options.missing ?? []).includes(slug))
+        .map((slug) => ({ id: `id-${slug}`, slug }))) as never);
+  vi.spyOn(em, "transactional").mockImplementation(((
+    callback: (em: EntityManager) => Promise<unknown>,
+  ) => callback(tx)) as never);
+  const execute = vi.spyOn(tx, "execute").mockResolvedValue([] as never);
+  const insertMany = vi.spyOn(tx, "insertMany").mockResolvedValue([] as never);
+  return { em, inserts, find, execute, insertMany };
 }
 
-describe("seedCatalog", () => {
+describe("seedCatalog (insert-only, A18)", () => {
   let stub: ReturnType<typeof stubEntityManager>;
 
   beforeEach(() => {
     stub = stubEntityManager();
   });
 
-  it("upserts categories and products by slug and links products to their category", async () => {
-    await seedCatalog(stub.em, DEMO_CATALOG);
+  it("inserts missing categories and products with on-conflict-ignore and links products to their category", async () => {
+    expect(await seedCatalog(stub.em, DEMO_CATALOG)).toEqual({ skipped: [] });
 
-    const calls = stub.upsert.mock.calls;
-    expect(calls).toHaveLength(DEMO_CATALOG.categories.length + DEMO_CATALOG.products.length);
-    for (const call of calls) expect(call[2]).toEqual({ onConflictFields: ["slug"] });
-    expect(calls[DEMO_CATALOG.categories.length]?.[1]).toMatchObject({
+    const [categories, products] = stub.inserts;
+    expect(categories?.rows).toHaveLength(DEMO_CATALOG.categories.length);
+    expect(products?.rows).toHaveLength(DEMO_CATALOG.products.length);
+    expect(products?.rows[0]).toMatchObject({
       slug: "vortex-wireless-mouse",
       category: "id-mice",
       status: "published",
       featured: true,
+      currency: "PLN",
       imageUrl: "/demo/products/vortex-wireless-mouse.svg",
       description: expect.stringMatching(/^\[DEMO] Wireless gaming mouse/),
     });
-    expect(stub.flush).toHaveBeenCalledOnce();
   });
 
   it("marks every demo record as demo data", () => {
@@ -92,7 +122,7 @@ describe("seedCatalog", () => {
       ],
     };
     await seedCatalog(stub.em, draft);
-    expect(stub.upsert.mock.calls[1]?.[1]).toMatchObject({
+    expect(stub.inserts[1]?.rows[0]).toMatchObject({
       status: "draft",
       featured: false,
       imageUrl: null,
@@ -100,22 +130,96 @@ describe("seedCatalog", () => {
     });
   });
 
-  it("rejects a product that references an unknown category", async () => {
-    const broken: SeedCatalog = {
-      categories: [],
-      products: DEMO_CATALOG.products.slice(0, 1).map((p) => ({ ...p, category: "missing" })),
-    };
-    await expect(seedCatalog(stub.em, broken)).rejects.toThrow('Seed category "missing" missing');
-    expect(stub.flush).not.toHaveBeenCalled();
+  it("skips, without crashing, a product whose category or row is missing afterwards", async () => {
+    const missing = stubEntityManager({ missing: ["mice", "nova-tkl-mechanical-keyboard"] });
+    const { skipped } = await seedCatalog(missing.em, DEMO_CATALOG);
+    const mice = DEMO_CATALOG.products.filter((product) => product.category === "mice");
+    expect(skipped).toEqual([
+      ...mice.map((product) => product.slug),
+      "nova-tkl-mechanical-keyboard",
+    ]);
+  });
+
+  it("runs no insert for an empty catalog", async () => {
+    expect(await seedCatalog(stub.em, { categories: [], products: [] })).toEqual({ skipped: [] });
+    expect(stub.inserts).toEqual([]);
+  });
+});
+
+describe("seedDemoStore", () => {
+  it("replaces the DEMO- orders and the traffic rows in one transaction", async () => {
+    const stub = stubEntityManager();
+    const result = await seedDemoStore(stub.em, SEED_DATE);
+
+    expect(stub.execute.mock.calls.map((call) => [String(call[0]), call[1]])).toEqual([
+      ["delete from orders where public_reference like ?", ["DEMO-%"]],
+      ["delete from product_view_daily_stats", undefined],
+      ["delete from traffic_daily_stats", undefined],
+    ]);
+    const [orders, items, views, traffic] = stub.insertMany.mock.calls.map(
+      (call) => call[1] as Record<string, unknown>[],
+    );
+    expect(orders).toHaveLength(result.orders);
+    expect(orders?.[0]).toMatchObject({ publicReference: "DEMO-0001", currency: "PLN" });
+    expect(items).toHaveLength(result.items);
+    expect(items?.[0]).toMatchObject({
+      order: orders?.[0]?.id,
+      product: expect.stringMatching(/^id-/),
+    });
+    expect(items?.[0]).not.toHaveProperty("orderId");
+    expect(views?.[0]).toMatchObject({ product: expect.stringMatching(/^id-/) });
+    expect(traffic).toHaveLength(result.trafficRows);
+    expect(result.trafficRows).toBe(35 * 5);
+  });
+
+  it("prices lines from the seed catalog and leaves missing products out", async () => {
+    const stub = stubEntityManager({ missing: ["pulse-ultralight-mouse"] });
+    await seedDemoStore(stub.em, SEED_DATE);
+    const items = stub.insertMany.mock.calls[1]?.[1] as {
+      product: string;
+      unitPriceMinor: number;
+    }[];
+    expect(items.some((item) => item.product === "id-pulse-ultralight-mouse")).toBe(false);
+    const vortex = items.find((item) => item.product === "id-vortex-wireless-mouse");
+    expect(vortex?.unitPriceMinor).toBe(
+      DEMO_CATALOG.products.find((product) => product.slug === "vortex-wireless-mouse")?.priceMinor,
+    );
+  });
+
+  it("writes only the deletes and empty traffic when no demo product exists", async () => {
+    const stub = stubEntityManager({
+      missing: DEMO_CATALOG.products.map((product) => product.slug),
+    });
+    expect(await seedDemoStore(stub.em, SEED_DATE)).toEqual({
+      orders: 0,
+      items: 0,
+      trafficRows: 35 * 5,
+    });
+    expect(stub.insertMany).toHaveBeenCalledOnce();
   });
 });
 
 describe("DatabaseSeeder", () => {
-  it("seeds the demo catalog", async () => {
-    const stub = stubEntityManager();
-    await new DatabaseSeeder().run(stub.em);
-    expect(stub.upsert).toHaveBeenCalledTimes(
-      DEMO_CATALOG.categories.length + DEMO_CATALOG.products.length,
+  it("seeds the catalog, warns about skipped products and regenerates the demo store", async () => {
+    const stub = stubEntityManager({ missing: ["titan-mmo-mouse"] });
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    await new DatabaseSeeder(() => SEED_DATE).run(stub.em);
+    expect(warn).toHaveBeenCalledWith(
+      'Demo product "titan-mmo-mouse" was skipped: it could not be created or found.',
     );
+    expect(stub.insertMany).toHaveBeenCalled();
+    warn.mockRestore();
+  });
+
+  it("anchors the history on the current time by default", async () => {
+    const stub = stubEntityManager();
+    vi.useFakeTimers({ now: SEED_DATE, toFake: ["Date"] });
+    try {
+      await new DatabaseSeeder().run(stub.em);
+    } finally {
+      vi.useRealTimers();
+    }
+    const orders = stub.insertMany.mock.calls[0]?.[1] as { createdAt: Date }[];
+    expect(orders.at(-1)?.createdAt.getTime()).toBeLessThanOrEqual(SEED_DATE.getTime());
   });
 });

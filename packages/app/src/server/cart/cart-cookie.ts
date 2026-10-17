@@ -76,10 +76,17 @@ export function cartCookieOptions(appUrl: string) {
   };
 }
 
-/** The stored cart lines; an invalid cookie is an empty cart and a warning (without the value). */
-export async function readCartLines(): Promise<CartLine[]> {
+/**
+ * The stored cart lines; an invalid cookie is an empty cart and a warning (without the value).
+ * The header count, read on every storefront page, passes `logInvalid: false`: the cart and
+ * checkout pages and the cart actions still log it, and the next cart action replaces the
+ * cookie, so one bad cookie no longer writes a warning per page view (#48).
+ */
+export async function readCartLines(options: { logInvalid?: boolean } = {}): Promise<CartLine[]> {
   const decoded = decodeCart((await cookies()).get(CART_COOKIE)?.value);
-  if (!decoded.ok) logger.warn("Cart cookie ignored", { problem: decoded.problem });
+  if (!decoded.ok && options.logInvalid !== false) {
+    logger.warn("Cart cookie ignored", { problem: decoded.problem });
+  }
   return decoded.lines;
 }
 
