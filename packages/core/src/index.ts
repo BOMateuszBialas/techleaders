@@ -49,6 +49,7 @@ export * from "./services/metrics/get-low-stock-products.use-case";
 export * from "./services/metrics/get-order-summary.use-case";
 export * from "./services/metrics/get-sales-summary.use-case";
 export * from "./services/metrics/get-top-products.use-case";
+export * from "./services/traffic/get-traffic-summary.use-case";
 export * from "./services/orders/get-order-by-reference.use-case";
 export * from "./services/orders/list-admin-orders.use-case";
 export * from "./services/orders/order.dto";

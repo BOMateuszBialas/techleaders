@@ -1,13 +1,20 @@
 import { describe, expect, it } from "vitest";
 import {
   LOW_STOCK_THRESHOLD,
+  DEMO_TRAFFIC_METRIC_IDS,
   METRIC_DEFINITIONS,
   METRIC_IDS,
   PAID_ORDER_STATUSES,
   STORE_CURRENCY,
   TOP_PRODUCTS_LIMIT,
 } from "./metric-definitions";
-import { STORE_TIME_ZONE, averageOrderValue, previousPeriod, resolvePeriod } from "./metric-period";
+import {
+  STORE_TIME_ZONE,
+  averageOrderValue,
+  periodCalendarDays,
+  previousPeriod,
+  resolvePeriod,
+} from "./metric-period";
 
 const HOUR = 3_600_000;
 const DAY = 24 * HOUR;
@@ -126,6 +133,32 @@ describe("previousPeriod", () => {
   });
 });
 
+describe("periodCalendarDays", () => {
+  it("names the local days a period covers, both ends included", () => {
+    // 11–17 Oct 2026 in Warsaw starts at 2026-10-10T22:00Z: the UTC date is not the local one.
+    expect(periodCalendarDays(resolvePeriod("7d", new Date("2026-10-17T21:30:00.000Z")))).toEqual({
+      firstDay: "2026-10-11",
+      lastDay: "2026-10-17",
+    });
+    expect(periodCalendarDays(resolvePeriod("30d", new Date("2026-10-17T10:00:00.000Z")))).toEqual({
+      firstDay: "2026-09-18",
+      lastDay: "2026-10-17",
+    });
+  });
+
+  it("stays on local days across a DST switch and pads single digits", () => {
+    // Winter time starts on 25 Oct 2026; spring forward was on 29 Mar 2026.
+    expect(periodCalendarDays(resolvePeriod("7d", new Date("2026-10-27T08:00:00.000Z")))).toEqual({
+      firstDay: "2026-10-21",
+      lastDay: "2026-10-27",
+    });
+    expect(periodCalendarDays(resolvePeriod("7d", new Date("2026-04-02T08:00:00.000Z")))).toEqual({
+      firstDay: "2026-03-27",
+      lastDay: "2026-04-02",
+    });
+  });
+});
+
 describe("averageOrderValue", () => {
   it("is null when there are no paid orders (Not enough data)", () => {
     expect(averageOrderValue(0, 0)).toBeNull();
@@ -149,7 +182,20 @@ describe("METRIC_DEFINITIONS", () => {
       expect(definition.label).not.toBe("");
       expect(definition.definition.length).toBeGreaterThan(20);
     }
-    expect(Object.keys(METRIC_DEFINITIONS).sort()).toEqual([...METRIC_IDS].sort());
+    for (const id of DEMO_TRAFFIC_METRIC_IDS) {
+      expect(METRIC_DEFINITIONS[id].id).toBe(id);
+      expect(METRIC_DEFINITIONS[id].label).toContain("(demo)");
+    }
+    expect(Object.keys(METRIC_DEFINITIONS).sort()).toEqual(
+      [...METRIC_IDS, ...DEMO_TRAFFIC_METRIC_IDS].sort(),
+    );
+  });
+
+  it("states that demo traffic is fictional and conversion is never per source (D08, D09)", () => {
+    expect(METRIC_DEFINITIONS.sessionsDemo.definition).toContain("Fictional");
+    expect(METRIC_DEFINITIONS.storeConversionDemo.definition).toContain("not computed per source");
+    expect(METRIC_DEFINITIONS.storeConversionDemo.definition).toContain('"Not enough data"');
+    expect(METRIC_DEFINITIONS.viewToPurchaseRateDemo.definition).toContain("no rate");
   });
 
   it("names the statuses a paid order may have, and the ones revenue excludes", () => {

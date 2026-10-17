@@ -38,6 +38,6 @@ Recorded while implementing; see the PR body for the final list.
 ## Progress
 
 - [x] 12 Port, adapter, unit and integration tests
-- [ ] 13
+- [x] 13 GetTrafficSummaryUseCase, periodCalendarDays, demo metric definitions
 - [ ] 14
 - [ ] 15
