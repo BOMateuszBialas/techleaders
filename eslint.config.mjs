@@ -5,11 +5,23 @@ import prettier from "eslint-config-prettier/flat";
 
 const FRAMEWORK = ["next", "next/*", "react", "react/*", "react-dom", "react-dom/*"];
 const INFRASTRUCTURE = ["@mikro-orm/*", "awilix"];
+/** LLM vendor SDKs: only the adapters in `packages/ai/src/adapters/` may import them. */
+const LLM_SDKS = ["@google/genai", "@google/genai/*"];
+const LLM_SDK_MESSAGE =
+  "Only an LLM adapter (packages/ai/src/adapters/) may import a provider SDK; use LlmProviderPort.";
 
 /** One `no-restricted-imports` pattern group with the reason shown in the lint error. */
 function restrict(group, message) {
   return { group, message };
 }
+
+const AI_BOUNDARIES = [
+  restrict(FRAMEWORK, "ai must not depend on Next.js or React."),
+  restrict(
+    [...INFRASTRUCTURE, "@commerceos/database", "@commerceos/app"],
+    "ai reaches data only through core application services and ports.",
+  ),
+];
 
 const eslintConfig = defineConfig([
   ...nextVitals,
@@ -43,6 +55,7 @@ const eslintConfig = defineConfig([
               "core must not use the ORM or DI container; depend on a port instead.",
             ),
             restrict(["@commerceos/*"], "core depends on no other workspace package."),
+            restrict(LLM_SDKS, LLM_SDK_MESSAGE),
           ],
         },
       ],
@@ -57,27 +70,27 @@ const eslintConfig = defineConfig([
           patterns: [
             restrict(FRAMEWORK, "database must not depend on Next.js or React."),
             restrict(["@commerceos/app", "@commerceos/ai"], "database may depend on core only."),
+            restrict(LLM_SDKS, LLM_SDK_MESSAGE),
           ],
         },
       ],
     },
   },
+  // Two non-overlapping blocks (a later block would replace the earlier one's options): only
+  // the adapters may import a provider SDK.
   {
     files: ["packages/ai/src/**"],
+    ignores: ["packages/ai/src/adapters/**"],
     rules: {
       "no-restricted-imports": [
         "error",
-        {
-          patterns: [
-            restrict(FRAMEWORK, "ai must not depend on Next.js or React."),
-            restrict(
-              [...INFRASTRUCTURE, "@commerceos/database", "@commerceos/app"],
-              "ai reaches data only through core application services and ports.",
-            ),
-          ],
-        },
+        { patterns: [...AI_BOUNDARIES, restrict(LLM_SDKS, LLM_SDK_MESSAGE)] },
       ],
     },
+  },
+  {
+    files: ["packages/ai/src/adapters/**"],
+    rules: { "no-restricted-imports": ["error", { patterns: AI_BOUNDARIES }] },
   },
   {
     files: ["packages/app/src/**"],
@@ -91,6 +104,7 @@ const eslintConfig = defineConfig([
               ["@commerceos/database", "@mikro-orm/*"],
               "Only the composition root (src/server/container.ts) may use the database package; resolve a use case from the request scope instead.",
             ),
+            restrict(LLM_SDKS, LLM_SDK_MESSAGE),
           ],
         },
       ],

@@ -1,5 +1,10 @@
 import { afterAll, describe, expect, it, vi } from "vitest";
-import { AskCopilotUseCase, GetLowStockProductsTool } from "@commerceos/ai";
+import {
+  AskCopilotUseCase,
+  GeminiLlmProvider,
+  GetLowStockProductsTool,
+  UnconfiguredLlmProvider,
+} from "@commerceos/ai";
 import {
   AddToCartUseCase,
   ChangeOrderStatusUseCase,
@@ -20,6 +25,7 @@ import {
 } from "@commerceos/database";
 import {
   copilotLog,
+  createLlmProvider,
   createRequestScope,
   disposeRootContainer,
   getAuth,
@@ -36,6 +42,8 @@ vi.mock("./auth/create-auth", () => ({ createAuth: vi.fn(() => ({ stub: "auth" }
 // only resolve registrations.
 process.env.DATABASE_URL ??= "postgresql://postgres:postgres@localhost:5432/commerceos";
 process.env.BETTER_AUTH_SECRET ??= "unit-test-secret-unit-test-secret-1234";
+// Never a real provider in unit tests, whatever the developer's shell exports.
+process.env.LLM_PROVIDER = "";
 
 describe("composition root", () => {
   const first = createRequestScope();
@@ -58,8 +66,26 @@ describe("composition root", () => {
     expect(first.cradle.llmProvider).toBe(second.cradle.llmProvider);
   });
 
-  it("falls back to the unconfigured LLM provider until one is implemented", () => {
+  it("uses the unconfigured LLM provider when LLM_PROVIDER is unset", () => {
     expect(first.cradle.llmProvider.isConfigured).toBe(false);
+  });
+
+  it("selects the Gemini adapter only when the provider, key and model are all set", () => {
+    const gemini = createLlmProvider({
+      LLM_PROVIDER: "gemini",
+      LLM_API_KEY: "test-key",
+      LLM_MODEL: "flash",
+    });
+    expect(gemini instanceof GeminiLlmProvider).toBe(true);
+    expect(gemini.isConfigured).toBe(true);
+    for (const env of [
+      {},
+      { LLM_API_KEY: "test-key", LLM_MODEL: "flash" },
+      { LLM_PROVIDER: "gemini" as const, LLM_MODEL: "flash" },
+      { LLM_PROVIDER: "gemini" as const, LLM_API_KEY: "test-key" },
+    ]) {
+      expect(createLlmProvider(env) instanceof UnconfiguredLlmProvider).toBe(true);
+    }
   });
 
   it("wires the system health use case with the database check", () => {

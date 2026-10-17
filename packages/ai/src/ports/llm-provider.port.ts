@@ -13,12 +13,22 @@ export type StructuredGenerationRequest<T> = {
   /** Hard limits. Adapters must enforce them. */
   maxOutputTokens: number;
   timeoutMs: number;
+  /** The caller's overall deadline; aborting it fails the call with reason `timeout`. */
+  signal?: AbortSignal;
+};
+
+/** Token counts the provider reported; `null` when it reported none. */
+export type LlmUsage = {
+  inputTokens: number | null;
+  outputTokens: number | null;
+  thinkingTokens: number | null;
 };
 
 export type StructuredGenerationResult<T> = {
   data: T;
   model: string;
   latencyMs: number;
+  usage?: LlmUsage;
 };
 
 export interface LlmProviderPort {
@@ -29,9 +39,57 @@ export interface LlmProviderPort {
   ): Promise<StructuredGenerationResult<T>>;
 }
 
-/** The provider cannot be used (not configured, down, rate-limited). Callers show the fallback state. */
+/** Why the provider could not answer (Copilot spec, `GeminiLlmProvider`). */
+export const LLM_UNAVAILABLE_REASONS = [
+  "not_configured",
+  "timeout",
+  "rate_limited",
+  "provider_error",
+  "auth",
+  "refused",
+] as const;
+export type LlmUnavailableReason = (typeof LLM_UNAVAILABLE_REASONS)[number];
+
+export const LLM_PROVIDER_UNAVAILABLE = "LLM_PROVIDER_UNAVAILABLE";
+export const LLM_OUTPUT_INVALID = "LLM_OUTPUT_INVALID";
+
+/**
+ * The provider cannot be used (not configured, down, rate-limited, refused). Callers show the
+ * fallback state and never retry.
+ */
 export class LlmProviderUnavailableError extends AppError {
-  constructor(message: string, options?: ErrorOptions) {
-    super("LLM_PROVIDER_UNAVAILABLE", message, options);
+  readonly reason: LlmUnavailableReason;
+
+  constructor(message: string, options: ErrorOptions & { reason?: LlmUnavailableReason } = {}) {
+    const { reason = "provider_error", ...errorOptions } = options;
+    super(LLM_PROVIDER_UNAVAILABLE, message, errorOptions);
+    this.reason = reason;
   }
+}
+
+/**
+ * The provider answered, but not with JSON that matches the schema. It counts as an attempt:
+ * the caller may ask once more (Copilot spec A11).
+ */
+export class LlmOutputInvalidError extends AppError {
+  constructor(message: string, options?: ErrorOptions) {
+    super(LLM_OUTPUT_INVALID, message, options);
+  }
+}
+
+/**
+ * How a failed `generateStructured` call ended, matched by the stable `code` (never
+ * `instanceof`, which fails when a bundler duplicates the module). `null`: not an LLM failure.
+ */
+export function llmFailureOf(
+  error: unknown,
+): { kind: "unavailable"; reason: LlmUnavailableReason } | { kind: "invalid_output" } | null {
+  if (typeof error !== "object" || error === null || !("code" in error)) return null;
+  if (error.code === LLM_OUTPUT_INVALID) return { kind: "invalid_output" };
+  if (error.code !== LLM_PROVIDER_UNAVAILABLE) return null;
+  const reason = "reason" in error ? error.reason : undefined;
+  return {
+    kind: "unavailable",
+    reason: LLM_UNAVAILABLE_REASONS.find((known) => known === reason) ?? "provider_error",
+  };
 }
