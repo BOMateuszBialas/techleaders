@@ -16,7 +16,8 @@ export const orderStatusChangeSchema = z.object({
   to: z.enum(ORDER_STATUSES),
 });
 
-export type OrderStatusChangeRequest = z.input<typeof orderStatusChangeSchema>;
+/** What the status form posts: untrusted text, checked by the schema above. */
+export type OrderStatusChangeRequest = { orderId: string; from: string; to: string };
 
 /** Orders per admin list page (orders spec A7). */
 export const ADMIN_ORDERS_PAGE_SIZE = 25;

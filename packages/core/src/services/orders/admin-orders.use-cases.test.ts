@@ -302,7 +302,7 @@ describe("ChangeOrderStatusUseCase", () => {
   ])("refuses unknown statuses %j with the same message", async (request) => {
     const port = fakePort();
     const error = await rejection(
-      new ChangeOrderStatusUseCase({ orderAdminRepository: port }).execute(request as never),
+      new ChangeOrderStatusUseCase({ orderAdminRepository: port }).execute(request),
     );
     expect(error).toMatchObject({ message: TRANSITION_NOT_ALLOWED_MESSAGE, fieldErrors: {} });
     expect(port.changeStatus).not.toHaveBeenCalled();
