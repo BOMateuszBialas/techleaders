@@ -5,6 +5,7 @@ import {
   resolvePeriod,
   type Dashboard,
 } from "@commerceos/core";
+import { readFileSync } from "node:fs";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
@@ -196,5 +197,15 @@ describe("DashboardView", () => {
     expect(body).toContain(EMPTY_LOW_STOCK);
     expect(body).toContain(EMPTY_STORE_HINT);
     expect(body).not.toContain("Showing");
+  });
+});
+
+describe("README metric definitions", () => {
+  it("mirror METRIC_DEFINITIONS word for word", () => {
+    const readme = readFileSync(new URL("../../../../../../README.md", import.meta.url), "utf8");
+    for (const id of METRIC_IDS) {
+      const { label, definition } = METRIC_DEFINITIONS[id];
+      expect(readme).toContain(`| ${label} | ${definition} |`);
+    }
   });
 });
