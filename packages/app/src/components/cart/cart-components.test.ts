@@ -174,7 +174,8 @@ describe("CartLineView", () => {
 });
 
 describe("CartSummary", () => {
-  const props = { updateAction: serverAction, removeAction: serverAction };
+  const acceptAction = vi.fn(async () => {});
+  const props = { updateAction: serverAction, removeAction: serverAction, acceptAction };
 
   it("shows the empty state with a link to the catalog", () => {
     const html = renderToStaticMarkup(
@@ -185,7 +186,7 @@ describe("CartSummary", () => {
     expect(html).not.toContain("Subtotal");
   });
 
-  it("shows the notices, the lines, the subtotal and that checkout is coming soon", () => {
+  it("shows the changes with their accept button, the lines and the subtotal; checkout waits", () => {
     const cart = priceCart(
       [
         { productId: VORTEX_ID, quantity: 5 },
@@ -209,7 +210,30 @@ describe("CartSummary", () => {
     expect(html).toContain("A product in your cart is no longer available and was removed.");
     expect(html).toContain("747,00 zł");
     expect(html).toContain("Prices are confirmed at checkout.");
-    expect(html).toContain("Checkout is coming soon.");
+    expect(html).toContain("OK, update my cart");
+    // The stored cart must catch up first: its lines would not match the checkout.
+    expect(html).not.toContain('href="/checkout"');
     expect(html).toContain("cookies must be enabled");
+  });
+
+  it("links to the checkout when nothing needs correcting", () => {
+    const cart = priceCart(
+      [{ productId: VORTEX_ID, quantity: 1 }],
+      [
+        {
+          id: VORTEX_ID,
+          slug: "vortex-wireless-mouse",
+          name: "Vortex Wireless Mouse",
+          priceMinor: 24900,
+          currency: "PLN",
+          stockQuantity: 3,
+          status: "published",
+          imageUrl: null,
+        },
+      ],
+    );
+    const html = renderToStaticMarkup(createElement(CartSummary, { cart, ...props }));
+    expect(html).toContain('href="/checkout"');
+    expect(html).not.toContain("Your cart changed");
   });
 });

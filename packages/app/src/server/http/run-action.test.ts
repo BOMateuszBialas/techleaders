@@ -9,12 +9,18 @@ const dispose = vi.fn(async () => {});
 const cradle = { marker: "request-cradle" } as unknown as Cradle;
 
 vi.mock("../container", () => ({ createRequestScope: vi.fn() }));
+vi.mock("next/cache", () => ({ refresh: vi.fn() }));
 vi.mock("next/navigation", () => ({
+  redirect: vi.fn((url: string) => {
+    throw new Error(`NEXT_REDIRECT ${url}`);
+  }),
   // Like Next.js: rethrows its own control-flow errors, ignores everything else.
   unstable_rethrow: vi.fn((error: unknown) => {
     if (error instanceof Error && error.message.startsWith("NEXT_")) throw error;
   }),
 }));
+
+const { refresh } = await import("next/cache");
 
 const values = { productId: "p-1", quantity: "2" };
 
@@ -73,6 +79,28 @@ describe("runAction", () => {
       }),
     ).resolves.toEqual({ status: "error", message: GENERIC_ACTION_ERROR, values });
     expect(logger.error).toHaveBeenCalledWith("Action failed", { action: "cart.add", error });
+  });
+
+  it("redirects after the scope is disposed when the handler names a page", async () => {
+    await expect(
+      runAction("orders.place", values, async () => ({
+        event: "order.placed",
+        id: "order-1",
+        redirectTo: "/checkout/pay/CO-1",
+      })),
+    ).rejects.toThrow("NEXT_REDIRECT /checkout/pay/CO-1");
+    expect(dispose).toHaveBeenCalledOnce();
+    expect(logger.info).toHaveBeenCalledWith("order.placed", { id: "order-1" });
+  });
+
+  it("refreshes the page after a failure only when asked to", async () => {
+    const fail = async () => {
+      throw new ConflictError("Prices changed.");
+    };
+    await runAction("orders.place", values, fail);
+    expect(refresh).not.toHaveBeenCalled();
+    await runAction("orders.place", values, fail, { refreshOnError: true });
+    expect(refresh).toHaveBeenCalledOnce();
   });
 
   it("rethrows Next.js control flow and still disposes the scope", async () => {

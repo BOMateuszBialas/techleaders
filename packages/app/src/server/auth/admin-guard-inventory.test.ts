@@ -26,7 +26,7 @@ const srcDir = fileURLToPath(new URL("../../", import.meta.url));
 
 const SIGN_IN_ACTIONS = "server/auth/auth.action.ts";
 /** Public storefront actions: they change only the caller's own cart cookie (cart spec A12). */
-const SHOPPER_ACTIONS = ["server/cart/cart.action.ts"];
+const SHOPPER_ACTIONS = ["server/cart/cart.action.ts", "server/orders/order.action.ts"];
 const SOURCE = /\.(ts|tsx|js|jsx|mts|mjs)$/;
 const TEST = /\.test\.[a-z]+$/;
 

@@ -190,6 +190,12 @@ export class BrowserSession {
     return z.object({ value: z.string() }).parse(data).value;
   }
 
+  /** How many elements match a CSS selector (e.g. to prove no card field exists). */
+  async count(selector: string): Promise<number> {
+    const data = await this.command(["get", "count", selector]);
+    return z.object({ count: z.number() }).parse(data).count;
+  }
+
   async screenshot(path: string): Promise<void> {
     const absolute = resolve(path);
     mkdirSync(dirname(absolute), { recursive: true });

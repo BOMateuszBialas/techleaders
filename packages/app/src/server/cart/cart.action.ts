@@ -66,3 +66,16 @@ export async function removeCartLine(
     return { event: "cart.line.removed", id: values.productId, message: LINE_REMOVED_MESSAGE };
   });
 }
+
+/**
+ * Stores the cart as the cart page shows it (G12, G13): lines that sold out or were unpublished
+ * are dropped and quantities lowered to the stock. A page render cannot set cookies, so the
+ * shopper confirms the notices with this one-click form; the page then re-renders.
+ */
+export async function acceptCartChanges(_formData: FormData): Promise<void> {
+  await runAction("cart.accept_changes", {}, async ({ getCartUseCase }) => {
+    const cart = await getCartUseCase.execute({ lines: await readCartLines() });
+    await writeCartLines(cart.storedLines);
+    return { event: "cart.changes.accepted", id: "-", message: CART_UPDATED_MESSAGE };
+  });
+}

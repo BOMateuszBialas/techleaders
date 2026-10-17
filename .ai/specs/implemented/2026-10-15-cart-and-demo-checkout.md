@@ -1,7 +1,7 @@
 # Cart and demo checkout
 
 - Backlog: epic E02 ([#9](https://github.com/BOMateuszBialas/techleaders/issues/9)): E02-S01 ([#16](https://github.com/BOMateuszBialas/techleaders/issues/16)) cart, E02-S02 ([#17](https://github.com/BOMateuszBialas/techleaders/issues/17)) checkout, E02-S02-T01 ([#29](https://github.com/BOMateuszBialas/techleaders/issues/29)) orders migration, E02-S03 ([#18](https://github.com/BOMateuszBialas/techleaders/issues/18)) demo payment, confirmation and lookup
-- Status: draft, written autonomously (`om-spec-writing --autonomous`) on 2026-10-15; cross-model review and grill-me applied (2026-10-15). The defaults in "Resolved assumptions" need product-owner review before implementation; the ⚠ items (A5, A8, A15) were answered by the product owner on 2026-10-15: A5 and A8 confirmed, A15 changed to an order-lookup rate limit. Phase 1 (cart, #16) implemented on 2026-10-16 (see "Implementation notes: Phase 1"); Phases 2 and 3 follow in PR 2.
+- Status: draft, written autonomously (`om-spec-writing --autonomous`) on 2026-10-15; cross-model review and grill-me applied (2026-10-15). The defaults in "Resolved assumptions" need product-owner review before implementation; the ⚠ items (A5, A8, A15) were answered by the product owner on 2026-10-15: A5 and A8 confirmed, A15 changed to an order-lookup rate limit. **Implemented** on 2026-10-16: Phase 1 (cart, #16) in PR #45, Phases 2 and 3 (#29, #17, #18) in PR 2. See "Implementation notes" for the deviations.
 - Catalog examples (2026-10-16): every product, slug and SKU named here comes from the gaming-accessories demo seed (decision D10, `packages/database/src/seeders/DatabaseSeeder.ts`): `vortex-wireless-mouse` (249,00 zł, 25 in stock), `pulse-ultralight-mouse` (189,00 zł, 3 in stock), `titan-mmo-mouse` (out of stock). No coffee examples remain.
 - Design authority: `.ai/specs/product-brief.md` (D03, R03, R04, R07, N02), `.ai/specs/2026-10-13-commerceos-mvp.md` §3, §5, §7, §8, AGENTS.md "Database conventions" and "Security and validation"
 - Depends on: E01-S01 (#14), which provides the published-product pages that host the "Add to cart" button and (expected) a product read port
@@ -368,6 +368,25 @@ Shipped in PR 1 (closes #16). Deviations from the text above, each the smaller o
 - **Quantity input:** `max` is 99, not the stock: shoppers never see exact stock (storefront spec Q7) unless they ask for more than is left. Forms are `noValidate` so the server message shows.
 - **Header:** the cart link (`CartLink`, count from the cookie, Suspense fallback "Cart") sits next to the header menu in the storefront layout, leaving the menu's search slot untouched.
 - **Checkout entry:** `/cart` says "Checkout is coming soon." (text, not a disabled button) until PR 2.
+
+## 📝 Implementation notes: Phases 2 and 3 (2026-10-16)
+
+Shipped together in PR 2 (closes #29, #17, #18).
+
+- **Spike (step 8), confirmed by the integration tests:** MikroORM 7's `em.execute(sql, params)` inside `em.transactional` returns the `update … returning` rows (default mode), and a unique violation is a `DriverException` carrying the PostgreSQL `code` (`23505`) and `constraint` name, read structurally (`readConstraintViolation`, now exported from `catalog-write-error.ts`). Raw selects return `timestamptz` as strings.
+- **Two migrations** as planned: `Migration20261016132205_orders` (orders, order items) and `Migration20261016132222_rate_limit_buckets`, generated against a throwaway PostgreSQL 17 and reviewed; the drift test stays empty.
+- **References** are stored grouped (`CO-XXXXX-XXXXX-XXXXX-XXXXX`, 26 characters) and normalised from any spelling (case, spaces, missing dashes).
+- **Cart re-check at placement:** `PlaceOrderUseCase` prices the cookie's lines like the cart page. A line that must be corrected (sold out, unpublished, above the stock) is a `cart_changed` conflict whose message is the cart notices; this is also how the loser of a last-unit race usually fails once the winner has committed, so both outcomes name the product. The repository's conditional decrement stays authoritative (integration test "(b) at the row lock").
+- **Stale cookie (#48 item 1):** `acceptCartChanges`, a one-click "OK, update my cart" form on `/cart` and `/checkout`, stores the corrected cart, because a page render cannot set cookies. Until then the checkout shows the changes instead of the form, so the shopper never loops on "cart changed".
+- **Idempotency:** the post-failure lookup lives in the use case (not the repository): after any placement error it reads the order by key and returns it when the request fingerprint (SHA-256 of the cart fingerprint and the customer fields) matches. A duplicate key at the unique index is mapped to a `ConflictError` first.
+- **`runAction`** gained `redirectTo` (redirect after the try/catch) and `refreshOnError` (the checkout re-renders with fresh prices and a new idempotency key after a failure, G3).
+- **Rate limit (A15):** counted on `/orders/<reference>`, `/checkout/pay/<reference>` and in `confirmDemoPayment` (every read of an order by reference). `lookupOrder` only checks the format and redirects, so it reads nothing and is not counted separately (the order page counts it). The bucket key follows `AUTH_TRUSTED_IP_HEADER` exactly like admin sign-in; the limiter fails closed.
+- **Country and postal code:** `shippingCountry` accepts only `PL` (G6) and the postal code must look like `00-950`.
+- **Checkout decrements are not written to `stock_adjustments`** (the spec does not ask for it; the table records manual changes). Follow-up: an additive `source` column if the owner wants one history.
+- **Sanitized database errors (review of PR 2):** the order repository and the rate limiter replace MikroORM driver exceptions with `DatabaseOperationError` (operation, class, SQLSTATE, constraint), because the driver's message inlines the query parameters (customer data, the reference, a client IP) and the app logs unexpected errors.
+- **Idempotency before the cart (review of PR 2):** the key is looked up right after parsing the form, so a repeat whose cart cookie the first submit already cleared still gets its order.
+- **No access log:** `next start` writes no per-request log with paths; the reference in the URL is a known exposure only if a host adds one (README).
+- **For #22 (cancel):** the cancel transition must be `update orders … where status = 'pending_payment'` and restore stock in the same transaction (posted on the issue).
 
 ## 📝 Review log
 

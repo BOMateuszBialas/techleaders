@@ -76,7 +76,7 @@ Defined and validated in `packages/app/src/server/env.ts`; invalid configuration
 | `DATABASE_DEBUG` | no (`false`) | Log SQL queries |
 | `APP_URL` | no (`http://localhost:3000`); **yes in production** | Public base URL and the only origin trusted for sign-in |
 | `BETTER_AUTH_SECRET` | yes (32+ chars) | Signs Better Auth cookies and tokens |
-| `AUTH_TRUSTED_IP_HEADER` | no | Client-IP header set by a trusted proxy (e.g. `x-real-ip`). Unset: sign-in is rate-limited globally (20/min); set: 5/min per IP |
+| `AUTH_TRUSTED_IP_HEADER` | no | Client-IP header set by a trusted proxy (e.g. `x-real-ip`). Unset: sign-in is rate-limited globally (20/min) and order lookups to 120/min shared; set: 5/min per IP for sign-in, 30/min per IP for order lookups |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD` | CLI only | Read by `npm run admin:create` (password: 12+ chars), never by the app |
 | `NODE_ENV` | no | Standard Node environment |
 
@@ -116,7 +116,9 @@ Not configured yet. The LLM provider port and the response schema (`packages/ai`
 
 ## Payments
 
-Not implemented yet. The plan is Stripe Checkout in **test mode** if feasible within the timeline; otherwise a clearly labelled demo-payment flow. Card details will never be collected or stored by CommerceOS.
+**Demo payment only** (decision D03). After "Place order" the shopper sees `/checkout/pay/<reference>` with the banner "Demo store — this is a demo payment. No real money is charged and no card details are collected." and one button, "Confirm demo payment (no charge)". It goes through the `PaymentGateway` port to `DemoPaymentGateway` (`packages/app/src/server/payments/`), which contacts no provider, charges nothing and returns `DEMO-PAY-<order id>`. No card field exists anywhere and no card data is stored. Stripe (test mode) is a P1 option behind the same port; it is not integrated.
+
+Purchase flow: cart → `/checkout` (guest: name, email, address in Poland; prices and stock re-checked on the server) → `/checkout/pay/<reference>` → `/orders/<reference>?paid=1`. `/orders/lookup` finds an order again by its reference.
 
 ## MVP scope
 
@@ -155,7 +157,13 @@ Not implemented yet. The plan is Stripe Checkout in **test mode** if feasible wi
   - Up to 20 different products and 99 of each; one currency per cart.
   - A product that is unpublished or sold out while in a cart disappears from it, and a quantity above the stock is lowered to it, each with a message on the cart page. The cookie itself is corrected by the next cart change (a page render cannot set cookies), so until then the message shows again and the header count may include the removed item.
   - Checkout is not available yet: the cart page says "Checkout is coming soon."
-- No LLM provider, payments or checkout yet.
+- **Checkout and orders:**
+  - **Stock is decremented when the order is placed**, before payment, and an unpaid order keeps it (spec A5). There is no expiry and no cancel yet (the admin order workflow, E04, adds cancel with restock). Anyone can therefore hold stock with unpaid orders; checkout is not rate-limited. Fine for a local demo; add an expiry or a checkout limit before any public hosting.
+  - The order reference (`CO-XXXXX-XXXXX-XXXXX-XXXXX`, 100 random bits) is a **bearer secret**: whoever has it sees the order's status, items and totals (never the name, email or address). It is part of the URL, so a hosting provider's access log could record it; the app's own logger never does. Order pages are `noindex` and send no referrer.
+  - **Order lookups are rate-limited** (the order and payment pages and the payment button): 30 per minute per client IP when `AUTH_TRUSTED_IP_HEADER` is set, otherwise 120 per minute shared by everyone (a flood can briefly block lookups for all; set the header in any public deployment). Over the limit the page says "Too many lookups. Try again in a minute."
+  - No email is sent: the confirmation tells the shopper to save the reference. Shipping is free, there is no tax, and only Poland is accepted (postal code `NN-NNN`).
+  - A checkout decrement is not listed in the admin stock history (manual changes only).
+- No LLM provider yet.
 - `npm audit` reports advisories in development tooling dependencies (e.g. `braces` via linting and test tooling); they do not affect runtime code and are tracked for a later update.
 
 ## Roadmap

@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { IDLE_ACTION_STATE } from "@/lib/action-state";
 import { createRequestScope } from "../container";
 import { logger } from "../logger";
-import { addToCart, removeCartLine, updateCartLine } from "./cart.action";
+import { acceptCartChanges, addToCart, removeCartLine, updateCartLine } from "./cart.action";
 import { readCartLines, writeCartLines } from "./cart-cookie";
 
 const VORTEX_ID = "7a2d3b63-7e1f-4b9c-8b62-4a4b2c2c3e01";
@@ -13,6 +13,7 @@ const next = [{ productId: VORTEX_ID, quantity: 2 }];
 const addToCartUseCase = { execute: vi.fn() };
 const updateCartLineUseCase = { execute: vi.fn() };
 const removeCartLineUseCase = { execute: vi.fn() };
+const getCartUseCase = { execute: vi.fn() };
 const dispose = vi.fn(async () => {});
 
 vi.mock("../container", () => ({ createRequestScope: vi.fn() }));
@@ -28,7 +29,7 @@ function form(fields: Record<string, string>): FormData {
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(createRequestScope).mockReturnValue({
-    cradle: { addToCartUseCase, updateCartLineUseCase, removeCartLineUseCase },
+    cradle: { addToCartUseCase, updateCartLineUseCase, removeCartLineUseCase, getCartUseCase },
     dispose,
   } as never);
   vi.mocked(readCartLines).mockResolvedValue(stored);
@@ -90,5 +91,12 @@ describe("cart actions (public shopper actions, no session)", () => {
       request: { productId: VORTEX_ID },
     });
     expect(writeCartLines).toHaveBeenCalledWith([]);
+  });
+
+  it("acceptCartChanges stores the corrected cart the page shows", async () => {
+    getCartUseCase.execute.mockResolvedValue({ storedLines: next });
+    await expect(acceptCartChanges(new FormData())).resolves.toBeUndefined();
+    expect(getCartUseCase.execute).toHaveBeenCalledWith({ lines: stored });
+    expect(writeCartLines).toHaveBeenCalledWith(next);
   });
 });
