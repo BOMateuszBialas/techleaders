@@ -149,12 +149,24 @@ describe("AddToCartUseCase", () => {
   it("validates the input before any query", async () => {
     const repository = catalog();
     const error = await rejection(
-      add(repository).execute({ lines: [], request: { productId: "x", quantity: "0" } }),
+      add(repository).execute({ lines: [], request: { productId: VORTEX_ID, quantity: "0" } }),
     );
     expect(error).toMatchObject({
       message: INVALID_FIELDS_MESSAGE,
-      fieldErrors: { productId: [CART_PRODUCT_MESSAGE], quantity: [CART_QUANTITY_MESSAGE] },
+      fieldErrors: { quantity: [CART_QUANTITY_MESSAGE] },
     });
+    expect(repository.idLookups).toEqual([]);
+  });
+
+  it("refuses a forged product id with a form-level message, nothing to highlight (#48)", async () => {
+    const repository = catalog();
+    for (const productId of ["x", ""]) {
+      const error = await rejection(
+        add(repository).execute({ lines: [], request: { productId, quantity: "0" } }),
+      );
+      expect(hasAppErrorCode(error, "VALIDATION_FAILED")).toBe(true);
+      expect(error).toMatchObject({ message: CART_PRODUCT_MESSAGE, fieldErrors: {} });
+    }
     expect(repository.idLookups).toEqual([]);
   });
 
@@ -218,6 +230,13 @@ describe("UpdateCartLineUseCase", () => {
     );
     expect(hasAppErrorCode(error, "NOT_FOUND")).toBe(true);
   });
+
+  it("refuses a forged product id with a form-level message (#48)", async () => {
+    const error = await rejection(
+      update().execute({ lines, request: { productId: "not-a-uuid", quantity: "abc" } }),
+    );
+    expect(error).toMatchObject({ message: CART_PRODUCT_MESSAGE, fieldErrors: {} });
+  });
 });
 
 describe("RemoveCartLineUseCase", () => {
@@ -234,6 +253,7 @@ describe("RemoveCartLineUseCase", () => {
     });
     const error = await rejection(remove.execute({ lines, request: { productId: "nope" } }));
     expect(hasAppErrorCode(error, "VALIDATION_FAILED")).toBe(true);
+    expect(error).toMatchObject({ message: CART_PRODUCT_MESSAGE, fieldErrors: {} });
   });
 });
 

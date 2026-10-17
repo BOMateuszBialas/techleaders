@@ -1,5 +1,7 @@
 import { z } from "zod";
 import { CART_LIMITS } from "../../domain/cart/cart";
+import { ValidationError } from "../../errors/app-error";
+import { parseInput } from "../parse-input";
 
 export const CART_QUANTITY_MESSAGE = `Enter a whole number from 1 to ${CART_LIMITS.maxQuantity}.`;
 
@@ -49,6 +51,18 @@ export const updateCartLineSchema = z.object({
 
 /** The line to remove (`removeCartLine`). */
 export const removeCartLineSchema = z.object({ productId: productIdSchema });
+
+/**
+ * Parses a cart action's input. The product id is a hidden field, so a malformed one (only a
+ * forged request sends it) is a form-level "This product is not available." with nothing to
+ * highlight, never "Check the highlighted fields." (#48). Other fields go through `parseInput`.
+ */
+export function parseCartLineInput<T>(schema: z.ZodType<T>, input: { productId?: unknown }): T {
+  if (!productIdSchema.safeParse(input.productId).success) {
+    throw new ValidationError(CART_PRODUCT_MESSAGE);
+  }
+  return parseInput(schema, input);
+}
 
 /** What the add form posts: text from a form, or numbers; the quantity may be left out. */
 export type AddToCartRequest = { productId: string; quantity?: string | number };

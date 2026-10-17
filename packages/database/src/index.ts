@@ -6,6 +6,7 @@ export * from "./adapters/database-catalog-repository";
 export * from "./adapters/database-category-repository";
 export * from "./adapters/database-product-repository";
 export * from "./adapters/database-stock-repository";
+export * from "./adapters/database-store-metrics";
 export * from "./adapters/database-order-repository";
 export * from "./adapters/database-order-admin-repository";
 export * from "./adapters/database-rate-limiter";

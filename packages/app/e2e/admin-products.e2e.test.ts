@@ -45,6 +45,8 @@ describe("admin products", () => {
     it("lists every product by name with availability and Featured badges", async () => {
       await signIn();
       await browser().clickRole("link", "Products");
+      // The dashboard lists Titan under "Low stock" too: wait for the products page itself.
+      await browser().waitForUrl("**/admin/products");
       await browser().waitForText("Titan MMO Mouse");
 
       expect(new URL(await browser().url()).pathname).toBe("/admin/products");

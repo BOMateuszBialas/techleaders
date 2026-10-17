@@ -46,7 +46,7 @@ Non-goals: metrics, dashboard, `clock` registration (Phase 3, lane B); demo seed
 - **`orderId` is a plain string in the schema**, not `z.uuid()` as the spec's API Contracts say: a malformed id is answered as "Order not found." by the use case (`isUuid`), like every other admin record (intentional deviation, review of #50).
 - **"Items" column = units** (sum of quantities), matching the cancel message "Stock was returned for N items".
 - **No `clock` registration**: the spec lists it for Phase 3 (metric periods); lane B adds it with the dashboard.
-- **E2E sign-in limit reset** (`e2e/support/sign-in.ts`): the first full gate failed only in `admin.e2e.test.ts` (sign-out test timed out at sign-in: the shared 20/min limit). The helper now clears `admin_rate_limits` in the throwaway e2e database before each sign-in; the limiter stays covered by the auth integration tests. Out of the strict Phase 1 scope, but every later e2e suite (lane B's dashboard) needs it.
+- **E2E sign-in limit reset** (`e2e/support/sign-in.ts`): the first full gate failed only in `admin.e2e.test.ts` (sign-out test timed out at sign-in: the shared 20/min limit). The helper now clears `admin_rate_limits` in the throwaway e2e database before each sign-in; the limiter stays covered by the auth integration tests. Superseded when `origin/main` was merged in: lane B's #51 added a shared owner session (`useOwnerSession`, signed in once by the global setup), so the reset was dropped and `admin-orders.e2e.test.ts` uses the shared session. The purchase-test race fix also landed on `main` (#51) in the same shape.
 - **#22's AC** already carried the A3 note; the run also listed the full transition table in it and linked this spec.
 
 ## Outcome

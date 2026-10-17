@@ -1,9 +1,9 @@
 import { cartItemCount, removeLine, type CartLine } from "../../domain/cart/cart";
 import {
+  parseCartLineInput,
   removeCartLineSchema,
   type RemoveCartLineRequest,
 } from "../../validators/cart/cart-line.schema";
-import { parseInput } from "../../validators/parse-input";
 import type { CartChange } from "./load-priced-cart";
 
 /**
@@ -15,7 +15,7 @@ export class RemoveCartLineUseCase {
     lines: readonly CartLine[];
     request: RemoveCartLineRequest;
   }): Promise<CartChange> {
-    const { productId } = parseInput(removeCartLineSchema, input.request);
+    const { productId } = parseCartLineInput(removeCartLineSchema, input.request);
     const lines = removeLine(input.lines, productId);
     return { lines, itemCount: cartItemCount(lines) };
   }

@@ -26,10 +26,8 @@ describe("storefront purchase with the demo payment (E02-S03)", () => {
     await browser().open("/products?category=headsets");
     await browser().waitForText("Echo Surround Headset");
     await browser().clickRole("link", "Echo Surround Headset");
-    // The listing's product cards have their own "Add to cart", so waiting for that text can
-    // pass before the product page has loaded: wait for the product page's URL and form.
     await browser().waitForUrl("**/products/echo-surround-headset");
-    await browser().waitForText("Quantity");
+    await browser().waitForText("Add to cart");
     await browser().clickRole("button", "Add to cart");
     await browser().waitForText("Added to cart.");
 

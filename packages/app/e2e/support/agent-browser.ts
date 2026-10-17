@@ -151,6 +151,21 @@ export class BrowserSession {
     }
   }
 
+  /** Sets every `name=value` pair of a `Cookie` header on this session's base URL. */
+  async setCookieHeader(header: string): Promise<void> {
+    for (const pair of header.split("; ")) {
+      const separator = pair.indexOf("=");
+      await this.command([
+        "cookies",
+        "set",
+        pair.slice(0, separator),
+        pair.slice(separator + 1),
+        "--url",
+        this.baseUrl,
+      ]);
+    }
+  }
+
   async setViewport(width: number, height: number): Promise<void> {
     await this.command(["set", "viewport", String(width), String(height)]);
   }

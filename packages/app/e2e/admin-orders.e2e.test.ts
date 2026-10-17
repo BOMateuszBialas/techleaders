@@ -1,19 +1,20 @@
 import { describe, expect, it } from "vitest";
 import { useBrowser } from "./support/browser-test";
-import { signInAsOwner } from "./support/sign-in";
+import { useOwnerSession } from "./support/sign-in";
 
 const REFERENCE = /CO-[0-9A-HJKMNP-TV-Z]{5}(-[0-9A-HJKMNP-TV-Z]{5}){3}/;
 const ORDER_PAGE = /^\/admin\/orders\/[0-9a-f-]{36}$/;
 const ORDERS_TABLE = "main table";
-const PRODUCT = "Retro Wired Controller"; // 99,00 zł, 40 in stock; no other suite counts on it
+const PRODUCT = "Retro Wired Controller"; // 99,00 zł, 40 in stock; stock checks here are relative
 
 /**
  * Admin orders (orders spec, Phase 1, E04-S01 #22): orders placed through the storefront show
  * up newest first; the detail shows snapshots, totals, the customer and the payment; the status
  * moves through the transition table; cancelling an unpaid order returns its stock.
  *
- * One browser for the file. The owner signs in once (the e2e sign-in rate limit is shared by
- * the run) and the later tests keep that session; the shopper's cart cookie lives beside it.
+ * One browser for the file. It takes the owner session the global setup signed in once (the
+ * e2e sign-in budget is shared by the run), and the later tests keep it; the shopper's cart
+ * cookie lives beside it.
  */
 describe("admin orders (E04-S01)", () => {
   const browser = useBrowser();
@@ -68,7 +69,8 @@ describe("admin orders (E04-S01)", () => {
   });
 
   it("lists a paid order first and walks it paid → processing → shipped", async () => {
-    await signInAsOwner(browser());
+    await useOwnerSession(browser());
+    await browser().open("/admin");
     await browser().waitForText("Signed in as");
     expect(await browser().text('nav[aria-label="Admin"]')).toContain("Orders");
 

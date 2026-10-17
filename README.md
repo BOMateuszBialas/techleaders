@@ -58,7 +58,7 @@ Verify the setup:
 
 - http://localhost:3000: storefront home with a hero, featured products (tabs: `/?category=<slug>`), a header menu and a footer
 - http://localhost:3000/products: published products, filterable with `?category=<slug>` and searchable with `?q=<term>` (the header search box and the listing's search form); http://localhost:3000/products/vortex-wireless-mouse: a product page
-- http://localhost:3000/admin: redirects to `/admin/sign-in`; after signing in as the owner, the dashboard with live system status
+- http://localhost:3000/admin: redirects to `/admin/sign-in`; after signing in as the owner, the dashboard: store metrics for the last 7 days (`?period=30d` for 30 days), each with its definition, and the live system status
 - http://localhost:3000/admin/products and http://localhost:3000/admin/categories (signed in): catalog management. Create and edit products and categories, publish or unpublish a product (the page says what shoppers will see), and tick "Featured on home page" to put a published product in the home page slider
 - http://localhost:3000/api/health: returns `200 {"status":"ok",...}` when the database is reachable, `503 {"status":"degraded",...}` otherwise
 
@@ -120,6 +120,25 @@ Not configured yet. The LLM provider port and the response schema (`packages/ai`
 
 Purchase flow: cart → `/checkout` (guest: name, email, address in Poland; prices and stock re-checked on the server) → `/checkout/pay/<reference>` → `/orders/<reference>?paid=1`. `/orders/lookup` finds an order again by its reference.
 
+## Store metrics (admin dashboard)
+
+`/admin` shows the store's metrics for **"Last 7 days"** (default) or **"Last 30 days"** (`/admin?period=7d|30d`; any other value means 7 days): whole calendar days in the store time zone **Europe/Warsaw**, today included. Each card prints its definition next to the number. The definitions below are a product rule (R05, orders spec A8, confirmed by the product owner); they live once in `packages/core/src/domain/metrics/metric-definitions.ts`, the SQL in `packages/database/src/adapters/database-store-metrics.ts` implements them, and the Commerce Copilot tools (E05) will call the same use cases (`GetSalesSummaryUseCase`, `GetOrderSummaryUseCase`, `GetTopProductsUseCase`, `GetLowStockProductsUseCase`). Change them only together.
+
+| Metric | Definition |
+| --- | --- |
+| Orders placed | Orders created in the period, in any status and any currency, split by their current status. |
+| Paid orders | Orders in PLN with a payment date inside the period and a status of paid, processing or shipped. |
+| Revenue from paid orders | Sum of the totals of paid orders (shipping included, it is always 0; no tax exists). Cancelled and refunded orders are excluded, also when they were once paid, so marking an order refunded lowers the revenue of the period it was paid in. |
+| Average order value | Revenue ÷ paid orders, rounded half up to a whole grosz; "Not enough data" when there are no paid orders. |
+| Top products | Line items of paid orders in the period, ranked by units, then revenue, then name; top 5. |
+| Low stock | Published products with 5 or fewer in stock now, out-of-stock included. |
+
+- Metrics cover the store currency (PLN) only; paid orders in another currency are left out and counted in a note ("N orders in other currencies are not included."). "Orders placed" counts every currency.
+- An order placed before the period but paid inside it counts in revenue (by payment date) and not in "Orders placed" (by creation date).
+- Seeded demo orders (`DEMO-` references) count like real ones; the dashboard says "Includes N seeded demo orders (fictional)." whenever the period has any (placed or paid in it).
+- A deleted product keeps its sales in "Top products" under the name on its order lines (one row per name it was sold under), marked "(deleted product)".
+- Every figure comes from SQL aggregates at request time (AOV is divided from them); nothing is cached or precomputed.
+
 ## MVP scope
 
 - **Storefront:** catalog, search/filter, cart, server-validated checkout, order confirmation.
@@ -170,6 +189,9 @@ Purchase flow: cart → `/checkout` (guest: name, email, address in Poland; pric
   - **There is no manual "mark as paid"**: an order becomes paid only through the payment flow (the demo payment), so the admin can never create a payment that did not happen (decision A3).
   - Each change applies only while the order still has the status the page showed; if it changed meanwhile (another tab, or the shopper paid while the owner cancelled), the page says "This order changed to … in the meantime" and shows the current status. Cancel and refund need a confirmation tick.
   - The restock of a cancelled order is not listed in the stock history (manual changes only), and there is no status history: the page shows when the order was placed, paid and last updated.
+- **Dashboard:**
+  - Two fixed periods only (last 7 or 30 days); no custom range or comparison (P1). The low-stock threshold is 5 on the dashboard (the use case takes 1–1000 for the Copilot). The low-stock card lists 10 products and says "Showing 10 of N" when there are more.
+  - No demo traffic is shown (the fictional traffic data is for the Copilot, D08).
 - No LLM provider yet.
 - `npm audit` reports advisories in development tooling dependencies (e.g. `braces` via linting and test tooling); they do not affect runtime code and are tracked for a later update.
 

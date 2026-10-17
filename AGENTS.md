@@ -107,7 +107,7 @@ Do not add libraries without a stated reason. TS 7 and ESLint 10 were deliberate
 - Output follows the `CopilotRecommendation` schema (title, priority, observation, evidence[], reasoning, suggestedAction, relatedProductIds?, limitations?). Validate at runtime, retry a bounded number of times, then fall back safely.
 - Grounding: every metric value and product ID must come from tool results. Never invent data or claim causation from correlation.
 - Treat prompts and product content as untrusted (prompt injection). Send the minimum data needed, never credentials or unnecessary personal data. Set timeouts and limits. Never render model output as HTML.
-- Metric definitions (revenue, paid orders, AOV, top products, low stock) are documented in both the code and the UI.
+- Metric definitions (revenue, paid orders, AOV, top products, low stock) are documented in both the code and the UI: one source, `METRIC_DEFINITIONS` in `packages/core/src/domain/metrics/metric-definitions.ts`, printed on `/admin` and mirrored in the README. The Copilot tools call the metric use cases in `packages/core/src/services/metrics/` unchanged; never compute a metric a second way.
 - All LLM access goes through `LlmProviderPort` (`packages/ai`). Without credentials the app uses `UnconfiguredLlmProvider`, which fails explicitly; the UI must then show a clear fallback state or deterministic rule-based insights, never a fabricated answer.
 - Evaluation: keep a version-controlled eval set (in `packages/ai`) that covers factual grounding, invalid output, insufficient data, prompt injection in product content, and provider failure. Assert properties, not exact wording.
 
