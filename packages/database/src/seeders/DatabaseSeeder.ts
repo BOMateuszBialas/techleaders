@@ -1,16 +1,28 @@
-import type { ProductStatus } from "@commerceos/core";
-import type { EntityManager } from "@mikro-orm/core";
+import { DEMO_ORDER_REFERENCE_LIKE, type ProductStatus } from "@commerceos/core";
+import type { EntityManager } from "@mikro-orm/postgresql";
 import { Seeder } from "@mikro-orm/seeder";
 import { CategorySchema } from "../entities/categories/category.entity";
+import { OrderItemSchema } from "../entities/orders/order-item.entity";
+import { OrderSchema } from "../entities/orders/order.entity";
 import { ProductSchema } from "../entities/products/product.entity";
+import { ProductViewDailyStatSchema } from "../entities/traffic/product-view-daily-stat.entity";
+import { TrafficDailyStatSchema } from "../entities/traffic/traffic-daily-stat.entity";
+import { generateDemoStore, type DemoStoreProduct } from "./demo-store";
 
 /**
- * Local development / demo seed data: a fictional gaming-accessories store (decision D10).
- * All records are clearly marked as demo content ("[DEMO]" in descriptions, "DEMO-" SKUs).
+ * Local development / demo seed data: a fictional gaming-accessories store (decision D10) with
+ * a fictional order history and traffic (orders spec Phase 2, E04-S03; D08). All records are
+ * clearly marked as demo content ("[DEMO]" in descriptions and customer names, "DEMO-" SKUs and
+ * order references).
  *
- * Repeatable: records are upserted by their unique slug, so running the seed
- * again updates them instead of creating duplicates. It never deletes, so rows removed from
- * this file (for example the old coffee catalog) stay in an existing database until it is reset.
+ * Repeatable (orders spec A18):
+ * - The catalog is **insert-only**: categories and products missing by slug are created; rows
+ *   that exist are never updated, so the owner's edits (stock, Featured, price, status) survive
+ *   a re-seed and the stock history stays consistent. Seed changes to an existing demo product
+ *   therefore reach only a fresh database.
+ * - The demo orders (`DEMO-` references) and both traffic tables are **regenerated** on every
+ *   run, in one transaction, re-anchored to the seed date. Real (`CO-`) orders are never touched.
+ * Catalog rows are never deleted, so rows removed from this file stay until the database is reset.
  */
 type SeedCategory = { slug: string; name: string; description: string };
 type SeedProduct = {
@@ -224,47 +236,134 @@ const demoProducts = [
 
 export const DEMO_CATALOG: SeedCatalog = { categories: demoCategories, products: demoProducts };
 
-/**
- * Upserts a catalog by unique slug. Throws when a product references a
- * category that is not part of the same catalog.
- */
-export async function seedCatalog(em: EntityManager, catalog: SeedCatalog): Promise<void> {
-  const categoryIds = new Map<string, string>();
-  for (const category of catalog.categories) {
-    const saved = await em.upsert(CategorySchema, { ...category }, { onConflictFields: ["slug"] });
-    categoryIds.set(category.slug, saved.id);
-  }
+/** Product slugs the catalog seed could not create or find (reported, never a crash). */
+export type SeedCatalogResult = { skipped: string[] };
 
-  for (const {
-    category,
-    status,
-    featured,
-    imageUrl,
-    description,
-    ...product
-  } of catalog.products) {
-    const categoryId = categoryIds.get(category);
-    if (!categoryId) throw new Error(`Seed category "${category}" missing`);
-    const text = description ?? `${product.name}. Seed data for local development.`;
-    await em.upsert(
-      ProductSchema,
-      {
-        ...product,
-        description: `[DEMO] ${text}`,
-        currency: "PLN",
-        status: status ?? "published",
-        featured: featured ?? false,
-        imageUrl: imageUrl ?? null,
-        category: categoryId,
-      },
-      { onConflictFields: ["slug"] },
-    );
+/**
+ * Inserts the categories and products that are missing by slug (`on conflict do nothing`, so a
+ * row that exists, or a product whose SKU now collides with an owner's product, is left alone).
+ * A product whose category cannot be found, or that is still missing after the insert, is
+ * skipped and named in the result. Existing rows are never updated (orders spec A18).
+ */
+export async function seedCatalog(
+  em: EntityManager,
+  catalog: SeedCatalog,
+): Promise<SeedCatalogResult> {
+  if (catalog.categories.length > 0) {
+    await em
+      .createQueryBuilder(CategorySchema)
+      .insert(catalog.categories.map((category) => ({ ...category })))
+      .onConflict()
+      .ignore()
+      .execute();
   }
-  await em.flush();
+  const categories = await em.find(CategorySchema, {
+    slug: { $in: [...new Set(catalog.products.map((product) => product.category))] },
+  });
+  const categoryIds = new Map(categories.map((category) => [category.slug, category.id]));
+
+  const skipped: string[] = [];
+  const rows = catalog.products.flatMap(
+    ({ category, status, featured, imageUrl, description, ...product }) => {
+      const categoryId = categoryIds.get(category);
+      if (!categoryId) {
+        skipped.push(product.slug);
+        return [];
+      }
+      const text = description ?? `${product.name}. Seed data for local development.`;
+      return [
+        {
+          ...product,
+          description: `[DEMO] ${text}`,
+          currency: "PLN" as const,
+          status: status ?? ("published" as const),
+          featured: featured ?? false,
+          imageUrl: imageUrl ?? null,
+          category: categoryId,
+        },
+      ];
+    },
+  );
+  if (rows.length > 0) {
+    await em.createQueryBuilder(ProductSchema).insert(rows).onConflict().ignore().execute();
+    const found = await em.find(ProductSchema, { slug: { $in: rows.map((row) => row.slug) } });
+    const present = new Set(found.map((product) => product.slug));
+    skipped.push(...rows.map((row) => row.slug).filter((slug) => !present.has(slug)));
+  }
+  return { skipped };
+}
+
+export type SeedDemoStoreResult = { orders: number; items: number; trafficRows: number };
+
+/**
+ * Regenerates the demo order history and the fictional traffic (orders spec Phase 2) in one
+ * transaction: deletes the `DEMO-` orders (their items cascade) and every traffic row, then
+ * inserts what `generateDemoStore` builds for `seedDate`. Lines are priced from the seed
+ * catalog (the snapshot a demo order was "placed" with) and point at the products found by
+ * slug; a demo product missing from the database is left out. No stock changes: the seeded
+ * stock is the stock after this history (A15).
+ */
+export async function seedDemoStore(
+  em: EntityManager,
+  seedDate: Date,
+  catalog: SeedCatalog = DEMO_CATALOG,
+): Promise<SeedDemoStoreResult> {
+  const found = await em.find(ProductSchema, {
+    slug: { $in: catalog.products.map((product) => product.slug) },
+  });
+  const ids = new Map(found.map((product) => [product.slug, product.id]));
+  const products: DemoStoreProduct[] = catalog.products.flatMap((product) => {
+    const id = ids.get(product.slug);
+    if (!id) return [];
+    const { slug, name, sku, priceMinor } = product;
+    return [{ slug, id, name, sku, priceMinor }];
+  });
+  const store = generateDemoStore({ seedDate, products });
+
+  await em.transactional(async (tx) => {
+    await tx.execute("delete from orders where public_reference like ?", [
+      DEMO_ORDER_REFERENCE_LIKE,
+    ]);
+    await tx.execute("delete from product_view_daily_stats");
+    await tx.execute("delete from traffic_daily_stats");
+    if (store.orders.length > 0) {
+      await tx.insertMany(OrderSchema, store.orders);
+      await tx.insertMany(
+        OrderItemSchema,
+        store.items.map(({ orderId, productId, ...item }) => ({
+          ...item,
+          order: orderId,
+          product: productId,
+        })),
+      );
+    }
+    if (store.productViewRows.length > 0) {
+      await tx.insertMany(
+        ProductViewDailyStatSchema,
+        store.productViewRows.map(({ productId, ...row }) => ({ ...row, product: productId })),
+      );
+    }
+    await tx.insertMany(TrafficDailyStatSchema, store.trafficRows);
+  });
+  return {
+    orders: store.orders.length,
+    items: store.items.length,
+    trafficRows: store.trafficRows.length,
+  };
 }
 
 export class DatabaseSeeder extends Seeder {
+  /** The day the demo history ends on: now, or a fixed day in tests. */
+  constructor(private readonly seedDate: () => Date = () => new Date()) {
+    super();
+  }
+
   async run(em: EntityManager): Promise<void> {
-    await seedCatalog(em, DEMO_CATALOG);
+    const { skipped } = await seedCatalog(em, DEMO_CATALOG);
+    for (const slug of skipped) {
+      // Output of the dev-only seed command (like `cli/seed.ts`), not server logging.
+      console.warn(`Demo product "${slug}" was skipped: it could not be created or found.`);
+    }
+    await seedDemoStore(em, this.seedDate());
   }
 }
