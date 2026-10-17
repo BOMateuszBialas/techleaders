@@ -1,4 +1,5 @@
 import { afterAll, describe, expect, it, vi } from "vitest";
+import { AskCopilotUseCase, GetLowStockProductsTool } from "@commerceos/ai";
 import {
   AddToCartUseCase,
   ChangeOrderStatusUseCase,
@@ -17,7 +18,13 @@ import {
   DatabaseStockRepository,
   DatabaseStoreMetrics,
 } from "@commerceos/database";
-import { createRequestScope, disposeRootContainer, getAuth, logAuthMessage } from "./container";
+import {
+  copilotLog,
+  createRequestScope,
+  disposeRootContainer,
+  getAuth,
+  logAuthMessage,
+} from "./container";
 import { createAuth } from "./auth/create-auth";
 import { logger } from "./logger";
 
@@ -181,6 +188,31 @@ describe("composition root", () => {
     const before = Date.now();
     const now = first.cradle.clock().getTime();
     expect(now >= before && now <= Date.now()).toBe(true);
+  });
+
+  it("wires the Copilot tools and use case per request, one log port", () => {
+    for (const key of [
+      "getSalesSummaryTool",
+      "getOrderSummaryTool",
+      "getTopProductsTool",
+      "getLowStockProductsTool",
+      "askCopilotUseCase",
+    ] as const) {
+      expect(first.cradle[key] === second.cradle[key]).toBe(false);
+    }
+    expect(first.cradle.askCopilotUseCase instanceof AskCopilotUseCase).toBe(true);
+    expect(first.cradle.getLowStockProductsTool instanceof GetLowStockProductsTool).toBe(true);
+    expect(first.cradle.copilotLog === copilotLog).toBe(true);
+  });
+
+  it("routes Copilot answer events through the server logger", () => {
+    const info = vi.spyOn(logger, "info").mockImplementation(() => {});
+    copilotLog.info("copilot.answer", { kind: "answered", tools: ["getSalesSummary"] });
+    expect(info).toHaveBeenCalledWith("copilot.answer", {
+      kind: "answered",
+      tools: ["getSalesSummary"],
+    });
+    info.mockRestore();
   });
 
   it("shares one Better Auth instance and pool, reachable without a request scope", () => {

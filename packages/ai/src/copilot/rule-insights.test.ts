@@ -78,9 +78,7 @@ describe("buildRuleInsights", () => {
 
   it("rule 1 says out of stock at 0 and '1 unit' for a single sale", () => {
     const { table, draft } = insights("low_stock", {
-      lowStock: lowStock([
-        { id: PULSE_ID, name: PULSE_ROW.name, sku: "S", stockQuantity: 0 },
-      ]),
+      lowStock: lowStock([{ id: PULSE_ID, name: PULSE_ROW.name, sku: "S", stockQuantity: 0 }]),
       topProducts: top([{ ...PULSE_ROW, units: 1 }]),
     });
     expect(draft.recommendations[0]?.observation).toBe(

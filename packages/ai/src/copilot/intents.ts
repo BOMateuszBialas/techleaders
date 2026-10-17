@@ -7,12 +7,15 @@ import { COPILOT_INTENT_IDS, type CopilotIntentId } from "@commerceos/core";
 export type ToolPlan = {
   sales?: true;
   orders?: true;
-  /** `getTopProducts` with this limit (1–10). */
-  topProducts?: number;
+  /** `getTopProducts` with this limit (1–10); every answered plan names its best sellers. */
+  topProducts: number;
   /** `getLowStockProducts` with this threshold and limit. */
   lowStock?: { threshold: number; limit: number };
-  /** Also run the sales and top-products tools for the previous period of the same length (A8). */
-  compareWithPrevious?: true;
+  /**
+   * Also run `getSalesSummary` and `getTopProducts` (with this limit) for the previous period of
+   * the same length (A8).
+   */
+  compareWithPrevious?: { topProducts: number };
 };
 
 export type CopilotIntent = {
@@ -45,7 +48,7 @@ export const INTENTS: Readonly<Record<CopilotIntentId, CopilotIntent>> = {
   sales_change: {
     id: "sales_change",
     question: "What could explain the recent change in sales?",
-    plan: { sales: true, topProducts: 5, compareWithPrevious: true },
+    plan: { sales: true, topProducts: 5, compareWithPrevious: { topProducts: 5 } },
   },
   traffic_sources: {
     id: "traffic_sources",

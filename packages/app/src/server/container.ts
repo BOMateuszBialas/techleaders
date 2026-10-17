@@ -1,5 +1,14 @@
 import "server-only";
-import { UnconfiguredLlmProvider, type LlmProviderPort } from "@commerceos/ai";
+import {
+  AskCopilotUseCase,
+  GetLowStockProductsTool,
+  GetOrderSummaryTool,
+  GetSalesSummaryTool,
+  GetTopProductsTool,
+  UnconfiguredLlmProvider,
+  type CopilotLogPort,
+  type LlmProviderPort,
+} from "@commerceos/ai";
 import {
   AddToCartUseCase,
   AdjustStockUseCase,
@@ -141,6 +150,12 @@ export type Cradle = {
   getTopProductsUseCase: GetTopProductsUseCase;
   getLowStockProductsUseCase: GetLowStockProductsUseCase;
   getDashboardUseCase: GetDashboardUseCase;
+  getSalesSummaryTool: GetSalesSummaryTool;
+  getOrderSummaryTool: GetOrderSummaryTool;
+  getTopProductsTool: GetTopProductsTool;
+  getLowStockProductsTool: GetLowStockProductsTool;
+  copilotLog: CopilotLogPort;
+  askCopilotUseCase: AskCopilotUseCase;
   authPool: Pool;
   auth: Auth;
 };
@@ -221,6 +236,14 @@ function buildContainer(): AwilixContainer<Cradle> {
     getTopProductsUseCase: asClass(GetTopProductsUseCase).scoped(),
     getLowStockProductsUseCase: asClass(GetLowStockProductsUseCase).scoped(),
     getDashboardUseCase: asClass(GetDashboardUseCase).scoped(),
+    // Commerce Copilot (Copilot spec, Phase 1): the approved tools wrap the metric use cases
+    // above unchanged, so they share the request scope; the log port adapts the redacting logger.
+    getSalesSummaryTool: asClass(GetSalesSummaryTool).scoped(),
+    getOrderSummaryTool: asClass(GetOrderSummaryTool).scoped(),
+    getTopProductsTool: asClass(GetTopProductsTool).scoped(),
+    getLowStockProductsTool: asClass(GetLowStockProductsTool).scoped(),
+    copilotLog: asValue(copilotLog),
+    askCopilotUseCase: asClass(AskCopilotUseCase).scoped(),
     authPool: asFunction(() => createAuthPool(env.DATABASE_URL))
       .singleton()
       .disposer((pool) => pool.end()),
@@ -231,6 +254,11 @@ function buildContainer(): AwilixContainer<Cradle> {
 
   return container;
 }
+
+/** The Copilot's answer events go through the redacting server logger. */
+export const copilotLog: CopilotLogPort = {
+  info: (event, data) => logger.info(event, data),
+};
 
 /** Routes Better Auth's own log lines through the redacting server logger. */
 export function logAuthMessage(level: AuthLogLevel, message: string): void {
