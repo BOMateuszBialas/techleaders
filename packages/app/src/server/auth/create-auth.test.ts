@@ -137,6 +137,23 @@ describe("summarizeAuthError", () => {
     expect(summarizeAuthError(new Error("y".repeat(500)))?.message).toHaveLength(200);
   });
 
+  it("keeps no message once a driver error is anywhere in the chain", () => {
+    const driver = Object.assign(new Error("insert ... values ('owner@shop.example')"), {
+      code: "23505",
+    });
+    const wrapper = new Error(`Failed to create session: ${driver.message}`, { cause: driver });
+    expect(summarizeAuthError(wrapper)).toEqual({
+      name: "Error",
+      cause: { name: "Error", code: "23505" },
+    });
+  });
+
+  it("keeps no message for an error class that may quote its input", () => {
+    expect(summarizeAuthError(new SyntaxError('Unexpected token in JSON at "owner@s'))).toEqual({
+      name: "SyntaxError",
+    });
+  });
+
   it("ignores values that are not errors", () => {
     expect(summarizeAuthError("text")).toBeUndefined();
     expect(summarizeAuthError({ message: "plain object" })).toBeUndefined();

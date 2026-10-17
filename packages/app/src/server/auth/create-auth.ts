@@ -10,7 +10,8 @@ export type AuthLogLevel = "debug" | "info" | "warn" | "error";
 /**
  * What a log line may say about the error behind a Better Auth log call (#57): its class,
  * codes and cause chain. Never request data (the library's other arguments) and never a
- * driver error's message, which can inline query parameters (see `sanitizeDatabaseError`).
+ * driver error's message, which can inline query parameters (see `sanitizeDatabaseError` in
+ * `packages/database/src/adapters/sanitize-database-error.ts`).
  */
 export type AuthErrorSummary = {
   name: string;
@@ -38,22 +39,51 @@ function stringField(error: Error, key: "code" | "constraint"): string | undefin
   return typeof value === "string" ? value : undefined;
 }
 
-/** Summarises an error for the log, or `undefined` when the value is not an `Error`. */
-export function summarizeAuthError(value: unknown, depth = 0): AuthErrorSummary | undefined {
-  if (!(value instanceof Error)) return undefined;
-  const code = stringField(value, "code");
-  const constraint = stringField(value, "constraint");
-  // pg's DatabaseError and Node's network errors carry a code; ORM exceptions end in
-  // "Exception". Their messages may hold query values or hosts, so only the codes are kept.
-  const fromDriver = code !== undefined || value.name.endsWith("Exception");
-  const cause = depth < MAX_CAUSE_DEPTH ? summarizeAuthError(value.cause, depth + 1) : undefined;
+/**
+ * Error classes whose message is a fixed library or runtime text. Anything else (a
+ * `SyntaxError` quoting its input, a driver error) keeps only its class and codes.
+ */
+const MESSAGE_SAFE_ERRORS = new Set(["Error", "BetterAuthError", "APIError"]);
+
+/**
+ * pg's DatabaseError and Node's network errors carry a code; ORM exceptions end in
+ * "Exception". Their messages may hold query values or hosts.
+ */
+function isDriverError(error: Error): boolean {
+  return stringField(error, "code") !== undefined || error.name.endsWith("Exception");
+}
+
+/** True when the error or any cause within the logged depth comes from a driver. */
+function hasDriverCause(value: unknown, depth = 0): boolean {
+  if (!(value instanceof Error) || depth > MAX_CAUSE_DEPTH) return false;
+  return isDriverError(value) || hasDriverCause(value.cause, depth + 1);
+}
+
+function summarize(error: Error, depth: number, keepMessages: boolean): AuthErrorSummary {
+  const code = stringField(error, "code");
+  const constraint = stringField(error, "constraint");
+  const cause =
+    depth < MAX_CAUSE_DEPTH && error.cause instanceof Error
+      ? summarize(error.cause, depth + 1, keepMessages)
+      : undefined;
+  const keepMessage = keepMessages && MESSAGE_SAFE_ERRORS.has(error.name);
   return {
-    name: value.name,
+    name: error.name,
     ...(code !== undefined && { code }),
     ...(constraint !== undefined && { constraint }),
-    ...(!fromDriver && { message: value.message.slice(0, MAX_MESSAGE_LENGTH) }),
+    ...(keepMessage && { message: error.message.slice(0, MAX_MESSAGE_LENGTH) }),
     ...(cause && { cause }),
   };
+}
+
+/**
+ * Summarises an error for the log, or `undefined` when the value is not an `Error`. When any
+ * error in the chain comes from a driver, no message is kept at any level: a wrapper's
+ * message may repeat the driver's.
+ */
+export function summarizeAuthError(value: unknown): AuthErrorSummary | undefined {
+  if (!(value instanceof Error)) return undefined;
+  return summarize(value, 0, !hasDriverCause(value));
 }
 
 /** Maps Better Auth table and column names to the project's snake_case schema. */
