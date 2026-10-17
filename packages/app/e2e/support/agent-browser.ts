@@ -137,6 +137,20 @@ export class BrowserSession {
     await this.command(["select", selector, value]);
   }
 
+  /**
+   * Copies this session's cookies into `other`, so `other` acts as the same signed-in owner
+   * (another tab, in effect) without a new sign-in, which the sign-in rate limit would count.
+   */
+  async shareCookiesWith(other: BrowserSession): Promise<void> {
+    const data = await this.command(["cookies", "get"]);
+    const { cookies } = z
+      .object({ cookies: z.array(z.object({ name: z.string(), value: z.string() })) })
+      .parse(data);
+    for (const cookie of cookies) {
+      await other.command(["cookies", "set", cookie.name, cookie.value, "--url", other.baseUrl]);
+    }
+  }
+
   async setViewport(width: number, height: number): Promise<void> {
     await this.command(["set", "viewport", String(width), String(height)]);
   }
@@ -174,6 +188,12 @@ export class BrowserSession {
   async value(selector: string): Promise<string> {
     const data = await this.command(["get", "value", selector]);
     return z.object({ value: z.string() }).parse(data).value;
+  }
+
+  /** How many elements match a CSS selector (e.g. to prove no card field exists). */
+  async count(selector: string): Promise<number> {
+    const data = await this.command(["get", "count", selector]);
+    return z.object({ count: z.number() }).parse(data).count;
   }
 
   async screenshot(path: string): Promise<void> {

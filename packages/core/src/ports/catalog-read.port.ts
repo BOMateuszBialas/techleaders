@@ -34,6 +34,11 @@ export type CatalogProductCriteria = {
   categoryId?: string;
   /** When set, only products whose `featured` flag equals it. */
   featured?: boolean;
+  /**
+   * When set, only products whose name or description contains this term, case-insensitively
+   * and with LIKE wildcards matched literally (spec Q5).
+   */
+  search?: string;
   limit: number;
 };
 
@@ -48,4 +53,10 @@ export interface CatalogReadPort {
   ): Promise<{ items: CatalogProductRecord[]; total: number }>;
   /** A product in any status; the use case decides whether a shopper may see it. */
   findProductBySlug(slug: string): Promise<CatalogProductRecord | null>;
+  /**
+   * The products with these ids, in any status and in no particular order; unknown ids are
+   * skipped. The cart prices its lines with them (cart spec, step 2) and decides itself what a
+   * shopper may buy.
+   */
+  findProductsByIds(ids: readonly string[]): Promise<CatalogProductRecord[]>;
 }

@@ -16,6 +16,12 @@ export function toContainsPattern(term: string): string {
   return `%${term.replace(/[\\%_]/g, (character) => `\\${character}`)}%`;
 }
 
+/** Case-insensitive "contains" on name or description, wildcards matched literally (spec Q5). */
+function searchFilter(term: string) {
+  const pattern = toContainsPattern(term);
+  return { $or: [{ name: { $ilike: pattern } }, { description: { $ilike: pattern } }] };
+}
+
 function toCategoryRecord(category: Category): CatalogCategoryRecord {
   return {
     id: category.id,
@@ -70,6 +76,7 @@ export class DatabaseCatalogRepository implements CatalogReadPort {
       status: criteria.status,
       ...(criteria.categoryId ? { category: criteria.categoryId } : {}),
       ...(criteria.featured === undefined ? {} : { featured: criteria.featured }),
+      ...(criteria.search ? searchFilter(criteria.search) : {}),
     };
     const [products, total] = await this.deps.em.findAndCount(ProductSchema, where, {
       populate: ["category"],
@@ -82,5 +89,15 @@ export class DatabaseCatalogRepository implements CatalogReadPort {
   async findProductBySlug(slug: string): Promise<CatalogProductRecord | null> {
     const product = await this.deps.em.findOne(ProductSchema, { slug }, { populate: ["category"] });
     return product ? toProductRecord(product) : null;
+  }
+
+  async findProductsByIds(ids: readonly string[]): Promise<CatalogProductRecord[]> {
+    if (ids.length === 0) return [];
+    const products = await this.deps.em.find(
+      ProductSchema,
+      { id: { $in: [...ids] } },
+      { populate: ["category"] },
+    );
+    return products.map(toProductRecord);
   }
 }

@@ -1,7 +1,20 @@
 import { describe, expect, it } from "vitest";
-import { getAvailability, isLowStock, isPurchasable, isValidSlug, slugify } from "./product";
+import {
+  getAvailability,
+  hasPublishablePrice,
+  isLowStock,
+  isPurchasable,
+  isValidSlug,
+  slugify,
+} from "./product";
 
 describe("product rules", () => {
+  it("requires a price above 0.00 for a published product only (#41)", () => {
+    expect(hasPublishablePrice({ status: "published", priceMinor: 1 })).toBe(true);
+    expect(hasPublishablePrice({ status: "published", priceMinor: 0 })).toBe(false);
+    expect(hasPublishablePrice({ status: "draft", priceMinor: 0 })).toBe(true);
+  });
+
   it("is purchasable only when published and in stock", () => {
     expect(isPurchasable({ status: "published", stockQuantity: 1 })).toBe(true);
     expect(isPurchasable({ status: "published", stockQuantity: 0 })).toBe(false);

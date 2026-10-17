@@ -1,5 +1,7 @@
 import { afterAll, describe, expect, it, vi } from "vitest";
 import {
+  AddToCartUseCase,
+  PlaceOrderUseCase,
   AdjustStockUseCase,
   DeleteCategoryUseCase,
   ListCatalogProductsUseCase,
@@ -113,6 +115,35 @@ describe("composition root", () => {
       expect(first.cradle[key] === second.cradle[key]).toBe(false);
     }
     expect(first.cradle.adjustStockUseCase instanceof AdjustStockUseCase).toBe(true);
+  });
+
+  it("wires the cart use cases per request", () => {
+    for (const key of [
+      "getCartUseCase",
+      "addToCartUseCase",
+      "updateCartLineUseCase",
+      "removeCartLineUseCase",
+    ] as const) {
+      expect(first.cradle[key] === second.cradle[key]).toBe(false);
+    }
+    expect(first.cradle.addToCartUseCase instanceof AddToCartUseCase).toBe(true);
+  });
+
+  it("wires the order repository, limiter and use cases per request, the demo gateway once", () => {
+    for (const key of [
+      "orderRepository",
+      "rateLimiter",
+      "placeOrderUseCase",
+      "getOrderByReferenceUseCase",
+      "confirmDemoPaymentUseCase",
+    ] as const) {
+      expect(first.cradle[key] === second.cradle[key]).toBe(false);
+    }
+    expect(first.cradle.placeOrderUseCase instanceof PlaceOrderUseCase).toBe(true);
+    const gateway = first.cradle.paymentGateway;
+    expect(gateway === second.cradle.paymentGateway).toBe(true);
+    expect(gateway.isLive).toBe(false);
+    expect(first.cradle.randomBytes(20)).toHaveLength(20);
   });
 
   it("shares one Better Auth instance and pool, reachable without a request scope", () => {

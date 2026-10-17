@@ -4,7 +4,7 @@ CommerceOS is a lightweight, single-store e-commerce platform: a customer storef
 
 This is a 5-week AI Engineering portfolio MVP. The full specification is in [`.ai/specs/2026-10-13-commerceos-mvp.md`](.ai/specs/2026-10-13-commerceos-mvp.md), the agent rules are in [`AGENTS.md`](AGENTS.md), and the day-to-day coding conventions are in [`ENGINEERING_STANDARDS.md`](ENGINEERING_STANDARDS.md).
 
-> **Current state: foundation, admin sign-in, admin catalog management and storefront browsing.** The monorepo, database layer, DI container, env validation, health check, tests, owner authentication for `/admin`, admin product and category management, manual stock adjustment with a recorded history, and the storefront (a shop-front home page with featured products, browse by category, product pages) exist. The demo store sells fictional gaming accessories. Search, cart, checkout and the Copilot workflow are **not implemented yet** (see [Roadmap](#roadmap)).
+> **Current state: foundation, admin sign-in, admin catalog management and storefront browsing.** The monorepo, database layer, DI container, env validation, health check, tests, owner authentication for `/admin`, admin product and category management, manual stock adjustment with a recorded history, and the storefront (a shop-front home page with featured products, browse by category, search, product pages) exist. The demo store sells fictional gaming accessories. Cart, checkout and the Copilot workflow are **not implemented yet** (see [Roadmap](#roadmap)).
 
 ## Monorepo structure
 
@@ -57,7 +57,7 @@ npm run dev                 # http://localhost:3000
 Verify the setup:
 
 - http://localhost:3000: storefront home with a hero, featured products (tabs: `/?category=<slug>`), a header menu and a footer
-- http://localhost:3000/products: published products, filterable with `?category=<slug>`; http://localhost:3000/products/vortex-wireless-mouse: a product page
+- http://localhost:3000/products: published products, filterable with `?category=<slug>` and searchable with `?q=<term>` (the header search box and the listing's search form); http://localhost:3000/products/vortex-wireless-mouse: a product page
 - http://localhost:3000/admin: redirects to `/admin/sign-in`; after signing in as the owner, the dashboard with live system status
 - http://localhost:3000/admin/products and http://localhost:3000/admin/categories (signed in): catalog management. Create and edit products and categories, publish or unpublish a product (the page says what shoppers will see), and tick "Featured on home page" to put a published product in the home page slider
 - http://localhost:3000/api/health: returns `200 {"status":"ok",...}` when the database is reachable, `503 {"status":"degraded",...}` otherwise
@@ -76,7 +76,7 @@ Defined and validated in `packages/app/src/server/env.ts`; invalid configuration
 | `DATABASE_DEBUG` | no (`false`) | Log SQL queries |
 | `APP_URL` | no (`http://localhost:3000`); **yes in production** | Public base URL and the only origin trusted for sign-in |
 | `BETTER_AUTH_SECRET` | yes (32+ chars) | Signs Better Auth cookies and tokens |
-| `AUTH_TRUSTED_IP_HEADER` | no | Client-IP header set by a trusted proxy (e.g. `x-real-ip`). Unset: sign-in is rate-limited globally (20/min); set: 5/min per IP |
+| `AUTH_TRUSTED_IP_HEADER` | no | Client-IP header set by a trusted proxy (e.g. `x-real-ip`). Unset: sign-in is rate-limited globally (20/min) and order lookups to 120/min shared; set: 5/min per IP for sign-in, 30/min per IP for order lookups |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD` | CLI only | Read by `npm run admin:create` (password: 12+ chars), never by the app |
 | `NODE_ENV` | no | Standard Node environment |
 
@@ -116,7 +116,9 @@ Not configured yet. The LLM provider port and the response schema (`packages/ai`
 
 ## Payments
 
-Not implemented yet. The plan is Stripe Checkout in **test mode** if feasible within the timeline; otherwise a clearly labelled demo-payment flow. Card details will never be collected or stored by CommerceOS.
+**Demo payment only** (decision D03). After "Place order" the shopper sees `/checkout/pay/<reference>` with the banner "Demo store — this is a demo payment. No real money is charged and no card details are collected." and one button, "Confirm demo payment (no charge)". It goes through the `PaymentGateway` port to `DemoPaymentGateway` (`packages/app/src/server/payments/`), which contacts no provider, charges nothing and returns `DEMO-PAY-<order id>`. No card field exists anywhere and no card data is stored. Stripe (test mode) is a P1 option behind the same port; it is not integrated.
+
+Purchase flow: cart → `/checkout` (guest: name, email, address in Poland; prices and stock re-checked on the server) → `/checkout/pay/<reference>` → `/orders/<reference>?paid=1`. `/orders/lookup` finds an order again by its reference.
 
 ## MVP scope
 
@@ -138,16 +140,30 @@ Not implemented yet. The plan is Stripe Checkout in **test mode** if feasible wi
   - A listing shows at most 48 products (sorted by name) and says "Showing 48 of N" when more match. Larger catalogues need pagination, which is out of scope for the demo.
   - A draft or unknown product URL shows "Product not found" with HTTP 200 and a `noindex` robots tag, because the not-found UI streams after the page shell (Next 16 cache components).
   - Every catalog view reads the database at request time (no caching).
+  - Search is a case-insensitive substring match of the whole term (1 to 100 characters after trimming) against product names and descriptions, combined with the category filter. There is no ranking, stemming or typo tolerance, and Polish diacritics are not folded ("zolty" does not find "żółty"). `%`, `_` and `\` match literally. Each search scans the published products, which is fine at demo scale.
   - The home page's featured slider shows up to 12 published products flagged `featured` (the "Featured on home page" checkbox in the admin product form). Plain shadcn/Tailwind styling for now: the visual design follows the design-system lesson.
 - **Admin catalog:**
   - Products are never deleted (spec A4); unpublishing is how a product leaves the store.
+  - A published product must cost more than 0.00 PLN; a draft may be 0.00 (#41). Saving or publishing a free product as published is refused with a message.
   - Stock is set when a product is created; afterwards it changes only in the **Stock** panel on the product page (`/admin/products/<id>`). The owner sets an absolute quantity (0 to 1,000,000). The panel sends the quantity it showed, and the change applies only if the stored stock still equals it; otherwise it says "Stock changed to N since this page loaded. Check it and try again." and resets the form to N, so a concurrent change (another tab, later a checkout) is never overwritten. Setting the stored value again changes nothing and is not recorded.
   - Every change is recorded in `stock_adjustments` (time, previous and new quantity) in the same transaction as the update, and the panel lists the last 20, newest first, with times in the browser's language and the store's time zone (Europe/Warsaw). The initial stock of a new product is not recorded ("Initial stock: not recorded."). There is no reason or "changed by" field (one owner).
   - Image URLs must be `https://` addresses (or the seeded `/demo/…` images); there is no upload. The admin shows a small preview and says when the image could not be loaded.
   - Lists have no pagination, search or filters (fine for the demo catalog).
   - **`npm run db:seed` overwrites owner edits to the demo products**, including stock and the "Featured" flag (#24): demo products are upserted by slug. A re-seed sets their stock back to the seed values **without** a stock history row, and keeps the history already recorded, so the last "new" value in a demo product's history can differ from its current stock. Products created in the admin are not touched. Seeding is a dev tool, not a store operation.
 - **Demo data:** the seed is a fictional gaming-accessories store (decision D10): 5 categories, 15 products, 6 featured, one out of stock. Seeding upserts by slug and never deletes, so a database seeded before 2026-10-15 still holds the old coffee products. To start clean, drop the local database and seed again: `docker compose down -v`, then `npm run db:up`, `npm run db:migrate`, `npm run db:seed` and `npm run admin:create` (this also deletes the owner account and sessions).
-- No LLM provider, payments, search, cart or checkout yet.
+- **Cart:**
+  - The cart lives in an `httpOnly` cookie (`commerceos_cart`) holding only product ids and quantities, never prices; every page and action re-reads prices, availability and stock from the catalog. A tampered or unreadable cookie is treated as an empty cart. It needs cookies enabled and does not follow the shopper to another browser.
+  - Adding to the cart **does not reserve stock**: the quantity is checked against the current stock for feedback only, and the order placement (checkout, next PR) will be the authoritative check.
+  - Up to 20 different products and 99 of each; one currency per cart.
+  - A product that is unpublished or sold out while in a cart disappears from it, and a quantity above the stock is lowered to it, each with a message on the cart page. The cookie itself is corrected by the next cart change (a page render cannot set cookies), so until then the message shows again and the header count may include the removed item.
+  - Checkout is not available yet: the cart page says "Checkout is coming soon."
+- **Checkout and orders:**
+  - **Stock is decremented when the order is placed**, before payment, and an unpaid order keeps it (spec A5). There is no expiry and no cancel yet (the admin order workflow, E04, adds cancel with restock). Anyone can therefore hold stock with unpaid orders; checkout is not rate-limited. Fine for a local demo; add an expiry or a checkout limit before any public hosting.
+  - The order reference (`CO-XXXXX-XXXXX-XXXXX-XXXXX`, 100 random bits) is a **bearer secret**: whoever has it sees the order's status, items and totals (never the name, email or address). It is part of the URL, so a hosting provider's access log could record it; the app's own logger never does. Order pages are `noindex` and send no referrer.
+  - **Order lookups are rate-limited** (the order and payment pages and the payment button): 30 per minute per client IP when `AUTH_TRUSTED_IP_HEADER` is set, otherwise 120 per minute shared by everyone (a flood can briefly block lookups for all; set the header in any public deployment). Over the limit the page says "Too many lookups. Try again in a minute."
+  - No email is sent: the confirmation tells the shopper to save the reference. Shipping is free, there is no tax, and only Poland is accepted (postal code `NN-NNN`).
+  - A checkout decrement is not listed in the admin stock history (manual changes only).
+- No LLM provider yet.
 - `npm audit` reports advisories in development tooling dependencies (e.g. `braces` via linting and test tooling); they do not affect runtime code and are tracked for a later update.
 
 ## Roadmap

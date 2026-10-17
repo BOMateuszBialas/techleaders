@@ -43,7 +43,7 @@ export function HeaderMenu({ categories }: HeaderMenuProps) {
         </ul>
       </nav>
       <details className="relative md:hidden">
-        <summary className="cursor-pointer list-none rounded-md border px-3 py-1 text-sm hover:bg-muted focus-visible:bg-muted [&::-webkit-details-marker]:hidden">
+        <summary className="cursor-pointer list-none rounded-md whitespace-nowrap border px-3 py-1 text-sm hover:bg-muted focus-visible:bg-muted [&::-webkit-details-marker]:hidden">
           <span aria-hidden="true">☰</span> Menu
         </summary>
         <nav
@@ -55,8 +55,8 @@ export function HeaderMenu({ categories }: HeaderMenuProps) {
           </ul>
         </nav>
       </details>
-      {/* The search box (storefront spec Phase 2) and the cart link with its count (cart
-          spec) go here. No placeholder ships before they work (spec G22). */}
+      {/* The cart link with its count (cart spec) goes here. No placeholder ships before it
+          works (spec G22). The search box sits beside this menu in the layout. */}
     </div>
   );
 }

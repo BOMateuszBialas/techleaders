@@ -105,7 +105,23 @@ describe("DatabaseCatalogRepository", () => {
     expect(findAndCount.mock.calls[1]?.[1]).toEqual({ status: "published", featured: false });
   });
 
-  it("omits the category and featured filters when none is given", async () => {
+  it("matches a search term in the name or description with an escaped pattern", async () => {
+    const { findAndCount, repository } = setup();
+    findAndCount.mockResolvedValue([[], 0] as never);
+    await repository.findProducts({
+      status: "published",
+      categoryId: "cat-1",
+      search: "100%",
+      limit: 48,
+    });
+    expect(findAndCount.mock.calls[0]?.[1]).toEqual({
+      status: "published",
+      category: "cat-1",
+      $or: [{ name: { $ilike: "%100\\%%" } }, { description: { $ilike: "%100\\%%" } }],
+    });
+  });
+
+  it("omits the category, featured and search filters when none is given", async () => {
     const { findAndCount, repository } = setup();
     findAndCount.mockResolvedValue([[], 0] as never);
     await repository.findProducts({ status: "published", limit: 48 });
@@ -121,6 +137,20 @@ describe("DatabaseCatalogRepository", () => {
     expect(findOne.mock.calls[0]?.[2]).toEqual({ populate: ["category"] });
     findOne.mockResolvedValueOnce(null);
     expect(await repository.findProductBySlug("missing")).toBeNull();
+  });
+
+  it("finds products by id with their category, and skips the query for no ids", async () => {
+    const { find, repository } = setup();
+    find.mockResolvedValue([product] as never);
+
+    expect(await repository.findProductsByIds(["p-1", "p-2"])).toEqual([
+      expect.objectContaining({ id: "p-1", category: { slug: "mice", name: "Mice" } }),
+    ]);
+    expect(find.mock.calls[0]?.[1]).toEqual({ id: { $in: ["p-1", "p-2"] } });
+    expect(find.mock.calls[0]?.[2]).toEqual({ populate: ["category"] });
+
+    expect(await repository.findProductsByIds([])).toEqual([]);
+    expect(find).toHaveBeenCalledTimes(1);
   });
 });
 

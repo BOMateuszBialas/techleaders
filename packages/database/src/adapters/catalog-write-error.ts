@@ -36,7 +36,9 @@ const FIELD_CONSTRAINTS: Record<string, FieldProblem> = {
  * copies the `pg` error's own properties (`code`, `constraint`), so both are read
  * structurally: no `instanceof` against an exception class from another bundled copy.
  */
-function readConstraintViolation(error: unknown): { sqlState: string; constraint: string } | null {
+export function readConstraintViolation(
+  error: unknown,
+): { sqlState: string; constraint: string } | null {
   if (!(error instanceof Error)) return null;
   const sqlState = "code" in error ? error.code : undefined;
   const constraint = "constraint" in error ? error.constraint : undefined;

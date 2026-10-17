@@ -419,4 +419,4 @@ Deviation from the original AGENTS.md: `core` now depends on **Zod**, because sh
 
 ### Deferred until a real consumer exists
 
-Client-side `/api` helper, `makeCrudRoute`, domain events, shared table components. (Auth helpers and sign-in rate limiting now exist: `packages/app/src/server/auth/`. Admin form feedback (`FormMessage`, `FieldError`) exists since the admin catalog: `packages/app/src/components/admin/form-feedback.tsx`.)
+Client-side `/api` helper, `makeCrudRoute`, domain events, shared table components. (Auth helpers and sign-in rate limiting now exist: `packages/app/src/server/auth/`. Admin form feedback (`FormMessage`, `FieldError`) exists since the admin catalog: `packages/app/src/components/admin/form-feedback.tsx`. Public (shopper) server actions run through `runAction` (`packages/app/src/server/http/run-action.ts`, the session-free twin of `runAdminAction`; both map errors with `toActionErrorState`) since the cart, and each such file is listed in `admin-guard-inventory.test.ts`.)

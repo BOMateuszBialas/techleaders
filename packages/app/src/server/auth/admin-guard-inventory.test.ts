@@ -13,7 +13,10 @@ import { describe, expect, it } from "vitest";
  * - every route handler under `app/api/admin/` must use `adminApiHandler(`
  * - every file under `src/` with a `"use server"` directive (each export is a public
  *   endpoint) must call `requireAdmin(` or `runAdminAction(` (which calls `requireAdmin()`
- *   before its handler), except the sign-in/sign-out actions. Whether *every* export of such
+ *   before its handler), except the sign-in/sign-out actions and the listed shopper actions.
+ *   Shopper actions are public by design (anonymous carts): each listed file must run its
+ *   exports through `runAction(` instead, and a new public file must be added here on purpose,
+ *   where review sees it. Whether *every* export of such
  *   a file goes through the guard is checked by that file's unit tests (one per export,
  *   invoked without a session).
  *
@@ -22,6 +25,8 @@ import { describe, expect, it } from "vitest";
 const srcDir = fileURLToPath(new URL("../../", import.meta.url));
 
 const SIGN_IN_ACTIONS = "server/auth/auth.action.ts";
+/** Public storefront actions: they change only the caller's own cart cookie (cart spec A12). */
+const SHOPPER_ACTIONS = ["server/cart/cart.action.ts", "server/orders/order.action.ts"];
 const SOURCE = /\.(ts|tsx|js|jsx|mts|mjs)$/;
 const TEST = /\.test\.[a-z]+$/;
 
@@ -47,8 +52,16 @@ const RULES: Rule[] = [
   },
   {
     name: "server actions",
-    matches: (path, code) => /^\s*["']use server["']/m.test(code) && path !== SIGN_IN_ACTIONS,
+    matches: (path, code) =>
+      /^\s*["']use server["']/m.test(code) &&
+      path !== SIGN_IN_ACTIONS &&
+      !SHOPPER_ACTIONS.includes(path),
     guards: ["requireAdmin(", "runAdminAction("],
+  },
+  {
+    name: "shopper actions",
+    matches: (path) => SHOPPER_ACTIONS.includes(path),
+    guards: ["runAction("],
   },
 ];
 
@@ -96,6 +109,7 @@ describe("admin guard inventory", () => {
         "server/catalog/product.action.ts",
         "server/catalog/stock.action.ts",
         SIGN_IN_ACTIONS,
+        ...SHOPPER_ACTIONS,
       ]),
     );
     expect(findUnguarded(files)).toEqual([]);
@@ -118,6 +132,8 @@ describe("admin guard inventory", () => {
         "app/admin/sign-in/page.tsx": "public sign-in page",
         "server/auth/auth.action.ts": '"use server";',
         "app/api/health/route.ts": "public by contract",
+        "server/cart/cart.action.ts": '"use server";\nexport async function add() {}',
+        "server/cart/other.action.ts": '"use server";\nreturn runAction("x", {}, h);',
       }),
     ).toEqual([
       "app/api/admin/orders/route.ts (admin API routes must call adminApiHandler)",
@@ -127,6 +143,8 @@ describe("admin guard inventory", () => {
       "server/catalog/publish.ts (server actions must call requireAdmin or runAdminAction)",
       "app/admin/(protected)/fake/page.tsx (admin pages and layouts must call requireAdminPage)",
       "server/catalog/commented.action.ts (server actions must call requireAdmin or runAdminAction)",
+      "server/cart/cart.action.ts (shopper actions must call runAction)",
+      "server/cart/other.action.ts (server actions must call requireAdmin or runAdminAction)",
     ]);
   });
 });

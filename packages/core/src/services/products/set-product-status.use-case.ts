@@ -1,20 +1,31 @@
-import type { ProductStatus } from "../../domain/products/product";
-import { NotFoundError } from "../../errors/app-error";
+import { hasPublishablePrice, type ProductStatus } from "../../domain/products/product";
+import { NotFoundError, ValidationError } from "../../errors/app-error";
 import type { ProductRepositoryPort } from "../../ports/catalog.port";
 import { isUuid } from "../../validators/common/uuid.schema";
+import { PUBLISH_PRICE_MESSAGE } from "../../validators/products/product-input.schema";
 import { PRODUCT_NOT_FOUND_MESSAGE, toAdminProduct, type AdminProduct } from "./product.dto";
 
 /**
  * Publishes or unpublishes a product and returns it with its new store availability, so the
- * admin can say what changed for shoppers (spec D05, G11).
+ * admin can say what changed for shoppers (spec D05, G11). A draft priced at 0.00 cannot be
+ * published (`ValidationError`, #41).
  */
 export class SetProductStatusUseCase {
   constructor(private readonly deps: { productRepository: ProductRepositoryPort }) {}
 
   async execute(input: { id: string; status: ProductStatus }): Promise<AdminProduct> {
     if (!isUuid(input.id)) throw new NotFoundError(PRODUCT_NOT_FOUND_MESSAGE);
+    if (input.status === "published") await this.assertPublishable(input.id);
     const updated = await this.deps.productRepository.setStatus(input.id, input.status);
     if (!updated) throw new NotFoundError(PRODUCT_NOT_FOUND_MESSAGE);
     return toAdminProduct(updated);
+  }
+
+  private async assertPublishable(id: string): Promise<void> {
+    const current = await this.deps.productRepository.findById(id);
+    if (!current) throw new NotFoundError(PRODUCT_NOT_FOUND_MESSAGE);
+    if (!hasPublishablePrice({ status: "published", priceMinor: current.priceMinor })) {
+      throw new ValidationError(PUBLISH_PRICE_MESSAGE);
+    }
   }
 }

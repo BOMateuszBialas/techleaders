@@ -68,6 +68,14 @@ export class InMemoryCatalog implements CatalogReadPort {
       .filter(
         (product) => criteria.featured === undefined || product.featured === criteria.featured,
       )
+      .filter(
+        (product) =>
+          !criteria.search ||
+          [product.name, product.description]
+            .join(" ")
+            .toLowerCase()
+            .includes(criteria.search.toLowerCase()),
+      )
       .sort((a, b) => a.name.localeCompare(b.name));
     return { items: matches.slice(0, criteria.limit), total: matches.length };
   }
@@ -75,5 +83,12 @@ export class InMemoryCatalog implements CatalogReadPort {
   async findProductBySlug(slug: string): Promise<CatalogProductRecord | null> {
     this.productLookups.push(slug);
     return this.products.find((product) => product.slug === slug) ?? null;
+  }
+
+  readonly idLookups: (readonly string[])[] = [];
+
+  async findProductsByIds(ids: readonly string[]): Promise<CatalogProductRecord[]> {
+    this.idLookups.push(ids);
+    return this.products.filter((product) => ids.includes(product.id));
   }
 }

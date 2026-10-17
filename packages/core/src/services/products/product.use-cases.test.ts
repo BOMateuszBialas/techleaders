@@ -1,5 +1,14 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { hasAppErrorCode, isNotFoundError, isUniqueFieldConflict } from "../../errors/app-error";
+import {
+  hasAppErrorCode,
+  isNotFoundError,
+  isUniqueFieldConflict,
+  ValidationError,
+} from "../../errors/app-error";
+import {
+  PUBLISH_PRICE_MESSAGE,
+  PUBLISHED_PRICE_MESSAGE,
+} from "../../validators/products/product-input.schema";
 import type { ProductCreate, ProductWrite } from "../../ports/catalog.port";
 import { CreateProductUseCase } from "./create-product.use-case";
 import { GetProductUseCase } from "./get-product.use-case";
@@ -146,6 +155,25 @@ describe("UpdateProductUseCase", () => {
 
   it.each([MISSING_PRODUCT_ID, "not-a-uuid"])("treats %j as not found", async (id) => {
     expect(isNotFoundError(await rejection(useCase().execute({ id, values: phantom })))).toBe(true);
+    expect(
+      isNotFoundError(
+        await rejection(useCase().execute({ id, values: { ...phantom, priceMinor: 0 } })),
+      ),
+    ).toBe(true);
+  });
+
+  it("refuses 0.00 for a published product under the price field (#41)", async () => {
+    const error = await rejection(
+      useCase().execute({ id: VORTEX_ID, values: { ...phantom, priceMinor: 0 } }),
+    );
+    expect(error).toBeInstanceOf(ValidationError);
+    expect(error).toMatchObject({ fieldErrors: { price: [PUBLISHED_PRICE_MESSAGE] } });
+    expect((await productRepository.findById(VORTEX_ID))?.priceMinor).toBe(VORTEX.priceMinor);
+  });
+
+  it("lets a draft be saved at 0.00", async () => {
+    const draft = await useCase().execute({ id: TITAN_ID, values: { ...phantom, priceMinor: 0 } });
+    expect(draft).toMatchObject({ status: "draft", priceMinor: 0 });
   });
 });
 
@@ -161,5 +189,19 @@ describe("SetProductStatusUseCase", () => {
 
   it.each([MISSING_PRODUCT_ID, "not-a-uuid"])("treats %j as not found", async (id) => {
     expect(isNotFoundError(await rejection(useCase().execute({ id, status: "draft" })))).toBe(true);
+    expect(isNotFoundError(await rejection(useCase().execute({ id, status: "published" })))).toBe(
+      true,
+    );
+  });
+
+  it("refuses to publish a draft priced at 0.00 (#41)", async () => {
+    await new UpdateProductUseCase({ productRepository }).execute({
+      id: TITAN_ID,
+      values: { ...phantom, priceMinor: 0 },
+    });
+    const error = await rejection(useCase().execute({ id: TITAN_ID, status: "published" }));
+    expect(error).toBeInstanceOf(ValidationError);
+    expect(error).toMatchObject({ message: PUBLISH_PRICE_MESSAGE });
+    expect((await productRepository.findById(TITAN_ID))?.status).toBe("draft");
   });
 });

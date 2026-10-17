@@ -9,6 +9,7 @@ import {
 } from "@/components/admin/categories/category-copy";
 import { CategoryForm } from "@/components/admin/categories/category-form";
 import { DeleteCategoryForm } from "@/components/admin/categories/delete-category-form";
+import { RedirectNotice } from "@/components/admin/redirect-notice";
 import { requireAdminPage } from "@/server/auth/require-admin";
 import { deleteCategory, updateCategory } from "@/server/catalog/category.action";
 import { AdminPageLoadError, loadAdminCategory } from "../load-categories";
@@ -52,11 +53,7 @@ async function CategoryDetails({ params, searchParams }: CategoryPageProps) {
             {storeHref}
           </Link>
         </p>
-        {notice ? (
-          <p role="status" className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
-            {notice}
-          </p>
-        ) : null}
+        {notice ? <RedirectNotice message={notice} /> : null}
       </div>
       <CategoryForm
         action={updateCategory}
