@@ -7,7 +7,11 @@ export const COPILOT_PATH = "/admin/copilot";
 export const COPILOT_ANSWERS_URL = "/api/admin/copilot/answers";
 
 export const ADVISORY_TEXT =
-  "Copilot suggests; you decide. It reads your store's orders, products and stock and never changes anything. Recommendations can be incomplete.";
+  "Copilot suggests; you decide. It reads your store's orders, products and stock (and fictional demo traffic data) and never changes anything. Recommendations can be incomplete.";
+export const EVIDENCE_CAPTION = "Evidence from this store's data";
+export const SUMMARY_EVIDENCE_CAPTION = "Figures in this summary";
+/** The tag on every evidence row from the seeded, fictional demo traffic (D08). */
+export const DEMO_DATA_TAG = "Fictional demo data";
 export const PENDING_TEXT = "Analysing your store data…";
 export const RATE_LIMITED_TEXT =
   "You asked many questions in a short time. Try again in a few minutes.";

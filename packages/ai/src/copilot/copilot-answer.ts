@@ -1,5 +1,8 @@
 import type { CopilotIntentId, MetricDefinition } from "@commerceos/core";
-import type { CopilotRecommendation } from "../schemas/copilot-response.schema";
+import type {
+  CopilotRecommendation,
+  RecommendationEvidence,
+} from "../schemas/copilot-response.schema";
 
 /**
  * Why an answered question shows rule-based insights instead of an AI answer (Copilot spec
@@ -54,6 +57,8 @@ export type CopilotAnswerDto = {
   model: string | null;
   period: CopilotAnswerPeriod | null;
   summary: string;
+  /** Evidence rows for the numbers in the summary (empty for declined and unsupported). */
+  summaryEvidence: RecommendationEvidence[];
   /** Declined only: the data the question would need. */
   missingData?: string;
   recommendations: CopilotAnswerRecommendation[];

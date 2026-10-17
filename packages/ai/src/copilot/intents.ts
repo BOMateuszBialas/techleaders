@@ -7,10 +7,12 @@ import { COPILOT_INTENT_IDS, type CopilotIntentId } from "@commerceos/core";
 export type ToolPlan = {
   sales?: true;
   orders?: true;
-  /** `getTopProducts` with this limit (1–10); every answered plan names its best sellers. */
-  topProducts: number;
+  /** `getTopProducts` with this limit (1–10). */
+  topProducts?: number;
   /** `getLowStockProducts` with this threshold and limit. */
   lowStock?: { threshold: number; limit: number };
+  /** `getTrafficSummary` (fictional demo traffic, D08) with this many most viewed products. */
+  traffic?: { productLimit: number };
   /**
    * Also run `getSalesSummary` and `getTopProducts` (with this limit) for the previous period of
    * the same length (A8).
@@ -22,18 +24,26 @@ export type CopilotIntent = {
   id: CopilotIntentId;
   /** The canonical D09 question: the button text, and what a model would be sent (A3). */
   question: string;
-  /** `null` when the data the intent needs does not exist yet (traffic, Copilot spec Phase 3). */
-  plan: ToolPlan | null;
+  plan: ToolPlan;
 };
 
 const LOW_STOCK = { threshold: 5, limit: 10 } as const;
+/** The traffic questions look at the 10 most viewed products (Copilot spec, Intent tool plans). */
+const TRAFFIC = { productLimit: 10 } as const;
 
 /** The seven D09 questions, in the order the page lists them. */
 export const INTENTS: Readonly<Record<CopilotIntentId, CopilotIntent>> = {
   focus: {
     id: "focus",
     question: "What should I focus on to improve sales this week?",
-    plan: { sales: true, orders: true, topProducts: 5, lowStock: LOW_STOCK },
+    // A21: the primary question reads the demo traffic too.
+    plan: {
+      sales: true,
+      orders: true,
+      topProducts: 5,
+      lowStock: LOW_STOCK,
+      traffic: { productLimit: 5 },
+    },
   },
   top_products: {
     id: "top_products",
@@ -53,17 +63,18 @@ export const INTENTS: Readonly<Record<CopilotIntentId, CopilotIntent>> = {
   traffic_sources: {
     id: "traffic_sources",
     question: "Where does my traffic come from?",
-    plan: null,
+    plan: { traffic: TRAFFIC },
   },
   funnel: {
     id: "funnel",
     question: "Where in the funnel do visitors drop off?",
-    plan: null,
+    plan: { traffic: TRAFFIC },
   },
   views_without_sales: {
     id: "views_without_sales",
     question: "Which products get views but few sales?",
-    plan: null,
+    // Stock tells an out-of-stock product with views (rule 4) from a slow seller (rule 5).
+    plan: { traffic: TRAFFIC, lowStock: LOW_STOCK },
   },
 };
 
@@ -97,7 +108,3 @@ export function declinedMessage(category: DeclinedCategory): string {
 }
 
 export const UNSUPPORTED_MESSAGE = "Copilot can't answer that question. It can answer these:";
-
-/** The answer to a traffic question before the demo traffic tool exists (Copilot spec Phase 3). */
-export const TRAFFIC_NOT_AVAILABLE_MESSAGE =
-  "Traffic data is not available yet. Copilot answers traffic, funnel and product-view questions once the fictional demo traffic data is connected.";

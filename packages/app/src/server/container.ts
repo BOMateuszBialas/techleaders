@@ -5,6 +5,7 @@ import {
   GetOrderSummaryTool,
   GetSalesSummaryTool,
   GetTopProductsTool,
+  GetTrafficSummaryTool,
   UnconfiguredLlmProvider,
   type CopilotLogPort,
   type LlmProviderPort,
@@ -30,6 +31,7 @@ import {
   GetSystemHealthUseCase,
   ListAdminOrdersUseCase,
   GetTopProductsUseCase,
+  GetTrafficSummaryUseCase,
   ListCatalogCategoriesUseCase,
   ListCatalogProductsUseCase,
   ListCategoriesUseCase,
@@ -55,6 +57,7 @@ import {
   type Sha256Hex,
   type StockRepositoryPort,
   type StoreMetricsPort,
+  type TrafficStatsPort,
 } from "@commerceos/core";
 import {
   DatabaseCatalogRepository,
@@ -66,6 +69,7 @@ import {
   DatabaseRateLimiter,
   DatabaseStockRepository,
   DatabaseStoreMetrics,
+  DatabaseTrafficStats,
   MikroORM,
   createOrmConfig,
   type EntityManager,
@@ -150,10 +154,13 @@ export type Cradle = {
   getTopProductsUseCase: GetTopProductsUseCase;
   getLowStockProductsUseCase: GetLowStockProductsUseCase;
   getDashboardUseCase: GetDashboardUseCase;
+  trafficStats: TrafficStatsPort;
+  getTrafficSummaryUseCase: GetTrafficSummaryUseCase;
   getSalesSummaryTool: GetSalesSummaryTool;
   getOrderSummaryTool: GetOrderSummaryTool;
   getTopProductsTool: GetTopProductsTool;
   getLowStockProductsTool: GetLowStockProductsTool;
+  getTrafficSummaryTool: GetTrafficSummaryTool;
   copilotLog: CopilotLogPort;
   askCopilotUseCase: AskCopilotUseCase;
   authPool: Pool;
@@ -236,12 +243,17 @@ function buildContainer(): AwilixContainer<Cradle> {
     getTopProductsUseCase: asClass(GetTopProductsUseCase).scoped(),
     getLowStockProductsUseCase: asClass(GetLowStockProductsUseCase).scoped(),
     getDashboardUseCase: asClass(GetDashboardUseCase).scoped(),
+    // Fictional demo traffic (Copilot spec, Phase 3; D08): read-only SQL on the request's
+    // EntityManager; order figures come from the metric use cases above.
+    trafficStats: asClass(DatabaseTrafficStats).scoped(),
+    getTrafficSummaryUseCase: asClass(GetTrafficSummaryUseCase).scoped(),
     // Commerce Copilot (Copilot spec, Phase 1): the approved tools wrap the metric use cases
     // above unchanged, so they share the request scope; the log port adapts the redacting logger.
     getSalesSummaryTool: asClass(GetSalesSummaryTool).scoped(),
     getOrderSummaryTool: asClass(GetOrderSummaryTool).scoped(),
     getTopProductsTool: asClass(GetTopProductsTool).scoped(),
     getLowStockProductsTool: asClass(GetLowStockProductsTool).scoped(),
+    getTrafficSummaryTool: asClass(GetTrafficSummaryTool).scoped(),
     copilotLog: asValue(copilotLog),
     askCopilotUseCase: asClass(AskCopilotUseCase).scoped(),
     authPool: asFunction(() => createAuthPool(env.DATABASE_URL))

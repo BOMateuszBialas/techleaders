@@ -218,7 +218,7 @@ describe("buildRuleInsights", () => {
   });
 
   it("falls back to 'nothing stands out' when the facts a summary needs are missing", () => {
-    for (const intent of ["focus", "low_stock", "sales_change", "funnel"] as const) {
+    for (const intent of ["focus", "low_stock", "sales_change"] as const) {
       const { draft } = insights(intent, {});
       expect(draft).toEqual({
         summary: NOTHING_STANDS_OUT,

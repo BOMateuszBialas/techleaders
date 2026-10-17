@@ -39,5 +39,5 @@ Recorded while implementing; see the PR body for the final list.
 
 - [x] 12 Port, adapter, unit and integration tests
 - [x] 13 GetTrafficSummaryUseCase, periodCalendarDays, demo metric definitions
-- [ ] 14
+- [x] 14 getTrafficSummary tool, traffic plans, facts, rules 4–6, summaries, demo labels, summary evidence
 - [ ] 15

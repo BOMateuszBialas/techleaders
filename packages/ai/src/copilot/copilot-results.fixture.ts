@@ -1,4 +1,5 @@
 import {
+  DEMO_TRAFFIC_LABEL,
   ORDER_STATUSES,
   previousPeriod,
   resolvePeriod,
@@ -7,6 +8,7 @@ import {
   type SalesSummary,
   type TopProducts,
   type TopProductAggregate,
+  type TrafficSummary,
 } from "@commerceos/core";
 
 /** Shared Copilot test data: the E04 demo scenario in miniature (Pulse is a low-stock best seller). */
@@ -69,4 +71,88 @@ export function defaultLowStockRows(): LowStockProducts["rows"] {
     { id: TITAN_ID, name: "Titan MMO Mouse", sku: "DEMO-MOU-003", stockQuantity: 0 },
     { id: PULSE_ID, name: "Pulse Ultralight Mouse", sku: "DEMO-MOU-002", stockQuantity: 3 },
   ];
+}
+
+export const DRIFT_ID = "3e8c5f4b-b06d-4f9e-8b4c-5d0a7fbc9b34";
+
+/** Demo traffic in miniature: Drift is viewed a lot and rarely bought; Titan is out of stock. */
+export function traffic(overrides: Partial<TrafficSummary> = {}): TrafficSummary {
+  return {
+    source: DEMO_TRAFFIC_LABEL,
+    demo: true,
+    period: PERIOD,
+    days: { firstDay: "2026-10-11", lastDay: "2026-10-17" },
+    definitionIds: ["sessionsDemo", "funnelDemo", "storeConversionDemo", "viewToPurchaseRateDemo"],
+    productLimit: 5,
+    sessions: {
+      total: 1000,
+      bySource: [
+        { source: "direct", sessions: 300 },
+        { source: "organic", sessions: 400 },
+        { source: "social", sessions: 200 },
+        { source: "email", sessions: 100 },
+        { source: "paid", sessions: 0 },
+      ],
+    },
+    funnel: {
+      sessions: 1000,
+      productViews: 800,
+      addToCarts: 120,
+      checkoutsStarted: 40,
+      paidOrders: 29,
+    },
+    storeConversion: 0.029,
+    viewToPurchaseRate: 0.05,
+    products: [
+      {
+        productId: DRIFT_ID,
+        name: "Drift Wireless Headset",
+        views: 300,
+        addToCarts: 30,
+        unitsSold: 2,
+        viewToPurchaseRate: 2 / 300,
+      },
+      {
+        productId: PULSE_ID,
+        name: "Pulse Ultralight Mouse",
+        views: 150,
+        addToCarts: 40,
+        unitsSold: 9,
+        viewToPurchaseRate: 0.06,
+      },
+      {
+        productId: TITAN_ID,
+        name: "Titan MMO Mouse",
+        views: 90,
+        addToCarts: 0,
+        unitsSold: 0,
+        viewToPurchaseRate: 0,
+      },
+      {
+        productId: ECHO_ID,
+        name: "Echo Surround Headset",
+        views: 40,
+        addToCarts: 8,
+        unitsSold: 5,
+        viewToPurchaseRate: 0.125,
+      },
+    ],
+    productsWithoutViewData: 2,
+    ...overrides,
+  };
+}
+
+/** No demo traffic rows in the period at all. */
+export function emptyTraffic(): TrafficSummary {
+  return traffic({
+    sessions: {
+      total: 0,
+      bySource: traffic().sessions.bySource.map((row) => ({ ...row, sessions: 0 })),
+    },
+    funnel: { sessions: 0, productViews: 0, addToCarts: 0, checkoutsStarted: 0, paidOrders: 0 },
+    storeConversion: null,
+    viewToPurchaseRate: null,
+    products: [],
+    productsWithoutViewData: 15,
+  });
 }

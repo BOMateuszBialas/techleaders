@@ -10,3 +10,4 @@ export * from "./tools/get-low-stock-products.tool";
 export * from "./tools/get-order-summary.tool";
 export * from "./tools/get-sales-summary.tool";
 export * from "./tools/get-top-products.tool";
+export * from "./tools/get-traffic-summary.tool";

@@ -12,7 +12,7 @@ import {
 } from "./copilot-results.fixture";
 import {
   CAUSATION_LIMITATION,
-  NO_TRAFFIC_LIMITATION,
+  DEMO_TRAFFIC_LIMITATION,
   UnknownCitationError,
   expandDraft,
   lowStockTruncatedLimitation,
@@ -24,8 +24,8 @@ import { buildRuleInsights, type CopilotDraft } from "./rule-insights";
 const RESULTS = { sales: sales(), orders: orders(), topProducts: top(), lowStock: lowStock() };
 
 describe("serverLimitations", () => {
-  it("attaches the traffic note to focus and the causation note to sales_change", () => {
-    expect(serverLimitations("focus", RESULTS)).toEqual([NO_TRAFFIC_LIMITATION]);
+  it("attaches the causation note to sales_change only, and no traffic note without traffic", () => {
+    expect(serverLimitations("focus", RESULTS)).toEqual([]);
     expect(serverLimitations("sales_change", {})).toEqual([CAUSATION_LIMITATION]);
     expect(serverLimitations("top_products", {})).toEqual([]);
   });
@@ -57,15 +57,20 @@ describe("expandDraft", () => {
   it("turns fact ids into evidence rows and aliases into product ids, with the limitations", () => {
     const table = buildFacts(RESULTS);
     const draft = buildRuleInsights("focus", table, PERIOD);
-    const answer = expandDraft(draft, table, [NO_TRAFFIC_LIMITATION]);
+    const answer = expandDraft(draft, table, [DEMO_TRAFFIC_LIMITATION]);
     expect(answer.summary).toBe(draft.summary);
+    expect(answer.summaryEvidence.map((row) => row.metric)).toEqual([
+      "Paid orders",
+      "Revenue from paid orders",
+      "Orders placed",
+    ]);
     const [restock] = answer.recommendations;
     expect(restock).toMatchObject({
       id: null,
       status: "new",
       relatedProductIds: [PULSE_ID],
       relatedProducts: [{ id: PULSE_ID, name: "Pulse Ultralight Mouse" }],
-      limitations: [NO_TRAFFIC_LIMITATION],
+      limitations: [DEMO_TRAFFIC_LIMITATION],
     });
     expect(restock?.evidence).toEqual([
       {
