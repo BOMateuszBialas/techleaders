@@ -9,6 +9,8 @@ export const recommendationEvidenceSchema = z.object({
   value: z.string().min(1).max(120),
   period: z.string().max(120).optional(),
   source: z.string().min(1).max(120),
+  /** Fictional demo data (traffic, D07/D08); set by the server, never by a model. */
+  demo: z.boolean().optional(),
 });
 
 export const copilotRecommendationSchema = z.object({
@@ -22,9 +24,10 @@ export const copilotRecommendationSchema = z.object({
   limitations: z.array(z.string().min(1).max(500)).max(10).optional(),
 });
 
+/** At most 3 recommendations (MVP spec §3; Copilot spec, Modules). */
 export const copilotResponseSchema = z.object({
   summary: z.string().min(1).max(2000),
-  recommendations: z.array(copilotRecommendationSchema).max(5),
+  recommendations: z.array(copilotRecommendationSchema).max(3),
 });
 
 export type RecommendationEvidence = z.infer<typeof recommendationEvidenceSchema>;
