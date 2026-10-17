@@ -148,4 +148,25 @@ describe("admin orders (E04-S01)", () => {
     await browser().open("/admin/orders/00000000-0000-4000-8000-000000000000");
     await browser().waitForText("This record does not exist or was deleted.");
   });
+
+  it("labels the seeded demo orders and their fictional customers (E04-S03)", async () => {
+    // Keeps the owner session. The seed's history is older than the live orders above, so the
+    // second page holds demo orders only.
+    await browser().open("/admin/orders?page=2");
+    await browser().waitForText("Page 2 of");
+    const table = await browser().text(ORDERS_TABLE);
+    const reference = /DEMO-\d{4}/.exec(table)?.[0] ?? "";
+    expect(reference).toMatch(/^DEMO-\d{4}$/);
+    expect(table).toContain("Demo");
+    expect(table).not.toMatch(REFERENCE);
+
+    await browser().clickRole("link", reference);
+    await browser().waitForText("Change status");
+    const main = await browser().text("main");
+    expect(main).toContain(
+      "Seeded demo order: the customer is fictional and no real purchase happened.",
+    );
+    expect(main).toContain("[DEMO] ");
+    expect(main).toMatch(/demo\.shopper\d{2}@example\.com/);
+  });
 });
