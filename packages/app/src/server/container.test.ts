@@ -236,6 +236,18 @@ describe("composition root", () => {
     info.mockRestore();
   });
 
+  it("logs the summary of the error behind a Better Auth log line as context (#57)", () => {
+    const error = vi.spyOn(logger, "error").mockImplementation(() => {});
+    logAuthMessage("error", "[better-auth] INTERNAL_SERVER_ERROR", {
+      name: "DatabaseError",
+      code: "57P01",
+    });
+    expect(error).toHaveBeenCalledWith("[better-auth] INTERNAL_SERVER_ERROR", {
+      error: { name: "DatabaseError", code: "57P01" },
+    });
+    error.mockRestore();
+  });
+
   it("closes the ORM and the auth pool, and rebuilds the container after disposal", async () => {
     // One disposal of the original container, as before auth existed: closing a second,
     // freshly built ORM without a database took over 5 s in CI.
