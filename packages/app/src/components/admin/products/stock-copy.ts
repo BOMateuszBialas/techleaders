@@ -15,8 +15,12 @@ export const STOCK_HEADING = "Stock";
 export const NEW_STOCK_LABEL = "New stock quantity";
 export const SET_STOCK_BUTTON = "Set stock";
 export const STOCK_HISTORY_HEADING = "Stock history";
+/**
+ * Only manual changes are recorded (orders spec A5): checkout decrements and the restock of a
+ * cancelled order change the stock without a history row.
+ */
 export const STOCK_HISTORY_NOTE =
-  "Changes since the product was created, newest first (last 20). Initial stock: not recorded.";
+  "Manual stock changes, newest first (last 20). Checkouts and cancelled orders change the stock without a row here. Initial stock: not recorded.";
 export const EMPTY_STOCK_HISTORY = "No stock changes recorded yet.";
 /**
  * The hidden quantity the form showed arrived missing or broken (only by editing the page):

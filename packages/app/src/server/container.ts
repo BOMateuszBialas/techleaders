@@ -3,11 +3,13 @@ import { UnconfiguredLlmProvider, type LlmProviderPort } from "@commerceos/ai";
 import {
   AddToCartUseCase,
   AdjustStockUseCase,
+  ChangeOrderStatusUseCase,
   ConfirmDemoPaymentUseCase,
   CreateCategoryUseCase,
   CreateProductUseCase,
   DeleteCategoryUseCase,
   GetCartUseCase,
+  GetAdminOrderUseCase,
   GetCatalogProductUseCase,
   GetDashboardUseCase,
   GetLowStockProductsUseCase,
@@ -17,6 +19,7 @@ import {
   GetProductUseCase,
   GetSalesSummaryUseCase,
   GetSystemHealthUseCase,
+  ListAdminOrdersUseCase,
   GetTopProductsUseCase,
   ListCatalogCategoriesUseCase,
   ListCatalogProductsUseCase,
@@ -34,6 +37,7 @@ import {
   type Clock,
   type CategoryRepositoryPort,
   type HealthCheckPort,
+  type OrderAdminPort,
   type OrderRepositoryPort,
   type PaymentGateway,
   type ProductRepositoryPort,
@@ -47,6 +51,7 @@ import {
   DatabaseCatalogRepository,
   DatabaseCategoryRepository,
   DatabaseHealthCheck,
+  DatabaseOrderAdminRepository,
   DatabaseOrderRepository,
   DatabaseProductRepository,
   DatabaseRateLimiter,
@@ -125,6 +130,10 @@ export type Cradle = {
   placeOrderUseCase: PlaceOrderUseCase;
   getOrderByReferenceUseCase: GetOrderByReferenceUseCase;
   confirmDemoPaymentUseCase: ConfirmDemoPaymentUseCase;
+  orderAdminRepository: OrderAdminPort;
+  listAdminOrdersUseCase: ListAdminOrdersUseCase;
+  getAdminOrderUseCase: GetAdminOrderUseCase;
+  changeOrderStatusUseCase: ChangeOrderStatusUseCase;
   clock: Clock;
   storeMetrics: StoreMetricsPort;
   getSalesSummaryUseCase: GetSalesSummaryUseCase;
@@ -196,6 +205,12 @@ function buildContainer(): AwilixContainer<Cradle> {
     placeOrderUseCase: asClass(PlaceOrderUseCase).scoped(),
     getOrderByReferenceUseCase: asClass(GetOrderByReferenceUseCase).scoped(),
     confirmDemoPaymentUseCase: asClass(ConfirmDemoPaymentUseCase).scoped(),
+    // Admin orders (orders spec, Phase 1): the status change and its cancel restock run in one
+    // transaction on the request's EntityManager.
+    orderAdminRepository: asClass(DatabaseOrderAdminRepository).scoped(),
+    listAdminOrdersUseCase: asClass(ListAdminOrdersUseCase).scoped(),
+    getAdminOrderUseCase: asClass(GetAdminOrderUseCase).scoped(),
+    changeOrderStatusUseCase: asClass(ChangeOrderStatusUseCase).scoped(),
     // Store metrics (orders spec, Phase 3): aggregate SQL on the request's EntityManager. The
     // four metric use cases are the Copilot's future tool layer; the clock is a stateless
     // singleton so tests can fix "now".
