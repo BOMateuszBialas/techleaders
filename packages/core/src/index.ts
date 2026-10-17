@@ -9,6 +9,7 @@ export * from "./domain/orders/order";
 export * from "./domain/orders/order-reference";
 export * from "./domain/orders/order-status";
 export * from "./domain/products/product";
+export * from "./domain/traffic/demo-traffic";
 export * from "./errors/app-error";
 export * from "./ports/catalog-read.port";
 export * from "./ports/catalog.port";

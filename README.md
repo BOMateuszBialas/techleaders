@@ -47,7 +47,7 @@ cp .env.example .env        # one .env for the whole repo, at the root
                             # then set BETTER_AUTH_SECRET (openssl rand -base64 32)
 npm run db:up               # starts PostgreSQL for local development
 npm run db:migrate          # applies migrations
-npm run db:seed             # loads demo data (repeatable; marked [DEMO])
+npm run db:seed             # loads the demo store (repeatable; marked [DEMO] / DEMO-)
                             # (a gaming-accessories store; see "Demo data" below)
 ADMIN_EMAIL=you@example.com ADMIN_PASSWORD='at-least-12-chars' npm run admin:create
                             # creates the single store owner (or put both in .env)
@@ -98,7 +98,7 @@ AI provider and payment variables will be added when those integrations are impl
 | `npm run db:up` / `npm run db:down` | Start / stop local PostgreSQL |
 | `npm run db:migrate` | Apply pending migrations |
 | `npm run db:migration:create` | Generate a migration from entity changes (review it before committing) |
-| `npm run db:seed` | Load or refresh demo seed data |
+| `npm run db:seed` | Load the demo catalog (insert-only) and regenerate the demo orders and traffic |
 
 ## Tests and CI
 
@@ -175,8 +175,13 @@ Purchase flow: cart → `/checkout` (guest: name, email, address in Poland; pric
   - Every change is recorded in `stock_adjustments` (time, previous and new quantity) in the same transaction as the update, and the panel lists the last 20, newest first, with times in the browser's language and the store's time zone (Europe/Warsaw). The initial stock of a new product is not recorded ("Initial stock: not recorded."). There is no reason or "changed by" field (one owner).
   - Image URLs must be `https://` addresses (or the seeded `/demo/…` images); there is no upload. The admin shows a small preview and says when the image could not be loaded.
   - Lists have no pagination, search or filters (fine for the demo catalog).
-  - **`npm run db:seed` overwrites owner edits to the demo products**, including stock and the "Featured" flag (#24): demo products are upserted by slug. A re-seed sets their stock back to the seed values **without** a stock history row, and keeps the history already recorded, so the last "new" value in a demo product's history can differ from its current stock. Products created in the admin are not touched. Seeding is a dev tool, not a store operation.
-- **Demo data:** the seed is a fictional gaming-accessories store (decision D10): 5 categories, 15 products, 6 featured, one out of stock. Seeding upserts by slug and never deletes, so a database seeded before 2026-10-15 still holds the old coffee products. To start clean, drop the local database and seed again: `docker compose down -v`, then `npm run db:up`, `npm run db:migrate`, `npm run db:seed` and `npm run admin:create` (this also deletes the owner account and sessions).
+  - `npm run db:seed` never changes an existing product or category (#24, orders spec A18): owner edits to demo products (stock, "Featured", price, status) survive a re-seed, and the stock history stays consistent. Seeding is a dev tool, not a store operation.
+- **Demo data:** the seed is a fictional gaming-accessories store (decision D10): 5 categories, 15 products, 6 featured, one out of stock, plus a **fictional order history and fictional traffic** over the 35 days ending on the day you run it (orders spec Phase 2, D08):
+  - About 150 orders, `DEMO-0001` onwards, with `[DEMO]` customers and `example.com` emails. They show a "Demo" badge in the admin, and the order page says "Seeded demo order: the customer is fictional and no real purchase happened." Older orders are shipped, the last week's are paid or processing, two are cancelled and one is refunded; none awaits payment. They count in the store's metrics like any order (they are its demo history) and never changed stock: the seeded stock is the stock after them.
+  - Patterns for the Copilot to find (on a freshly seeded database): Pulse Ultralight Mouse is the best seller of the last 7 days and low in stock; Titan MMO Mouse sold only in the first two weeks and is out of stock; Drift Wireless Headset has many views and few sales; Vortex Wireless Mouse and Glide XL Mousepad sell steadily; Arena Fight Stick sells rarely.
+  - `traffic_daily_stats` (sessions, product views, add-to-carts and checkouts per day and source) and `product_view_daily_stats` (views per product and day) are **seeded, fictional data**, never measured: there is no analytics integration. They are derived from the seeded orders, so each day's funnel covers that day's orders. Orders placed later through the storefront have no traffic behind them.
+  - **Re-seeding** creates missing categories and products (by slug) and never updates existing ones, so seed changes to an existing demo product reach only a fresh database. It deletes and regenerates every `DEMO-` order and all traffic rows, re-anchored to the new date: status changes you made to demo orders are lost, and real (`CO-`) orders are never touched. A demo product that cannot be created (for example, its SKU now belongs to another product) is skipped with a warning.
+  - Catalog rows are never deleted, so a database seeded before 2026-10-15 still holds the old coffee products. To start clean, drop the local database and seed again: `docker compose down -v`, then `npm run db:up`, `npm run db:migrate`, `npm run db:seed` and `npm run admin:create` (this also deletes the owner account and sessions).
 - **Cart:**
   - The cart lives in an `httpOnly` cookie (`commerceos_cart`) holding only product ids and quantities, never prices; every page and action re-reads prices, availability and stock from the catalog. A tampered or unreadable cookie is treated as an empty cart. It needs cookies enabled and does not follow the shopper to another browser.
   - Adding to the cart **does not reserve stock**: the quantity is checked against the current stock for feedback only, and the order placement (checkout, next PR) will be the authoritative check.
