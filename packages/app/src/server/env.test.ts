@@ -49,4 +49,29 @@ describe("parseEnv", () => {
       /lowercase header name/,
     );
   });
+
+  it("leaves the LLM provider unset by default and when the variables are blank", () => {
+    const blank = parseEnv({ ...valid, LLM_PROVIDER: "", LLM_API_KEY: "", LLM_MODEL: "" });
+    expect(blank.LLM_PROVIDER).toBeUndefined();
+    expect(blank.LLM_API_KEY).toBeUndefined();
+    expect(blank.LLM_MODEL).toBeUndefined();
+    // A key alone does nothing without a provider (the app stays rule-based).
+    expect(parseEnv({ ...valid, LLM_API_KEY: "key" }).LLM_PROVIDER).toBeUndefined();
+  });
+
+  it("accepts gemini with a key and a model", () => {
+    expect(
+      parseEnv({ ...valid, LLM_PROVIDER: "gemini", LLM_API_KEY: "key", LLM_MODEL: "flash" }),
+    ).toMatchObject({ LLM_PROVIDER: "gemini", LLM_API_KEY: "key", LLM_MODEL: "flash" });
+  });
+
+  it("requires a key and a model once a provider is set, and rejects unknown providers", () => {
+    expect(() => parseEnv({ ...valid, LLM_PROVIDER: "gemini", LLM_MODEL: "flash" })).toThrow(
+      /LLM_API_KEY: is required when LLM_PROVIDER is set/,
+    );
+    expect(() => parseEnv({ ...valid, LLM_PROVIDER: "gemini", LLM_API_KEY: "key" })).toThrow(
+      /LLM_MODEL: is required when LLM_PROVIDER is set/,
+    );
+    expect(() => parseEnv({ ...valid, LLM_PROVIDER: "openai" })).toThrow(/LLM_PROVIDER/);
+  });
 });
