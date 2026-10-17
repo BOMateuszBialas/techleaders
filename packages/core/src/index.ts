@@ -20,6 +20,7 @@ export * from "./ports/order-repository.port";
 export * from "./ports/payment-gateway.port";
 export * from "./ports/rate-limiter.port";
 export * from "./ports/store-metrics.port";
+export * from "./ports/traffic-stats.port";
 export * from "./services/cart/add-to-cart.use-case";
 export * from "./services/cart/get-cart.use-case";
 export * from "./services/cart/load-priced-cart";
