@@ -4,7 +4,7 @@ CommerceOS is a lightweight, single-store e-commerce platform: a customer storef
 
 This is a 5-week AI Engineering portfolio MVP. The full specification is in [`.ai/specs/2026-10-13-commerceos-mvp.md`](.ai/specs/2026-10-13-commerceos-mvp.md), the agent rules are in [`AGENTS.md`](AGENTS.md), and the day-to-day coding conventions are in [`ENGINEERING_STANDARDS.md`](ENGINEERING_STANDARDS.md).
 
-> **Current state: foundation, admin sign-in, admin catalog management and storefront browsing.** The monorepo, database layer, DI container, env validation, health check, tests, owner authentication for `/admin`, admin product and category management, manual stock adjustment with a recorded history, and the storefront (a shop-front home page with featured products, browse by category, search, product pages) exist. The demo store sells fictional gaming accessories. Cart, checkout and the Copilot workflow are **not implemented yet** (see [Roadmap](#roadmap)).
+> **Current state: foundation, admin sign-in, admin catalog management and storefront browsing.** The monorepo, database layer, DI container, env validation, health check, tests, owner authentication for `/admin`, admin product and category management, manual stock adjustment with a recorded history, and the storefront (a shop-front home page with featured products, browse by category, search, product pages) exist. The demo store sells fictional gaming accessories. The cart, demo checkout, admin orders, the metrics dashboard and a rule-based Commerce Copilot exist too; the Copilot's AI provider and its recommendation actions are **not implemented yet** (see [Commerce Copilot](#commerce-copilot) and [Roadmap](#roadmap)).
 
 ## Monorepo structure
 
@@ -110,9 +110,16 @@ AI provider and payment variables will be added when those integrations are impl
 
 `.github/workflows/ci.yml` runs on every pull request and on `main`, with one check per job: lint/format/typecheck, unit tests with coverage, build, integration tests, and e2e tests (screenshots of failing e2e tests are uploaded as an artifact). Docker is the only service the tests need; there is no shared test database.
 
-## AI provider (Commerce Copilot)
+## Commerce Copilot
 
-Not configured yet. The LLM provider port and the response schema (`packages/ai`) exist. Until a concrete provider adapter is implemented and selected through environment variables, the app runs with `UnconfiguredLlmProvider`, which returns an explicit "provider unavailable" error so the UI can show a fallback instead of a fabricated answer. Setup instructions will be added together with the adapter.
+`/admin/copilot` (signed-in owner) answers one question at a time: seven suggested questions (decision D09) or a typed question in English (1–500 characters). **Phase 1 is rule-based and needs no AI provider or API key.** No provider is configured yet, so every answer is labelled "Rule-based insights · AI is not configured"; the provider adapter arrives in Phase 2 of the Copilot spec, and the app never fabricates an AI answer.
+
+- **Routing is deterministic:** keyword patterns map a typed question to one of the seven intents. Questions about margin or profit, ad spend, customer demographics or segments, competitors, forecasts or conversion by traffic source are declined with the data they would need ("Copilot can't answer this. It needs product cost data, which this store does not record."). Anything else gets the list of questions Copilot answers. Neither runs a tool.
+- **Approved tools only:** `getSalesSummary`, `getOrderSummary`, `getTopProducts`, `getLowStockProducts` (`packages/ai/src/tools/`), each a validated wrapper around the dashboard's metric use case, unchanged. Every number shown comes from them, so the Copilot and `/admin` cannot disagree.
+- **Rule-based insights:** a summary plus at most 3 recommendations: a best seller of the period at or below 5 in stock ("Restock …", high), no paid orders in the period (high), and, for "What could explain the recent change in sales?", the change against the previous period of the same length (medium, with "it cannot show what caused the change"). Each recommendation shows its evidence (metric, value, period, source), why it matters, a suggested next step that stays the owner's decision, and limitations.
+- **Traffic questions** ("Where does my traffic come from?", funnel, views without sales) answer "Traffic data is not available yet" until the fictional demo traffic data is connected (Copilot spec Phase 3).
+- **Limits and logs:** 10 questions per owner per 10 minutes (429 after that). One `copilot.answer` log line per question with the intent, tools and outcome, never the question text or store figures.
+- Copilot reads store data and changes nothing; recommendations are not stored yet (save, dismiss and complete arrive in Phase 4).
 
 ## Payments
 

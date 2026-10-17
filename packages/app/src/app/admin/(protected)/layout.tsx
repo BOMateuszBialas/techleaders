@@ -42,6 +42,12 @@ export default function AdminLayout({ children }: LayoutProps<"/admin">) {
           >
             Categories
           </Link>
+          <Link
+            href="/admin/copilot"
+            className="rounded-md px-2 py-1.5 hover:bg-muted focus-visible:bg-muted"
+          >
+            Copilot
+          </Link>
           <Link href="/" className="rounded-md px-2 py-1.5 hover:bg-muted focus-visible:bg-muted">
             View storefront
           </Link>
