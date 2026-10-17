@@ -1,6 +1,9 @@
 export * from "./domain/auth/admin";
 export * from "./domain/cart/cart";
+export * from "./domain/metrics/metric-definitions";
+export * from "./domain/metrics/metric-period";
 export * from "./domain/money";
+export * from "./domain/orders/demo-order";
 export * from "./domain/orders/order";
 export * from "./domain/orders/order-reference";
 export * from "./domain/products/product";
@@ -50,6 +53,7 @@ export * from "./validators/categories/category-input.schema";
 export * from "./validators/common/uuid.schema";
 export * from "./validators/inventory/set-stock.schema";
 export * from "./validators/inventory/stock-quantity.schema";
+export * from "./validators/metrics/metric-query.schema";
 export * from "./validators/orders/checkout.schema";
 export * from "./validators/parse-input";
 export * from "./validators/products/product-input.schema";
