@@ -107,6 +107,14 @@ describe("reading and writing the cookie", () => {
     expect(await readCartLines()).toEqual([]);
   });
 
+  it("reads an invalid cookie silently for the header count (#48)", async () => {
+    store.get.mockReturnValue({ value: "garbage" });
+    expect(await readCartLines({ logInvalid: false })).toEqual([]);
+    expect(logger.warn).not.toHaveBeenCalled();
+    expect(await readCartLines({ logInvalid: true })).toEqual([]);
+    expect(logger.warn).toHaveBeenCalledOnce();
+  });
+
   it("writes the lines with the cookie options, and deletes the cookie for an empty cart", async () => {
     const lines = [{ productId: VORTEX_ID, quantity: 1 }];
     await writeCartLines(lines);
