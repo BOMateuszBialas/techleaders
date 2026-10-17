@@ -111,6 +111,23 @@ export function resolvePeriod(preset: MetricPeriodPreset, now: Date): MetricPeri
 }
 
 /**
+ * The period of the same length that ends where `period` starts (Copilot spec A8): the
+ * "previous 7 days" a sales change is compared with. Built from local calendar days, so it is
+ * exact across a DST switch too.
+ */
+export function previousPeriod(period: MetricPeriod): MetricPeriod {
+  const first = today(period.from);
+  const previousFirst = addDays(first, -PRESET_DAYS[period.preset]);
+  return {
+    preset: period.preset,
+    from: localMidnight(previousFirst),
+    to: period.from,
+    label: formatDayRange(previousFirst, addDays(first, -1)),
+    timeZone: period.timeZone,
+  };
+}
+
+/**
  * Average order value in whole minor units, rounded half up (A8): `null` when there are no paid
  * orders ("Not enough data"). Integer arithmetic only: ⌊(2·revenue + n) / 2n⌋.
  */

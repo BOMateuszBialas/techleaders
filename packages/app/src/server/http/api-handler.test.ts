@@ -3,6 +3,7 @@ import {
   ConflictError,
   ForbiddenError,
   NotFoundError,
+  TooManyRequestsError,
   UnauthorizedError,
   ValidationError,
 } from "@commerceos/core";
@@ -34,6 +35,7 @@ describe("apiHandler", () => {
     [new ForbiddenError(), 403, "FORBIDDEN"],
     [new NotFoundError(), 404, "NOT_FOUND"],
     [new ConflictError(), 409, "CONFLICT"],
+    [new TooManyRequestsError(), 429, "RATE_LIMITED"],
   ])("maps %o to HTTP %i", async (error, status, code) => {
     const response = await failingWith(error)();
     expect(response.status).toBe(status);
@@ -68,6 +70,11 @@ describe("apiHandler", () => {
       new ConflictError(),
       foreignError("CONFLICT", "The request conflicts with the current state."),
       409,
+    ],
+    [
+      new TooManyRequestsError(),
+      foreignError("RATE_LIMITED", "Too many requests. Try again in a few minutes."),
+      429,
     ],
   ])("maps an error from another class identity like %o", async (genuine, foreign, status) => {
     expect(foreign).not.toBeInstanceOf(AppError);

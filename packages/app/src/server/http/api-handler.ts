@@ -23,6 +23,7 @@ const CLIENT_ERROR_STATUS: Record<ClientErrorCode, number> = {
   FORBIDDEN: 403,
   NOT_FOUND: 404,
   CONFLICT: 409,
+  RATE_LIMITED: 429,
 };
 
 const FIELD_ERRORS_SCHEMA = z.record(z.string(), z.array(z.string()));

@@ -5,6 +5,7 @@ import {
   ConflictError,
   ForbiddenError,
   NotFoundError,
+  TooManyRequestsError,
   UnauthorizedError,
   UniqueFieldConflictError,
   ValidationError,
@@ -59,6 +60,7 @@ describe("AppError hierarchy", () => {
     [new ForbiddenError(), "FORBIDDEN"],
     [new NotFoundError(), "NOT_FOUND"],
     [new ConflictError(), "CONFLICT"],
+    [new TooManyRequestsError(), "RATE_LIMITED"],
   ] as const)("lists the code of %o as a client error code", (error, code) => {
     expect(CLIENT_ERROR_CODES).toContain(error.code);
     expect(hasAppErrorCode(error, code)).toBe(true);

@@ -115,6 +115,13 @@ export function isStaleStockError(
   );
 }
 
+/** Too many requests from one caller in a short time (Copilot spec A4); nothing was done. */
+export class TooManyRequestsError extends AppError {
+  constructor(message = "Too many requests. Try again in a few minutes.") {
+    super("RATE_LIMITED", message);
+  }
+}
+
 /** Codes of the errors whose message is safe and meaningful for the client. */
 export const CLIENT_ERROR_CODES = [
   "VALIDATION_FAILED",
@@ -122,6 +129,7 @@ export const CLIENT_ERROR_CODES = [
   "FORBIDDEN",
   "NOT_FOUND",
   "CONFLICT",
+  "RATE_LIMITED",
 ] as const;
 
 export type ClientErrorCode = (typeof CLIENT_ERROR_CODES)[number];

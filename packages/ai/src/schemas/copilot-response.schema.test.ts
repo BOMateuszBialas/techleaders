@@ -23,4 +23,16 @@ describe("copilotResponseSchema", () => {
     };
     expect(copilotResponseSchema.safeParse(withoutEvidence).success).toBe(false);
   });
+
+  it("accepts at most 3 recommendations and a server-set demo flag on evidence", () => {
+    const [first] = validCopilotResponse.recommendations;
+    const demoEvidence = first && {
+      ...first,
+      evidence: [{ metric: "Sessions", value: "120", source: "getTrafficSummary", demo: true }],
+    };
+    const three = { ...validCopilotResponse, recommendations: [demoEvidence, first, first] };
+    expect(copilotResponseSchema.safeParse(three).success).toBe(true);
+    const four = { ...three, recommendations: [...three.recommendations, first] };
+    expect(copilotResponseSchema.safeParse(four).success).toBe(false);
+  });
 });
