@@ -37,7 +37,19 @@ Non-goals: metrics, dashboard, `clock` registration (Phase 3, lane B); demo seed
 
 ## Decisions
 
-(filled during the run)
+- **Reconciliation with E02 (step 1):** the merged schema matches the spec's Data Model: six statuses, `paid_at` with both checks, `public_reference varchar(32)` without a format check (so `DEMO-0001` fits, A13), `order_items` snapshots (name, SKU, unit price) and a nullable `product_id` (`set null`). No spec amendment needed.
+- **Status labels live in core** (`ORDER_STATUS_LABELS`); the storefront's `orderStatusLabel` now reads them, so the admin and the shopper's page cannot disagree. Same wording as before.
+- **One status form per allowed transition, one `useActionState`** (`OrderStatusForm`): the result message sits outside the forms, so it stays visible after `refresh()` replaces the buttons with the new status's ones.
+- **Stale change refreshes the page**: `runAdminAction` refreshes only on success, so `changeOrderStatus` calls `refresh()` itself after a `StaleOrderStatusError`; the page then shows the current status and its buttons (spec Edge Cases, "re-renders with the refund option only").
+- **Confirmation tick is checked on the server too** (`confirm=yes` for cancel and refund), inside `runAdminAction` after `requireAdmin()`; a missing tick (only by editing the page) is a form-level error.
+- **Invalid hidden values are one form-level message** ("This status change is not allowed."): the use case uses `safeParse` instead of `parseInput`, because field errors on hidden inputs would highlight nothing (the #43 lesson).
+- **"Items" column = units** (sum of quantities), matching the cancel message "Stock was returned for N items".
+- **No `clock` registration**: the spec lists it for Phase 3 (metric periods); lane B adds it with the dashboard.
+- **#22's AC** already carried the A3 note; the run also listed the full transition table in it and linked this spec.
+
+## Outcome
+
+(filled at completion)
 
 ## Progress
 
