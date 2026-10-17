@@ -1,14 +1,16 @@
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { METRIC_DEFINITIONS } from "@commerceos/core";
+import { beforeAll, describe, expect, it } from "vitest";
 import { z } from "zod";
 import { ARTIFACTS_DIR, useBrowser } from "./support/browser-test";
 import { useOwnerSession } from "./support/sign-in";
 
+/** Each page with text from its streamed content: widths are measured once it has rendered. */
 const ADMIN_PAGES = [
-  "/admin",
-  "/admin/orders",
-  "/admin/products",
-  "/admin/categories",
-  "/admin/copilot",
+  { path: "/admin", loaded: METRIC_DEFINITIONS.revenue.label },
+  { path: "/admin/orders", loaded: "DEMO-" },
+  { path: "/admin/products", loaded: "Vortex Wireless Mouse" },
+  { path: "/admin/categories", loaded: "Keyboards" },
+  { path: "/admin/copilot", loaded: "Commerce Copilot" },
 ];
 const NAV_LINKS = ["Dashboard", "Orders", "Products", "Categories", "Copilot", "View storefront"];
 
@@ -29,20 +31,18 @@ describe("admin shell at 390 px", () => {
       );
   }
 
+  // No viewport reset afterwards: the session belongs to this file and closes with it.
   beforeAll(async () => {
     await browser().clearCookies();
     await useOwnerSession(browser());
     await browser().setViewport(390, 844);
   });
 
-  afterAll(async () => {
-    await browser().setViewport(1280, 720);
-  });
-
   it("keeps every admin page within the viewport, with every nav link visible", async () => {
-    for (const path of ADMIN_PAGES) {
+    for (const { path, loaded } of ADMIN_PAGES) {
       await browser().open(path);
       await browser().waitForText("Signed in as");
+      await browser().waitForText(loaded);
       const { scrollWidth, innerWidth } = await pageWidths();
       expect(innerWidth, path).toBe(390);
       expect(scrollWidth, path).toBe(innerWidth);
@@ -50,10 +50,16 @@ describe("admin shell at 390 px", () => {
 
     const links = Object.values((await browser().snapshot()).refs);
     for (const name of NAV_LINKS) expect(links).toContainEqual({ role: "link", name });
-    const navRight = await browser().evaluate(
-      "Math.max(...[...document.querySelectorAll('nav[aria-label=\"Admin\"] a')].map((a) => a.getBoundingClientRect().right))",
-    );
-    expect(navRight).toBeLessThanOrEqual(390);
+    const nav = z
+      .object({ count: z.number(), right: z.number() })
+      .parse(
+        await browser().evaluate(
+          "(() => { const links = [...document.querySelectorAll('nav[aria-label=Admin] a')]; return { count: links.length, right: Math.max(...links.map((a) => a.getBoundingClientRect().right)) }; })()",
+        ),
+      );
+    expect(nav.count).toBe(NAV_LINKS.length);
+    expect(nav.right).toBeLessThanOrEqual(390);
+    // QA evidence for #56; the folder is git-ignored and CI uploads it only on failure.
     await browser().screenshot(`${ARTIFACTS_DIR}/admin-nav-390.png`);
   });
 });
