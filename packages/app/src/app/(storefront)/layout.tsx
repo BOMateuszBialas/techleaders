@@ -59,9 +59,12 @@ async function LoadedHeaderMenu() {
   return <HeaderMenu categories={result.kind === "ok" ? result.data : []} />;
 }
 
-/** The cart count comes from the cookie only (no database read, cart spec UI/UX). */
+/**
+ * The cart count comes from the cookie only (no database read, cart spec UI/UX). It does not log
+ * an invalid cookie: every storefront page renders it, and the cart page already does (#48).
+ */
 async function LoadedCartLink() {
-  return <CartLink itemCount={cartItemCount(await readCartLines())} />;
+  return <CartLink itemCount={cartItemCount(await readCartLines({ logInvalid: false }))} />;
 }
 
 async function LoadedFooterCategoryLinks() {
