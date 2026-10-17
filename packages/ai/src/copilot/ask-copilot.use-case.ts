@@ -141,8 +141,8 @@ export class AskCopilotUseCase {
       ...emptyAnswer("answered", TRAFFIC_NOT_AVAILABLE_MESSAGE),
       intent: intent.id,
       question: intent.question,
-      fallbackReason: PHASE_1_FALLBACK,
     };
+    // No data to analyse yet: AI is not the reason there is no answer, so no fallback reason.
     if (!intent.plan) return { answer: base, tools: [] };
 
     const period = resolvePeriod(route.period, this.deps.clock());
@@ -154,6 +154,7 @@ export class AskCopilotUseCase {
     return {
       answer: {
         ...base,
+        fallbackReason: PHASE_1_FALLBACK,
         period: periodDto(period),
         summary: expanded.summary,
         recommendations: expanded.recommendations,

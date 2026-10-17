@@ -191,7 +191,7 @@ describe("AskCopilotUseCase", () => {
       kind: "answered",
       intent: "funnel",
       summary: TRAFFIC_NOT_AVAILABLE_MESSAGE,
-      fallbackReason: "not_configured",
+      fallbackReason: null,
       period: null,
     });
     expect(toolCalls(storeMetrics)).toBe(0);

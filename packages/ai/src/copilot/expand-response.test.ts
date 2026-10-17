@@ -15,6 +15,7 @@ import {
   NO_TRAFFIC_LIMITATION,
   UnknownCitationError,
   expandDraft,
+  lowStockTruncatedLimitation,
   otherCurrencyLimitation,
   serverLimitations,
 } from "./expand-response";
@@ -27,6 +28,14 @@ describe("serverLimitations", () => {
     expect(serverLimitations("focus", RESULTS)).toEqual([NO_TRAFFIC_LIMITATION]);
     expect(serverLimitations("sales_change", {})).toEqual([CAUSATION_LIMITATION]);
     expect(serverLimitations("top_products", {})).toEqual([]);
+  });
+
+  it("says when rule 1 saw only part of the low-stock list", () => {
+    const truncated = { ...lowStock(), total: 12 };
+    expect(serverLimitations("low_stock", { lowStock: truncated })).toEqual([
+      lowStockTruncatedLimitation(2),
+    ]);
+    expect(lowStockTruncatedLimitation(2)).toMatch(/^Only the 2 products with the lowest stock/);
   });
 
   it("names orders in other currencies for both periods", () => {

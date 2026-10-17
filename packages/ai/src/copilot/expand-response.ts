@@ -19,6 +19,11 @@ export function otherCurrencyLimitation(count: number, previousPeriod = false): 
   return previousPeriod ? `${text} in the previous period.` : `${text}.`;
 }
 
+/** Rule 1 sees only the lowest-stock rows the tool returns; say so when there are more. */
+export function lowStockTruncatedLimitation(checked: number): string {
+  return `Only the ${checked} products with the lowest stock were checked for restocking; more products are low on stock (see the dashboard).`;
+}
+
 /**
  * Limitations the server attaches by construction (Copilot spec, Grounding rules): never left
  * to the rules or a model to remember.
@@ -27,6 +32,9 @@ export function serverLimitations(intent: CopilotIntentId, results: CopilotToolR
   const limitations: string[] = [];
   if (intent === "focus") limitations.push(NO_TRAFFIC_LIMITATION);
   if (intent === "sales_change") limitations.push(CAUSATION_LIMITATION);
+  const low = results.lowStock;
+  if (low && low.total > low.rows.length)
+    limitations.push(lowStockTruncatedLimitation(low.rows.length));
   const current = results.sales?.otherCurrencyOrders ?? 0;
   if (current > 0) limitations.push(otherCurrencyLimitation(current));
   const previous = results.previousSales?.otherCurrencyOrders ?? 0;

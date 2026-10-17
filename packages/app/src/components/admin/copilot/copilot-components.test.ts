@@ -147,6 +147,18 @@ describe("createAskCopilotAction", () => {
         { ok: false, error: { code: "VALIDATION_FAILED", message: "Type a question." } },
         "Type a question.",
       ],
+      [
+        400,
+        {
+          ok: false,
+          error: {
+            code: "VALIDATION_FAILED",
+            message: "The request is invalid.",
+            fieldErrors: { question: ["Type a question."] },
+          },
+        },
+        "Type a question.",
+      ],
       [400, "not json", UNAVAILABLE_TEXT],
       [401, { ok: false, error: { code: "UNAUTHORIZED", message: "x" } }, SESSION_ENDED_TEXT],
       [429, { ok: false, error: { code: "RATE_LIMITED", message: "x" } }, RATE_LIMITED_TEXT],
@@ -189,6 +201,7 @@ describe("CopilotPanelView", () => {
     const html = render(IDLE_COPILOT_STATE, true);
     expect(html).toContain("Analysing your store data…");
     expect(html).toContain('aria-busy="true"');
+    expect(html).toContain("readOnly");
     expect(html).toContain("disabled");
   });
 

@@ -10,10 +10,9 @@ const SUMMARY = 'main [data-testid="copilot-summary"]';
  * Commerce Copilot, Phase 1 (rule-based, no LLM provider; Copilot spec step 6). The e2e app
  * runs without any provider, so every answer must say AI is not configured.
  *
- * Data: the seed holds no order history, so the suite buys one Arena Fight Stick (2 in stock,
- * which no other suite counts on) and confirms its demo payment. That makes it a best seller
- * of the last 7 days at or below the low-stock threshold, so rule 1 fires deterministically.
- * Pulse Ultralight Mouse is left alone: other suites rely on its 3 units.
+ * Data: the demo store seed (E04-S03) makes Pulse Ultralight Mouse the best seller of the last
+ * 7 days with 3 units in stock, so rule 1 flags it. The suite buys nothing: other suites rely on
+ * Pulse's stock.
  */
 describe("admin Copilot", () => {
   const browser = useBrowser();
@@ -57,30 +56,12 @@ describe("admin Copilot", () => {
       expect(main).toContain(FOCUS);
     });
 
-    it("flags a best seller that is low on stock, with evidence, for the primary question", async () => {
-      await browser().open("/products/arena-fight-stick");
-      await browser().waitForText("Add to cart");
-      await browser().clickRole("button", "Add to cart");
-      await browser().waitForText("Added to cart.");
-      await browser().open("/cart");
-      await browser().waitForText("Prices are confirmed at checkout.");
-      await browser().clickRole("link", "Checkout");
-      await browser().waitForText("Place order");
-      await browser().fillLabel("Full name", "Copilot Tester");
-      await browser().fillLabel("Email", "copilot@example.test");
-      await browser().fillLabel("Address", "ul. Długa 3");
-      await browser().fillLabel("City", "Gdańsk");
-      await browser().fillLabel("Postal code", "80-001");
-      await browser().clickRole("button", "Place order");
-      await browser().waitForText("Confirm demo payment (no charge)");
-      await browser().clickRole("button", "Confirm demo payment (no charge)");
-      await browser().waitForText("Thank you — demo payment received");
-
+    it("flags the seeded low-stock best seller, with evidence, for the primary question", async () => {
       await openCopilot();
       await browser().clickRole("button", FOCUS);
       await browser().waitForText("Rule-based insights · AI is not configured");
       const answer = await browser().text(ANSWER);
-      expect(answer).toContain("Restock Arena Fight Stick");
+      expect(answer).toContain("Restock Pulse Ultralight Mouse");
       expect(answer).toContain("High priority");
       expect(answer).toContain("Evidence from this store's data");
       expect(answer).toContain("getTopProducts · topProducts");

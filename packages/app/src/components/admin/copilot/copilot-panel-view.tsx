@@ -47,6 +47,7 @@ export function CopilotPanelView({
             name="question"
             maxLength={COPILOT_QUESTION_MAX_LENGTH}
             defaultValue={state.question}
+            readOnly={pending}
             placeholder="Which products are low on stock?"
             aria-describedby="copilot-question-hint"
           />

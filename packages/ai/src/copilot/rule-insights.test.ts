@@ -19,14 +19,11 @@ function insights(intent: Parameters<typeof buildRuleInsights>[0], results: Copi
 }
 
 /**
- * Grounding by construction: once every cited fact's display value and metric name and the
- * period text are removed from a text, no digit may remain (the Phase 2 number check, applied
- * to the rules).
+ * Grounding by construction: once every cited fact's display value and the period text are
+ * removed from a text, no digit may remain (the Phase 2 number check, applied to the rules).
  */
 function ungroundedDigits(text: string, factIds: string[], table: FactTable): string[] {
-  const cited = table.facts.filter((fact) => factIds.includes(fact.id));
-  // An evidence row shows the metric name too ("Products at or below 5 in stock").
-  const values = cited.flatMap((fact) => [fact.value, fact.metric]);
+  const values = table.facts.filter((fact) => factIds.includes(fact.id)).map((fact) => fact.value);
   let rest = text.replaceAll("last 7 days", "");
   for (const value of [...values].sort((a, b) => b.length - a.length)) {
     rest = rest.replaceAll(value, "");
@@ -84,7 +81,8 @@ describe("buildRuleInsights", () => {
     expect(draft.recommendations[0]?.observation).toBe(
       "1 unit sold in the last 7 days; it is now out of stock.",
     );
-    expect(draft.summary).toBe("Products at or below 5 in stock now: 1.");
+    expect(draft.summary).toBe("Low-stock products now: 1.");
+    expect(draft.recommendations[0]?.reasoning).toMatch(/has run out/);
     expectGrounded(draft, table);
   });
 

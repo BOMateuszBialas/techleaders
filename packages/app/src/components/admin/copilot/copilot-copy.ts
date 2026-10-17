@@ -61,7 +61,11 @@ export function periodText(period: NonNullable<CopilotAnswerDto["period"]>): str
 }
 
 function errorText(status: number, result: ApiResult<CopilotAnswerDto> | null): string {
-  if (status === 400 && result && !result.ok) return result.error.message;
+  if (status === 400 && result && !result.ok) {
+    // A field message ("Type a question.") is more useful than the generic form-level one.
+    const [first] = Object.values(result.error.fieldErrors ?? {}).flat();
+    return first ?? result.error.message;
+  }
   if (status === 401) return SESSION_ENDED_TEXT;
   if (status === 429) return RATE_LIMITED_TEXT;
   return UNAVAILABLE_TEXT;

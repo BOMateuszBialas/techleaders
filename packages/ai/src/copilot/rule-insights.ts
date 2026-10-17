@@ -47,15 +47,17 @@ function restockBestSellers({ table, periodText }: RuleContext): DraftRecommenda
     const sold = findFact(table, `top.units:${product.alias}`);
     const stock = findFact(table, `lowStock.stock:${product.alias}`);
     if (!sold || !stock) return [];
-    const left = stock.number === 0 ? "it is now out of stock" : `${stock.value} left in stock`;
+    const soldOut = stock.number === 0;
+    const left = soldOut ? "it is now out of stock" : `${stock.value} left in stock`;
     return [
       {
         title: `Restock ${product.name}`,
         priority: "high" as const,
         observation: `${units(sold)} sold in the ${periodText}; ${left}.`,
         evidenceFactIds: [sold.id, stock.id],
-        reasoning:
-          "It is one of the period's best sellers and is about to run out; shoppers cannot buy a product that is out of stock.",
+        reasoning: soldOut
+          ? "It is one of the period's best sellers and has run out; shoppers cannot buy it until it is restocked."
+          : "It is one of the period's best sellers and is about to run out; shoppers cannot buy a product that is out of stock.",
         suggestedAction:
           "Order a new batch and update the stock when it arrives. You decide the quantity.",
         relatedProductAliases: [product.alias],
@@ -119,7 +121,7 @@ function salesChanged({ table }: RuleContext): DraftRecommendation[] {
       observation: `${orders.text}. ${revenue.text}.`,
       evidenceFactIds: [...orders.factIds, ...revenue.factIds],
       reasoning:
-        "Comparing the two periods shows what moved, not why. The best sellers of both periods show which products the change comes from.",
+        "Comparing the two periods shows what moved, not why. The best sellers of both periods show which products moved.",
       suggestedAction:
         "Compare the best sellers of both periods and check whether a product sold out, changed price or was unpublished, then decide what to change.",
       relatedProductAliases: [],
@@ -171,7 +173,7 @@ function lowStockSummary({ table }: RuleContext): Summary {
   const total = findFact(table, "lowStock.total");
   if (!total) return { text: "", factIds: [] };
   return {
-    text: `${total.metric} now: ${total.value}.`,
+    text: `Low-stock products now: ${total.value}.`,
     factIds: [total.id],
   };
 }

@@ -51,18 +51,30 @@ Recorded while implementing; see the PR body for the final list.
 - **DTO additions over the spec** (additive, documented in `BACKWARD_COMPATIBILITY.md` §2): `question` (the canonical D09 question the answer is for), top-level `limitations`, `period.name`, and `relatedProducts` (id + name for the admin links) on each recommendation.
 - **Rule text grounding** is tested by construction: after removing every cited fact's value and metric name and the period text, no digit may remain (`rule-insights.test.ts`).
 - **The panel uses `useActionState` over a browser-side action** (`createAskCopilotAction`, unit-tested with a stubbed `fetch`) that calls the JSON route, so the form follows the hook-free view + thin wrapper pattern. No character counter (it would need extra client state); the textarea has `maxLength` 500 and a hint.
-- **E2E data.** The seed has no order history and other suites rely on Pulse's 3 units, so the e2e test buys one Arena Fight Stick (2 in stock, used by no other suite for stock) and confirms its demo payment; rule 1 then flags it. The integration test (`packages/app/src/server/copilot/ask-copilot.int.test.ts`) runs the real container on PostgreSQL with a fixed clock and two hand-inserted paid orders, and compares every shown value to the E04 use cases.
+- **E2E data.** After merging #55 (populated demo store seed), the e2e test asserts the spec's seeded scenario: Pulse Ultralight Mouse, the 7-day best seller with 3 in stock, is flagged by rule 1. (Before #55 the test bought an Arena Fight Stick; that would have broken on the new seed.) The integration test (`packages/app/src/server/copilot/ask-copilot.int.test.ts`) runs the real container on PostgreSQL with a fixed clock and two hand-inserted paid orders, and compares every shown value to the E04 use cases.
 - **Provider wording.** The product owner chose the Gemini API (spec PR #52, 8baf9c1) after this run started; Phase 1 docs and copy name no provider.
 
-## Validation (full gate, 2026-10-17, after merging origin/main)
+## Review pass (fresh-context reviewer, 2026-10-17)
+
+Verdict was request changes; fixed in this PR:
+
+- Major: branch behind `main` by #55 (demo seed), e2e scenario no longer valid → merged `origin/main`, e2e asserts the seeded Pulse scenario.
+- Minor: a blank typed question showed "The request is invalid." → the panel shows the first field message ("Type a question.").
+- Minor: rule 1 saw only the first 10 low-stock rows silently → server limitation when `lowStock.total` exceeds the rows checked.
+- Minor: traffic intents showed "AI is not configured" → `fallbackReason: null` when there is no data to analyse.
+- Minor: textarea editable while pending → `readOnly` while pending (`disabled` would drop it from the form data).
+- Nits: low-stock summary no longer prints the threshold (Phase 2 grounding would flag it); out-of-stock reasoning wording; "which products moved" instead of "comes from"; index keys for evidence rows and cards.
+- Not changed: the spec's `CopilotAnswerDto` lists fewer fields than the DTO (additive fields documented in `BACKWARD_COMPATIBILITY.md` §2) → amend on spec PR #52; no character counter (deviation kept, `maxLength` + hint); no `Retry-After` header (optional).
+
+## Validation (full gate, 2026-10-17, after merging origin/main incl. #55)
 
 - `npm run lint` ✓ (after fixing one `consistent-type-imports` error in the integration test)
 - `npm run format:check` ✓
 - `npm run typecheck` ✓
-- `npm run test:coverage` ✓ 1106 tests, 100% statements, branches, functions, lines
+- `npm run test:coverage` ✓ 1137 tests, 100% statements, branches, functions, lines
 - `npm run build` ✓ (`/admin/copilot` partial prerender, `/api/admin/copilot/answers` dynamic)
-- `npm run test:integration` ✓ 12 files, 94 tests
-- `npm run test:e2e` ✓ 13 files, 71 tests
+- `npm run test:integration` ✓ 13 files, 107 tests
+- `npm run test:e2e` ✓ 13 files, 72 tests
 
 ## Progress
 

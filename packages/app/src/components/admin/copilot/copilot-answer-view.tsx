@@ -62,8 +62,9 @@ export function RecommendationCardView({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {recommendation.evidence.map((row) => (
-              <TableRow key={`${row.metric}|${row.period}`}>
+            {recommendation.evidence.map((row, index) => (
+              // Evidence rows have no id; the order is fixed by the answer.
+              <TableRow key={index}>
                 <TableCell>
                   {row.metric}
                   {row.demo ? (
@@ -139,8 +140,8 @@ export function CopilotAnswerView({
           <Limitations items={answer.limitations} />
         </div>
       ) : (
-        answer.recommendations.map((recommendation) => (
-          <RecommendationCardView key={recommendation.title} recommendation={recommendation} />
+        answer.recommendations.map((recommendation, index) => (
+          <RecommendationCardView key={index} recommendation={recommendation} />
         ))
       )}
       {answer.definitions.length > 0 ? (
