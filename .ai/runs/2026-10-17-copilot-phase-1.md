@@ -50,9 +50,9 @@ Recorded while implementing; see the PR body for the final list.
 
 ### Phase 1: Rule-based Copilot
 
-- [ ] 1.1 Reconcile with E04, previousPeriod, RATE_LIMITED
-- [ ] 1.2 Intents and routing
-- [ ] 1.3 Tools and facts
-- [ ] 1.4 Rule insights and expansion
-- [ ] 1.5 Use case, log port, container
+- [x] 1.1 Reconcile with E04, previousPeriod, RATE_LIMITED — 2481bee
+- [x] 1.2 Intents and routing — 35b235b
+- [x] 1.3 Tools and facts — 4886460
+- [x] 1.4 Rule insights and expansion — 199d55a
+- [x] 1.5 Use case, log port, container — 8122926
 - [ ] 1.6 Route, page, e2e, integration, docs
