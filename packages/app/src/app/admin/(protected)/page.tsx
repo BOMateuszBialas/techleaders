@@ -1,30 +1,57 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { DASHBOARD_UNAVAILABLE_MESSAGE } from "@/components/admin/dashboard/dashboard-copy";
+import { DashboardView } from "@/components/admin/dashboard/dashboard-view";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireAdminPage } from "@/server/auth/require-admin";
+import { loadDashboard } from "./load-dashboard";
 import { loadSystemHealth } from "./load-system-health";
 
 export const metadata: Metadata = { title: "Admin" };
 
-export default function AdminPage() {
+/** Store metrics for `?period=7d|30d` (orders spec, Phase 3), then the system status. */
+export default function AdminPage({ searchParams }: PageProps<"/admin">) {
   return (
-    <div className="flex max-w-4xl flex-col gap-6">
+    <div className="flex max-w-6xl flex-col gap-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
         <p className="text-sm text-muted-foreground">
-          Store metrics and Commerce Copilot will appear here.
+          Orders, revenue and stock from this store&apos;s own data. Every number states how it is
+          counted.
         </p>
       </div>
+      <Suspense fallback={<p className="text-sm text-muted-foreground">Loading metrics…</p>}>
+        <StoreMetrics searchParams={searchParams} />
+      </Suspense>
       <Suspense fallback={<p className="text-sm text-muted-foreground">Checking…</p>}>
-        <AdminDashboard />
+        <SystemStatus />
       </Suspense>
     </div>
   );
 }
 
 /** Everything that needs the request: the admin check first, then the data. */
-async function AdminDashboard() {
+async function StoreMetrics({
+  searchParams,
+}: {
+  searchParams: PageProps<"/admin">["searchParams"];
+}) {
+  await requireAdminPage();
+  const { period } = await searchParams;
+  const result = await loadDashboard(period);
+
+  if (result.kind !== "ok") {
+    return (
+      <p role="alert" className="text-sm text-destructive">
+        {DASHBOARD_UNAVAILABLE_MESSAGE}
+      </p>
+    );
+  }
+  return <DashboardView dashboard={result.data} />;
+}
+
+async function SystemStatus() {
   await requireAdminPage();
   const health = await loadSystemHealth();
 
