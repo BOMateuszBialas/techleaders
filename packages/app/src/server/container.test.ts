@@ -17,6 +17,7 @@ import {
   DatabaseProductRepository,
   DatabaseStockRepository,
   DatabaseStoreMetrics,
+  DatabaseTrafficStats,
 } from "@commerceos/database";
 import {
   copilotLog,
@@ -180,9 +181,12 @@ describe("composition root", () => {
       "getTopProductsUseCase",
       "getLowStockProductsUseCase",
       "getDashboardUseCase",
+      "trafficStats",
+      "getTrafficSummaryUseCase",
     ] as const) {
       expect(first.cradle[key] === second.cradle[key]).toBe(false);
     }
+    expect(first.cradle.trafficStats instanceof DatabaseTrafficStats).toBe(true);
     expect(first.cradle.getDashboardUseCase instanceof GetDashboardUseCase).toBe(true);
     expect(first.cradle.clock === second.cradle.clock).toBe(true);
     const before = Date.now();
@@ -196,6 +200,7 @@ describe("composition root", () => {
       "getOrderSummaryTool",
       "getTopProductsTool",
       "getLowStockProductsTool",
+      "getTrafficSummaryTool",
       "askCopilotUseCase",
     ] as const) {
       expect(first.cradle[key] === second.cradle[key]).toBe(false);

@@ -454,3 +454,9 @@ Each PR: full gate green, 100 % unit coverage, docs updated, no real provider ca
   - Whether `z.toJSONSchema` output fits the provider's structured-output schema subset (step 8).
   - Whether thinking tokens count against `max_tokens` on the chosen model (step 8).
   - Provider list prices and data terms (re-check when A1 is confirmed).
+- Phase 3 implementation notes (2026-10-17, branch `feat/copilot-phase-3-traffic`), additive:
+  - `GetTrafficSummaryUseCase` takes the resolved `MetricPeriod` (like the E04 use cases) instead of a preset, and also returns the store's view-to-purchase rate (all units in paid orders ÷ all demo product views), the baseline rule 5 compares a product with. Its label is the existing `DEMO_TRAFFIC_LABEL`.
+  - The four demo definitions live in `METRIC_DEFINITIONS` under a separate `DEMO_TRAFFIC_METRIC_IDS`, so the dashboard's `METRIC_IDS` stay the six it prints.
+  - "Views without sales" also runs `getLowStockProducts`, which rule 4 needs to see an out-of-stock product; `ToolPlan.topProducts` became optional.
+  - "Where does my traffic come from?" has no matching rule, so its figures are shown as summary evidence: `CopilotAnswerDto.summaryEvidence` (the `summaryFactIds` expanded like recommendation evidence) is shown for every answered question under "Figures in this summary".
+  - A21's "No traffic or conversion data is available yet" is replaced by the demo-data limitation; "No demo traffic data covers this period" appears only when the period has no rows.

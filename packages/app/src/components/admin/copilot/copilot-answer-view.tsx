@@ -1,4 +1,8 @@
-import type { CopilotAnswerDto, CopilotAnswerRecommendation } from "@commerceos/ai";
+import type {
+  CopilotAnswerDto,
+  CopilotAnswerRecommendation,
+  RecommendationEvidence,
+} from "@commerceos/ai";
 import Link from "next/link";
 import { productPath } from "@/components/admin/products/product-copy";
 import { Badge } from "@/components/ui/badge";
@@ -12,7 +16,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { PRIORITY_TEXT, originText, periodText, type SuggestedQuestion } from "./copilot-copy";
+import {
+  DEMO_DATA_TAG,
+  EVIDENCE_CAPTION,
+  PRIORITY_TEXT,
+  SUMMARY_EVIDENCE_CAPTION,
+  originText,
+  periodText,
+  type SuggestedQuestion,
+} from "./copilot-copy";
 
 function Limitations({ items }: { items: string[] }) {
   if (items.length === 0) return null;
@@ -25,6 +37,41 @@ function Limitations({ items }: { items: string[] }) {
         ))}
       </ul>
     </div>
+  );
+}
+
+/** Evidence rows as a table; demo rows carry a text tag, not only a colour (D08, R07). */
+function EvidenceTable({ caption, rows }: { caption: string; rows: RecommendationEvidence[] }) {
+  return (
+    <Table>
+      <TableCaption>{caption}</TableCaption>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Metric</TableHead>
+          <TableHead>Value</TableHead>
+          <TableHead>Period</TableHead>
+          <TableHead>Source</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {rows.map((row, index) => (
+          // Evidence rows have no id; the order is fixed by the answer.
+          <TableRow key={index}>
+            <TableCell>
+              {row.metric}
+              {row.demo ? (
+                <Badge variant="outline" className="ml-2">
+                  {DEMO_DATA_TAG}
+                </Badge>
+              ) : null}
+            </TableCell>
+            <TableCell className="tabular-nums">{row.value}</TableCell>
+            <TableCell>{row.period}</TableCell>
+            <TableCell className="text-muted-foreground">{row.source}</TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
   );
 }
 
@@ -51,35 +98,7 @@ export function RecommendationCardView({
           <h4 className="font-medium">What we see</h4>
           <p>{recommendation.observation}</p>
         </div>
-        <Table>
-          <TableCaption>Evidence from this store&apos;s data</TableCaption>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Metric</TableHead>
-              <TableHead>Value</TableHead>
-              <TableHead>Period</TableHead>
-              <TableHead>Source</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {recommendation.evidence.map((row, index) => (
-              // Evidence rows have no id; the order is fixed by the answer.
-              <TableRow key={index}>
-                <TableCell>
-                  {row.metric}
-                  {row.demo ? (
-                    <Badge variant="outline" className="ml-2">
-                      Fictional demo data
-                    </Badge>
-                  ) : null}
-                </TableCell>
-                <TableCell className="tabular-nums">{row.value}</TableCell>
-                <TableCell>{row.period}</TableCell>
-                <TableCell className="text-muted-foreground">{row.source}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <EvidenceTable caption={EVIDENCE_CAPTION} rows={recommendation.evidence} />
         <div>
           <h4 className="font-medium">Why it matters</h4>
           <p>{recommendation.reasoning}</p>
@@ -128,6 +147,11 @@ export function CopilotAnswerView({
         <p className="text-sm text-muted-foreground">Question: {answer.question}</p>
       ) : null}
       <p data-testid="copilot-summary">{answer.summary}</p>
+      {answer.summaryEvidence.length > 0 ? (
+        <div data-testid="copilot-summary-evidence" className="text-sm">
+          <EvidenceTable caption={SUMMARY_EVIDENCE_CAPTION} rows={answer.summaryEvidence} />
+        </div>
+      ) : null}
       {answer.kind === "unsupported" ? (
         <ul className="list-disc pl-5 text-sm">
           {questions.map((item) => (

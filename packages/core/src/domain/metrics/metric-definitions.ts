@@ -33,7 +33,20 @@ export const METRIC_IDS = [
   "topProducts",
   "lowStock",
 ] as const;
-export type MetricId = (typeof METRIC_IDS)[number];
+
+/**
+ * Definitions of the fictional demo traffic figures (decision D08, MVP spec §6, Copilot spec
+ * Phase 3). Only the Copilot's `getTrafficSummary` reports them; the dashboard does not, so
+ * they are kept apart from the store metrics in `METRIC_IDS`.
+ */
+export const DEMO_TRAFFIC_METRIC_IDS = [
+  "sessionsDemo",
+  "funnelDemo",
+  "storeConversionDemo",
+  "viewToPurchaseRateDemo",
+] as const;
+
+export type MetricId = (typeof METRIC_IDS)[number] | (typeof DEMO_TRAFFIC_METRIC_IDS)[number];
 
 export type MetricDefinition = { id: MetricId; label: string; definition: string };
 
@@ -71,5 +84,29 @@ export const METRIC_DEFINITIONS: Readonly<Record<MetricId, MetricDefinition>> = 
     id: "lowStock",
     label: "Low stock",
     definition: `Published products with ${LOW_STOCK_THRESHOLD} or fewer in stock now, out-of-stock included.`,
+  },
+  sessionsDemo: {
+    id: "sessionsDemo",
+    label: "Sessions (demo)",
+    definition:
+      "Fictional seeded visits per day and traffic source; not measured from real visitors.",
+  },
+  funnelDemo: {
+    id: "funnelDemo",
+    label: "Funnel (demo)",
+    definition:
+      "Demo sessions → product views → add-to-cart → checkout started, then paid orders from the orders table. A step's drop-off is the share of the step before it that did not reach it.",
+  },
+  storeConversionDemo: {
+    id: "storeConversionDemo",
+    label: "Store conversion rate (demo)",
+    definition:
+      'Paid orders divided by demo sessions over the same days; "Not enough data" when there are no sessions. It is not computed per source, because orders carry no traffic source.',
+  },
+  viewToPurchaseRateDemo: {
+    id: "viewToPurchaseRateDemo",
+    label: "Product view-to-purchase rate (demo)",
+    definition:
+      "Units of the product in paid orders divided by its demo views over the same days; no rate for a product without demo view data. The store's rate divides all units in paid orders by all demo product views.",
   },
 };

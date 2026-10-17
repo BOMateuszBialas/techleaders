@@ -14,13 +14,13 @@ import type { GetLowStockProductsTool } from "../tools/get-low-stock-products.to
 import type { GetOrderSummaryTool } from "../tools/get-order-summary.tool";
 import type { GetSalesSummaryTool } from "../tools/get-sales-summary.tool";
 import type { GetTopProductsTool } from "../tools/get-top-products.tool";
+import type { GetTrafficSummaryTool } from "../tools/get-traffic-summary.tool";
 import { buildFacts, definitionsOf, type CopilotToolResults } from "./build-facts";
 import type { CopilotAnswerDto, CopilotAnswerPeriod, FallbackReason } from "./copilot-answer";
 import { expandDraft, serverLimitations } from "./expand-response";
 import {
   DECLINED_CATEGORIES,
   INTENTS,
-  TRAFFIC_NOT_AVAILABLE_MESSAGE,
   UNSUPPORTED_MESSAGE,
   declinedMessage,
   type ToolPlan,
@@ -45,6 +45,7 @@ export type AskCopilotDeps = {
   getOrderSummaryTool: GetOrderSummaryTool;
   getTopProductsTool: GetTopProductsTool;
   getLowStockProductsTool: GetLowStockProductsTool;
+  getTrafficSummaryTool: GetTrafficSummaryTool;
   rateLimiter: RateLimiterPort;
   copilotLog: CopilotLogPort;
   clock: Clock;
@@ -76,6 +77,7 @@ function emptyAnswer(
     model: null,
     period: null,
     summary,
+    summaryEvidence: [],
     recommendations: [],
     limitations: [],
     definitions: [],
@@ -137,14 +139,6 @@ export class AskCopilotUseCase {
     }
 
     const intent = INTENTS[route.intent];
-    const base = {
-      ...emptyAnswer("answered", TRAFFIC_NOT_AVAILABLE_MESSAGE),
-      intent: intent.id,
-      question: intent.question,
-    };
-    // No data to analyse yet: AI is not the reason there is no answer, so no fallback reason.
-    if (!intent.plan) return { answer: base, tools: [] };
-
     const period = resolvePeriod(route.period, this.deps.clock());
     const { results, tools } = await this.runPlan(intent.plan, period);
     const table = buildFacts(results);
@@ -153,10 +147,12 @@ export class AskCopilotUseCase {
     const expanded = expandDraft(draft, table, limitations);
     return {
       answer: {
-        ...base,
+        ...emptyAnswer("answered", expanded.summary),
+        intent: intent.id,
+        question: intent.question,
         fallbackReason: PHASE_1_FALLBACK,
         period: periodDto(period),
-        summary: expanded.summary,
+        summaryEvidence: expanded.summaryEvidence,
         recommendations: expanded.recommendations,
         limitations,
         definitions: definitionsOf(table),
@@ -175,6 +171,7 @@ export class AskCopilotUseCase {
       getOrderSummaryTool,
       getTopProductsTool,
       getLowStockProductsTool,
+      getTrafficSummaryTool,
     } = this.deps;
     const compare = plan.compareWithPrevious;
     const previous = compare
@@ -187,19 +184,30 @@ export class AskCopilotUseCase {
     };
     const skip = Promise.resolve(undefined);
 
-    const [sales, orders, topProducts, lowStock, previousSales, previousTopProducts] =
+    const [sales, orders, topProducts, lowStock, previousSales, previousTopProducts, traffic] =
       await Promise.all([
         plan.sales ? run(getSalesSummaryTool, { period }) : skip,
         plan.orders ? run(getOrderSummaryTool, { period }) : skip,
-        run(getTopProductsTool, { period, limit: plan.topProducts }),
+        plan.topProducts ? run(getTopProductsTool, { period, limit: plan.topProducts }) : skip,
         plan.lowStock ? run(getLowStockProductsTool, plan.lowStock) : skip,
         previous ? run(getSalesSummaryTool, { period: previous.period }) : skip,
         previous
           ? run(getTopProductsTool, { period: previous.period, limit: previous.topProducts })
           : skip,
+        plan.traffic
+          ? run(getTrafficSummaryTool, { period, productLimit: plan.traffic.productLimit })
+          : skip,
       ]);
     return {
-      results: { sales, orders, topProducts, lowStock, previousSales, previousTopProducts },
+      results: {
+        sales,
+        orders,
+        topProducts,
+        lowStock,
+        previousSales,
+        previousTopProducts,
+        traffic,
+      },
       tools: [...tools],
     };
   }

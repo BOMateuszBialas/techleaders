@@ -1,11 +1,25 @@
 import type { CopilotIntentId } from "@commerceos/core";
-import { copilotResponseSchema } from "../schemas/copilot-response.schema";
-import type { CopilotToolResults, FactTable } from "./build-facts";
+import {
+  copilotResponseSchema,
+  type RecommendationEvidence,
+} from "../schemas/copilot-response.schema";
+import type { CopilotFact, CopilotToolResults, FactTable } from "./build-facts";
 import type { CopilotAnswerRecommendation } from "./copilot-answer";
 import type { CopilotDraft } from "./rule-insights";
 
-/** A21: until the traffic tool exists (Phase 3), the primary question says what it lacks. */
-export const NO_TRAFFIC_LIMITATION = "No traffic or conversion data is available yet.";
+/** D08 and R07: every answer that reads the demo traffic says what it is. */
+export const DEMO_TRAFFIC_LIMITATION =
+  "Traffic figures (sessions, views, funnel and conversion) are fictional demo data: seeded, not measured from real visitors.";
+/** D06: name what is unknown when the period has no demo traffic rows. */
+export const NO_TRAFFIC_DATA_LIMITATION =
+  "No demo traffic data covers this period, so traffic and conversion are unknown.";
+
+/** D08: a product without view rows has no rate; say how many were left out. */
+export function noViewDataLimitation(count: number): string {
+  return count === 1
+    ? "1 published product has no demo view data, so it has no view-to-purchase rate."
+    : `${count} published products have no demo view data, so they have no view-to-purchase rate.`;
+}
 /** A8 and R05: a period comparison shows correlation only. */
 export const CAUSATION_LIMITATION =
   "This compares two periods; it cannot show what caused the change.";
@@ -30,7 +44,15 @@ export function lowStockTruncatedLimitation(checked: number): string {
  */
 export function serverLimitations(intent: CopilotIntentId, results: CopilotToolResults): string[] {
   const limitations: string[] = [];
-  if (intent === "focus") limitations.push(NO_TRAFFIC_LIMITATION);
+  const traffic = results.traffic;
+  if (traffic) {
+    limitations.push(DEMO_TRAFFIC_LIMITATION);
+    if (traffic.sessions.total === 0) limitations.push(NO_TRAFFIC_DATA_LIMITATION);
+    const ranksProducts = intent === "focus" || intent === "views_without_sales";
+    if (ranksProducts && traffic.productsWithoutViewData > 0) {
+      limitations.push(noViewDataLimitation(traffic.productsWithoutViewData));
+    }
+  }
   if (intent === "sales_change") limitations.push(CAUSATION_LIMITATION);
   const low = results.lowStock;
   if (low && low.total > low.rows.length)
@@ -52,8 +74,21 @@ export class UnknownCitationError extends Error {
 
 export type ExpandedAnswer = {
   summary: string;
+  /** The facts the summary cites, as evidence rows. */
+  summaryEvidence: RecommendationEvidence[];
   recommendations: CopilotAnswerRecommendation[];
 };
+
+/** A fact as an evidence row: what the page shows and nothing else. */
+function evidenceOf(fact: CopilotFact): RecommendationEvidence {
+  return {
+    metric: fact.metric,
+    value: fact.value,
+    period: fact.period,
+    source: fact.source,
+    demo: fact.demo,
+  };
+}
 
 /**
  * Turns a draft (rules today, a model in Phase 2) into the displayed contract: each fact id
@@ -79,7 +114,7 @@ export function expandDraft(
     return product;
   };
 
-  draft.summaryFactIds.forEach(factOf);
+  const summaryEvidence = draft.summaryFactIds.map(factOf).map(evidenceOf);
   const recommendations = draft.recommendations.map((recommendation) => {
     const related = recommendation.relatedProductAliases
       .map(productOf)
@@ -88,13 +123,7 @@ export function expandDraft(
       title: recommendation.title,
       priority: recommendation.priority,
       observation: recommendation.observation,
-      evidence: recommendation.evidenceFactIds.map(factOf).map((fact) => ({
-        metric: fact.metric,
-        value: fact.value,
-        period: fact.period,
-        source: fact.source,
-        demo: fact.demo,
-      })),
+      evidence: recommendation.evidenceFactIds.map(factOf).map(evidenceOf),
       reasoning: recommendation.reasoning,
       suggestedAction: recommendation.suggestedAction,
       relatedProductIds: related.map((product) => product.id),
@@ -104,9 +133,10 @@ export function expandDraft(
   });
 
   // Validation only: the schema has no transforms, so the checked objects are the ones returned.
-  copilotResponseSchema.parse({ summary: draft.summary, recommendations });
+  copilotResponseSchema.parse({ summary: draft.summary, summaryEvidence, recommendations });
   return {
     summary: draft.summary,
+    summaryEvidence,
     recommendations: recommendations.map((recommendation) => ({
       ...recommendation,
       id: null,

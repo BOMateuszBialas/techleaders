@@ -4,7 +4,6 @@ import {
   DECLINED_CATEGORIES,
   INTENTS,
   SUGGESTED_QUESTIONS,
-  TRAFFIC_NOT_AVAILABLE_MESSAGE,
   UNSUPPORTED_MESSAGE,
   declinedMessage,
 } from "./intents";
@@ -107,18 +106,20 @@ describe("intents", () => {
     for (const id of COPILOT_INTENT_IDS) expect(INTENTS[id].id).toBe(id);
   });
 
-  it("has no tool plan for the traffic intents yet (Phase 3)", () => {
-    const withoutPlan = SUGGESTED_QUESTIONS.filter((intent) => intent.plan === null);
-    expect(withoutPlan.map((intent) => intent.id)).toEqual([
+  it("reads the demo traffic for the three traffic questions and the primary one (A21)", () => {
+    const reading = SUGGESTED_QUESTIONS.filter((intent) => intent.plan.traffic);
+    expect(reading.map((intent) => intent.id)).toEqual([
+      "focus",
       "traffic_sources",
       "funnel",
       "views_without_sales",
     ]);
-    expect(TRAFFIC_NOT_AVAILABLE_MESSAGE).toContain("not available yet");
+    expect(INTENTS.traffic_sources.plan).toEqual({ traffic: { productLimit: 10 } });
+    expect(INTENTS.views_without_sales.plan.lowStock).toEqual({ threshold: 5, limit: 10 });
   });
 
   it("compares two periods only for the sales-change question", () => {
-    const comparing = SUGGESTED_QUESTIONS.filter((intent) => intent.plan?.compareWithPrevious);
+    const comparing = SUGGESTED_QUESTIONS.filter((intent) => intent.plan.compareWithPrevious);
     expect(comparing.map((intent) => intent.id)).toEqual(["sales_change"]);
   });
 

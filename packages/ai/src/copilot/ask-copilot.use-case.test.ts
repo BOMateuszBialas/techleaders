@@ -3,8 +3,10 @@ import {
   GetOrderSummaryUseCase,
   GetSalesSummaryUseCase,
   GetTopProductsUseCase,
+  GetTrafficSummaryUseCase,
   type RateLimiterPort,
   type StoreMetricsPort,
+  type TrafficStatsPort,
 } from "@commerceos/core";
 import { describe, expect, it, vi } from "vitest";
 import type { CopilotLogPort } from "../ports/copilot-log.port";
@@ -12,6 +14,7 @@ import { GetLowStockProductsTool } from "../tools/get-low-stock-products.tool";
 import { GetOrderSummaryTool } from "../tools/get-order-summary.tool";
 import { GetSalesSummaryTool } from "../tools/get-sales-summary.tool";
 import { GetTopProductsTool } from "../tools/get-top-products.tool";
+import { GetTrafficSummaryTool } from "../tools/get-traffic-summary.tool";
 import {
   ASK_LIMIT,
   ASK_RATE_LIMITED_MESSAGE,
@@ -21,8 +24,12 @@ import {
 } from "./ask-copilot.use-case";
 import { FALLBACK_REASONS } from "./copilot-answer";
 import { NOW, PULSE_ID } from "./copilot-results.fixture";
-import { CAUSATION_LIMITATION, NO_TRAFFIC_LIMITATION } from "./expand-response";
-import { INTENTS, TRAFFIC_NOT_AVAILABLE_MESSAGE, UNSUPPORTED_MESSAGE } from "./intents";
+import {
+  CAUSATION_LIMITATION,
+  DEMO_TRAFFIC_LIMITATION,
+  noViewDataLimitation,
+} from "./expand-response";
+import { INTENTS, UNSUPPORTED_MESSAGE } from "./intents";
 
 const ADMIN = { id: "owner-1" };
 
@@ -47,8 +54,32 @@ function fakeMetrics(): StoreMetricsPort {
   };
 }
 
+/** Demo traffic: the add-to-cart step loses the most (75 %, tied with checkout, comes first). */
+function fakeTraffic(): TrafficStatsPort {
+  return {
+    sessionsBySource: vi.fn(async () => [
+      { source: "direct" as const, sessions: 70 },
+      { source: "organic" as const, sessions: 30 },
+      { source: "social" as const, sessions: 0 },
+      { source: "email" as const, sessions: 0 },
+      { source: "paid" as const, sessions: 0 },
+    ]),
+    funnel: vi.fn(async () => ({
+      sessions: 100,
+      productViews: 80,
+      addToCarts: 20,
+      checkoutsStarted: 5,
+    })),
+    productViews: vi.fn(async () => ({
+      rows: [{ productId: PULSE_ID, name: "Pulse Ultralight Mouse", views: 30, addToCarts: 6 }],
+      productsWithoutViewData: 1,
+    })),
+  };
+}
+
 function setup(options: { allowed?: boolean } = {}) {
   const storeMetrics = fakeMetrics();
+  const trafficStats = fakeTraffic();
   const rateLimiter: RateLimiterPort = {
     consume: vi.fn(async () => ({ allowed: options.allowed ?? true, remaining: 9 })),
   };
@@ -66,11 +97,24 @@ function setup(options: { allowed?: boolean } = {}) {
     getLowStockProductsTool: new GetLowStockProductsTool({
       getLowStockProductsUseCase: new GetLowStockProductsUseCase({ storeMetrics }),
     }),
+    getTrafficSummaryTool: new GetTrafficSummaryTool({
+      getTrafficSummaryUseCase: new GetTrafficSummaryUseCase({
+        trafficStats,
+        getSalesSummaryUseCase: new GetSalesSummaryUseCase({ storeMetrics }),
+        getTopProductsUseCase: new GetTopProductsUseCase({ storeMetrics }),
+      }),
+    }),
     rateLimiter,
     copilotLog,
     clock: () => NOW,
   };
-  return { useCase: new AskCopilotUseCase(deps), storeMetrics, rateLimiter, copilotLog };
+  return {
+    useCase: new AskCopilotUseCase(deps),
+    storeMetrics,
+    trafficStats,
+    rateLimiter,
+    copilotLog,
+  };
 }
 
 function toolCalls(metrics: StoreMetricsPort): number {
@@ -105,15 +149,24 @@ describe("AskCopilotUseCase", () => {
         label: "11–17 Oct 2026",
         timeZone: "Europe/Warsaw",
       },
-      limitations: [NO_TRAFFIC_LIMITATION, "1 order in another currency is not included."],
+      limitations: [
+        DEMO_TRAFFIC_LIMITATION,
+        noViewDataLimitation(1),
+        "1 order in another currency is not included.",
+      ],
     });
-    expect(answer.recommendations).toHaveLength(1);
+    expect(answer.recommendations.map((item) => item.title)).toEqual([
+      "Restock Pulse Ultralight Mouse",
+      "Look at the add-to-cart step",
+    ]);
     expect(answer.recommendations[0]).toMatchObject({
-      title: "Restock Pulse Ultralight Mouse",
       relatedProductIds: [PULSE_ID],
       id: null,
       status: "new",
     });
+    // A21: the primary question now cites the demo store conversion in its summary.
+    expect(answer.summary).toContain("Store conversion rate (demo): 3%.");
+    expect(answer.summaryEvidence.at(-1)).toMatchObject({ value: "3%", demo: true });
     expect(answer.definitions.map((definition) => definition.id)).toEqual([
       "ordersPlaced",
       "paidOrders",
@@ -121,6 +174,10 @@ describe("AskCopilotUseCase", () => {
       "aov",
       "topProducts",
       "lowStock",
+      "sessionsDemo",
+      "funnelDemo",
+      "storeConversionDemo",
+      "viewToPurchaseRateDemo",
     ]);
     expect(storeMetrics.lowStockProducts).toHaveBeenCalledWith(5, 10);
     expect(FALLBACK_REASONS).toContain(answer.fallbackReason);
@@ -184,17 +241,63 @@ describe("AskCopilotUseCase", () => {
     expect(toolCalls(storeMetrics)).toBe(0);
   });
 
-  it("says traffic data is not available yet for a traffic question", async () => {
-    const { useCase, storeMetrics } = setup();
+  it("answers the funnel question from the demo traffic, every traffic row flagged demo", async () => {
+    const { useCase, storeMetrics, trafficStats } = setup();
     const answer = await useCase.execute({ intent: "funnel" }, ADMIN);
     expect(answer).toMatchObject({
       kind: "answered",
       intent: "funnel",
-      summary: TRAFFIC_NOT_AVAILABLE_MESSAGE,
-      fallbackReason: null,
-      period: null,
+      question: INTENTS.funnel.question,
+      fallbackReason: "not_configured",
+      period: { name: "Last 7 days" },
+      limitations: [DEMO_TRAFFIC_LIMITATION],
     });
-    expect(toolCalls(storeMetrics)).toBe(0);
+    expect(answer.summary).toMatch(/^The funnel in the last 7 days: sessions \(demo\) 100 → /);
+    expect(answer.recommendations.map((item) => item.title)).toEqual([
+      "Look at the add-to-cart step",
+    ]);
+    expect(answer.recommendations[0]?.evidence.map((row) => row.demo)).toEqual([true, true, true]);
+    expect(trafficStats.productViews).toHaveBeenCalledWith(
+      { firstDay: "2026-10-11", lastDay: "2026-10-17" },
+      10,
+    );
+    expect(storeMetrics.orderSummary).not.toHaveBeenCalled();
+    expect(storeMetrics.lowStockProducts).not.toHaveBeenCalled();
+  });
+
+  it("answers where traffic comes from with summary evidence and no recommendation", async () => {
+    const { useCase } = setup();
+    const answer = await useCase.execute({ question: "Where does my traffic come from?" }, ADMIN);
+    expect(answer.intent).toBe("traffic_sources");
+    expect(answer.summary).toBe(
+      "Demo sessions in the last 7 days: 100. By source: Direct 70 (70%), Organic search 30 (30%). No action stands out in this period's data.",
+    );
+    expect(answer.recommendations).toEqual([]);
+    expect(answer.summaryEvidence).toHaveLength(5);
+    expect(answer.summaryEvidence.every((row) => row.demo)).toBe(true);
+  });
+
+  it("answers views without sales from the demo views and the stock list", async () => {
+    const { useCase, storeMetrics } = setup();
+    const answer = await useCase.execute({ intent: "views_without_sales" }, ADMIN);
+    expect(answer.summary).toContain(
+      "Most viewed products in the last 7 days (demo views): Pulse Ultralight Mouse (30 views, 3 units sold).",
+    );
+    expect(answer.limitations).toEqual([DEMO_TRAFFIC_LIMITATION, noViewDataLimitation(1)]);
+    expect(storeMetrics.lowStockProducts).toHaveBeenCalledWith(5, 10);
+  });
+
+  it("declines conversion by traffic source without reading the traffic", async () => {
+    const { useCase, trafficStats } = setup();
+    const answer = await useCase.execute(
+      { question: "What is the conversion rate of social traffic?" },
+      ADMIN,
+    );
+    expect(answer).toMatchObject({
+      kind: "declined",
+      missingData: "the traffic source of each order",
+    });
+    expect(trafficStats.funnel).not.toHaveBeenCalled();
   });
 
   it("refuses with RATE_LIMITED once the owner's limit is spent, before any tool runs", async () => {
@@ -231,7 +334,13 @@ describe("AskCopilotUseCase", () => {
     ]);
     expect(data).toMatchObject({
       source: "typed",
-      tools: ["getSalesSummary", "getOrderSummary", "getTopProducts", "getLowStockProducts"],
+      tools: [
+        "getSalesSummary",
+        "getOrderSummary",
+        "getTopProducts",
+        "getLowStockProducts",
+        "getTrafficSummary",
+      ],
     });
     const serialized = JSON.stringify(data);
     expect(serialized).not.toContain("secret-question-text");

@@ -1,4 +1,5 @@
 import {
+  DEMO_TRAFFIC_METRIC_IDS,
   METRIC_DEFINITIONS,
   METRIC_IDS,
   METRIC_PERIOD_LABELS,
@@ -13,6 +14,8 @@ import {
   type OrderSummary,
   type SalesSummary,
   type TopProducts,
+  type TrafficSource,
+  type TrafficSummary,
 } from "@commerceos/core";
 
 /** What the intent's tool plan returned (Copilot spec, "Intent tool plans"). */
@@ -24,6 +27,8 @@ export type CopilotToolResults = {
   /** The same tools for the previous period of the same length (`sales_change`, A8). */
   previousSales?: SalesSummary;
   previousTopProducts?: TopProducts;
+  /** Fictional demo traffic (`getTrafficSummary`, D08); every fact from it is flagged `demo`. */
+  traffic?: TrafficSummary;
 };
 
 /**
@@ -46,7 +51,7 @@ export type CopilotFact = {
   /** "<tool> · <definition id>". */
   source: string;
   definitionId: MetricId;
-  /** Fictional demo data (traffic, Phase 3); always false for order and stock facts. */
+  /** Fictional demo data (traffic, D08); false for order and stock facts. */
   demo: boolean;
   productAlias?: string;
 };
@@ -255,6 +260,193 @@ function addChanges(table: FactTableBuilder, current: SalesSummary, previous: Sa
   }
 }
 
+/** Owner-facing names of the demo traffic sources. */
+export const TRAFFIC_SOURCE_LABELS: Readonly<Record<TrafficSource, string>> = {
+  direct: "Direct",
+  organic: "Organic search",
+  social: "Social",
+  email: "Email",
+  paid: "Paid ads",
+};
+
+/** The funnel steps in order: the first is all sessions, the last paid orders (real orders). */
+export const FUNNEL_STEPS = [
+  "sessions",
+  "productViews",
+  "addToCarts",
+  "checkoutsStarted",
+  "paidOrders",
+] as const;
+export type FunnelStep = (typeof FUNNEL_STEPS)[number];
+
+/** How a funnel step is named in fact metrics and rule text. */
+export const FUNNEL_STEP_LABELS: Readonly<Record<FunnelStep, string>> = {
+  sessions: "Sessions",
+  productViews: "Product views",
+  addToCarts: "Add-to-carts",
+  checkoutsStarted: "Checkouts started",
+  paidOrders: "Paid orders",
+};
+
+/** A ratio as a percentage with at most one decimal: 0.0153 → "1.5%", 0.25 → "25%". */
+function percentOf(ratio: number): { text: string; number: number } {
+  const number = Math.round(ratio * 1000) / 10;
+  return { text: `${number}%`, number };
+}
+
+/** A rate fact's value: its percentage, or "Not enough data" when the rate is `null`. */
+function rateValue(ratio: number | null): Pick<CopilotFact, "value" | "number"> {
+  if (ratio === null) return { value: NOT_ENOUGH_DATA, number: null };
+  const { text, number } = percentOf(ratio);
+  return { value: text, number };
+}
+
+/**
+ * Demo traffic facts (Copilot spec, Phase 3): sessions and their share per source, the funnel
+ * with each step's drop-off, store conversion, and per product views, units sold and the
+ * view-to-purchase rate. Every fact computed from demo figures is flagged `demo`; units and
+ * paid orders come from real orders and are not.
+ */
+function addTraffic(table: FactTableBuilder, traffic: TrafficSummary): void {
+  const period = currentPeriodText(traffic.period);
+  const tool = "getTrafficSummary";
+  const demo = { period, demo: true } as const;
+  const total = traffic.sessions.total;
+
+  table.add({
+    ...demo,
+    key: "traffic.sessions",
+    metric: METRIC_DEFINITIONS.sessionsDemo.label,
+    value: String(total),
+    number: total,
+    source: `${tool} · sessionsDemo`,
+    definitionId: "sessionsDemo",
+  });
+  // Busiest source first; a source without sessions says nothing.
+  const sources = traffic.sessions.bySource
+    .filter((row) => row.sessions > 0)
+    .sort((a, b) => b.sessions - a.sessions);
+  for (const row of sources) {
+    const label = TRAFFIC_SOURCE_LABELS[row.source];
+    table.add({
+      ...demo,
+      key: `traffic.sessions:${row.source}`,
+      metric: `Sessions (demo): ${label}`,
+      value: String(row.sessions),
+      number: row.sessions,
+      source: `${tool} · sessionsDemo`,
+      definitionId: "sessionsDemo",
+    });
+    const share = percentOf(row.sessions / total);
+    table.add({
+      ...demo,
+      key: `traffic.share:${row.source}`,
+      metric: `Share of sessions (demo): ${label}`,
+      value: share.text,
+      number: share.number,
+      source: `${tool} · sessionsDemo`,
+      definitionId: "sessionsDemo",
+    });
+  }
+
+  const counts: Record<FunnelStep, number> = { ...traffic.funnel, sessions: total };
+  for (const step of FUNNEL_STEPS.slice(1)) {
+    const real = step === "paidOrders";
+    table.add({
+      period,
+      demo: !real,
+      key: `funnel.${step}`,
+      metric: real ? METRIC_DEFINITIONS.paidOrders.label : `${FUNNEL_STEP_LABELS[step]} (demo)`,
+      value: String(counts[step]),
+      number: counts[step],
+      source: `${tool} · ${real ? "paidOrders" : "funnelDemo"}`,
+      definitionId: real ? "paidOrders" : "funnelDemo",
+    });
+  }
+  let before = counts.sessions;
+  for (const step of FUNNEL_STEPS.slice(1)) {
+    const base = before;
+    before = counts[step];
+    if (base === 0) continue; // No base: no drop-off to state.
+    const drop = percentOf(1 - counts[step] / base);
+    table.add({
+      ...demo,
+      key: `funnel.dropOff:${step}`,
+      metric: `Drop-off before ${FUNNEL_STEP_LABELS[step].toLowerCase()} (demo)`,
+      value: drop.text,
+      number: drop.number,
+      source: `${tool} · funnelDemo`,
+      definitionId: "funnelDemo",
+    });
+  }
+
+  table.add({
+    ...demo,
+    key: "traffic.conversion",
+    metric: METRIC_DEFINITIONS.storeConversionDemo.label,
+    ...rateValue(traffic.storeConversion),
+    source: `${tool} · storeConversionDemo`,
+    definitionId: "storeConversionDemo",
+  });
+  table.add({
+    ...demo,
+    key: "traffic.viewToPurchase",
+    metric: "View-to-purchase rate (demo): whole store",
+    ...rateValue(traffic.viewToPurchaseRate),
+    source: `${tool} · viewToPurchaseRateDemo`,
+    definitionId: "viewToPurchaseRateDemo",
+  });
+  if (traffic.productsWithoutViewData > 0) {
+    table.add({
+      ...demo,
+      key: "traffic.withoutViewData",
+      metric: "Published products without demo view data",
+      value: String(traffic.productsWithoutViewData),
+      number: traffic.productsWithoutViewData,
+      source: `${tool} · viewToPurchaseRateDemo`,
+      definitionId: "viewToPurchaseRateDemo",
+    });
+  }
+
+  for (const product of traffic.products) {
+    const productAlias = table.alias(product.productId, product.name);
+    table.add({
+      ...demo,
+      key: `traffic.views:${productAlias}`,
+      metric: `Views (demo): ${product.name}`,
+      value: String(product.views),
+      number: product.views,
+      source: `${tool} · viewToPurchaseRateDemo`,
+      definitionId: "viewToPurchaseRateDemo",
+      productAlias,
+    });
+    // Unknown units (a full ranking) and missing rates are left out, never shown as 0.
+    if (product.unitsSold !== null) {
+      table.add({
+        period,
+        key: `traffic.units:${productAlias}`,
+        metric: `Units sold: ${product.name}`,
+        value: String(product.unitsSold),
+        number: product.unitsSold,
+        source: `${tool} · topProducts`,
+        definitionId: "topProducts",
+        productAlias,
+      });
+    }
+    if (product.viewToPurchaseRate !== null) {
+      table.add({
+        ...demo,
+        key: `traffic.rate:${productAlias}`,
+        metric: `View-to-purchase rate (demo): ${product.name}`,
+        ...rateValue(product.viewToPurchaseRate),
+        source: `${tool} · viewToPurchaseRateDemo`,
+        definitionId: "viewToPurchaseRateDemo",
+        productAlias,
+      });
+    }
+  }
+}
+
 /**
  * Flattens tool results into the numbered fact table plus derived facts (Copilot spec, step 4).
  * Values are formatted once here, so rules, a model and the UI all quote the same strings.
@@ -289,6 +481,7 @@ export function buildFacts(results: CopilotToolResults): FactTable {
     );
   }
   if (sales && previousSales) addChanges(table, sales, previousSales);
+  if (results.traffic) addTraffic(table, results.traffic);
   return table.build();
 }
 
@@ -296,10 +489,12 @@ export function findFact(table: FactTable, key: string): CopilotFact | undefined
   return table.facts.find((fact) => fact.key === key);
 }
 
-/** The `METRIC_DEFINITIONS` the facts follow, in the dashboard's order. */
+/** The `METRIC_DEFINITIONS` the facts follow: the dashboard's order, then the demo ones. */
 export function definitionsOf(table: FactTable): MetricDefinition[] {
   const used = new Set(table.facts.map((fact) => fact.definitionId));
-  return METRIC_IDS.filter((id) => used.has(id)).map((id) => METRIC_DEFINITIONS[id]);
+  return [...METRIC_IDS, ...DEMO_TRAFFIC_METRIC_IDS]
+    .filter((id) => used.has(id))
+    .map((id) => METRIC_DEFINITIONS[id]);
 }
 
 /**

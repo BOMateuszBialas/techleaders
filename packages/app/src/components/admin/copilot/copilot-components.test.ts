@@ -42,7 +42,7 @@ const RESTOCK: CopilotAnswerRecommendation = {
     { id: PULSE_ID, name: "Pulse Ultralight Mouse" },
     { id: ECHO_ID, name: "Echo Surround Headset" },
   ],
-  limitations: ["No traffic or conversion data is available yet."],
+  limitations: ["Traffic figures are fictional demo data."],
 };
 
 const ANSWERED: CopilotAnswerDto = {
@@ -61,11 +61,14 @@ const ANSWERED: CopilotAnswerDto = {
     timeZone: "Europe/Warsaw",
   },
   summary: "In the last 7 days: paid orders 29.",
+  summaryEvidence: [
+    { metric: "Paid orders", value: "29", period: "Last 7 days", source: "getSalesSummary" },
+  ],
   recommendations: [
     RESTOCK,
     { ...RESTOCK, title: "Low one", priority: "low", relatedProducts: [], limitations: undefined },
   ],
-  limitations: ["No traffic or conversion data is available yet."],
+  limitations: ["Traffic figures are fictional demo data."],
   definitions: [{ id: "paidOrders", label: "Paid orders", definition: "Orders that were paid." }],
 };
 
@@ -79,6 +82,7 @@ const DECLINED: CopilotAnswerDto = {
   summary:
     "Copilot can't answer this. It needs product cost data, which this store does not record.",
   missingData: "product cost data",
+  summaryEvidence: [],
   recommendations: [],
   limitations: [],
   definitions: [],
@@ -225,6 +229,26 @@ describe("CopilotPanelView", () => {
     expect(html).toContain(", <a");
     expect(html).toContain("How these numbers are defined");
     expect(html.match(/data-testid="copilot-recommendation"/g)).toHaveLength(2);
+    expect(html).toContain('data-testid="copilot-summary-evidence"');
+    expect(html).toContain("Figures in this summary");
+  });
+
+  it("renders summary evidence alone, demo rows tagged, for a traffic answer", () => {
+    const html = render({
+      status: "answer",
+      answer: {
+        ...ANSWERED,
+        intent: "traffic_sources",
+        summaryEvidence: [
+          { metric: "Sessions (demo)", value: "1000", source: "getTrafficSummary", demo: true },
+        ],
+        recommendations: [],
+      },
+      question: "",
+    });
+    expect(html).toContain("Figures in this summary");
+    expect(html).toContain("Fictional demo data");
+    expect(html).not.toContain('data-testid="copilot-recommendation"');
   });
 
   it("renders the answer-level limitations when no recommendation stands out", () => {
@@ -234,7 +258,7 @@ describe("CopilotPanelView", () => {
       question: "",
     });
     expect(html).toContain("Limitations");
-    expect(html).toContain("No traffic or conversion data is available yet.");
+    expect(html).toContain("Traffic figures are fictional demo data.");
   });
 
   it("renders a declined question with its missing data and nothing else", () => {

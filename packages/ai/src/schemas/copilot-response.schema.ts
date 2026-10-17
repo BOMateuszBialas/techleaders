@@ -27,6 +27,8 @@ export const copilotRecommendationSchema = z.object({
 /** At most 3 recommendations (MVP spec §3; Copilot spec, Modules). */
 export const copilotResponseSchema = z.object({
   summary: z.string().min(1).max(2000),
+  /** The facts the summary cites, expanded by the server (Copilot spec Phase 3). */
+  summaryEvidence: z.array(recommendationEvidenceSchema).max(20).optional(),
   recommendations: z.array(copilotRecommendationSchema).max(3),
 });
 

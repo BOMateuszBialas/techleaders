@@ -66,7 +66,7 @@ describe("admin Copilot", () => {
       expect(answer).toContain("Evidence from this store's data");
       expect(answer).toContain("getTopProducts · topProducts");
       expect(answer).toContain("getLowStockProducts · lowStock");
-      expect(answer).toContain("No traffic or conversion data is available yet.");
+      expect(answer).toContain("fictional demo data: seeded, not measured from real visitors.");
       expect(answer).toContain("Suggested next step (your decision)");
       expect(await browser().count(`${ANSWER} a[href^="/admin/products/"]`)).toBeGreaterThan(0);
     });
