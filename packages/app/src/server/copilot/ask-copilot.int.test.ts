@@ -2,7 +2,7 @@ import { execFile } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
-import { AskCopilotUseCase, type CopilotAnswerDto } from "@commerceos/ai";
+import { AskCopilotUseCase, UnconfiguredLlmProvider, type CopilotAnswerDto } from "@commerceos/ai";
 import { formatMoney, money, resolvePeriod } from "@commerceos/core";
 import { Pool } from "pg";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
@@ -99,6 +99,7 @@ describe("AskCopilotUseCase (PostgreSQL, real container)", () => {
         getOrderSummaryTool: cradle.getOrderSummaryTool,
         getTopProductsTool: cradle.getTopProductsTool,
         getLowStockProductsTool: cradle.getLowStockProductsTool,
+        llmProvider: new UnconfiguredLlmProvider(),
         rateLimiter: cradle.rateLimiter,
         copilotLog: cradle.copilotLog,
         clock: () => NOW,
