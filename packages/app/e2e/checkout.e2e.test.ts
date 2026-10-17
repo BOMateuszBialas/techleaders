@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { useBrowser } from "./support/browser-test";
-import { signInAsOwner } from "./support/sign-in";
+import { useOwnerSession } from "./support/sign-in";
 
 const PAY_PAGE = /^\/checkout\/pay\/CO-[0-9A-HJKMNP-TV-Z]{5}(-[0-9A-HJKMNP-TV-Z]{5}){3}$/;
 const CART_LINK = 'header a[href="/cart"]';
@@ -79,8 +79,7 @@ describe("storefront checkout (E02-S02)", () => {
   });
 
   it("places an order priced by the server and decrements stock once, even on a double click (AC1, AC4)", async () => {
-    await signInAsOwner(browser());
-    await browser().waitForText("Signed in as");
+    await useOwnerSession(browser());
     const before = await adminStock("Vortex Wireless Mouse");
     await addVortex("2");
     await openCheckout();
@@ -88,10 +87,12 @@ describe("storefront checkout (E02-S02)", () => {
     expect(await browser().text('[data-testid="order-total"]')).toMatch(/498,00\s*zł/);
 
     // Two quick submits of the same form: the button disables itself, and the server's
-    // idempotency key covers a second request that gets through.
+    // idempotency key covers a second request that gets through. The second click targets the
+    // checkout form only: once the payment page has loaded, a generic submit selector would
+    // confirm the demo payment instead.
     await browser().clickRole("button", "Place order");
     await browser()
-      .click('main form button[type="submit"]')
+      .click('main form:has(#checkout-customerName) button[type="submit"]')
       .catch(() => {});
     await browser().waitForText("Confirm demo payment (no charge)");
     expect(new URL(await browser().url()).pathname).toMatch(PAY_PAGE);

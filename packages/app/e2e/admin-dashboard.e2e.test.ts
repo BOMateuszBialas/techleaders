@@ -1,7 +1,7 @@
 import { METRIC_DEFINITIONS, METRIC_IDS, resolvePeriod } from "@commerceos/core";
 import { beforeAll, describe, expect, it } from "vitest";
 import { useBrowser } from "./support/browser-test";
-import { signInAsOwner } from "./support/sign-in";
+import { useOwnerSession } from "./support/sign-in";
 
 const card = (id: string) => `main [data-metric="${id}"]`;
 const VALUE = '[data-testid="metric-value"]';
@@ -10,8 +10,9 @@ const RANGE = 'main [data-testid="period-range"]';
 /**
  * The admin dashboard (orders spec, Phase 3, E04-S02 #23). Asserts properties, never seeded
  * numbers: the demo order history (Phase 2) may or may not be in the database, and other suites
- * place orders too. One sign-in for the whole file (Better Auth allows 20 per minute, shared by
- * every suite); the session stays for the storefront purchase. Buys one Retro Wired Controller
+ * place orders too. No sign-in: the file uses the owner session of the global setup (Better
+ * Auth allows 20 sign-ins per minute, shared by every suite); it stays for the storefront
+ * purchase. Buys one Retro Wired Controller
  * (40 in stock), which no other suite counts on.
  */
 describe("admin dashboard", () => {
@@ -28,8 +29,7 @@ describe("admin dashboard", () => {
 
   beforeAll(async () => {
     await browser().clearCookies();
-    await signInAsOwner(browser());
-    await browser().waitForText("Signed in as");
+    await useOwnerSession(browser());
   });
 
   it("shows every metric with a value and its definition for the last 7 days (AC1, AC2)", async () => {

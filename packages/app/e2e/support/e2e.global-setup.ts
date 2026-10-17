@@ -10,6 +10,7 @@ import type { TestProject } from "vitest/node";
 import "@commerceos/database/testing";
 import { assertAgentBrowserInstalled, resolveAgentBrowserBin } from "./agent-browser";
 import "./provided-context";
+import { signInOverHttp } from "./sign-in";
 
 /** The owner every admin e2e test signs in as (spec G9); the password is new on every run. */
 export const E2E_OWNER_EMAIL = "owner@e2e.test";
@@ -62,6 +63,10 @@ export default async function setup(project: TestProject): Promise<() => Promise
     project.provide("baseUrl", baseUrl);
     project.provide("ownerEmail", E2E_OWNER_EMAIL);
     project.provide("ownerPassword", ownerPassword);
+    project.provide(
+      "ownerSessionCookie",
+      await signInOverHttp(baseUrl, E2E_OWNER_EMAIL, ownerPassword),
+    );
   } catch (error) {
     server?.kill();
     await postgres.stop();
