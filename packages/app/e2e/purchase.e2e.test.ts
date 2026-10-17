@@ -26,6 +26,7 @@ describe("storefront purchase with the demo payment (E02-S03)", () => {
     await browser().open("/products?category=headsets");
     await browser().waitForText("Echo Surround Headset");
     await browser().clickRole("link", "Echo Surround Headset");
+    await browser().waitForUrl("**/products/echo-surround-headset");
     await browser().waitForText("Add to cart");
     await browser().clickRole("button", "Add to cart");
     await browser().waitForText("Added to cart.");

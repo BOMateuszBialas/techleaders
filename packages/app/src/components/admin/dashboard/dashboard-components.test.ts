@@ -11,7 +11,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import {
   EMPTY_LOW_STOCK,
-  EMPTY_STORE_HINT,
+  EMPTY_PERIOD_HINT,
   EMPTY_TOP_PRODUCTS,
   NOT_ENOUGH_DATA,
   demoOrdersNote,
@@ -172,7 +172,7 @@ describe("DashboardView", () => {
     expect(body).toContain("Showing 2 of 12.");
     expect(body).not.toContain("seeded demo");
     expect(body).not.toContain("other currenc");
-    expect(body).not.toContain(EMPTY_STORE_HINT);
+    expect(body).not.toContain(EMPTY_PERIOD_HINT);
   });
 
   it("adds the demo-orders and other-currency notes when they apply", () => {
@@ -195,7 +195,7 @@ describe("DashboardView", () => {
     expect(body).toContain("0,00 zł");
     expect(body).toContain(EMPTY_TOP_PRODUCTS);
     expect(body).toContain(EMPTY_LOW_STOCK);
-    expect(body).toContain(EMPTY_STORE_HINT);
+    expect(body).toContain(EMPTY_PERIOD_HINT);
     expect(body).not.toContain("Showing");
   });
 });

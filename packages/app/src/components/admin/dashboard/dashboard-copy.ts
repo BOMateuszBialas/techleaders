@@ -21,8 +21,9 @@ export const DASHBOARD_UNAVAILABLE_MESSAGE =
 export const NOT_ENOUGH_DATA = "Not enough data";
 export const EMPTY_TOP_PRODUCTS = "No paid orders in this period.";
 export const EMPTY_LOW_STOCK = `No published product is at or below ${LOW_STOCK_THRESHOLD} in stock.`;
-export const EMPTY_STORE_HINT =
-  "No orders yet. Orders appear here after a checkout. To load the demo store, run npm run db:seed.";
+/** The period has no order at all (the store may still have older ones). */
+export const EMPTY_PERIOD_HINT =
+  "No orders in this period. Orders appear here after a checkout; to load the demo store, run npm run db:seed.";
 export const OUT_OF_STOCK_BADGE = "Out of stock";
 
 export type PeriodLink = {

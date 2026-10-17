@@ -30,7 +30,7 @@ describe("toSafeInteger", () => {
   });
 
   it("refuses anything that is not a safe integer instead of rounding it", () => {
-    for (const value of ["9007199254740993", "1.5", "abc", undefined]) {
+    for (const value of ["9007199254740993", "1.5", "abc", "", null, undefined, true]) {
       expect(() => toSafeInteger(value, "revenue_minor")).toThrow(
         "Metric column revenue_minor is not a safe integer",
       );
@@ -85,7 +85,9 @@ describe("DatabaseStoreMetrics", () => {
       { productId: "p-1", name: "Pulse", units: 4, revenueMinor: 75_600 },
     ]);
     const [sql, params] = execute.mock.calls[0] ?? [];
-    expect(sql).toContain("order by units desc, revenue_minor desc, display_name asc");
+    expect(sql).toContain(
+      "order by units desc, revenue_minor desc, display_name asc, i.product_id asc nulls last",
+    );
     expect(params).toEqual([FROM, TO, "paid", "processing", "shipped", "PLN", 5]);
   });
 

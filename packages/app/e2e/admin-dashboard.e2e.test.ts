@@ -85,6 +85,7 @@ describe("admin dashboard", () => {
     await browser().open("/products?category=controllers");
     await browser().waitForText("Retro Wired Controller");
     await browser().click('main a[href="/products/retro-wired-controller"]');
+    await browser().waitForUrl("**/products/retro-wired-controller");
     await browser().waitForText("Add to cart");
     await browser().clickRole("button", "Add to cart");
     await browser().waitForText("Added to cart.");

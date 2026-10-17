@@ -136,8 +136,8 @@ Purchase flow: cart → `/checkout` (guest: name, email, address in Poland; pric
 - Metrics cover the store currency (PLN) only; paid orders in another currency are left out and counted in a note ("N orders in other currencies are not included."). "Orders placed" counts every currency.
 - An order placed before the period but paid inside it counts in revenue (by payment date) and not in "Orders placed" (by creation date).
 - Seeded demo orders (`DEMO-` references) count like real ones; the dashboard says "Includes N seeded demo orders (fictional)." whenever the period has any (placed or paid in it).
-- A deleted product keeps its sales in "Top products" under its last name, marked "(deleted product)".
-- Every figure is computed by SQL at request time; nothing is cached or precomputed.
+- A deleted product keeps its sales in "Top products" under the name on its order lines (one row per name it was sold under), marked "(deleted product)".
+- Every figure comes from SQL aggregates at request time (AOV is divided from them); nothing is cached or precomputed.
 
 ## MVP scope
 

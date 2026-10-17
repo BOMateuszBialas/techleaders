@@ -16,7 +16,7 @@ import {
 import { cn } from "@/lib/utils";
 import {
   EMPTY_LOW_STOCK,
-  EMPTY_STORE_HINT,
+  EMPTY_PERIOD_HINT,
   EMPTY_TOP_PRODUCTS,
   OUT_OF_STOCK_BADGE,
   demoOrdersNote,
@@ -48,7 +48,9 @@ function MetricCard({
   return (
     <Card data-metric={definition.id} className={className}>
       <CardHeader>
-        <CardTitle>{definition.label}</CardTitle>
+        <CardTitle>
+          <h2>{definition.label}</h2>
+        </CardTitle>
         {value === undefined ? null : (
           <p data-testid="metric-value" className="text-2xl font-semibold tabular-nums">
             {value}
@@ -100,7 +102,7 @@ export function DashboardView({ dashboard }: { dashboard: Dashboard }) {
           ),
         )}
         {isEmptyPeriod(dashboard) ? (
-          <p className="text-sm text-muted-foreground">{EMPTY_STORE_HINT}</p>
+          <p className="text-sm text-muted-foreground">{EMPTY_PERIOD_HINT}</p>
         ) : null}
       </div>
 

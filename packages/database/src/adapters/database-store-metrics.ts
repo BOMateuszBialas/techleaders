@@ -19,8 +19,9 @@ const PAID_STATUS_PLACEHOLDERS = PAID_ORDER_STATUSES.map(() => "?").join(", ");
  * string; anything that is not a safe integer is a broken invariant, never a rounded number.
  */
 export function toSafeInteger(value: unknown, column: string): number {
-  const number = Number(value);
-  if (!Number.isSafeInteger(number)) {
+  // `Number(null)` and `Number("")` are 0: a missing value is a broken invariant, not a zero.
+  const number = typeof value === "number" || typeof value === "string" ? Number(value) : NaN;
+  if (value === "" || !Number.isSafeInteger(number)) {
     throw new Error(`Metric column ${column} is not a safe integer`);
   }
   return number;
@@ -97,12 +98,12 @@ export class DatabaseStoreMetrics implements StoreMetricsPort {
     currency: CurrencyCode,
     limit: number,
   ): Promise<TopProductAggregate[]> {
-    // A deleted product's lines keep `product_id` null; they are grouped by snapshot name. The
-    // name shown is the product's current one, else the latest snapshot.
+    // A deleted product's lines keep `product_id` null; they are grouped by snapshot name (a
+    // renamed-then-deleted product is one row per name it was sold under). A live product shows
+    // its current name. The last sort key makes equal rows deterministic.
     const rows = await this.deps.em.execute<TopProductRow[]>(
       `select i.product_id,
-              coalesce(max(p.name), (array_agg(i.product_name order by o.paid_at desc, i.id desc))[1])
-                as display_name,
+              coalesce(max(p.name), max(i.product_name)) as display_name,
               sum(i.quantity) as units,
               sum(i.line_total_minor) as revenue_minor
          from order_items i
@@ -112,7 +113,7 @@ export class DatabaseStoreMetrics implements StoreMetricsPort {
           and o.status in (${PAID_STATUS_PLACEHOLDERS})
           and o.currency = ?
         group by i.product_id, case when i.product_id is null then i.product_name end
-        order by units desc, revenue_minor desc, display_name asc
+        order by units desc, revenue_minor desc, display_name asc, i.product_id asc nulls last
         limit ?`,
       [...rangeParams(range), ...PAID_ORDER_STATUSES, currency, limit],
     );
