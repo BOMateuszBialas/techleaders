@@ -45,6 +45,7 @@ Non-goals: metrics, dashboard, `clock` registration (Phase 3, lane B); demo seed
 - **Invalid hidden values are one form-level message** ("This status change is not allowed."): the use case uses `safeParse` instead of `parseInput`, because field errors on hidden inputs would highlight nothing (the #43 lesson).
 - **"Items" column = units** (sum of quantities), matching the cancel message "Stock was returned for N items".
 - **No `clock` registration**: the spec lists it for Phase 3 (metric periods); lane B adds it with the dashboard.
+- **E2E sign-in limit reset** (`e2e/support/sign-in.ts`): the first full gate failed only in `admin.e2e.test.ts` (sign-out test timed out at sign-in: the shared 20/min limit). The helper now clears `admin_rate_limits` in the throwaway e2e database before each sign-in; the limiter stays covered by the auth integration tests. Out of the strict Phase 1 scope, but every later e2e suite (lane B's dashboard) needs it.
 - **#22's AC** already carried the A3 note; the run also listed the full transition table in it and linked this spec.
 
 ## Outcome
@@ -57,8 +58,8 @@ Non-goals: metrics, dashboard, `clock` registration (Phase 3, lane B); demo seed
 
 ### Phase 1: Orders admin
 
-- [ ] 1.1 Reconcile with E02; add order-status and demo-order domain modules
-- [ ] 1.2 Port, repository adapter, unit and integration tests
-- [ ] 1.3 Use cases, validator, container registrations
-- [ ] 1.4 Admin pages, action, components, guard inventory, e2e
+- [x] 1.1 Reconcile with E02; add order-status and demo-order domain modules — 4c5ece7
+- [x] 1.2 Port, repository adapter, unit and integration tests — a449a96
+- [x] 1.3 Use cases, validator, container registrations — 9445615
+- [x] 1.4 Admin pages, action, components, guard inventory, e2e — 9af9fbd
 - [ ] 1.5 Docs, #22 AC amendment, full gate
