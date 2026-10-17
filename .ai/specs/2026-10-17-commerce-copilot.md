@@ -265,15 +265,21 @@ type CopilotAnswerDto = {
   answerId: string | null; // null for declined / unsupported, and before Phase 4
   kind: "answered" | "declined" | "unsupported";
   intent: IntentId | null;
+  question: string | null; // the canonical D09 question the answer is for
   origin: "llm" | "rules";
   fallbackReason: FallbackReason | null; // set whenever an answered question uses rules (incl. "not_configured"); null for llm, declined, unsupported
   model: string | null;
-  period: { from: string; to: string; label: string; timeZone: string } | null;
+  period: { from: string; to: string; name: string; label: string; timeZone: string } | null; // name "Last 7 days", label "11–17 Oct 2026"
   summary: string;
   missingData?: string; // declined only
   recommendations: Array<
-    CopilotRecommendation & { id: string | null; status: RecommendationStatus }
+    CopilotRecommendation & {
+      id: string | null;
+      status: RecommendationStatus;
+      relatedProducts: Array<{ id: string; name: string }>; // resolved by the server from relatedProductIds
+    }
   >;
+  limitations: string[]; // whole-answer limitations attached by the server
   definitions: Array<{ id: string; label: string; definition: string }>; // METRIC_DEFINITIONS used
 };
 ```
