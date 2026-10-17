@@ -6,6 +6,8 @@ export * from "./copilot/intents";
 export * from "./grounding/find-grounding-issues";
 export * from "./ports/copilot-log.port";
 export * from "./ports/llm-provider.port";
+export * from "./prompts/copilot-system.prompt";
+export * from "./schemas/copilot-model-output.schema";
 export * from "./schemas/copilot-response.schema";
 export * from "./tools/get-low-stock-products.tool";
 export * from "./tools/get-order-summary.tool";
