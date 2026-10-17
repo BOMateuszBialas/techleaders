@@ -1,5 +1,6 @@
 export * from "./domain/auth/admin";
 export * from "./domain/cart/cart";
+export * from "./domain/copilot/copilot-intent";
 export * from "./domain/metrics/metric-definitions";
 export * from "./domain/metrics/metric-period";
 export * from "./domain/money";
@@ -55,6 +56,7 @@ export * from "./validators/auth/sign-in.schema";
 export * from "./validators/cart/cart-line.schema";
 export * from "./validators/catalog/catalog-query.schema";
 export * from "./validators/catalog/slug.schema";
+export * from "./validators/copilot/ask-copilot.schema";
 export * from "./validators/categories/category-input.schema";
 export * from "./validators/common/uuid.schema";
 export * from "./validators/inventory/set-stock.schema";

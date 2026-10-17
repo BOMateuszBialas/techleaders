@@ -7,7 +7,7 @@ import {
   STORE_CURRENCY,
   TOP_PRODUCTS_LIMIT,
 } from "./metric-definitions";
-import { STORE_TIME_ZONE, averageOrderValue, resolvePeriod } from "./metric-period";
+import { STORE_TIME_ZONE, averageOrderValue, previousPeriod, resolvePeriod } from "./metric-period";
 
 const HOUR = 3_600_000;
 const DAY = 24 * HOUR;
@@ -78,6 +78,51 @@ describe("resolvePeriod", () => {
     expect(atMidnight.to).toEqual(new Date("2026-10-17T22:00:00.000Z"));
     expect(justBefore.label).toBe("10–16 Oct 2026");
     expect(justBefore.to).toEqual(new Date("2026-10-16T22:00:00.000Z"));
+  });
+});
+
+describe("previousPeriod", () => {
+  it("is the 7 days that end where the current period starts", () => {
+    const current = resolvePeriod("7d", new Date("2026-10-17T10:00:00.000Z"));
+
+    expect(previousPeriod(current)).toEqual({
+      preset: "7d",
+      from: new Date("2026-10-03T22:00:00.000Z"),
+      to: current.from,
+      label: "4–10 Oct 2026",
+      timeZone: STORE_TIME_ZONE,
+    });
+  });
+
+  it("is the 30 days before a 30-day period, across a month boundary", () => {
+    const previous = previousPeriod(resolvePeriod("30d", new Date("2026-10-17T10:00:00.000Z")));
+
+    expect(previous.from).toEqual(new Date("2026-08-18T22:00:00.000Z"));
+    expect(previous.to).toEqual(new Date("2026-09-17T22:00:00.000Z"));
+    expect(previous.to.getTime() - previous.from.getTime()).toBe(30 * DAY);
+    expect(previous.label).toBe("19 Aug – 17 Sep 2026");
+  });
+
+  it("keeps local midnights when the previous period holds the switch to winter time", () => {
+    // 13:00 CET on Sunday 1 Nov 2026; the current period is 26 Oct – 1 Nov (all CET).
+    const current = resolvePeriod("7d", new Date("2026-11-01T12:00:00.000Z"));
+    const previous = previousPeriod(current);
+
+    expect(current.from).toEqual(new Date("2026-10-25T23:00:00.000Z")); // 26 Oct 00:00 CET
+    expect(previous.from).toEqual(new Date("2026-10-18T22:00:00.000Z")); // 19 Oct 00:00 CEST
+    expect(previous.to).toEqual(current.from);
+    expect(previous.to.getTime() - previous.from.getTime()).toBe(7 * DAY + HOUR);
+    expect(previous.label).toBe("19–25 Oct 2026");
+  });
+
+  it("keeps local midnights when the previous period holds the switch to summer time", () => {
+    // 12:00 CEST on Sunday 5 Apr 2026: the current period is 30 Mar – 5 Apr.
+    const previous = previousPeriod(resolvePeriod("7d", new Date("2026-04-05T10:00:00.000Z")));
+
+    expect(previous.from).toEqual(new Date("2026-03-22T23:00:00.000Z")); // 23 Mar 00:00 CET
+    expect(previous.to).toEqual(new Date("2026-03-29T22:00:00.000Z")); // 30 Mar 00:00 CEST
+    expect(previous.to.getTime() - previous.from.getTime()).toBe(7 * DAY - HOUR);
+    expect(previous.label).toBe("23–29 Mar 2026");
   });
 });
 
