@@ -11,6 +11,7 @@ export * from "./ports/catalog-read.port";
 export * from "./ports/catalog.port";
 export * from "./ports/health-check.port";
 export * from "./ports/inventory.port";
+export * from "./ports/order-admin.port";
 export * from "./ports/order-repository.port";
 export * from "./ports/payment-gateway.port";
 export * from "./ports/rate-limiter.port";
