@@ -2,10 +2,10 @@ import { cartItemCount, findLine, setLineQuantity, type CartLine } from "../../d
 import { NotFoundError, ValidationError } from "../../errors/app-error";
 import type { CatalogReadPort } from "../../ports/catalog-read.port";
 import {
+  parseCartLineInput,
   updateCartLineSchema,
   type UpdateCartLineRequest,
 } from "../../validators/cart/cart-line.schema";
-import { parseInput } from "../../validators/parse-input";
 import { PRODUCT_UNAVAILABLE_MESSAGE } from "./add-to-cart.use-case";
 import { loadPricedCart, type CartChange } from "./load-priced-cart";
 
@@ -27,7 +27,7 @@ export class UpdateCartLineUseCase {
     lines: readonly CartLine[];
     request: UpdateCartLineRequest;
   }): Promise<CartChange> {
-    const { productId, quantity } = parseInput(updateCartLineSchema, input.request);
+    const { productId, quantity } = parseCartLineInput(updateCartLineSchema, input.request);
     const { cart, products } = await loadPricedCart(this.deps.catalogRepository, input.lines);
 
     const product = products.find((record) => record.id === productId);

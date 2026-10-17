@@ -25,6 +25,12 @@ export default function AdminLayout({ children }: LayoutProps<"/admin">) {
             Dashboard
           </Link>
           <Link
+            href="/admin/orders"
+            className="rounded-md px-2 py-1.5 hover:bg-muted focus-visible:bg-muted"
+          >
+            Orders
+          </Link>
+          <Link
             href="/admin/products"
             className="rounded-md px-2 py-1.5 hover:bg-muted focus-visible:bg-muted"
           >

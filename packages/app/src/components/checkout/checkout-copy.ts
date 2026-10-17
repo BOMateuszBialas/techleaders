@@ -1,4 +1,4 @@
-import type { OrderStatus } from "@commerceos/core";
+import { ORDER_STATUS_LABELS, type OrderStatus } from "@commerceos/core";
 
 /** Shopper-facing checkout, payment and order texts (cart spec, UI/UX). */
 
@@ -35,15 +35,7 @@ export const LOOKUP_HEADING = "Find your order";
 export const LOOKUP_LABEL = "Order reference";
 export const LOOKUP_BUTTON = "Find order";
 
-const STATUS_LABELS: Record<OrderStatus, string> = {
-  pending_payment: "Awaiting payment",
-  paid: "Paid",
-  processing: "Processing",
-  shipped: "Shipped",
-  cancelled: "Cancelled",
-  refunded: "Refunded",
-};
-
+/** The same status names the admin shows (`ORDER_STATUS_LABELS` in core). */
 export function orderStatusLabel(status: OrderStatus): string {
-  return STATUS_LABELS[status];
+  return ORDER_STATUS_LABELS[status];
 }
