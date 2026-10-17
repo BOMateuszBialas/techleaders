@@ -1,8 +1,8 @@
 # Run: demo store seed (E04-S03, #24) — Phase 2 of the orders/dashboard/demo-store spec
 
-- Source doc: `.ai/specs/2026-10-16-orders-dashboard-demo-store.md` (Phase 2, steps 6–9)
+- Source doc: `.ai/specs/implemented/2026-10-16-orders-dashboard-demo-store.md` (Phase 2, steps 6–9; moved to `implemented/` in this PR, the last E04 phase)
 - Issue: #24 (E04-S03)
-- Branch: `feat/demo-store-phase-2`, started from `feat/admin-orders-phase-1` (Phase 1, #50) while #50 waited for CI; merged with `origin/main` once #50 landed (or stacked on it if it did not)
+- Branch: `feat/demo-store-phase-2`, started from `feat/admin-orders-phase-1` (Phase 1, #50) while #50 waited for CI; after #50 was squash-merged (7f3b5da) the two Phase 2 commits were replayed onto `origin/main` by cherry-pick, so the diff holds Phase 2 only
 - Engine: om-auto-create-pr (steps: 4, --loop: no); lane A of a parallel session (lane B builds Phase 3, the dashboard)
 - Mode: autonomous (owner away); judgment calls under "Decisions"
 
@@ -39,4 +39,14 @@ Non-goals: any reader of the traffic tables (E05-S04, #28), the dashboard (Phase
 - [x] 2.6 Traffic entities and migration — cb5c155
 - [x] 2.7 Generator (`demo-store.ts`) with unit tests — cb5c155
 - [x] 2.8 Seeder: insert-only catalog, `seedDemoStore`, integration tests — cb5c155
-- [ ] 2.9 Labels e2e, docs, full gate
+- [x] 2.9 Labels e2e, docs, full gate — ed587c6
+
+## Outcome
+
+- Rebased onto `origin/main` after Phases 1 (#50) and 3 (#51) merged; no conflicts.
+- Full gate on the rebased branch, all green: lint, format:check, typecheck, test:coverage (988 tests, 100 % on all four metrics), build, test:integration (105 tests), test:e2e (67 tests, including the Phase 3 dashboard suite now running on the full seeded store).
+- E04 spec moved to `.ai/specs/implemented/`.
+
+## Follow-ups
+
+- The traffic tables have no reader until E05-S04 (#28), which must label the data as fictional.
