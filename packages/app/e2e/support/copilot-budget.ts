@@ -12,9 +12,21 @@ import "@commerceos/database/testing";
  * `copilot:llm:day` cap or the checkout limits.
  */
 export async function resetCopilotQuestionBudget(): Promise<void> {
+  await runOnE2eDatabase("delete from rate_limit_buckets where key like 'copilot:ask:%'");
+}
+
+/**
+ * Deletes every stored Copilot recommendation of the throwaway e2e database, so a suite that
+ * asserts on "Your recommendations" does not depend on what earlier suites asked.
+ */
+export async function clearCopilotRecommendations(): Promise<void> {
+  await runOnE2eDatabase("delete from copilot_recommendations");
+}
+
+async function runOnE2eDatabase(sql: string): Promise<void> {
   const pool = new Pool({ connectionString: inject("databaseUrl") });
   try {
-    await pool.query("delete from rate_limit_buckets where key like 'copilot:ask:%'");
+    await pool.query(sql);
   } finally {
     await pool.end();
   }

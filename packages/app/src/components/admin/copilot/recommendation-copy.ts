@@ -1,5 +1,6 @@
 import {
   RECOMMENDATION_STATUS_LABELS,
+  STORE_TIME_ZONE,
   allowedRecommendationTransitions,
   type CopilotRecommendationRecord,
   type RecommendationStatus,
@@ -69,9 +70,17 @@ export function recommendationsPageHref(page: number): string {
   return page <= 1 ? "/admin/copilot" : `/admin/copilot?page=${page}`;
 }
 
-/** "Suggested on 2026-10-18": the UTC day the recommendation was shown. */
+/** `YYYY-MM-DD` in the store time zone, like every Copilot period (numeric parts only). */
+const STORE_DAY = new Intl.DateTimeFormat("en-CA", {
+  timeZone: STORE_TIME_ZONE,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+/** "Suggested on 2026-10-18": the store-time-zone day the recommendation was shown. */
 export function storedOnText(createdAt: Date): string {
-  return `Suggested on ${createdAt.toISOString().slice(0, 10)}`;
+  return `Suggested on ${STORE_DAY.format(createdAt)}`;
 }
 
 /** What a recommendation card shows; a stored product may have been deleted since (no name). */

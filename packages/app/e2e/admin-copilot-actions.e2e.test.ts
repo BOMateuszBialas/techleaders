@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { useBrowser } from "./support/browser-test";
-import { resetCopilotQuestionBudget } from "./support/copilot-budget";
+import { clearCopilotRecommendations, resetCopilotQuestionBudget } from "./support/copilot-budget";
 import { useOwnerSession } from "./support/sign-in";
 
 const FOCUS = "What should I focus on to improve sales this week?";
@@ -19,6 +19,7 @@ describe("admin Copilot: recommendation actions", () => {
 
   beforeAll(async () => {
     await resetCopilotQuestionBudget();
+    await clearCopilotRecommendations();
     await useOwnerSession(browser());
   });
 

@@ -174,6 +174,8 @@ export class AskCopilotUseCase {
     const limitations = serverLimitations(intent.id, results);
     const expanded = expandDraft(generation.draft, table, limitations);
     const llm = generation.origin === "llm";
+    // Stored before the answer is returned: a failed insert is a 500 (spec, API Contracts),
+    // never cards whose status buttons cannot work. A model answer is lost then, by design.
     const saved = await this.deps.saveCopilotAnswerUseCase.execute({
       intent: intent.id,
       origin: generation.origin,

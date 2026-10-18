@@ -112,6 +112,8 @@ describe("recommendation copy", () => {
     expect(recommendationsPageHref(1)).toBe("/admin/copilot");
     expect(recommendationsPageHref(3)).toBe("/admin/copilot?page=3");
     expect(storedOnText(new Date("2026-10-18T09:00:00.000Z"))).toBe("Suggested on 2026-10-18");
+    // 23:30 UTC on the 17th is already the 18th in Warsaw (store time zone).
+    expect(storedOnText(new Date("2026-10-17T23:30:00.000Z"))).toBe("Suggested on 2026-10-18");
   });
 
   it("turns a stored recommendation into card data without answer-only fields", () => {
