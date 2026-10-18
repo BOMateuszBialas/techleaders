@@ -60,6 +60,13 @@ describe("admin Copilot: recommendation actions", () => {
     const list = await browser().text(YOURS);
     expect(list).toContain("Status: Completed");
     expect(await browser().count(`${YOURS} button[value]`)).toBe(0);
+    // The answer above shows the same recommendation: it follows the list, so it offers no
+    // action the server would refuse and drops its old "saved" message (#67).
+    const answerArea = 'main [data-testid="copilot-answer"]';
+    const answer = await browser().text(answerArea);
+    expect(answer).toContain("Status: Completed");
+    expect(answer).not.toContain("Recommendation saved.");
+    expect(await browser().count(`${answerArea} button[aria-label$=": ${PULSE}"]`)).toBe(0);
   });
 
   it("dismisses a recommendation from a new answer; dismissed ones are not listed", async () => {

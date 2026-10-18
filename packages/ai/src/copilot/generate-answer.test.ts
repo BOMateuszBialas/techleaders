@@ -275,6 +275,68 @@ describe("generateAnswer", () => {
   });
 });
 
+describe("usage and cause of rejected attempts (#65)", () => {
+  const REJECTED_USAGE = { inputTokens: 900, outputTokens: 4000, thinkingTokens: 50 };
+
+  /** Fails the first call with `error`, then answers like the scripted provider. */
+  function failingOnce(error: Error): LlmProviderPort {
+    const scripted = new ScriptedLlmProvider([groundedReply]);
+    let calls = 0;
+    return {
+      name: "gemini",
+      isConfigured: true,
+      generateStructured: async (request) => {
+        calls += 1;
+        if (calls === 1) throw error;
+        return scripted.generateStructured(request);
+      },
+    };
+  }
+
+  it("adds the tokens of an attempt that failed the schema to the logged usage", async () => {
+    const provider = failingOnce(
+      new LlmOutputInvalidError("schema mismatch", { usage: REJECTED_USAGE }),
+    );
+    const generation = await generateAnswer(setup({ provider }).deps, INPUT);
+    expect(generation).toMatchObject({ origin: "llm", attempts: 2, providerCause: null });
+    // 900 + 1000 input, 4000 + 200 output, 50 thinking (the scripted reply reports none).
+    expect(generation.usage).toEqual({ inputTokens: 1900, outputTokens: 4200, thinkingTokens: 50 });
+  });
+
+  it("logs a provider failure's cause code and the tokens it used, keeping the reason", async () => {
+    const provider = failingOnce(
+      new LlmProviderUnavailableError("ended early", {
+        causeCode: "finish_max_tokens",
+        usage: REJECTED_USAGE,
+      }),
+    );
+    const generation = await generateAnswer(setup({ provider }).deps, INPUT);
+    expect(generation).toMatchObject({
+      origin: "rules",
+      fallbackReason: "provider_error",
+      providerCause: "finish_max_tokens",
+      usage: REJECTED_USAGE,
+    });
+    expect(generationLogFields(generation)).toMatchObject({
+      providerCause: "finish_max_tokens",
+      usageOutput: 4000,
+    });
+  });
+
+  it("logs no cause for an error without a safe cause code", async () => {
+    const unsafe = Object.assign(new LlmProviderUnavailableError("down"), {
+      causeCode: "Invalid JSON payload received.",
+    });
+    const generation = await generateAnswer(setup({ provider: failingOnce(unsafe) }).deps, INPUT);
+    expect(generation.providerCause).toBeNull();
+    expect(generation.usage).toEqual({
+      inputTokens: null,
+      outputTokens: null,
+      thinkingTokens: null,
+    });
+  });
+});
+
 describe("generationLogFields", () => {
   it("logs names, counts and codes, with the prompt version only when a call was made", async () => {
     expect(generationLogFields(undefined)).toEqual({
@@ -283,6 +345,7 @@ describe("generationLogFields", () => {
       promptVersion: null,
       attempts: 0,
       issueCodes: [],
+      providerCause: null,
       usageInput: null,
       usageOutput: null,
       usageThinking: null,
@@ -300,6 +363,7 @@ describe("generationLogFields", () => {
       promptVersion: COPILOT_PROMPT_VERSION,
       attempts: 1,
       issueCodes: [],
+      providerCause: null,
       usageInput: 1000,
       usageOutput: 200,
       usageThinking: null,

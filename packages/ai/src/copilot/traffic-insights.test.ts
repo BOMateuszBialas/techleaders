@@ -277,7 +277,7 @@ describe("traffic rules", () => {
       products: table.products,
       facts: table.facts.map((item) => {
         if (item.key === `traffic.views:${drift}`) return { ...item, number: 49, value: "49" };
-        if (item.key === "traffic.rate:p3") return { ...item, number: null };
+        if (item.key === "traffic.rate:p3") return { ...item, number: null, ratio: undefined };
         return item;
       }),
     };
@@ -292,6 +292,27 @@ describe("traffic rules", () => {
     expect(buildRuleInsights("views_without_sales", noViewsNumber, PERIOD).recommendations).toEqual(
       [],
     );
+  });
+
+  it("rule 5 compares the unrounded rates, never the displayed percentages (#63)", () => {
+    const reviewed = (driftRate: number, storeRate = 0.05) =>
+      insights("views_without_sales", {
+        traffic: traffic({
+          viewToPurchaseRate: storeRate,
+          products: traffic().products.map((product) =>
+            product.productId === DRIFT_ID
+              ? { ...product, viewToPurchaseRate: driftRate }
+              : product,
+          ),
+        }),
+      }).draft.recommendations.some((item) => item.title.endsWith("Drift Wireless Headset"));
+    // Exactly half the store's rate is not below it; just under is, although both show "2.5%".
+    expect(reviewed(0.025)).toBe(false);
+    expect(reviewed(0.0249)).toBe(true);
+    // A store rate under 0.05% shows as "0%" but still has a half to fall below.
+    expect(reviewed(0.0001, 0.0004)).toBe(true);
+    const table = buildFacts({ traffic: traffic({ viewToPurchaseRate: 0.0004 }) });
+    expect(fact(table, "traffic.viewToPurchase")).toMatchObject({ value: "0%", ratio: 0.0004 });
   });
 
   it("rule 6: the funnel step with the largest drop-off is named, with both steps as evidence", () => {
@@ -402,6 +423,19 @@ describe("traffic summaries", () => {
     expect(draft.summaryFactIds).toHaveLength(9);
     expect(draft.recommendations).toEqual([]);
     expectGrounded(draft, table);
+  });
+
+  it("traffic sources are sorted by their number, not their display value (#63)", () => {
+    const table = buildFacts({ traffic: traffic() });
+    // A formatted display value ("1 000") is not a number; the order must not depend on it.
+    const formatted: FactTable = {
+      products: table.products,
+      facts: table.facts.map((item) =>
+        item.key === "traffic.sessions:email" ? { ...item, number: 1000, value: "1 000" } : item,
+      ),
+    };
+    const draft = buildRuleInsights("traffic_sources", formatted, PERIOD);
+    expect(draft.summary).toContain("By source: Email 1 000 (10%), Organic search 400 (40%)");
   });
 
   it("funnel: every step in order, paid orders named as real orders", () => {

@@ -1,14 +1,7 @@
 import "server-only";
 import type { AdminOrderList, AdminOrderView } from "@commerceos/core";
+import { firstQueryValue } from "@/lib/first-query-value";
 import { loadWithRequestScope, type LoadResult } from "@/server/load-with-request-scope";
-
-/**
- * The first value of a query parameter (`?page=2&page=3` → "2"); the use case turns anything
- * that is not a page number into page 1.
- */
-export function firstQueryValue(value: string | string[] | undefined): string | undefined {
-  return Array.isArray(value) ? value[0] : value;
-}
 
 /** One page of `/admin/orders`, newest first. */
 export function loadAdminOrders(

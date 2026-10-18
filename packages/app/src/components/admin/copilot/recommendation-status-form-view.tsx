@@ -6,6 +6,7 @@ import {
   ACTIONS_NOTE,
   NO_FURTHER_ACTIONS,
   STATUS_BUTTON_TEXT,
+  shownRecommendationStatus,
   statusActions,
   statusText,
   type RecommendationStatusState,
@@ -16,6 +17,8 @@ export type RecommendationStatusFormViewProps = {
   state: RecommendationStatusState;
   pending: boolean;
   recommendation: { id: string; status: RecommendationStatus; title: string };
+  /** The latest status another card on the page reported for this recommendation (#67). */
+  reportedStatus?: RecommendationStatus;
 };
 
 /**
@@ -23,17 +26,23 @@ export type RecommendationStatusFormViewProps = {
  * #26): no hooks, so a unit test renders every state; `RecommendationStatusForm` connects it to
  * `useActionState`. The form posts the status the card shows (`from`, the server's lost-update
  * guard) and the pressed button's target. After a change the status shown is the one the server
- * reported, so the card is right before the page refreshes. Each button's accessible name ends
- * with the recommendation's title (`aria-label`, starting with the visible text), so
- * screen-reader users can tell the cards apart.
+ * reported, so the card is right before the page refreshes; a status reported by the other card
+ * of the same recommendation (answer and list) wins, so neither offers a refused action (#67).
+ * Each button's accessible name ends with the recommendation's title (`aria-label`, starting
+ * with the visible text), so screen-reader users can tell the cards apart.
  */
 export function RecommendationStatusFormView({
   action,
   state,
   pending,
   recommendation,
+  reportedStatus,
 }: RecommendationStatusFormViewProps) {
-  const status = state.currentStatus ?? recommendation.status;
+  const { status, showMessage } = shownRecommendationStatus(
+    state,
+    recommendation.status,
+    reportedStatus,
+  );
   const actions = statusActions(status);
   return (
     <div className="flex flex-col gap-2 border-t pt-3" data-testid="recommendation-status">
@@ -65,7 +74,7 @@ export function RecommendationStatusFormView({
           <p className="text-xs text-muted-foreground">{ACTIONS_NOTE}</p>
         </form>
       )}
-      <FormMessage state={state} />
+      {showMessage ? <FormMessage state={state} /> : null}
     </div>
   );
 }

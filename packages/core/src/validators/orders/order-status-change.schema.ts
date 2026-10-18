@@ -21,13 +21,3 @@ export type OrderStatusChangeRequest = { orderId: string; from: string; to: stri
 
 /** Orders per admin list page (orders spec A7). */
 export const ADMIN_ORDERS_PAGE_SIZE = 25;
-
-/**
- * The `?page=` of the admin order list: a whole number from 1; anything else (missing, `-1`,
- * `abc`, `1.5`) falls back to page 1, never an error page (spec Edge Cases).
- */
-export const adminOrderPageSchema = z.coerce.number().int().min(1).max(1_000_000).catch(1);
-
-export function parseAdminOrderPage(value: unknown): number {
-  return adminOrderPageSchema.parse(value);
-}

@@ -178,18 +178,20 @@ export const MIN_VIEWS_FOR_RATE = 50;
 
 /**
  * Rule 5: a product with at least 50 demo views converts views into units at less than half
- * the store's rate. An out-of-stock product is rule 4's.
+ * the store's rate. An out-of-stock product is rule 4's. The rates compared are the unrounded
+ * ratios, not the displayed percentages (#63): a store rate under 0.05% still counts, and a
+ * product next to the threshold does not flip with rounding.
  */
 function reviewSlowSellers({ table, periodText }: RuleContext): DraftRecommendation[] {
   const store = findFact(table, "traffic.viewToPurchase");
-  if (!store || store.number === null || store.number === 0) return [];
-  const storeRate = store.number;
+  if (!store?.ratio) return [];
+  const storeRatio = store.ratio;
   return viewedProducts(table).flatMap(({ product, views }) => {
     const rate = findFact(table, `traffic.rate:${product.alias}`);
     const sold = findFact(table, `traffic.units:${product.alias}`);
-    if (!rate || !sold || rate.number === null) return [];
+    if (!rate || !sold || rate.ratio === undefined) return [];
     if ((views.number ?? 0) < MIN_VIEWS_FOR_RATE) return [];
-    if (rate.number >= storeRate / 2) return [];
+    if (rate.ratio >= storeRatio / 2) return [];
     if (findFact(table, `lowStock.stock:${product.alias}`)?.number === 0) return [];
     return [
       {
@@ -342,7 +344,8 @@ function trafficSourcesSummary({ table, periodText }: RuleContext): Summary {
     const sessions = findFact(table, `traffic.sessions:${source}`);
     const share = findFact(table, `traffic.share:${source}`);
     return sessions && share ? [{ label: TRAFFIC_SOURCE_LABELS[source], sessions, share }] : [];
-  }).sort((a, b) => Number(b.sessions.value) - Number(a.sessions.value));
+    // Busiest first by the number, never by the display string (#63).
+  }).sort((a, b) => Number(b.sessions.number) - Number(a.sessions.number));
   const list = sources
     .map((row) => `${row.label} ${row.sessions.value} (${row.share.value})`)
     .join(", ");

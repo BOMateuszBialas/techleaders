@@ -4,7 +4,9 @@ import {
   LLM_PROVIDER_UNAVAILABLE,
   LlmOutputInvalidError,
   LlmProviderUnavailableError,
+  llmCauseCodeOf,
   llmFailureOf,
+  llmUsageOf,
 } from "./llm-provider.port";
 
 describe("LLM provider errors", () => {
@@ -44,5 +46,32 @@ describe("LLM provider errors", () => {
     expect(llmFailureOf({ code: "NOT_FOUND" })).toBeNull();
     expect(llmFailureOf(null)).toBeNull();
     expect(llmFailureOf("text")).toBeNull();
+  });
+});
+
+describe("details of a failed call (#65)", () => {
+  const usage = { inputTokens: 900, outputTokens: 300, thinkingTokens: null };
+
+  it("reads the usage of a rejected response, and nothing malformed", () => {
+    expect(llmUsageOf(new LlmOutputInvalidError("x", { usage }))).toEqual(usage);
+    expect(llmUsageOf(new LlmProviderUnavailableError("x", { usage }))).toEqual(usage);
+    expect(llmUsageOf(new LlmOutputInvalidError("x"))).toBeUndefined();
+    expect(llmUsageOf({ usage: "lots" })).toBeUndefined();
+    expect(llmUsageOf({ usage: { inputTokens: -1, outputTokens: "2" } })).toEqual({
+      inputTokens: null,
+      outputTokens: null,
+      thinkingTokens: null,
+    });
+    expect(llmUsageOf(null)).toBeUndefined();
+  });
+
+  it("reads a log-safe cause code only", () => {
+    expect(llmCauseCodeOf(new LlmProviderUnavailableError("x", { causeCode: "bad_request" }))).toBe(
+      "bad_request",
+    );
+    expect(llmCauseCodeOf(new LlmProviderUnavailableError("x"))).toBeNull();
+    expect(llmCauseCodeOf({ causeCode: "API key AIza... not valid" })).toBeNull();
+    expect(llmCauseCodeOf({ causeCode: 400 })).toBeNull();
+    expect(llmCauseCodeOf("text")).toBeNull();
   });
 });
