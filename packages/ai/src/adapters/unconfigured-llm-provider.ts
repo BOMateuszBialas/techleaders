@@ -15,6 +15,7 @@ export class UnconfiguredLlmProvider implements LlmProviderPort {
   async generateStructured<T>(): Promise<StructuredGenerationResult<T>> {
     throw new LlmProviderUnavailableError(
       "No LLM provider is configured. Set LLM_PROVIDER, LLM_API_KEY and LLM_MODEL.",
+      { reason: "not_configured" },
     );
   }
 }

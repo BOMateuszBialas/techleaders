@@ -1,6 +1,14 @@
 import "server-only";
 import { z } from "zod";
 
+/** LLM providers with an adapter (`packages/ai/src/adapters/`). */
+export const LLM_PROVIDERS = ["gemini"] as const;
+
+/** An empty string counts as unset (the e2e setup blanks `LLM_*`, `.env` lines can be empty). */
+function blankAsUnset<T extends z.ZodType>(schema: T) {
+  return z.preprocess((value) => (value === "" ? undefined : value), schema);
+}
+
 /**
  * Server environment, validated once at startup. Import `env` instead of
  * reading `process.env` directly. Never expose these values to the client.
@@ -29,6 +37,15 @@ const envSchema = z.object({
     .string()
     .regex(/^[a-z0-9-]+$/, "must be a lowercase header name")
     .optional(),
+  /**
+   * Commerce Copilot's LLM provider (Copilot spec A1). Unset: rule-based insights only, no
+   * network call. `gemini` is the only adapter; it needs `LLM_API_KEY` and `LLM_MODEL` too.
+   */
+  LLM_PROVIDER: blankAsUnset(z.enum(LLM_PROVIDERS).optional()),
+  /** The provider's API key. Never logged, never sent to the client. */
+  LLM_API_KEY: blankAsUnset(z.string().optional()),
+  /** The provider's model id, e.g. a Gemini Flash model the free tier offers (no default in code). */
+  LLM_MODEL: blankAsUnset(z.string().optional()),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -41,6 +58,11 @@ export function parseEnv(source: Record<string, string | undefined>): Env {
   // APP_URL is the trusted origin: a silent localhost default must never reach production.
   if (source.NODE_ENV === "production" && !source.APP_URL) {
     problems.push("  - APP_URL: is required in production");
+  }
+  if (result.success && result.data.LLM_PROVIDER) {
+    for (const name of ["LLM_API_KEY", "LLM_MODEL"] as const) {
+      if (!result.data[name]) problems.push(`  - ${name}: is required when LLM_PROVIDER is set`);
+    }
   }
   if (!result.success || problems.length > 0) {
     throw new Error(

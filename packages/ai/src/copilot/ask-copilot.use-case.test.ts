@@ -7,7 +7,12 @@ import {
   type StoreMetricsPort,
 } from "@commerceos/core";
 import { describe, expect, it, vi } from "vitest";
+import { UnconfiguredLlmProvider } from "../adapters/unconfigured-llm-provider";
+import { groundedReply } from "../evals/replies";
+import { SCRIPTED_MODEL, ScriptedLlmProvider } from "../evals/scripted-llm-provider";
 import type { CopilotLogPort } from "../ports/copilot-log.port";
+import type { LlmProviderPort } from "../ports/llm-provider.port";
+import { COPILOT_PROMPT_VERSION } from "../prompts/copilot-system.prompt";
 import { GetLowStockProductsTool } from "../tools/get-low-stock-products.tool";
 import { GetOrderSummaryTool } from "../tools/get-order-summary.tool";
 import { GetSalesSummaryTool } from "../tools/get-sales-summary.tool";
@@ -47,7 +52,7 @@ function fakeMetrics(): StoreMetricsPort {
   };
 }
 
-function setup(options: { allowed?: boolean } = {}) {
+function setup(options: { allowed?: boolean; llmProvider?: LlmProviderPort } = {}) {
   const storeMetrics = fakeMetrics();
   const rateLimiter: RateLimiterPort = {
     consume: vi.fn(async () => ({ allowed: options.allowed ?? true, remaining: 9 })),
@@ -66,6 +71,7 @@ function setup(options: { allowed?: boolean } = {}) {
     getLowStockProductsTool: new GetLowStockProductsTool({
       getLowStockProductsUseCase: new GetLowStockProductsUseCase({ storeMetrics }),
     }),
+    llmProvider: options.llmProvider ?? new UnconfiguredLlmProvider(),
     rateLimiter,
     copilotLog,
     clock: () => NOW,
@@ -219,15 +225,23 @@ describe("AskCopilotUseCase", () => {
     const [event, data] = vi.mocked(copilotLog.info).mock.calls[0] ?? [];
     expect(event).toBe("copilot.answer");
     expect(Object.keys(data ?? {}).sort()).toEqual([
+      "attempts",
       "declinedCategory",
       "fallbackReason",
       "intent",
+      "issueCodes",
       "kind",
       "latencyMs",
+      "model",
       "origin",
+      "promptVersion",
+      "provider",
       "recommendations",
       "source",
       "tools",
+      "usageInput",
+      "usageOutput",
+      "usageThinking",
     ]);
     expect(data).toMatchObject({
       source: "typed",
@@ -242,5 +256,59 @@ describe("AskCopilotUseCase", () => {
     const { useCase, storeMetrics } = setup();
     vi.mocked(storeMetrics.salesSummary).mockRejectedValue(new Error("connection refused"));
     await expect(useCase.execute({ intent: "focus" }, ADMIN)).rejects.toThrow("connection refused");
+  });
+
+  it("shows a grounded AI answer with server-made evidence and limitations, and logs no text", async () => {
+    const llmProvider = new ScriptedLlmProvider([groundedReply]);
+    const { useCase, copilotLog, rateLimiter } = setup({ llmProvider });
+    const answer = await useCase.execute(
+      { question: "What should I focus on? secret-question-text" },
+      ADMIN,
+    );
+
+    expect(answer).toMatchObject({
+      kind: "answered",
+      intent: "focus",
+      origin: "llm",
+      fallbackReason: null,
+      model: SCRIPTED_MODEL,
+      summary: "Paid orders in the last 7 days: 3.",
+      limitations: [NO_TRAFFIC_LIMITATION, "1 order in another currency is not included."],
+    });
+    expect(answer.recommendations[0]).toMatchObject({
+      title: "Feature Pulse Ultralight Mouse on the home page",
+      relatedProductIds: [PULSE_ID],
+      evidence: [{ metric: "Units sold: Pulse Ultralight Mouse", value: "3", demo: false }],
+      limitations: [NO_TRAFFIC_LIMITATION, "1 order in another currency is not included."],
+    });
+    // The canonical question is sent, never the owner's text (A3).
+    const sent = JSON.stringify(llmProvider.requests[0]?.messages);
+    expect(sent).toContain(INTENTS.focus.question);
+    expect(sent).not.toContain("secret-question-text");
+    expect(rateLimiter.consume).toHaveBeenCalledWith("copilot:llm:day", 100, 86_400);
+
+    const [, data] = vi.mocked(copilotLog.info).mock.calls[0] ?? [];
+    expect(data).toMatchObject({
+      origin: "llm",
+      provider: "scripted",
+      model: SCRIPTED_MODEL,
+      promptVersion: COPILOT_PROMPT_VERSION,
+      attempts: 1,
+      issueCodes: [],
+      usageInput: 1000,
+    });
+    const serialized = JSON.stringify(data);
+    expect(serialized).not.toContain("secret-question-text");
+    expect(serialized).not.toContain("Pulse");
+    expect(serialized).not.toContain("Paid orders in the last");
+  });
+
+  it("does not call the provider for declined, unsupported or traffic questions", async () => {
+    const llmProvider = new ScriptedLlmProvider([]);
+    const { useCase } = setup({ llmProvider });
+    await useCase.execute({ question: "What is my profit margin?" }, ADMIN);
+    await useCase.execute({ question: "Tell me a joke" }, ADMIN);
+    await useCase.execute({ intent: "funnel" }, ADMIN);
+    expect(llmProvider.requests).toHaveLength(0);
   });
 });

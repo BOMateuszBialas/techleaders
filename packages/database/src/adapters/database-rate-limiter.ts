@@ -12,8 +12,18 @@ const CONSUME_SQL = `insert into rate_limit_buckets (key, window_start, count)
   on conflict (key, window_start) do update set count = rate_limit_buckets.count + 1
   returning count`;
 
-/** Windows older than an hour are no longer read; deleted whenever a new window starts. */
-const CLEANUP_SQL = "delete from rate_limit_buckets where window_start < now() - interval '1 hour'";
+/**
+ * The longest window a caller may use: the Copilot's daily LLM cap. Cleanup relies on it, so a
+ * longer window is refused instead of being silently reset.
+ */
+export const MAX_RATE_LIMIT_WINDOW_SECONDS = 86_400;
+
+/**
+ * Windows that started more than a day ago have ended for every key (no window is longer than
+ * `MAX_RATE_LIMIT_WINDOW_SECONDS`); deleted whenever a new window starts. An hour here deleted
+ * the running daily window too, so the daily cap never held.
+ */
+const CLEANUP_SQL = "delete from rate_limit_buckets where window_start < now() - interval '1 day'";
 
 /**
  * PostgreSQL adapter for the core `RateLimiterPort`. Request-scoped (the request's
@@ -37,6 +47,9 @@ export class DatabaseRateLimiter implements RateLimiterPort {
     limit: number,
     windowSeconds: number,
   ): Promise<{ allowed: boolean; remaining: number }> {
+    if (windowSeconds > MAX_RATE_LIMIT_WINDOW_SECONDS) {
+      throw new Error("The rate limit window is longer than a day");
+    }
     const rows = await this.deps.em.execute<{ count: number }[]>(CONSUME_SQL, [
       key,
       windowSeconds,

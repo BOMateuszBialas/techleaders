@@ -8,8 +8,8 @@ import { findFact, type CopilotFact, type FactTable } from "./build-facts";
 
 /**
  * An answer before expansion: it cites fact ids and product aliases, never values or ids. Rules
- * produce it today; a model will produce the same shape in Phase 2, so one expansion step and
- * one set of grounding checks serve both.
+ * and a model (`copilotModelOutputSchema`) produce the same shape, so one expansion step and one
+ * set of grounding checks serve both.
  */
 export type DraftRecommendation = {
   title: string;
@@ -19,6 +19,8 @@ export type DraftRecommendation = {
   reasoning: string;
   suggestedAction: string;
   relatedProductAliases: string[];
+  /** A model's own caveats (Phase 2); the server's limitations are added on expansion. */
+  limitations?: string[];
 };
 
 export type CopilotDraft = {

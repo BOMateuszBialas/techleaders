@@ -48,6 +48,7 @@ The contract surfaces this project protects, and how changes to them must be han
   - `AUTH_TRUSTED_IP_HEADER` (optional);
   - `ADMIN_EMAIL` / `ADMIN_PASSWORD` (read only by `npm run admin:create`);
   - `APP_URL` became required when `NODE_ENV=production`.
+- **Added 2026-10-17 (Commerce Copilot, Phase 2):** `LLM_PROVIDER` (optional; `gemini` is the only accepted value), `LLM_API_KEY` and `LLM_MODEL` (both required when `LLM_PROVIDER` is set). An empty string counts as unset; without a provider the Copilot answers with rule-based insights.
 - **Breaking:** renaming or removing an environment variable, or changing a config key's format.
 - **Required path:** support the old name as a fallback for one release and document the change in the PR and README.
 
