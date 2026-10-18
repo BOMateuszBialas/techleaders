@@ -17,7 +17,8 @@ export default function AdminLayout({ children }: LayoutProps<"/admin">) {
         <div className="flex h-14 items-center px-4 font-semibold tracking-tight">
           CommerceOS Admin
         </div>
-        <nav aria-label="Admin" className="flex gap-1 px-2 pb-2 text-sm md:flex-col">
+        {/* Wraps on a phone: six links do not fit one 390 px row (#56). */}
+        <nav aria-label="Admin" className="flex flex-wrap gap-1 px-2 pb-2 text-sm md:flex-col">
           <Link
             href="/admin"
             className="rounded-md px-2 py-1.5 hover:bg-muted focus-visible:bg-muted"

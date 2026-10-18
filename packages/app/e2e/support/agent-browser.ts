@@ -211,6 +211,11 @@ export class BrowserSession {
     return z.object({ count: z.number() }).parse(data).count;
   }
 
+  /** Evaluates a JavaScript expression in the page and returns its JSON result. */
+  async evaluate(expression: string): Promise<unknown> {
+    return z.object({ result: z.unknown() }).parse(await this.command(["eval", expression])).result;
+  }
+
   async screenshot(path: string): Promise<void> {
     const absolute = resolve(path);
     mkdirSync(dirname(absolute), { recursive: true });
