@@ -4,6 +4,7 @@ import { AdminSessionSchema } from "./auth/admin-session.entity";
 import { AdminUserSchema } from "./auth/admin-user.entity";
 import { AdminVerificationSchema } from "./auth/admin-verification.entity";
 import { CategorySchema } from "./categories/category.entity";
+import { CopilotRecommendationSchema } from "./copilot/copilot-recommendation.entity";
 import { StockAdjustmentSchema } from "./inventory/stock-adjustment.entity";
 import { OrderItemSchema } from "./orders/order-item.entity";
 import { OrderSchema } from "./orders/order.entity";
@@ -18,6 +19,7 @@ export * from "./auth/admin-session.entity";
 export * from "./auth/admin-user.entity";
 export * from "./auth/admin-verification.entity";
 export * from "./categories/category.entity";
+export * from "./copilot/copilot-recommendation.entity";
 export * from "./inventory/stock-adjustment.entity";
 export * from "./orders/order-item.entity";
 export * from "./orders/order.entity";
@@ -36,6 +38,7 @@ export const entities = [
   RateLimitBucketSchema,
   TrafficDailyStatSchema,
   ProductViewDailyStatSchema,
+  CopilotRecommendationSchema,
   AdminUserSchema,
   AdminSessionSchema,
   AdminAccountSchema,
