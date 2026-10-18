@@ -281,7 +281,9 @@ describe("CopilotPanelView", () => {
 
 describe("CopilotPanel", () => {
   it("renders the view in its idle state", () => {
-    const html = renderToStaticMarkup(createElement(CopilotPanel, { questions: QUESTIONS }));
+    const html = renderToStaticMarkup(
+      createElement(CopilotPanel, { questions: QUESTIONS, statusAction: vi.fn() }),
+    );
     expect(html).toContain("Or ask about your store");
   });
 });

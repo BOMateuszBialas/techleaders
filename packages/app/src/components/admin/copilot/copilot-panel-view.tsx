@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { CopilotAnswerView } from "./copilot-answer-view";
 import { PENDING_TEXT, type CopilotPanelState, type SuggestedQuestion } from "./copilot-copy";
+import type { RecommendationStatusAction } from "./recommendation-copy";
 
 /**
  * Hook-free Copilot panel: the suggested-question buttons and a typed question in one form,
@@ -14,11 +15,14 @@ export function CopilotPanelView({
   state,
   pending,
   questions,
+  statusAction,
 }: {
   action: (formData: FormData) => void;
   state: CopilotPanelState;
   pending: boolean;
   questions: SuggestedQuestion[];
+  /** Saves, dismisses or completes a stored recommendation (Phase 4). */
+  statusAction?: RecommendationStatusAction;
 }) {
   return (
     <div className="flex flex-col gap-6">
@@ -71,7 +75,11 @@ export function CopilotPanelView({
             {state.message}
           </p>
         ) : state.answer ? (
-          <CopilotAnswerView answer={state.answer} questions={questions} />
+          <CopilotAnswerView
+            answer={state.answer}
+            questions={questions}
+            statusAction={statusAction}
+          />
         ) : null}
       </div>
     </div>

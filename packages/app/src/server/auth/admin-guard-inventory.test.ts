@@ -113,6 +113,7 @@ describe("admin guard inventory", () => {
         "server/orders/order-status.action.ts",
         "app/admin/(protected)/copilot/page.tsx",
         "app/api/admin/copilot/answers/route.ts",
+        "server/copilot/recommendation.action.ts",
         SIGN_IN_ACTIONS,
         ...SHOPPER_ACTIONS,
       ]),
