@@ -1,8 +1,4 @@
-import type {
-  CopilotAnswerDto,
-  CopilotAnswerRecommendation,
-  RecommendationEvidence,
-} from "@commerceos/ai";
+import type { CopilotAnswerDto, RecommendationEvidence } from "@commerceos/ai";
 import Link from "next/link";
 import { productPath } from "@/components/admin/products/product-copy";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +21,12 @@ import {
   periodText,
   type SuggestedQuestion,
 } from "./copilot-copy";
+import {
+  DELETED_PRODUCT_TEXT,
+  type RecommendationCardData,
+  type RecommendationStatusAction,
+} from "./recommendation-copy";
+import { RecommendationStatusForm } from "./recommendation-status-form";
 
 function Limitations({ items }: { items: string[] }) {
   if (items.length === 0) return null;
@@ -75,11 +77,17 @@ function EvidenceTable({ caption, rows }: { caption: string; rows: Recommendatio
   );
 }
 
-/** One recommendation: every value comes from its evidence rows, rendered as plain text. */
+/**
+ * One recommendation: every value comes from its evidence rows, rendered as plain text. A stored
+ * recommendation (with an id) also shows its status and the owner's save, dismiss and complete
+ * actions when the page passes the status action (Phase 4).
+ */
 export function RecommendationCardView({
   recommendation,
+  statusAction,
 }: {
-  recommendation: CopilotAnswerRecommendation;
+  recommendation: RecommendationCardData;
+  statusAction?: RecommendationStatusAction;
 }) {
   return (
     <Card data-testid="copilot-recommendation">
@@ -114,12 +122,26 @@ export function RecommendationCardView({
             {recommendation.relatedProducts.map((product, index) => (
               <span key={product.id}>
                 {index > 0 ? ", " : null}
-                <Link href={productPath(product.id)} className="underline underline-offset-4">
-                  {product.name}
-                </Link>
+                {product.name === null ? (
+                  <span className="text-muted-foreground">{DELETED_PRODUCT_TEXT}</span>
+                ) : (
+                  <Link href={productPath(product.id)} className="underline underline-offset-4">
+                    {product.name}
+                  </Link>
+                )}
               </span>
             ))}
           </p>
+        ) : null}
+        {statusAction && recommendation.id ? (
+          <RecommendationStatusForm
+            action={statusAction}
+            recommendation={{
+              id: recommendation.id,
+              status: recommendation.status,
+              title: recommendation.title,
+            }}
+          />
         ) : null}
       </CardContent>
     </Card>
@@ -130,9 +152,11 @@ export function RecommendationCardView({
 export function CopilotAnswerView({
   answer,
   questions,
+  statusAction,
 }: {
   answer: CopilotAnswerDto;
   questions: SuggestedQuestion[];
+  statusAction?: RecommendationStatusAction;
 }) {
   const origin = originText(answer);
   return (
@@ -165,7 +189,12 @@ export function CopilotAnswerView({
         </div>
       ) : (
         answer.recommendations.map((recommendation, index) => (
-          <RecommendationCardView key={index} recommendation={recommendation} />
+          // A stored id keys the card, so a new answer never inherits an old card's form state.
+          <RecommendationCardView
+            key={recommendation.id ?? index}
+            recommendation={recommendation}
+            statusAction={statusAction}
+          />
         ))
       )}
       {answer.definitions.length > 0 ? (

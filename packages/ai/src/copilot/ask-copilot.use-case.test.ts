@@ -4,6 +4,9 @@ import {
   GetSalesSummaryUseCase,
   GetTopProductsUseCase,
   GetTrafficSummaryUseCase,
+  SaveCopilotAnswerUseCase,
+  type CopilotRecommendationRepositoryPort,
+  type NewCopilotAnswer,
   type RateLimiterPort,
   type StoreMetricsPort,
   type TrafficStatsPort,
@@ -37,6 +40,19 @@ import {
 import { INTENTS, UNSUPPORTED_MESSAGE } from "./intents";
 
 const ADMIN = { id: "owner-1" };
+const ANSWER_ID = "9a8b7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d";
+
+/** Stores answers in memory: ids `rec-1`, `rec-2`, … in the answer's order. */
+function fakeRecommendationRepository(): CopilotRecommendationRepositoryPort {
+  return {
+    saveAnswer: vi.fn(async (answer: NewCopilotAnswer) => ({
+      answerId: ANSWER_ID,
+      recommendationIds: answer.recommendations.map((_, index) => `rec-${index + 1}`),
+    })),
+    listByStatus: vi.fn(async () => ({ rows: [], total: 0 })),
+    changeStatus: vi.fn(async () => ({ kind: "not_found" as const })),
+  };
+}
 
 function fakeMetrics(): StoreMetricsPort {
   return {
@@ -82,8 +98,15 @@ function fakeTraffic(): TrafficStatsPort {
   };
 }
 
-function setup(options: { allowed?: boolean; llmProvider?: LlmProviderPort } = {}) {
+function setup(
+  options: {
+    allowed?: boolean;
+    llmProvider?: LlmProviderPort;
+    recommendations?: CopilotRecommendationRepositoryPort;
+  } = {},
+) {
   const storeMetrics = fakeMetrics();
+  const recommendations = options.recommendations ?? fakeRecommendationRepository();
   const trafficStats = fakeTraffic();
   const rateLimiter: RateLimiterPort = {
     consume: vi.fn(async () => ({ allowed: options.allowed ?? true, remaining: 9 })),
@@ -113,9 +136,13 @@ function setup(options: { allowed?: boolean; llmProvider?: LlmProviderPort } = {
     rateLimiter,
     copilotLog,
     clock: () => NOW,
+    saveCopilotAnswerUseCase: new SaveCopilotAnswerUseCase({
+      copilotRecommendationRepository: recommendations,
+    }),
   };
   return {
     useCase: new AskCopilotUseCase(deps),
+    recommendations,
     storeMetrics,
     trafficStats,
     rateLimiter,
@@ -132,7 +159,7 @@ function toolCalls(metrics: StoreMetricsPort): number {
 
 describe("AskCopilotUseCase", () => {
   it("answers the primary question with rule-based insights and says AI is not configured", async () => {
-    const { useCase, rateLimiter, storeMetrics } = setup();
+    const { useCase, rateLimiter, storeMetrics, recommendations } = setup();
     const answer = await useCase.execute({ intent: "focus" }, ADMIN);
 
     expect(rateLimiter.consume).toHaveBeenCalledWith(
@@ -141,7 +168,7 @@ describe("AskCopilotUseCase", () => {
       ASK_WINDOW_SECONDS,
     );
     expect(answer).toMatchObject({
-      answerId: null,
+      answerId: ANSWER_ID,
       kind: "answered",
       intent: "focus",
       question: INTENTS.focus.question,
@@ -167,8 +194,31 @@ describe("AskCopilotUseCase", () => {
     ]);
     expect(answer.recommendations[0]).toMatchObject({
       relatedProductIds: [PULSE_ID],
-      id: null,
+      id: "rec-1",
       status: "new",
+    });
+    expect(answer.recommendations[1]?.id).toBe("rec-2");
+    // Phase 4 (A13): the shown recommendations are stored as `new`, with no provider data.
+    const stored = vi.mocked(recommendations.saveAnswer).mock.calls[0]?.[0];
+    expect(stored).toMatchObject({
+      intent: "focus",
+      origin: "rules",
+      fallbackReason: "not_configured",
+      provider: null,
+      model: null,
+      promptVersion: null,
+      periodFrom: new Date("2026-10-10T22:00:00.000Z"),
+      periodTo: new Date("2026-10-17T22:00:00.000Z"),
+    });
+    expect(stored?.recommendations[0]).toEqual({
+      title: answer.recommendations[0]?.title,
+      priority: "high",
+      observation: answer.recommendations[0]?.observation,
+      evidence: answer.recommendations[0]?.evidence,
+      reasoning: answer.recommendations[0]?.reasoning,
+      suggestedAction: answer.recommendations[0]?.suggestedAction,
+      relatedProductIds: [PULSE_ID],
+      limitations: answer.recommendations[0]?.limitations,
     });
     // A21: the primary question now cites the demo store conversion in its summary.
     expect(answer.summary).toContain("Store conversion rate (demo): 3%.");
@@ -218,7 +268,7 @@ describe("AskCopilotUseCase", () => {
   });
 
   it("declines a margin question without running a tool, naming the missing data", async () => {
-    const { useCase, storeMetrics, copilotLog } = setup();
+    const { useCase, storeMetrics, copilotLog, recommendations } = setup();
     const answer = await useCase.execute({ question: "What is my profit margin?" }, ADMIN);
     expect(answer).toMatchObject({
       kind: "declined",
@@ -228,8 +278,10 @@ describe("AskCopilotUseCase", () => {
       summary:
         "Copilot can't answer this. It needs product cost data, which this store does not record.",
       recommendations: [],
+      answerId: null,
     });
     expect(toolCalls(storeMetrics)).toBe(0);
+    expect(recommendations.saveAnswer).not.toHaveBeenCalled();
     expect(copilotLog.info).toHaveBeenCalledWith(
       "copilot.answer",
       expect.objectContaining({ kind: "declined", declinedCategory: "margin", tools: [] }),
@@ -328,6 +380,7 @@ describe("AskCopilotUseCase", () => {
     const [event, data] = vi.mocked(copilotLog.info).mock.calls[0] ?? [];
     expect(event).toBe("copilot.answer");
     expect(Object.keys(data ?? {}).sort()).toEqual([
+      "answerId",
       "attempts",
       "declinedCategory",
       "fallbackReason",
@@ -369,7 +422,7 @@ describe("AskCopilotUseCase", () => {
 
   it("shows a grounded AI answer with server-made evidence and limitations, and logs no text", async () => {
     const llmProvider = new ScriptedLlmProvider([groundedReply]);
-    const { useCase, copilotLog, rateLimiter } = setup({ llmProvider });
+    const { useCase, copilotLog, rateLimiter, recommendations } = setup({ llmProvider });
     const answer = await useCase.execute(
       { question: "What should I focus on? secret-question-text" },
       ADMIN,
@@ -403,6 +456,14 @@ describe("AskCopilotUseCase", () => {
     expect(sent).toContain(INTENTS.focus.question);
     expect(sent).not.toContain("secret-question-text");
     expect(rateLimiter.consume).toHaveBeenCalledWith("copilot:llm:day", 100, 86_400);
+    // Phase 4: an AI answer is stored with its provider, model and prompt version.
+    expect(vi.mocked(recommendations.saveAnswer).mock.calls[0]?.[0]).toMatchObject({
+      origin: "llm",
+      fallbackReason: null,
+      provider: "scripted",
+      model: SCRIPTED_MODEL,
+      promptVersion: COPILOT_PROMPT_VERSION,
+    });
 
     const [, data] = vi.mocked(copilotLog.info).mock.calls[0] ?? [];
     expect(data).toMatchObject({
@@ -418,6 +479,31 @@ describe("AskCopilotUseCase", () => {
     expect(serialized).not.toContain("secret-question-text");
     expect(serialized).not.toContain("Pulse");
     expect(serialized).not.toContain("Paid orders in the last");
+  });
+
+  it("stores nothing for an answer without recommendations and leaves its id empty", async () => {
+    const { useCase, recommendations } = setup();
+    const answer = await useCase.execute({ intent: "traffic_sources" }, ADMIN);
+    expect(answer).toMatchObject({ kind: "answered", answerId: null, recommendations: [] });
+    expect(recommendations.saveAnswer).not.toHaveBeenCalled();
+  });
+
+  it("shows a recommendation without an id when the store returned none for it", async () => {
+    const repository = fakeRecommendationRepository();
+    vi.mocked(repository.saveAnswer).mockResolvedValueOnce({
+      answerId: ANSWER_ID,
+      recommendationIds: [],
+    });
+    const { useCase } = setup({ recommendations: repository });
+    const answer = await useCase.execute({ intent: "focus" }, ADMIN);
+    expect(answer.recommendations[0]?.id).toBeNull();
+  });
+
+  it("propagates a failure to store the answer instead of answering", async () => {
+    const repository = fakeRecommendationRepository();
+    vi.mocked(repository.saveAnswer).mockRejectedValueOnce(new Error("insert failed"));
+    const { useCase } = setup({ recommendations: repository });
+    await expect(useCase.execute({ intent: "focus" }, ADMIN)).rejects.toThrow("insert failed");
   });
 
   it("does not call the provider for declined or unsupported questions", async () => {

@@ -7,10 +7,13 @@ import {
   resolvePeriod,
   type Clock,
   type MetricPeriod,
+  type NewCopilotRecommendation,
   type RateLimiterPort,
+  type SaveCopilotAnswerUseCase,
 } from "@commerceos/core";
 import type { CopilotLogPort } from "../ports/copilot-log.port";
 import type { LlmProviderPort } from "../ports/llm-provider.port";
+import { COPILOT_PROMPT_VERSION } from "../prompts/copilot-system.prompt";
 import type { GetLowStockProductsTool } from "../tools/get-low-stock-products.tool";
 import type { GetOrderSummaryTool } from "../tools/get-order-summary.tool";
 import type { GetSalesSummaryTool } from "../tools/get-sales-summary.tool";
@@ -18,7 +21,7 @@ import type { GetTopProductsTool } from "../tools/get-top-products.tool";
 import type { GetTrafficSummaryTool } from "../tools/get-traffic-summary.tool";
 import { buildFacts, definitionsOf, type CopilotToolResults } from "./build-facts";
 import type { CopilotAnswerDto, CopilotAnswerPeriod } from "./copilot-answer";
-import { expandDraft, serverLimitations } from "./expand-response";
+import { expandDraft, serverLimitations, type ExpandedRecommendation } from "./expand-response";
 import { generateAnswer, generationLogFields, type Generation } from "./generate-answer";
 import {
   DECLINED_CATEGORIES,
@@ -46,6 +49,8 @@ export type AskCopilotDeps = {
   rateLimiter: RateLimiterPort;
   copilotLog: CopilotLogPort;
   clock: Clock;
+  /** Stores every answered question's recommendations as `new` (Phase 4, A13). */
+  saveCopilotAnswerUseCase: SaveCopilotAnswerUseCase;
 };
 
 type Outcome = { answer: CopilotAnswerDto; tools: string[]; generation?: Generation };
@@ -57,6 +62,20 @@ function periodDto(period: MetricPeriod): CopilotAnswerPeriod {
     name: METRIC_PERIOD_LABELS[period.preset],
     label: period.label,
     timeZone: period.timeZone,
+  };
+}
+
+/** What is stored of a shown recommendation: its content, never the display-only names. */
+function toNewRecommendation(recommendation: ExpandedRecommendation): NewCopilotRecommendation {
+  return {
+    title: recommendation.title,
+    priority: recommendation.priority,
+    observation: recommendation.observation,
+    evidence: recommendation.evidence,
+    reasoning: recommendation.reasoning,
+    suggestedAction: recommendation.suggestedAction,
+    relatedProductIds: recommendation.relatedProductIds,
+    limitations: recommendation.limitations,
   };
 }
 
@@ -85,9 +104,11 @@ function emptyAnswer(
  * Commerce Copilot (Copilot spec, "AskCopilotUseCase flow"): rate limit → deterministic routing →
  * the intent's fixed tool plan → numbered facts → rule-based insights → an LLM answer when a
  * provider is configured and the answer passes the grounding checks (`generateAnswer`) →
- * expansion.
- * Declined and unsupported questions run no tool. It reads store data only through the approved
- * tools and writes nothing but the rate-limit counters.
+ * expansion → the recommendations stored as `new` (Phase 4), so the owner can save, dismiss or
+ * complete them.
+ * Declined and unsupported questions run no tool and store nothing. It reads store data only
+ * through the approved tools and writes nothing but the rate-limit counters and Copilot's own
+ * recommendation records: never store data (D02).
  */
 export class AskCopilotUseCase {
   constructor(private readonly deps: AskCopilotDeps) {}
@@ -117,6 +138,7 @@ export class AskCopilotUseCase {
       origin: answer.origin,
       fallbackReason: answer.fallbackReason,
       recommendations: answer.recommendations.length,
+      answerId: answer.answerId,
       ...generationLogFields(generation),
       latencyMs: Date.now() - started,
     });
@@ -151,9 +173,24 @@ export class AskCopilotUseCase {
     });
     const limitations = serverLimitations(intent.id, results);
     const expanded = expandDraft(generation.draft, table, limitations);
+    const llm = generation.origin === "llm";
+    // Stored before the answer is returned: a failed insert is a 500 (spec, API Contracts),
+    // never cards whose status buttons cannot work. A model answer is lost then, by design.
+    const saved = await this.deps.saveCopilotAnswerUseCase.execute({
+      intent: intent.id,
+      origin: generation.origin,
+      fallbackReason: generation.fallbackReason,
+      provider: llm ? generation.provider : null,
+      model: generation.model,
+      promptVersion: llm ? COPILOT_PROMPT_VERSION : null,
+      periodFrom: period.from,
+      periodTo: period.to,
+      recommendations: expanded.recommendations.map(toNewRecommendation),
+    });
     return {
       answer: {
         ...emptyAnswer("answered", expanded.summary),
+        answerId: saved.answerId,
         intent: intent.id,
         question: intent.question,
         origin: generation.origin,
@@ -161,7 +198,10 @@ export class AskCopilotUseCase {
         model: generation.model,
         period: periodDto(period),
         summaryEvidence: expanded.summaryEvidence,
-        recommendations: expanded.recommendations,
+        recommendations: expanded.recommendations.map((recommendation, index) => ({
+          ...recommendation,
+          id: saved.recommendationIds[index] ?? null,
+        })),
         limitations,
         definitions: definitionsOf(table),
       },

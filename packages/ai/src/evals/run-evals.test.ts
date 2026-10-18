@@ -4,6 +4,8 @@ import {
   GetSalesSummaryUseCase,
   GetTopProductsUseCase,
   GetTrafficSummaryUseCase,
+  SaveCopilotAnswerUseCase,
+  type CopilotRecommendationRepositoryPort,
   type RateLimiterPort,
 } from "@commerceos/core";
 import { describe, expect, it } from "vitest";
@@ -27,6 +29,16 @@ import { ScriptedLlmProvider } from "./scripted-llm-provider";
 
 const CASES = [...ANSWERED_CASES, ...DECLINED_CASES];
 const UUID = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
+
+/** Evals check what is shown; storing works like the demo store's and is tested in Phase 4. */
+const recommendations: CopilotRecommendationRepositoryPort = {
+  saveAnswer: async (answer) => ({
+    answerId: "eval-answer",
+    recommendationIds: answer.recommendations.map((_, index) => `eval-${index + 1}`),
+  }),
+  listByStatus: async () => ({ rows: [], total: 0 }),
+  changeStatus: async () => ({ kind: "not_found" }),
+};
 
 function copilot(store: EvalStoreKind, llmProvider: LlmProviderPort) {
   const storeMetrics = evalStore(store);
@@ -55,6 +67,9 @@ function copilot(store: EvalStoreKind, llmProvider: LlmProviderPort) {
     rateLimiter,
     copilotLog: { info: () => {} },
     clock: () => NOW,
+    saveCopilotAnswerUseCase: new SaveCopilotAnswerUseCase({
+      copilotRecommendationRepository: recommendations,
+    }),
   });
 }
 

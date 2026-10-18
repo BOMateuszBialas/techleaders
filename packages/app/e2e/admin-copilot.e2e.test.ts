@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, inject, it } from "vitest";
 import { useBrowser } from "./support/browser-test";
+import { resetCopilotQuestionBudget } from "./support/copilot-budget";
 import { useOwnerSession } from "./support/sign-in";
 
 const FOCUS = "What should I focus on to improve sales this week?";
@@ -38,6 +39,7 @@ describe("admin Copilot", () => {
 
   describe("signed in", () => {
     beforeAll(async () => {
+      await resetCopilotQuestionBudget();
       await useOwnerSession(browser());
     });
 

@@ -1,3 +1,4 @@
+import { RECOMMENDATION_PRIORITIES } from "@commerceos/core";
 import { z } from "zod";
 
 const factId = z
@@ -18,7 +19,7 @@ const productAlias = z
  */
 export const copilotModelRecommendationSchema = z.object({
   title: z.string().min(1).max(160).describe("A short imperative, e.g. 'Restock <product>'."),
-  priority: z.enum(["high", "medium", "low"]),
+  priority: z.enum(RECOMMENDATION_PRIORITIES),
   observation: z
     .string()
     .min(1)

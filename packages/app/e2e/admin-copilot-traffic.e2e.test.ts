@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { useBrowser } from "./support/browser-test";
+import { resetCopilotQuestionBudget } from "./support/copilot-budget";
 import { useOwnerSession } from "./support/sign-in";
 
 const ANSWER = 'main [data-testid="copilot-answer"]';
@@ -18,6 +19,7 @@ describe("admin Copilot: traffic questions (fictional demo data)", () => {
   const browser = useBrowser();
 
   beforeAll(async () => {
+    await resetCopilotQuestionBudget();
     await useOwnerSession(browser());
   });
 
