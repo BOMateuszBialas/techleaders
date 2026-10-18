@@ -16,7 +16,7 @@ vi.mock("@/server/container", () => ({
   }),
 }));
 
-const { firstQueryValue, loadAdminOrder, loadAdminOrders } = await import("./orders/load-orders");
+const { loadAdminOrder, loadAdminOrders } = await import("./orders/load-orders");
 
 const ORDER_ID = "0d2f1d6e-5b1c-4a55-9e2a-3f1b6c0d9a01";
 
@@ -34,12 +34,6 @@ describe("admin order loaders", () => {
     await loadAdminOrders(undefined);
     expect(listAdminOrders).toHaveBeenLastCalledWith({ page: undefined });
     expect(dispose).toHaveBeenCalledTimes(2);
-  });
-
-  it("reads the first value of a query parameter", () => {
-    expect(firstQueryValue("4")).toBe("4");
-    expect(firstQueryValue(["5", "6"])).toBe("5");
-    expect(firstQueryValue(undefined)).toBeUndefined();
   });
 
   it("loads one order, or reports not-found", async () => {

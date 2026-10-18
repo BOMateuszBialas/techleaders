@@ -24,6 +24,62 @@ export type RecommendationStatusAction = (
 
 export const IDLE_RECOMMENDATION_STATUS_STATE: RecommendationStatusState = { status: "idle" };
 
+/**
+ * The latest status the server reported for each recommendation on the page, by id (#67). The
+ * same recommendation can show twice, in the answer and under "Your recommendations"; each card
+ * reports what its action returned, so the other card never offers a refused action.
+ */
+export type ReportedStatuses = Readonly<Record<string, RecommendationStatus>>;
+export type StatusReport = { id: string; status: RecommendationStatus };
+export type ReportedStatusesValue = {
+  statuses: ReportedStatuses;
+  report: (report: StatusReport) => void;
+};
+
+/** The reducer behind `RecommendationStatusesProvider`. */
+export function recordReportedStatus(
+  statuses: ReportedStatuses,
+  report: StatusReport,
+): ReportedStatuses {
+  return { ...statuses, [report.id]: report.status };
+}
+
+/** Outside a provider nothing is shared: a card shows only its own state. */
+export function ignoreStatusReport(): void {}
+export const NO_SHARED_STATUSES: ReportedStatusesValue = {
+  statuses: {},
+  report: ignoreStatusReport,
+};
+
+/** The status action of one card, reporting the status the server returned to the page. */
+export function reportingStatusAction(
+  action: RecommendationStatusAction,
+  id: string,
+  report: ReportedStatusesValue["report"],
+): RecommendationStatusAction {
+  return async (previous, formData) => {
+    const next = await action(previous, formData);
+    if (next.currentStatus) report({ id, status: next.currentStatus });
+    return next;
+  };
+}
+
+/**
+ * What a card shows: the latest status reported on the page, else its own action's, else the
+ * one it was rendered with. Its own message only while it describes that status: after the
+ * other card of the same recommendation changed it, "Recommendation saved." would be stale.
+ */
+export function shownRecommendationStatus(
+  state: RecommendationStatusState,
+  rendered: RecommendationStatus,
+  reported: RecommendationStatus | undefined,
+): { status: RecommendationStatus; showMessage: boolean } {
+  return {
+    status: reported ?? state.currentStatus ?? rendered,
+    showMessage: reported === undefined || reported === state.currentStatus,
+  };
+}
+
 /** The button that moves a recommendation to each status (Copilot spec, UI/UX). */
 export const STATUS_BUTTON_TEXT: Readonly<Record<Exclude<RecommendationStatus, "new">, string>> = {
   saved: "Save",

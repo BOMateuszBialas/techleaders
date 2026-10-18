@@ -1,8 +1,6 @@
 import type { OrderAdminPort } from "../../ports/order-admin.port";
-import {
-  ADMIN_ORDERS_PAGE_SIZE,
-  parseAdminOrderPage,
-} from "../../validators/orders/order-status-change.schema";
+import { parseListPage } from "../../validators/common/list-page.schema";
+import { ADMIN_ORDERS_PAGE_SIZE } from "../../validators/orders/order-status-change.schema";
 import { toAdminOrderListRow, type AdminOrderList } from "./admin-order.dto";
 
 /**
@@ -14,7 +12,7 @@ export class ListAdminOrdersUseCase {
   constructor(private readonly deps: { orderAdminRepository: OrderAdminPort }) {}
 
   async execute(input: { page?: unknown } = {}): Promise<AdminOrderList> {
-    const page = parseAdminOrderPage(input.page);
+    const page = parseListPage(input.page);
     const { rows, total } = await this.deps.orderAdminRepository.listOrders({
       offset: (page - 1) * ADMIN_ORDERS_PAGE_SIZE,
       limit: ADMIN_ORDERS_PAGE_SIZE,

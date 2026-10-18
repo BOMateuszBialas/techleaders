@@ -46,6 +46,11 @@ export type CopilotFact = {
   value: string;
   /** The value as a number (money in whole currency units), `null` for "Not enough data". */
   number: number | null;
+  /**
+   * The unrounded ratio behind a rate fact (0.0153 for "1.5%"), for the rules' comparisons
+   * (#63); absent on other facts and on "Not enough data". Never sent to the model.
+   */
+  ratio?: number;
   /** "Last 7 days (11–17 Oct 2026)", "Previous 7 days (4–10 Oct 2026)", "Now", … */
   period: string;
   /** "<tool> · <definition id>". */
@@ -294,11 +299,14 @@ function percentOf(ratio: number): { text: string; number: number } {
   return { text: `${number}%`, number };
 }
 
-/** A rate fact's value: its percentage, or "Not enough data" when the rate is `null`. */
-function rateValue(ratio: number | null): Pick<CopilotFact, "value" | "number"> {
+/**
+ * A rate fact's value: its percentage plus the unrounded ratio, or "Not enough data" when the
+ * rate is `null`.
+ */
+function rateValue(ratio: number | null): Pick<CopilotFact, "value" | "number" | "ratio"> {
   if (ratio === null) return { value: NOT_ENOUGH_DATA, number: null };
   const { text, number } = percentOf(ratio);
-  return { value: text, number };
+  return { value: text, number, ratio };
 }
 
 /**

@@ -392,6 +392,7 @@ describe("AskCopilotUseCase", () => {
       "origin",
       "promptVersion",
       "provider",
+      "providerCause",
       "recommendations",
       "source",
       "tools",

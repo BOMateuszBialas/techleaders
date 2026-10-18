@@ -9,8 +9,13 @@ import {
   DELETED_PRODUCT_TEXT,
   EMPTY_RECOMMENDATIONS_TEXT,
   IDLE_RECOMMENDATION_STATUS_STATE,
+  NO_SHARED_STATUSES,
   RECOMMENDATIONS_UNAVAILABLE_TEXT,
+  ignoreStatusReport,
   recommendationsPageHref,
+  recordReportedStatus,
+  reportingStatusAction,
+  shownRecommendationStatus,
   statusActions,
   statusChangedMessage,
   statusText,
@@ -20,6 +25,10 @@ import {
 } from "./recommendation-copy";
 import { RecommendationStatusForm } from "./recommendation-status-form";
 import { RecommendationStatusFormView } from "./recommendation-status-form-view";
+import {
+  RecommendationStatusesContext,
+  RecommendationStatusesProvider,
+} from "./recommendation-statuses";
 import { SavedRecommendationsView } from "./saved-recommendations-view";
 
 const ID = "5c1e7a2d-3b4f-4e6a-8c9d-0e1f2a3b4c5d";
@@ -185,6 +194,104 @@ describe("RecommendationStatusForm", () => {
       }),
     );
     expect(html).toContain("Status: New");
+  });
+
+  it("shows the status another card of the same recommendation reported (#67)", () => {
+    const form = createElement(RecommendationStatusForm, {
+      action: vi.fn(),
+      recommendation: { id: ID, status: "saved", title: TITLE },
+    });
+    const html = renderToStaticMarkup(
+      createElement(
+        RecommendationStatusesContext,
+        { value: { statuses: { [ID]: "completed" }, report: vi.fn() } },
+        form,
+      ),
+    );
+    expect(html).toContain("Status: Completed");
+    expect(html).not.toContain("<form");
+    // The page's provider starts with nothing reported: the card shows its own status.
+    const provided = renderToStaticMarkup(
+      createElement(RecommendationStatusesProvider, null, form),
+    );
+    expect(provided).toContain("Status: Saved");
+    expect(provided).toContain("<form");
+  });
+});
+
+describe("statuses shared between the cards of one recommendation (#67)", () => {
+  it("records the latest reported status per recommendation", () => {
+    const once = recordReportedStatus({}, { id: ID, status: "saved" });
+    expect(recordReportedStatus(once, { id: ID, status: "completed" })).toEqual({
+      [ID]: "completed",
+    });
+    expect(NO_SHARED_STATUSES.statuses).toEqual({});
+    expect(ignoreStatusReport()).toBeUndefined();
+  });
+
+  it("reports the status the server returned, and nothing without one", async () => {
+    const report = vi.fn();
+    const changed: RecommendationStatusState = {
+      status: "success",
+      message: statusChangedMessage("completed"),
+      currentStatus: "completed",
+    };
+    const action = vi.fn(async () => changed);
+    const formData = new FormData();
+    const reporting = reportingStatusAction(action, ID, report);
+    await expect(reporting(IDLE_RECOMMENDATION_STATUS_STATE, formData)).resolves.toBe(changed);
+    expect(action).toHaveBeenCalledWith(IDLE_RECOMMENDATION_STATUS_STATE, formData);
+    expect(report).toHaveBeenCalledWith({ id: ID, status: "completed" });
+
+    report.mockClear();
+    const failed: RecommendationStatusState = { status: "error", message: "Try again." };
+    await reportingStatusAction(async () => failed, ID, report)(changed, formData);
+    expect(report).not.toHaveBeenCalled();
+  });
+
+  it("prefers the reported status, then the card's own, then the rendered one", () => {
+    const saved: RecommendationStatusState = {
+      status: "success",
+      message: statusChangedMessage("saved"),
+      currentStatus: "saved",
+    };
+    expect(shownRecommendationStatus(IDLE_RECOMMENDATION_STATUS_STATE, "new", undefined)).toEqual({
+      status: "new",
+      showMessage: true,
+    });
+    expect(shownRecommendationStatus(saved, "new", undefined)).toEqual({
+      status: "saved",
+      showMessage: true,
+    });
+    expect(shownRecommendationStatus(saved, "new", "saved")).toEqual({
+      status: "saved",
+      showMessage: true,
+    });
+    // Completed under "Your recommendations" after it was saved in the answer.
+    expect(shownRecommendationStatus(saved, "new", "completed")).toEqual({
+      status: "completed",
+      showMessage: false,
+    });
+  });
+
+  it("the answer card saved earlier shows Completed without actions or its old message", () => {
+    const html = renderToStaticMarkup(
+      createElement(RecommendationStatusFormView, {
+        action: vi.fn(),
+        state: {
+          status: "success",
+          message: statusChangedMessage("saved"),
+          currentStatus: "saved",
+        },
+        pending: false,
+        recommendation: { id: ID, status: "new", title: TITLE },
+        reportedStatus: "completed",
+      }),
+    );
+    expect(html).toContain("Status: Completed");
+    expect(html).toContain("No further actions.");
+    expect(html).not.toContain("<form");
+    expect(html).not.toContain("Recommendation saved.");
   });
 });
 

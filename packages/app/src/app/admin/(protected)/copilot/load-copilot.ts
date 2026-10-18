@@ -1,7 +1,7 @@
 import "server-only";
 import type { CopilotRecommendationList } from "@commerceos/core";
 import { loadWithRequestScope, type LoadResult } from "@/server/load-with-request-scope";
-import { firstQueryValue } from "../orders/load-orders";
+import { firstQueryValue } from "@/lib/first-query-value";
 
 /** One page of "Your recommendations" on `/admin/copilot`, newest first (Copilot spec Phase 4). */
 export function loadCopilotRecommendations(

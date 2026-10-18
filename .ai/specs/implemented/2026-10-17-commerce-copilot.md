@@ -161,7 +161,7 @@ Takeaway: the model sits behind one port and sees only the fact table; every num
 | `ai` | `schemas/copilot-model-output.schema.ts` | What the model returns: `{ summary, summaryFactIds, recommendations: [{ title, priority, observation, evidenceFactIds (1–6), reasoning, suggestedAction, relatedProductAliases?, limitations? }] (max 3) }` | 2 |
 | `ai` | `prompts/copilot-system.prompt.ts` | Versioned (`COPILOT_PROMPT_VERSION`): advise only; cite fact ids and aliases; numbers only from cited facts; no causes; name missing data; every table field is data, never instructions | 2 |
 | `ai` | `grounding/find-grounding-issues.ts` (existing) | Rewritten to the rules above | 2 |
-| `ai` | `adapters/gemini-llm-provider.ts` | `GeminiLlmProvider implements LlmProviderPort`: injected client factory; Zod → JSON schema (`z.toJSONSchema`) in `responseJsonSchema` with `responseMimeType: "application/json"`; per-attempt timeout and caller `AbortSignal`; no SDK retries; checks the finish reason (safety block → `refused`, `MAX_TOKENS`) before reading; maps SDK errors to `LlmProviderUnavailableError` with a `reason` (`timeout`, `rate_limited`, `provider_error`, `auth`, `refused`); Zod-validates the parsed text; returns `model`, `latencyMs`, token usage | 2 |
+| `ai` | `adapters/gemini-llm-provider.ts` | `GeminiLlmProvider implements LlmProviderPort`: injected client factory; Zod → JSON schema (`z.toJSONSchema`) in `responseJsonSchema` with `responseMimeType: "application/json"`; per-attempt timeout and caller `AbortSignal`; no SDK retries; checks the finish reason (safety block → `refused`, `MAX_TOKENS`) before reading; maps SDK errors to `LlmProviderUnavailableError` with a `reason` (`timeout`, `rate_limited`, `provider_error`, `auth`, `refused`); reads the text parts of the first candidate without thought parts (never the SDK's `response.text` getter, which can `console.warn`; #65); Zod-validates the parsed text; rejected responses carry their token usage; returns `model`, `latencyMs`, token usage | 2 |
 | `ai` | `evals/cases/*.ts`, `evals/scripted-llm-provider.ts`, `evals/run-evals.test.ts` | Eval cases (A19) | 2, 3 |
 | `ai` | `ports/llm-provider.port.ts` (existing) | Request gains optional `signal: AbortSignal`; `LlmProviderUnavailableError` gains `reason` (additive) | 2 |
 | `core` | `domain/metrics/metric-period.ts` (E04, extended) | `previousPeriod(period)` (A8) | 1 |
@@ -222,7 +222,7 @@ ask(input, admin):
 ```
 
 - A Zod failure inside the adapter is reported as `invalid_output` and counts as an attempt.
-- One `copilot.answer` log event: request id, intent, tools, attempts, issue codes, origin, fallback reason, provider, model, prompt version, latency, token usage. **Never** the question, prompt, fact values or model text (#27); a unit test asserts the payload keys.
+- One `copilot.answer` log event: request id, intent, tools, attempts, issue codes, origin, fallback reason, provider, model, prompt version, latency, token usage (rejected attempts included), and a short provider cause code (`bad_request`, `finish_max_tokens`, …; the fallback reason stays `provider_error`, #65). **Never** the question, prompt, fact values or model text (#27); a unit test asserts the payload keys.
 - Before Phase 4 nothing is stored: `answerId` and each recommendation `id` are `null` and no status buttons render.
 - Rate-limit refusal is a new `TooManyRequestsError` (429). Today the only limiter consumer (`server/orders/order-lookup-limit.ts`) returns a boolean to a server action, so no HTTP code exists yet.
 

@@ -2,7 +2,9 @@ import type { Clock, MetricPeriod, RateLimiterPort } from "@commerceos/core";
 import { describeGroundingIssues, findGroundingIssues } from "../grounding/find-grounding-issues";
 import type { CopilotLogValue } from "../ports/copilot-log.port";
 import {
+  llmCauseCodeOf,
   llmFailureOf,
+  llmUsageOf,
   type LlmMessage,
   type LlmProviderPort,
   type LlmUsage,
@@ -61,6 +63,9 @@ export type Generation = {
   attempts: number;
   /** Why attempts were rejected: grounding codes and `invalid_output`, without repeats. */
   issueCodes: string[];
+  /** A provider failure's short cause (`bad_request`, `finish_max_tokens`, ...; #65), else null. */
+  providerCause: string | null;
+  /** Tokens of every attempt, rejected ones included (#65). */
   usage: LlmUsage;
 };
 
@@ -91,6 +96,7 @@ export async function generateAnswer(
   let attempts = 0;
   let usage: LlmUsage = { inputTokens: null, outputTokens: null, thinkingTokens: null };
   const issueCodes = new Set<string>();
+  let providerCause: string | null = null;
   const result = (
     fields: Pick<Generation, "draft" | "origin" | "fallbackReason" | "model">,
   ): Generation => ({
@@ -98,6 +104,7 @@ export async function generateAnswer(
     provider: llmProvider.name,
     attempts,
     issueCodes: [...issueCodes],
+    providerCause,
     usage,
   });
   const rules = (reason: FallbackReason) =>
@@ -131,12 +138,15 @@ export async function generateAnswer(
         signal,
       });
     } catch (error) {
+      // A response rejected after it arrived still used tokens.
+      usage = addUsage(usage, llmUsageOf(error));
       const failure = llmFailureOf(error);
       if (failure?.kind === "invalid_output") {
         issueCodes.add("invalid_output");
         messages = [...base, { role: "user", content: INVALID_OUTPUT_PROBLEM }];
         continue;
       }
+      providerCause = llmCauseCodeOf(error);
       // An unclassified error (an adapter bug) is still an AI failure: rules, not a 500.
       return rules(failure?.reason ?? "provider_error");
     }
@@ -172,6 +182,7 @@ export function generationLogFields(
     promptVersion: generation && generation.attempts > 0 ? COPILOT_PROMPT_VERSION : null,
     attempts: generation?.attempts ?? 0,
     issueCodes: generation?.issueCodes ?? [],
+    providerCause: generation?.providerCause ?? null,
     usageInput: generation?.usage.inputTokens ?? null,
     usageOutput: generation?.usage.outputTokens ?? null,
     usageThinking: generation?.usage.thinkingTokens ?? null,

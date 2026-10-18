@@ -1,5 +1,5 @@
 import { AppError } from "@commerceos/core";
-import type { z } from "zod";
+import { z } from "zod";
 
 /**
  * Provider-independent LLM port. Concrete adapters (one per vendor) live in
@@ -55,25 +55,43 @@ export const LLM_OUTPUT_INVALID = "LLM_OUTPUT_INVALID";
 
 /**
  * The provider cannot be used (not configured, down, rate-limited, refused). Callers show the
- * fallback state and never retry.
+ * fallback state and never retry. `causeCode` is a short, log-safe detail for diagnosis
+ * (`bad_request`, `finish_max_tokens`, ...; #65); the fallback reason stays `reason`. `usage`
+ * holds the tokens of a response that was received and then rejected.
  */
 export class LlmProviderUnavailableError extends AppError {
   readonly reason: LlmUnavailableReason;
+  readonly causeCode: string | null;
+  readonly usage?: LlmUsage;
 
-  constructor(message: string, options: ErrorOptions & { reason?: LlmUnavailableReason } = {}) {
-    const { reason = "provider_error", ...errorOptions } = options;
+  constructor(
+    message: string,
+    options: ErrorOptions & {
+      reason?: LlmUnavailableReason;
+      causeCode?: string;
+      usage?: LlmUsage;
+    } = {},
+  ) {
+    const { reason = "provider_error", causeCode = null, usage, ...errorOptions } = options;
     super(LLM_PROVIDER_UNAVAILABLE, message, errorOptions);
     this.reason = reason;
+    this.causeCode = causeCode;
+    if (usage) this.usage = usage;
   }
 }
 
 /**
  * The provider answered, but not with JSON that matches the schema. It counts as an attempt:
- * the caller may ask once more (Copilot spec A11).
+ * the caller may ask once more (Copilot spec A11). `usage` holds the rejected response's tokens,
+ * so the `copilot.answer` log counts them (#65).
  */
 export class LlmOutputInvalidError extends AppError {
-  constructor(message: string, options?: ErrorOptions) {
-    super(LLM_OUTPUT_INVALID, message, options);
+  readonly usage?: LlmUsage;
+
+  constructor(message: string, options: ErrorOptions & { usage?: LlmUsage } = {}) {
+    const { usage, ...errorOptions } = options;
+    super(LLM_OUTPUT_INVALID, message, errorOptions);
+    if (usage) this.usage = usage;
   }
 }
 
@@ -92,4 +110,27 @@ export function llmFailureOf(
     kind: "unavailable",
     reason: LLM_UNAVAILABLE_REASONS.find((known) => known === reason) ?? "provider_error",
   };
+}
+
+const tokenCount = z.number().int().min(0).nullable().catch(null);
+const llmUsageSchema = z.object({
+  inputTokens: tokenCount,
+  outputTokens: tokenCount,
+  thinkingTokens: tokenCount,
+});
+
+/** The tokens a failed call still used (read structurally, like `llmFailureOf`); else undefined. */
+export function llmUsageOf(error: unknown): LlmUsage | undefined {
+  if (typeof error !== "object" || error === null || !("usage" in error)) return undefined;
+  const parsed = llmUsageSchema.safeParse(error.usage);
+  return parsed.success ? parsed.data : undefined;
+}
+
+const CAUSE_CODE = /^[a-z0-9_]{1,40}$/;
+
+/** A failure's short cause code when it is a safe log token (`bad_request`); else null. */
+export function llmCauseCodeOf(error: unknown): string | null {
+  if (typeof error !== "object" || error === null || !("causeCode" in error)) return null;
+  const code = error.causeCode;
+  return typeof code === "string" && CAUSE_CODE.test(code) ? code : null;
 }

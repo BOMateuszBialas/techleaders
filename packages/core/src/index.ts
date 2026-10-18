@@ -74,6 +74,7 @@ export * from "./validators/catalog/slug.schema";
 export * from "./validators/copilot/ask-copilot.schema";
 export * from "./validators/copilot/recommendation-status-change.schema";
 export * from "./validators/categories/category-input.schema";
+export * from "./validators/common/list-page.schema";
 export * from "./validators/common/uuid.schema";
 export * from "./validators/inventory/set-stock.schema";
 export * from "./validators/inventory/stock-quantity.schema";

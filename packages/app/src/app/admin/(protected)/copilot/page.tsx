@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { ADVISORY_TEXT } from "@/components/admin/copilot/copilot-copy";
 import { CopilotPanel } from "@/components/admin/copilot/copilot-panel";
+import { RecommendationStatusesProvider } from "@/components/admin/copilot/recommendation-statuses";
 import { SavedRecommendationsView } from "@/components/admin/copilot/saved-recommendations-view";
 import { requireAdminPage } from "@/server/auth/require-admin";
 import { changeRecommendationStatus } from "@/server/copilot/recommendation.action";
@@ -37,12 +38,15 @@ async function CopilotSection({ searchParams }: Pick<PageProps<"/admin/copilot">
   const questions = SUGGESTED_QUESTIONS.map(({ id, question }) => ({ intent: id, question }));
   const result = await loadCopilotRecommendations((await searchParams).page);
   return (
-    <div className="flex flex-col gap-10">
-      <CopilotPanel questions={questions} statusAction={changeRecommendationStatus} />
-      <SavedRecommendationsView
-        list={result.kind === "ok" ? result.data : null}
-        statusAction={changeRecommendationStatus}
-      />
-    </div>
+    // One provider for both sections: a status change in either shows in the other (#67).
+    <RecommendationStatusesProvider>
+      <div className="flex flex-col gap-10">
+        <CopilotPanel questions={questions} statusAction={changeRecommendationStatus} />
+        <SavedRecommendationsView
+          list={result.kind === "ok" ? result.data : null}
+          statusAction={changeRecommendationStatus}
+        />
+      </div>
+    </RecommendationStatusesProvider>
   );
 }

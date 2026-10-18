@@ -12,8 +12,10 @@ import {
 
 /** The part of a `generateContent` response the adapter reads (`GenerateContentResponse`). */
 export type GeminiResponse = {
-  readonly text?: string;
-  candidates?: { finishReason?: string }[];
+  candidates?: {
+    finishReason?: string;
+    content?: { parts?: { text?: string; thought?: boolean }[] };
+  }[];
   promptFeedback?: { blockReason?: string };
   usageMetadata?: {
     promptTokenCount?: number;
@@ -108,6 +110,17 @@ const REFUSED = new Set([
 ]);
 const COMPLETE = new Set(["STOP", "FINISH_REASON_UNSPECIFIED"]);
 
+/**
+ * A short, log-safe cause for an HTTP failure that maps to `provider_error` (#65): a 400 is
+ * usually a request the API rejected (for example its response schema), a 404 an unknown model.
+ */
+function statusCause(status: number): string {
+  if (status === 400) return "bad_request";
+  if (status === 404) return "not_found";
+  if (status >= 500) return "server_error";
+  return `http_${status}`;
+}
+
 function statusReason(status: number, message: string): LlmUnavailableReason {
   // The Gemini API answers an invalid key with 400 INVALID_ARGUMENT "API key not valid".
   if (status === 401 || status === 403 || (status === 400 && /api key/i.test(message))) {
@@ -129,13 +142,16 @@ function toUnavailable(error: unknown, signal: AbortSignal): LlmProviderUnavaila
   if (typeof error === "object" && error !== null && "status" in error) {
     const status = Number(error.status);
     const message = error instanceof Error ? error.message : "";
+    const reason = statusReason(status, message);
     return new LlmProviderUnavailableError(`The LLM provider failed (HTTP ${status}).`, {
-      reason: statusReason(status, message),
+      reason,
+      ...(reason === "provider_error" ? { causeCode: statusCause(status) } : {}),
       cause: error,
     });
   }
   return new LlmProviderUnavailableError("The LLM provider could not be reached.", {
     reason: "provider_error",
+    causeCode: "network",
     cause: error,
   });
 }
@@ -149,35 +165,52 @@ function usageOf(response: GeminiResponse): LlmUsage {
   };
 }
 
-/** Reads the JSON answer after checking why generation stopped. */
-function readText(response: GeminiResponse): string {
+/**
+ * The answer's text parts, without thought parts. Read directly instead of through the SDK's
+ * `response.text` getter, which writes a `console.warn` past the app's logger when a response
+ * has non-text parts such as thought signatures (#65).
+ */
+function answerText(response: GeminiResponse): string {
+  const parts = response.candidates?.[0]?.content?.parts ?? [];
+  return parts.flatMap((part) => (part.thought || !part.text ? [] : [part.text])).join("");
+}
+
+/**
+ * Reads the JSON answer after checking why generation stopped. Every error after a response
+ * carries its token usage, so the caller's log counts rejected attempts too (#65).
+ */
+function readText(response: GeminiResponse, usage: LlmUsage): string {
   if (response.promptFeedback?.blockReason) {
     throw new LlmProviderUnavailableError("The LLM provider blocked the request.", {
       reason: "refused",
+      usage,
     });
   }
   const finish = response.candidates?.[0]?.finishReason ?? "STOP";
   if (REFUSED.has(finish)) {
     throw new LlmProviderUnavailableError("The LLM provider refused to answer.", {
       reason: "refused",
+      usage,
     });
   }
   if (!COMPLETE.has(finish)) {
     // MAX_TOKENS (truncated JSON) and anything else unexpected: not retried (spec A11).
     throw new LlmProviderUnavailableError(`The LLM answer ended early (${finish}).`, {
       reason: "provider_error",
+      causeCode: `finish_${finish.toLowerCase()}`,
+      usage,
     });
   }
-  const text = response.text;
-  if (!text) throw new LlmOutputInvalidError("The LLM answer was empty.");
+  const text = answerText(response);
+  if (!text) throw new LlmOutputInvalidError("The LLM answer was empty.", { usage });
   return text;
 }
 
-function parseJson(text: string): unknown {
+function parseJson(text: string, usage: LlmUsage): unknown {
   try {
     return JSON.parse(text);
   } catch (error) {
-    throw new LlmOutputInvalidError("The LLM answer is not valid JSON.", { cause: error });
+    throw new LlmOutputInvalidError("The LLM answer is not valid JSON.", { cause: error, usage });
   }
 }
 
@@ -233,17 +266,19 @@ export class GeminiLlmProvider implements LlmProviderPort {
       throw toUnavailable(error, signal);
     }
 
-    const parsed = request.schema.safeParse(parseJson(readText(response)));
+    const usage = usageOf(response);
+    const parsed = request.schema.safeParse(parseJson(readText(response, usage), usage));
     if (!parsed.success) {
       throw new LlmOutputInvalidError("The LLM answer does not match the schema.", {
         cause: parsed.error,
+        usage,
       });
     }
     return {
       data: parsed.data,
       model: response.modelVersion ?? this.model,
       latencyMs: Date.now() - started,
-      usage: usageOf(response),
+      usage,
     };
   }
 }

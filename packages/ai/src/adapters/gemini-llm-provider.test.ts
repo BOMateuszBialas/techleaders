@@ -1,7 +1,12 @@
 import type { GenerateContentParameters } from "@google/genai";
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
-import { llmFailureOf, type StructuredGenerationRequest } from "../ports/llm-provider.port";
+import {
+  llmCauseCodeOf,
+  llmFailureOf,
+  llmUsageOf,
+  type StructuredGenerationRequest,
+} from "../ports/llm-provider.port";
 import {
   GEMINI_THINKING_LEVEL,
   GeminiLlmProvider,
@@ -39,23 +44,33 @@ function setup(answer: (params: GenerateContentParameters) => Promise<GeminiResp
   return { provider, generateContent, createClient };
 }
 
-const ok = (response: Partial<GeminiResponse> = {}) =>
+/** A response whose first candidate holds `text` as its one text part. */
+const ok = (response: Partial<GeminiResponse> = {}, text = JSON.stringify(VALID)) =>
   setup(async () => ({
-    text: JSON.stringify(VALID),
-    candidates: [{ finishReason: "STOP" }],
+    candidates: [{ finishReason: "STOP", content: { parts: [{ text }] } }],
     ...response,
   }));
 
+const USAGE_METADATA = {
+  promptTokenCount: 900,
+  candidatesTokenCount: 300,
+  thoughtsTokenCount: 200,
+};
+const USAGE = { inputTokens: 900, outputTokens: 300, thinkingTokens: 200 };
+
+async function errorOf(promise: Promise<unknown>): Promise<unknown> {
+  return promise.catch((caught: unknown) => caught);
+}
+
 async function failureOf(promise: Promise<unknown>) {
-  const error: unknown = await promise.catch((caught: unknown) => caught);
-  return llmFailureOf(error);
+  return llmFailureOf(await errorOf(promise));
 }
 
 describe("GeminiLlmProvider", () => {
   it("sends one JSON-schema request with the limits and returns the validated answer", async () => {
     const { provider, generateContent, createClient } = ok({
       modelVersion: "flash-001",
-      usageMetadata: { promptTokenCount: 900, candidatesTokenCount: 300, thoughtsTokenCount: 200 },
+      usageMetadata: USAGE_METADATA,
     });
     expect(provider).toMatchObject({ name: "gemini", isConfigured: true });
     expect(createClient).toHaveBeenCalledWith("test-key");
@@ -64,7 +79,7 @@ describe("GeminiLlmProvider", () => {
     expect(result).toMatchObject({
       data: VALID,
       model: "flash-001",
-      usage: { inputTokens: 900, outputTokens: 300, thinkingTokens: 200 },
+      usage: USAGE,
     });
     expect(result.latencyMs).toBeGreaterThanOrEqual(0);
 
@@ -86,7 +101,10 @@ describe("GeminiLlmProvider", () => {
   });
 
   it("omits the system instruction when there is none and reports unknown usage as null", async () => {
-    const { provider, generateContent } = ok({ candidates: undefined });
+    // No finish reason: read as STOP.
+    const { provider, generateContent } = ok({
+      candidates: [{ content: { parts: [{ text: JSON.stringify(VALID) }] } }],
+    });
     const result = await provider.generateStructured(
       request({ messages: [{ role: "user", content: "q" }] }),
     );
@@ -168,20 +186,86 @@ describe("GeminiLlmProvider", () => {
   });
 
   it("does not read a truncated answer (MAX_TOKENS) and does not retry it", async () => {
-    const truncated = ok({ text: '{"summary": "o', candidates: [{ finishReason: "MAX_TOKENS" }] });
-    expect(await failureOf(truncated.provider.generateStructured(request()))).toEqual({
-      kind: "unavailable",
-      reason: "provider_error",
+    const truncated = ok({
+      candidates: [
+        { finishReason: "MAX_TOKENS", content: { parts: [{ text: '{"summary": "o' }] } },
+      ],
+      usageMetadata: USAGE_METADATA,
     });
+    const error = await errorOf(truncated.provider.generateStructured(request()));
+    expect(llmFailureOf(error)).toEqual({ kind: "unavailable", reason: "provider_error" });
+    // The log can tell a truncated answer apart, and count its tokens (#65).
+    expect(llmCauseCodeOf(error)).toBe("finish_max_tokens");
+    expect(llmUsageOf(error)).toEqual(USAGE);
+    expect(truncated.generateContent).toHaveBeenCalledTimes(1);
+  });
+
+  it("gives a provider_error a short cause code, and other reasons none (#65)", async () => {
+    const cases: [number, string, string | null][] = [
+      [400, "Invalid JSON payload", "bad_request"],
+      [404, "model not found", "not_found"],
+      [409, "conflict", "http_409"],
+      [500, "internal", "server_error"],
+      [503, "overloaded", "server_error"],
+      [400, "API key not valid", null],
+      [429, "quota exceeded", null],
+    ];
+    for (const [status, message, cause] of cases) {
+      const { provider } = setup(async () => {
+        throw Object.assign(new Error(message), { status });
+      });
+      expect(llmCauseCodeOf(await errorOf(provider.generateStructured(request())))).toBe(cause);
+    }
+    const network = setup(async () => {
+      throw new TypeError("fetch failed");
+    });
+    expect(llmCauseCodeOf(await errorOf(network.provider.generateStructured(request())))).toBe(
+      "network",
+    );
+    const refused = ok({ candidates: [{ finishReason: "SAFETY" }], usageMetadata: USAGE_METADATA });
+    const refusal = await errorOf(refused.provider.generateStructured(request()));
+    expect(llmCauseCodeOf(refusal)).toBeNull();
+    expect(llmUsageOf(refusal)).toEqual(USAGE);
+  });
+
+  it("reads only the text parts, skips thought parts, and never uses the SDK's text getter", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const json = JSON.stringify(VALID);
+    const { provider } = setup(async () => ({
+      candidates: [
+        {
+          finishReason: "STOP",
+          content: {
+            parts: [
+              { text: "Let me think about the facts.", thought: true },
+              { text: json.slice(0, 10) },
+              {},
+              { text: json.slice(10) },
+            ],
+          },
+        },
+      ],
+      get text(): string {
+        throw new Error("the adapter must not read response.text");
+      },
+    }));
+    await expect(provider.generateStructured(request())).resolves.toMatchObject({ data: VALID });
+    expect(warn).not.toHaveBeenCalled();
+    warn.mockRestore();
   });
 
   it("reports empty text, invalid JSON and a schema mismatch as invalid output", async () => {
-    for (const text of [undefined, "", "not json", JSON.stringify({ summary: "", items: [] })]) {
-      const { provider } = ok({ text });
-      expect(await failureOf(provider.generateStructured(request()))).toEqual({
-        kind: "invalid_output",
-      });
+    for (const text of ["", "not json", JSON.stringify({ summary: "", items: [] })]) {
+      const { provider } = ok({ usageMetadata: USAGE_METADATA }, text);
+      const error = await errorOf(provider.generateStructured(request()));
+      expect(llmFailureOf(error)).toEqual({ kind: "invalid_output" });
+      // The rejected attempt's tokens travel with the error (#65).
+      expect(llmUsageOf(error)).toEqual(USAGE);
     }
+    const noParts = setup(async () => ({ candidates: [{ finishReason: "STOP", content: {} }] }));
+    expect(await failureOf(noParts.provider.generateStructured(request()))).toEqual({
+      kind: "invalid_output",
+    });
   });
 
   it("builds the real SDK client without a network call", () => {

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { ORDER_STATUSES } from "../../domain/orders/order";
+import { listPageSchema, parseListPage } from "../common/list-page.schema";
 
 /** The one message for a status change outside the transition table or with unknown values. */
 export const TRANSITION_NOT_ALLOWED_MESSAGE = "This status change is not allowed.";
@@ -22,12 +23,8 @@ export type OrderStatusChangeRequest = { orderId: string; from: string; to: stri
 /** Orders per admin list page (orders spec A7). */
 export const ADMIN_ORDERS_PAGE_SIZE = 25;
 
-/**
- * The `?page=` of the admin order list: a whole number from 1; anything else (missing, `-1`,
- * `abc`, `1.5`) falls back to page 1, never an error page (spec Edge Cases).
- */
-export const adminOrderPageSchema = z.coerce.number().int().min(1).max(1_000_000).catch(1);
+/** @deprecated Use `listPageSchema` (`validators/common/list-page.schema`, #67). */
+export const adminOrderPageSchema = listPageSchema;
 
-export function parseAdminOrderPage(value: unknown): number {
-  return adminOrderPageSchema.parse(value);
-}
+/** @deprecated Use `parseListPage` (`validators/common/list-page.schema`, #67). */
+export const parseAdminOrderPage = parseListPage;

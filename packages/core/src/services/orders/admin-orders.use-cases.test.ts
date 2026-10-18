@@ -11,7 +11,6 @@ import type {
 import {
   ADMIN_ORDERS_PAGE_SIZE,
   TRANSITION_NOT_ALLOWED_MESSAGE,
-  parseAdminOrderPage,
 } from "../../validators/orders/order-status-change.schema";
 import { ADMIN_ORDER_NOT_FOUND_MESSAGE } from "./admin-order.dto";
 import { ChangeOrderStatusUseCase } from "./change-order-status.use-case";
@@ -84,22 +83,6 @@ async function rejection(promise: Promise<unknown>): Promise<unknown> {
     (error: unknown) => error,
   );
 }
-
-describe("parseAdminOrderPage", () => {
-  it.each([
-    [undefined, 1],
-    ["2", 2],
-    [3, 3],
-    ["-1", 1],
-    ["0", 1],
-    ["abc", 1],
-    ["1.5", 1],
-    ["", 1],
-    ["99999999", 1],
-  ])("reads %j as page %d", (value, page) => {
-    expect(parseAdminOrderPage(value)).toBe(page);
-  });
-});
 
 describe("ListAdminOrdersUseCase", () => {
   const row = (reference: string, status: OrderStatus = "paid"): AdminOrderListRecord => ({
