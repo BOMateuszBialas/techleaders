@@ -30,6 +30,17 @@ describe("copilotModelOutputSchema", () => {
     expect(draft).toEqual(output);
   });
 
+  it("never takes evidence values from the model: only ids, which the server expands (#63)", () => {
+    const parsed = copilotModelOutputSchema.parse({
+      ...output,
+      summaryEvidence: [{ metric: "Revenue", value: "1 000 000 zł" }],
+      recommendations: [{ ...recommendation, evidence: [{ metric: "x", value: "1" }] }],
+    });
+    expect(parsed).toEqual(output);
+    const schema = JSON.stringify(toGeminiJsonSchema(copilotModelOutputSchema));
+    expect(schema).not.toMatch(/"(summaryEvidence|evidence)"/);
+  });
+
   it("rejects values in place of ids, product ids, missing evidence and a fourth recommendation", () => {
     const invalid = [
       { ...output, summaryFactIds: ["29"] },
