@@ -91,7 +91,7 @@ function evidenceOf(fact: CopilotFact): RecommendationEvidence {
 }
 
 /**
- * Turns a draft (rules today, a model in Phase 2) into the displayed contract: each fact id
+ * Turns a draft (rules or a model) into the displayed contract: each fact id
  * becomes an evidence row `{ metric, value, period, source, demo }`, each alias a product id,
  * and the server's limitations go on every recommendation. The result is validated against
  * `copilotResponseSchema`, so nothing outside the contract reaches the page.
@@ -127,7 +127,7 @@ export function expandDraft(
       reasoning: recommendation.reasoning,
       suggestedAction: recommendation.suggestedAction,
       relatedProductIds: related.map((product) => product.id),
-      limitations: [...limitations],
+      limitations: [...(recommendation.limitations ?? []), ...limitations],
       relatedProducts: related,
     };
   });

@@ -4,7 +4,7 @@ CommerceOS is a lightweight, single-store e-commerce platform: a customer storef
 
 This is a 5-week AI Engineering portfolio MVP. The full specification is in [`.ai/specs/2026-10-13-commerceos-mvp.md`](.ai/specs/2026-10-13-commerceos-mvp.md), the agent rules are in [`AGENTS.md`](AGENTS.md), and the day-to-day coding conventions are in [`ENGINEERING_STANDARDS.md`](ENGINEERING_STANDARDS.md).
 
-> **Current state: foundation, admin sign-in, admin catalog management and storefront browsing.** The monorepo, database layer, DI container, env validation, health check, tests, owner authentication for `/admin`, admin product and category management, manual stock adjustment with a recorded history, and the storefront (a shop-front home page with featured products, browse by category, search, product pages) exist. The demo store sells fictional gaming accessories. The cart, demo checkout, admin orders, the metrics dashboard and a rule-based Commerce Copilot exist too; the Copilot's AI provider and its recommendation actions are **not implemented yet** (see [Commerce Copilot](#commerce-copilot) and [Roadmap](#roadmap)).
+> **Current state: foundation, admin sign-in, admin catalog management and storefront browsing.** The monorepo, database layer, DI container, env validation, health check, tests, owner authentication for `/admin`, admin product and category management, manual stock adjustment with a recorded history, and the storefront (a shop-front home page with featured products, browse by category, search, product pages) exist. The demo store sells fictional gaming accessories. The cart, demo checkout, admin orders, the metrics dashboard and a rule-based Commerce Copilot exist too; with a Google Gemini API key the Copilot writes its answers with an LLM (optional; without a key it stays rule-based). Its recommendation actions are **not implemented yet** (see [Commerce Copilot](#commerce-copilot) and [Roadmap](#roadmap)).
 
 ## Monorepo structure
 
@@ -23,7 +23,7 @@ Dependency direction: `app → core, ai` (and `app → database` only in the DI 
 
 ## Technology stack
 
-Next.js 16.4 (App Router, Turbopack, Cache Components) · React 19.3 · TypeScript 5.9 (strict) · PostgreSQL 17 · MikroORM 7 · Awilix 13 · Tailwind CSS 4 · shadcn/ui · Zod 4 · Vitest 5 · ESLint 9 · Prettier 3 · npm workspaces.
+Next.js 16.4 (App Router, Turbopack, Cache Components) · React 19.3 · TypeScript 5.9 (strict) · PostgreSQL 17 · MikroORM 7 · Awilix 13 · Tailwind CSS 4 · shadcn/ui · Zod 4 · Google Gemini API (`@google/genai`, optional) · Vitest 5 · ESLint 9 · Prettier 3 · npm workspaces.
 
 ### Key architectural decisions
 
@@ -31,7 +31,7 @@ Next.js 16.4 (App Router, Turbopack, Cache Components) · React 19.3 · TypeScri
 - **One DI composition root** (`packages/app/src/server/container.ts`). The ORM and LLM provider are singletons. Every request gets its own scope with a forked MikroORM `EntityManager`. Awilix strict mode prevents scoped objects from leaking into singletons.
 - **Migrations are the source of truth** for the schema. There is no automatic schema sync, and an integration test fails if entities and migrations drift apart.
 - **Money in integer minor units** (grosze/cents), with DB `check` constraints for invariants.
-- **Provider-neutral LLM port.** Without credentials the app uses an explicit "unconfigured" provider that fails clearly and never fabricates answers.
+- **Provider-neutral LLM port.** Gemini is one adapter behind `LlmProviderPort`. Without credentials the app uses an explicit "unconfigured" provider that fails clearly, and the Copilot shows rule-based insights; it never fabricates answers.
 
 ## Prerequisites
 
@@ -78,9 +78,12 @@ Defined and validated in `packages/app/src/server/env.ts`; invalid configuration
 | `BETTER_AUTH_SECRET` | yes (32+ chars) | Signs Better Auth cookies and tokens |
 | `AUTH_TRUSTED_IP_HEADER` | no | Client-IP header set by a trusted proxy (e.g. `x-real-ip`). Unset: sign-in is rate-limited globally (20/min) and order lookups to 120/min shared; set: 5/min per IP for sign-in, 30/min per IP for order lookups |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD` | CLI only | Read by `npm run admin:create` (password: 12+ chars), never by the app |
+| `LLM_PROVIDER` | no | `gemini` turns on AI answers in Commerce Copilot. Unset or empty: rule-based insights only, no network call |
+| `LLM_API_KEY` | when `LLM_PROVIDER` is set | Gemini API key from Google AI Studio. Server-only, never logged |
+| `LLM_MODEL` | when `LLM_PROVIDER` is set | Gemini model id, e.g. `gemini-3-flash-preview` (no default in code) |
 | `NODE_ENV` | no | Standard Node environment |
 
-AI provider and payment variables will be added when those integrations are implemented.
+Payment variables will be added when a payment integration is implemented. The e2e suite blanks the three `LLM_*` variables, so a developer key never reaches it.
 
 ## Commands
 
@@ -112,7 +115,7 @@ AI provider and payment variables will be added when those integrations are impl
 
 ## Commerce Copilot
 
-`/admin/copilot` (signed-in owner) answers one question at a time: seven suggested questions (decision D09) or a typed question in English (1–500 characters). **Phase 1 is rule-based and needs no AI provider or API key.** No provider is configured yet, so every answer is labelled "Rule-based insights · AI is not configured"; the provider adapter arrives in Phase 2 of the Copilot spec, and the app never fabricates an AI answer.
+`/admin/copilot` (signed-in owner) answers one question at a time: seven suggested questions (decision D09) or a typed question in English (1–500 characters). It works without any AI provider: then every answer is rule-based and labelled "Rule-based insights · AI is not configured". With `LLM_PROVIDER=gemini`, `LLM_API_KEY` and `LLM_MODEL` set, an answered question is written by the model (see [AI answers](#ai-answers-gemini)); the app never fabricates an AI answer.
 
 - **Routing is deterministic:** keyword patterns map a typed question to one of the seven intents. Questions about margin or profit, ad spend, customer demographics or segments, competitors, forecasts or conversion by traffic source are declined with the data they would need ("Copilot can't answer this. It needs product cost data, which this store does not record."). Anything else gets the list of questions Copilot answers. Neither runs a tool.
 - **Approved tools only:** `getSalesSummary`, `getOrderSummary`, `getTopProducts`, `getLowStockProducts` (`packages/ai/src/tools/`), each a validated wrapper around the dashboard's metric use case, unchanged, plus `getTrafficSummary`, which reads the seeded, **fictional demo traffic** (decision D08) through `GetTrafficSummaryUseCase` and takes every order figure from the same metric use cases. Every number shown comes from them, so the Copilot and `/admin` cannot disagree.
@@ -121,6 +124,15 @@ AI provider and payment variables will be added when those integrations are impl
 - **Evidence for the summary too:** the numbers in an answer's summary are listed under "Figures in this summary" with their metric, period and source.
 - **Limits and logs:** 10 questions per owner per 10 minutes (429 after that). One `copilot.answer` log line per question with the intent, tools and outcome, never the question text or store figures.
 - Copilot reads store data and changes nothing; recommendations are not stored yet (save, dismiss and complete arrive in Phase 4).
+
+### AI answers (Gemini)
+
+- **Provider:** Google Gemini API, **free tier**, through the official `@google/genai` SDK (`GeminiLlmProvider` behind `LlmProviderPort`, `packages/ai/src/adapters/`). Create a key in Google AI Studio and pick a Flash model the free tier offers; `gemini-3-flash-preview` was used in the smoke test (Gemini 2.5 models are not open to new keys). **Cost: $0** on the free tier; free-tier quotas change often, and a provider 429 falls back to rule-based insights ("The AI provider is busy").
+- **One structured call per attempt:** the model gets a versioned system prompt and returns JSON that follows a response schema. At most **2 attempts** within one **40 s** deadline (20 s per attempt, low thinking level, 4 000 output tokens); a second attempt runs only when the first failed the checks and at least 10 s remain. Timeouts and provider errors are not retried.
+- **Grounding:** the answer is shown only when every number in a recommendation is the value of a fact that recommendation cites (or the period length), every product it names or whose fact it cites is listed, every cited fact and product exists, the summary and observations claim no cause, and there are at most 3 recommendations. Otherwise the problems (codes and ids only) go back to the model once; after that the rule-based answer is shown with "The AI answer failed our checks". The answer says "AI-generated · <model>" or "Rule-based insights · <reason>".
+- **Data sent (aggregates only):** the canonical text of the routed question (never the owner's own text), the period, and the fact table: metric values with period and source, product names and SKUs under short aliases (`p1`, `p2`). Never product ids, descriptions, customer data, order references or secrets. Product names are sent as JSON data and the prompt treats them as data, not instructions. **Free-tier note:** Google may use free-tier prompts and responses to improve its products; that is acceptable here only because the payload is aggregates of a fictional demo store.
+- **Limits:** 10 questions per owner per 10 minutes, plus **100 LLM attempts per day** for the whole store (each attempt counts); above it the rule-based answer says "Daily AI limit reached". The log line adds the provider, model, prompt version, attempts, issue codes, token usage and latency, never the prompt or the answer.
+- **Evals:** `packages/ai/src/evals/` holds the version-controlled eval set: a grounded answer, a fabricated number, a real number on the wrong product, unknown ids, a causal claim, a prompt injection in a product name (obeyed and ignored), invalid JSON, timeout, provider 429, an empty store, and every declined category. `run-evals.test.ts` runs them in the unit suite against a scripted model and asserts properties (origin, fallback reason, number of calls, absent fabrications, no product id in the prompt), never wording. No automated test calls a real provider; a live eval script is P1.
 
 ## Payments
 
@@ -214,7 +226,7 @@ Fictional demo traffic (decision D08) has its own definitions in the same file (
 - **Dashboard:**
   - Two fixed periods only (last 7 or 30 days); no custom range or comparison (P1). The low-stock threshold is 5 on the dashboard (the use case takes 1–1000 for the Copilot). The low-stock card lists 10 products and says "Showing 10 of N" when there are more.
   - No demo traffic is shown (the fictional traffic data is for the Copilot, D08).
-- No LLM provider yet.
+- Commerce Copilot AI answers: the free tier's quotas and data terms are Google's; preview model ids can be retired, so `LLM_MODEL` may need updating. Grounding checks numbers, products and causal phrases, not spelled-out numbers or qualitative claims.
 - `npm audit` reports advisories in development tooling dependencies (e.g. `braces` via linting and test tooling); they do not affect runtime code and are tracked for a later update.
 
 ## Roadmap

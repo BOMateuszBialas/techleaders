@@ -10,14 +10,16 @@ import {
   type RateLimiterPort,
 } from "@commerceos/core";
 import type { CopilotLogPort } from "../ports/copilot-log.port";
+import type { LlmProviderPort } from "../ports/llm-provider.port";
 import type { GetLowStockProductsTool } from "../tools/get-low-stock-products.tool";
 import type { GetOrderSummaryTool } from "../tools/get-order-summary.tool";
 import type { GetSalesSummaryTool } from "../tools/get-sales-summary.tool";
 import type { GetTopProductsTool } from "../tools/get-top-products.tool";
 import type { GetTrafficSummaryTool } from "../tools/get-traffic-summary.tool";
 import { buildFacts, definitionsOf, type CopilotToolResults } from "./build-facts";
-import type { CopilotAnswerDto, CopilotAnswerPeriod, FallbackReason } from "./copilot-answer";
+import type { CopilotAnswerDto, CopilotAnswerPeriod } from "./copilot-answer";
 import { expandDraft, serverLimitations } from "./expand-response";
+import { generateAnswer, generationLogFields, type Generation } from "./generate-answer";
 import {
   DECLINED_CATEGORIES,
   INTENTS,
@@ -34,24 +36,19 @@ export const ASK_WINDOW_SECONDS = 600;
 export const ASK_RATE_LIMITED_MESSAGE =
   "You asked many questions in a short time. Try again in a few minutes.";
 
-/**
- * Phase 1 has no generation path: no provider adapter exists, so every answered question is
- * rule-based and says AI is not configured. Phase 2 adds the provider call and the other reasons.
- */
-const PHASE_1_FALLBACK: FallbackReason = "not_configured";
-
 export type AskCopilotDeps = {
   getSalesSummaryTool: GetSalesSummaryTool;
   getOrderSummaryTool: GetOrderSummaryTool;
   getTopProductsTool: GetTopProductsTool;
   getLowStockProductsTool: GetLowStockProductsTool;
   getTrafficSummaryTool: GetTrafficSummaryTool;
+  llmProvider: LlmProviderPort;
   rateLimiter: RateLimiterPort;
   copilotLog: CopilotLogPort;
   clock: Clock;
 };
 
-type Outcome = { answer: CopilotAnswerDto; tools: string[] };
+type Outcome = { answer: CopilotAnswerDto; tools: string[]; generation?: Generation };
 
 function periodDto(period: MetricPeriod): CopilotAnswerPeriod {
   return {
@@ -85,10 +82,12 @@ function emptyAnswer(
 }
 
 /**
- * Commerce Copilot, Phase 1 (Copilot spec, "AskCopilotUseCase flow"): rate limit → deterministic
- * routing → the intent's fixed tool plan → numbered facts → rule-based insights → expansion.
+ * Commerce Copilot (Copilot spec, "AskCopilotUseCase flow"): rate limit → deterministic routing →
+ * the intent's fixed tool plan → numbered facts → rule-based insights → an LLM answer when a
+ * provider is configured and the answer passes the grounding checks (`generateAnswer`) →
+ * expansion.
  * Declined and unsupported questions run no tool. It reads store data only through the approved
- * tools and writes nothing but the rate-limit counter.
+ * tools and writes nothing but the rate-limit counters.
  */
 export class AskCopilotUseCase {
   constructor(private readonly deps: AskCopilotDeps) {}
@@ -107,7 +106,7 @@ export class AskCopilotUseCase {
       ? { kind: "answered", intent: request.intent, period: "7d" }
       : // The schema guarantees a question when no intent is sent.
         routeQuestion(String(request.question));
-    const { answer, tools } = await this.answer(route);
+    const { answer, tools, generation } = await this.answer(route);
 
     this.deps.copilotLog.info("copilot.answer", {
       kind: answer.kind,
@@ -118,6 +117,7 @@ export class AskCopilotUseCase {
       origin: answer.origin,
       fallbackReason: answer.fallbackReason,
       recommendations: answer.recommendations.length,
+      ...generationLogFields(generation),
       latencyMs: Date.now() - started,
     });
     return answer;
@@ -142,15 +142,23 @@ export class AskCopilotUseCase {
     const period = resolvePeriod(route.period, this.deps.clock());
     const { results, tools } = await this.runPlan(intent.plan, period);
     const table = buildFacts(results);
-    const draft = buildRuleInsights(intent.id, table, period);
+    const baseline = buildRuleInsights(intent.id, table, period);
+    const generation = await generateAnswer(this.deps, {
+      question: intent.question,
+      period,
+      table,
+      baseline,
+    });
     const limitations = serverLimitations(intent.id, results);
-    const expanded = expandDraft(draft, table, limitations);
+    const expanded = expandDraft(generation.draft, table, limitations);
     return {
       answer: {
         ...emptyAnswer("answered", expanded.summary),
         intent: intent.id,
         question: intent.question,
-        fallbackReason: PHASE_1_FALLBACK,
+        origin: generation.origin,
+        fallbackReason: generation.fallbackReason,
+        model: generation.model,
         period: periodDto(period),
         summaryEvidence: expanded.summaryEvidence,
         recommendations: expanded.recommendations,
@@ -158,6 +166,7 @@ export class AskCopilotUseCase {
         definitions: definitionsOf(table),
       },
       tools,
+      generation,
     };
   }
 

@@ -1,6 +1,7 @@
 import "server-only";
 import {
   AskCopilotUseCase,
+  GeminiLlmProvider,
   GetLowStockProductsTool,
   GetOrderSummaryTool,
   GetSalesSummaryTool,
@@ -186,8 +187,8 @@ function buildContainer(): AwilixContainer<Cradle> {
       .disposer((orm) => orm.close()),
     // Every request gets its own identity map / unit of work.
     em: asFunction(({ orm }: Pick<Cradle, "orm">) => orm.em.fork()).scoped(),
-    // TODO(copilot): select a real adapter from LLM_PROVIDER once one is implemented.
-    llmProvider: asClass(UnconfiguredLlmProvider).singleton(),
+    // One provider per process, chosen from LLM_PROVIDER (Copilot spec A1); stateless per call.
+    llmProvider: asFunction(() => createLlmProvider(env)).singleton(),
     databaseHealthCheck: asClass(DatabaseHealthCheck).singleton(),
     healthChecks: asFunction(({ databaseHealthCheck }: Pick<Cradle, "databaseHealthCheck">) => [
       databaseHealthCheck,
@@ -270,6 +271,19 @@ function buildContainer(): AwilixContainer<Cradle> {
   });
 
   return container;
+}
+
+/**
+ * The Copilot's LLM adapter: Gemini when `LLM_PROVIDER=gemini` (env validation guarantees the
+ * key and model then), otherwise the unconfigured provider and rule-based answers.
+ */
+export function createLlmProvider(
+  env: Pick<Env, "LLM_PROVIDER" | "LLM_API_KEY" | "LLM_MODEL">,
+): LlmProviderPort {
+  if (env.LLM_PROVIDER === "gemini" && env.LLM_API_KEY && env.LLM_MODEL) {
+    return new GeminiLlmProvider({ apiKey: env.LLM_API_KEY, model: env.LLM_MODEL });
+  }
+  return new UnconfiguredLlmProvider();
 }
 
 /** The Copilot's answer events go through the redacting server logger. */

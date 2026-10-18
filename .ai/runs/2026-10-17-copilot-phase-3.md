@@ -61,3 +61,14 @@ The three traffic questions ("Where does my traffic come from?", "Where in the f
 - `npm run build` ✓
 - `npm run test:integration` ✓ 14 files, 113 tests
 - `npm run test:e2e` ✓ 14 files, 77 tests
+
+## Merge with Phase 2 (`60a208a`, #64), 2026-10-18
+
+Conflicts in `ask-copilot.use-case.ts`, its unit test and `ask-copilot.int.test.ts`, resolved keeping both phases:
+
+- `AskCopilotDeps` has both `getTrafficSummaryTool` and `llmProvider`; the answer takes `origin`, `fallbackReason` and `model` from the generation and keeps `summaryEvidence` from `expandDraft`. Phase 2's "traffic not available" branch is gone (every intent has a plan now).
+- Traffic facts reach the LLM path through the shared fact table (`demo: true` is serialized). The system prompt gains rule 10 (demo facts are fictional demo traffic, say so, never present them as real shopper behaviour); `COPILOT_PROMPT_VERSION` → `copilot-2026-10-18.2`. Demo labels and the demo limitation stay server-attached, so they hold for model answers too.
+- `summaryEvidence` is still never accepted from model output (#63): the model-output schema test passes unchanged.
+- Evals: fake demo traffic per eval store (`evalTraffic`), a `demo_labels` property and the `traffic-demo-labels` case (`trafficReply`): a grounded funnel answer whose evidence is all flagged demo and that carries the demo limitation. The integration test runs both the funnel answer and the scripted-model answer.
+
+Gate after the merge: lint ✓, format:check ✓, typecheck ✓, test:coverage ✓ (1290 tests, 100%), build ✓, test:integration ✓ (14 files, 114 tests), test:e2e ✓ (15 files, 78 tests).

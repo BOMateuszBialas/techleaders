@@ -6,8 +6,8 @@ import type {
 
 /**
  * Why an answered question shows rule-based insights instead of an AI answer (Copilot spec
- * A12). Phase 1 has no provider, so every answered question says `not_configured`; the other
- * reasons arrive with the generation path (Phase 2).
+ * A12): no provider is configured, the provider failed (`LlmUnavailableReason`), the daily cap
+ * is spent, or no attempt passed the schema and grounding checks.
  */
 export const FALLBACK_REASONS = [
   "not_configured",

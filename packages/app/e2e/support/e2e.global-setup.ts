@@ -105,6 +105,11 @@ function startApp(options: {
       DATABASE_URL: options.databaseUrl,
       APP_URL: `http://127.0.0.1:${options.port}`,
       BETTER_AUTH_SECRET: options.authSecret,
+      // Never call a real LLM from e2e: blank values beat the developer's shell and root .env
+      // (an empty string counts as unset), so the Copilot answers with rule-based insights.
+      LLM_PROVIDER: "",
+      LLM_API_KEY: "",
+      LLM_MODEL: "",
     },
     stdio: ["ignore", "pipe", "pipe"],
   });

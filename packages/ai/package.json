@@ -5,13 +5,15 @@
   "description": "Commerce Copilot: LLM provider port and adapters, tool definitions, output schemas and evaluation utilities",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./evals": "./src/evals/index.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@commerceos/core": "*",
+    "@google/genai": "^2.30.0",
     "zod": "^4.6.7"
   },
   "devDependencies": {

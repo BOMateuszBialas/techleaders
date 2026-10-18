@@ -88,8 +88,7 @@ describe("expandDraft", () => {
         demo: false,
       },
     ]);
-    const knownProductIds = new Set(table.products.flatMap((product) => product.id ?? []));
-    expect(findGroundingIssues(answer, { knownProductIds })).toEqual([]);
+    expect(findGroundingIssues(draft, table, { periodDays: 7 })).toEqual([]);
   });
 
   it("drops a deleted product from the links but keeps its evidence", () => {
@@ -114,6 +113,31 @@ describe("expandDraft", () => {
     const [recommendation] = expandDraft(draft, table, []).recommendations;
     expect(recommendation?.relatedProductIds).toEqual([]);
     expect(recommendation?.evidence).toHaveLength(1);
+  });
+
+  it("puts a model's own limitations before the server's", () => {
+    const table = buildFacts(RESULTS);
+    const draft: CopilotDraft = {
+      summary: "s",
+      summaryFactIds: [],
+      recommendations: [
+        {
+          title: "t",
+          priority: "low",
+          observation: "o",
+          evidenceFactIds: ["f1"],
+          reasoning: "r",
+          suggestedAction: "a",
+          relatedProductAliases: [],
+          limitations: ["Only one week of data."],
+        },
+      ],
+    };
+    const [recommendation] = expandDraft(draft, table, [DEMO_TRAFFIC_LIMITATION]).recommendations;
+    expect(recommendation?.limitations).toEqual([
+      "Only one week of data.",
+      DEMO_TRAFFIC_LIMITATION,
+    ]);
   });
 
   it("rejects a citation the table does not hold", () => {

@@ -23,7 +23,7 @@ describe("DatabaseRateLimiter", () => {
       remaining: 119,
     });
     expect(execute.mock.calls[0]?.[1]).toEqual(["order-lookup|shared", 60, 60]);
-    expect(String(execute.mock.calls[1]?.[0])).toContain("interval '1 hour'");
+    expect(String(execute.mock.calls[1]?.[0])).toContain("interval '1 day'");
   });
 
   it("blocks above the limit without cleaning", async () => {
@@ -34,6 +34,12 @@ describe("DatabaseRateLimiter", () => {
       remaining: 0,
     });
     expect(execute).toHaveBeenCalledOnce();
+  });
+
+  it("refuses a window longer than a day, which cleanup would reset", async () => {
+    const { execute, limiter } = setup();
+    await expect(limiter.consume("k", 1, 86_401)).rejects.toThrow("longer than a day");
+    expect(execute).not.toHaveBeenCalled();
   });
 
   it("fails closed when the statement returns no count", async () => {
