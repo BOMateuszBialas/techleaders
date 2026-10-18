@@ -4,6 +4,7 @@ import {
   createAuthOptions,
   SIGN_IN_LIMIT,
   SIGN_IN_PATH,
+  summarizeAuthError,
   type AuthDeps,
 } from "./create-auth";
 import { createAuthPool } from "./create-auth-pool";
@@ -79,8 +80,83 @@ describe("createAuthOptions", () => {
 
   it("forwards only the library's message to the injected logger", () => {
     const log = vi.fn();
-    createAuthOptions(deps({ log })).logger.log("warn", "Invalid password");
-    expect(log).toHaveBeenCalledWith("warn", "[better-auth] Invalid password");
+    createAuthOptions(deps({ log })).logger.log("warn", "Invalid password", {
+      email: "owner@shop.example",
+    });
+    expect(log).toHaveBeenCalledWith("warn", "[better-auth] Invalid password", undefined);
+  });
+
+  // #57: getSession logs "INTERNAL_SERVER_ERROR" with the error that made it fail.
+  it("adds a summary of the error behind an internal error, never the other arguments", () => {
+    const log = vi.fn();
+    createAuthOptions(deps({ log })).logger.log(
+      "error",
+      "INTERNAL_SERVER_ERROR",
+      { cookie: "better-auth.session_token=secret" },
+      new Error("Cannot use a pool after calling end on the pool"),
+    );
+    expect(log).toHaveBeenCalledWith("error", "[better-auth] INTERNAL_SERVER_ERROR", {
+      name: "Error",
+      message: "Cannot use a pool after calling end on the pool",
+    });
+    expect(JSON.stringify(log.mock.calls)).not.toContain("secret");
+  });
+});
+
+describe("summarizeAuthError", () => {
+  it("keeps a driver error's class, SQLSTATE and constraint, never its message", () => {
+    const driverError = Object.assign(new Error("Key (email)=(owner@shop.example) exists"), {
+      name: "DatabaseError",
+      code: "23505",
+      constraint: "admin_users_email_unique",
+    });
+    expect(summarizeAuthError(driverError)).toEqual({
+      name: "DatabaseError",
+      code: "23505",
+      constraint: "admin_users_email_unique",
+    });
+  });
+
+  it("drops the message of an ORM exception and of a network error", () => {
+    const orm = new Error("insert into admin_sessions values ('token-123')");
+    orm.name = "DriverException";
+    expect(summarizeAuthError(orm)).toEqual({ name: "DriverException" });
+    const network = Object.assign(new Error("connect ECONNREFUSED 10.0.0.5:5432"), {
+      code: "ECONNREFUSED",
+    });
+    expect(summarizeAuthError(network)).toEqual({ name: "Error", code: "ECONNREFUSED" });
+  });
+
+  it("follows a bounded cause chain and truncates long messages", () => {
+    let error: Error = new Error("x".repeat(500));
+    for (let i = 0; i < 5; i++) error = new Error(`level ${i}`, { cause: error });
+    const summary = summarizeAuthError(error);
+    expect(summary?.message).toBe("level 4");
+    expect(summary?.cause?.cause?.cause?.message).toBe("level 1");
+    expect(summary?.cause?.cause?.cause?.cause).toBeUndefined();
+    expect(summarizeAuthError(new Error("y".repeat(500)))?.message).toHaveLength(200);
+  });
+
+  it("keeps no message once a driver error is anywhere in the chain", () => {
+    const driver = Object.assign(new Error("insert ... values ('owner@shop.example')"), {
+      code: "23505",
+    });
+    const wrapper = new Error(`Failed to create session: ${driver.message}`, { cause: driver });
+    expect(summarizeAuthError(wrapper)).toEqual({
+      name: "Error",
+      cause: { name: "Error", code: "23505" },
+    });
+  });
+
+  it("keeps no message for an error class that may quote its input", () => {
+    expect(summarizeAuthError(new SyntaxError('Unexpected token in JSON at "owner@s'))).toEqual({
+      name: "SyntaxError",
+    });
+  });
+
+  it("ignores values that are not errors", () => {
+    expect(summarizeAuthError("text")).toBeUndefined();
+    expect(summarizeAuthError({ message: "plain object" })).toBeUndefined();
   });
 });
 
