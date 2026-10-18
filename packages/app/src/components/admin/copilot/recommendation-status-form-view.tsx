@@ -24,7 +24,8 @@ export type RecommendationStatusFormViewProps = {
  * `useActionState`. The form posts the status the card shows (`from`, the server's lost-update
  * guard) and the pressed button's target. After a change the status shown is the one the server
  * reported, so the card is right before the page refreshes. Each button's accessible name ends
- * with the recommendation's title, so screen-reader users can tell the cards apart.
+ * with the recommendation's title (`aria-label`, starting with the visible text), so
+ * screen-reader users can tell the cards apart.
  */
 export function RecommendationStatusFormView({
   action,
@@ -55,9 +56,9 @@ export function RecommendationStatusFormView({
                 size="sm"
                 variant={to === "dismissed" ? "outline" : "default"}
                 disabled={pending}
+                aria-label={`${STATUS_BUTTON_TEXT[to]}: ${recommendation.title}`}
               >
                 {STATUS_BUTTON_TEXT[to]}
-                <span className="sr-only">: {recommendation.title}</span>
               </Button>
             ))}
           </div>

@@ -141,7 +141,7 @@ describe("RecommendationStatusFormView", () => {
     expect(html).toContain('value="completed"');
     expect(html).toContain("Mark completed");
     // Each button's accessible name ends with the title, so cards can be told apart.
-    expect(html).toContain(`<span class="sr-only">: ${TITLE}</span>`);
+    expect(html).toContain(`aria-label="Save: ${TITLE}"`);
     expect(html).toContain("Copilot changes nothing in your store");
     expect(html).toContain('aria-busy="false"');
   });

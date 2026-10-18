@@ -18,6 +18,11 @@ export async function sessionCookieForOwner(baseUrl: string): Promise<string> {
 /**
  * Gives the browser the owner session the global setup signed in once, instead of a new
  * sign-in: every sign-in of the run counts against the same 20-per-minute limit.
+ *
+ * Budget rule (#62): every suite on this session is the same owner, so they also share the
+ * Copilot's per-owner limit of 10 questions per 10 minutes. A Copilot suite calls
+ * `resetCopilotQuestionBudget()` (`copilot-budget.ts`) in its `beforeAll` and keeps itself
+ * under 10 questions.
  */
 export async function useOwnerSession(browser: BrowserSession): Promise<void> {
   await browser.setCookieHeader(inject("ownerSessionCookie"));
