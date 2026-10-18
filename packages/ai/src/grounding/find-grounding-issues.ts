@@ -34,20 +34,20 @@ export const MAX_ANSWER_RECOMMENDATIONS = 3;
 const CAUSAL_PHRASE = /\b(?:caused|led to|due to|as a result of|because of|drove)\b/i;
 
 /** A run of digits with single separators inside: "29", "9 847,00", "1,234.5", "2026". */
-const NUMBER_TOKEN = /\d+(?:[   .,]\d+)*/g;
-const GROUP_SEPARATOR = /[   ]/;
+const NUMBER_TOKEN = /\d+(?:[ \u00a0\u202f.,]\d+)*/g;
+const GROUP_SEPARATOR = /[ \u00a0\u202f]/;
 const TOLERANCE = 0.005;
 
 /** The values a token can mean: decimal comma (Polish) or decimal point (English). */
 function readings(token: string): number[] {
-  const compact = token.replace(/[   ]/g, "");
+  const compact = token.replace(/[ \u00a0\u202f]/g, "");
   const decimalComma = Number(compact.replace(/\./g, "").replace(",", "."));
   const decimalPoint = Number(compact.replace(/,/g, ""));
   return [decimalComma, decimalPoint].filter((value) => Number.isFinite(value));
 }
 
 function numbersIn(text: string): number[] {
-  return (text.match(NUMBER_TOKEN) ?? []).flatMap(readings);
+  return [...text.matchAll(NUMBER_TOKEN)].flatMap((match) => readings(match[0]));
 }
 
 /** The numbers a text may state: the cited facts' values, and the numbers in their labels. */
@@ -253,7 +253,11 @@ const PROBLEM_TEXT: Readonly<Record<GroundingIssueCode, string>> = {
 export function describeGroundingIssues(issues: readonly GroundingIssue[]): string {
   const lines = issues.map((issue) => {
     const where =
-      issue.recommendation === null ? "The answer" : `Recommendation ${issue.recommendation}`;
+      issue.recommendation !== null
+        ? `Recommendation ${issue.recommendation}`
+        : issue.code === "too_many"
+          ? "The answer"
+          : "The summary";
     const ref = issue.ref ? ` (${issue.ref})` : "";
     return `- ${where}${ref}: ${issue.code}: ${PROBLEM_TEXT[issue.code]}.`;
   });

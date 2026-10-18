@@ -221,6 +221,25 @@ describe("findGroundingIssues: numbers", () => {
     expect(bad).toEqual([{ code: "ungrounded_number", recommendation: null }]);
   });
 
+  it("accepts a cited fact without a value (Not enough data) and no number", () => {
+    const empty = buildFacts({ sales: sales({ paidOrders: 0, revenueMinor: 0, aovMinor: null }) });
+    const aov = key(empty, "sales.aov");
+    expect(findFact(empty, "sales.aov")?.number).toBeNull();
+    const issues = findGroundingIssues(
+      draft({
+        recommendations: [
+          recommendation({
+            observation: "Average order value: not enough data.",
+            evidenceFactIds: [aov],
+          }),
+        ],
+      }),
+      empty,
+      OPTIONS,
+    );
+    expect(issues).toEqual([]);
+  });
+
   it("accepts a signed change by its absolute value", () => {
     const change = buildFacts({
       sales: sales(),
@@ -393,9 +412,11 @@ describe("describeGroundingIssues", () => {
     const message = describeGroundingIssues([
       { code: "unknown_fact", recommendation: 2, ref: "f99" },
       { code: "ungrounded_number", recommendation: null },
+      { code: "too_many", recommendation: null },
     ]);
     expect(message).toContain("Recommendation 2 (f99): unknown_fact:");
-    expect(message).toContain("The answer: ungrounded_number:");
+    expect(message).toContain("The summary: ungrounded_number:");
+    expect(message).toContain("The answer: too_many:");
   });
 
   it("has a text for every code", () => {

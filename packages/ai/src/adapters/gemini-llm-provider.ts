@@ -1,4 +1,4 @@
-import { GoogleGenAI, type GenerateContentParameters } from "@google/genai";
+import { GoogleGenAI, ThinkingLevel, type GenerateContentParameters } from "@google/genai";
 import { z } from "zod";
 import {
   LlmOutputInvalidError,
@@ -37,11 +37,12 @@ export const createGeminiClient: GeminiClientFactory = (apiKey) =>
   new GoogleGenAI({ apiKey, httpOptions: { retryOptions: { attempts: 1 } } });
 
 /**
- * Thinking budget in tokens. On Gemini 2.5 models thinking tokens count against
- * `maxOutputTokens` (an exhausted budget ends with `MAX_TOKENS` and no JSON), so it is capped
- * well below the Copilot's 4 000-token output limit.
+ * Thinking effort. The Gemini 3 Flash models the free tier offers think at a high level by
+ * default, which took longer than the 20 s attempt timeout in the smoke test; thinking tokens
+ * also count as output, so a low level keeps the answer inside `maxOutputTokens` and the
+ * deadline. (Gemini 2.5's `thinkingBudget` is not used: 2.5 models are closed to new keys.)
  */
-export const GEMINI_THINKING_BUDGET = 1024;
+export const GEMINI_THINKING_LEVEL = ThinkingLevel.LOW;
 
 /**
  * JSON Schema keywords Gemini's `responseJsonSchema` supports (SDK typings,
@@ -224,7 +225,7 @@ export class GeminiLlmProvider implements LlmProviderPort {
           responseMimeType: "application/json",
           responseJsonSchema: toGeminiJsonSchema(request.schema),
           maxOutputTokens: request.maxOutputTokens,
-          thinkingConfig: { thinkingBudget: GEMINI_THINKING_BUDGET },
+          thinkingConfig: { thinkingLevel: GEMINI_THINKING_LEVEL },
           abortSignal: signal,
         },
       });

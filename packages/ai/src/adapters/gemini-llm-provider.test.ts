@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { llmFailureOf, type StructuredGenerationRequest } from "../ports/llm-provider.port";
 import {
-  GEMINI_THINKING_BUDGET,
+  GEMINI_THINKING_LEVEL,
   GeminiLlmProvider,
   createGeminiClient,
   toGeminiJsonSchema,
@@ -78,11 +78,11 @@ describe("GeminiLlmProvider", () => {
         responseMimeType: "application/json",
         responseJsonSchema: toGeminiJsonSchema(schema),
         maxOutputTokens: 4000,
-        thinkingConfig: { thinkingBudget: GEMINI_THINKING_BUDGET },
+        thinkingConfig: { thinkingLevel: GEMINI_THINKING_LEVEL },
       },
     });
     expect(params?.config?.abortSignal).toBeInstanceOf(AbortSignal);
-    expect(GEMINI_THINKING_BUDGET).toBeLessThan(4000);
+    expect(GEMINI_THINKING_LEVEL).toBe("LOW");
   });
 
   it("omits the system instruction when there is none and reports unknown usage as null", async () => {

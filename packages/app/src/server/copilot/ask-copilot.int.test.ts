@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import { AskCopilotUseCase, UnconfiguredLlmProvider, type CopilotAnswerDto } from "@commerceos/ai";
+import { ScriptedLlmProvider, groundedReply } from "@commerceos/ai/evals";
 import { formatMoney, money, resolvePeriod } from "@commerceos/core";
 import { Pool } from "pg";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
@@ -142,6 +143,45 @@ describe("AskCopilotUseCase (PostgreSQL, real container)", () => {
         String(arenaStock?.stockQuantity),
       ]);
       expect(answer).toMatchObject({ origin: "rules", fallbackReason: "not_configured" });
+    } finally {
+      await scope.dispose();
+    }
+  });
+
+  it("shows a grounded AI answer from a scripted model, with evidence from the seeded store", async () => {
+    const scope = container.createRequestScope();
+    try {
+      const { cradle } = scope;
+      const llmProvider = new ScriptedLlmProvider([groundedReply]);
+      const llmAnswer = await new AskCopilotUseCase({
+        getSalesSummaryTool: cradle.getSalesSummaryTool,
+        getOrderSummaryTool: cradle.getOrderSummaryTool,
+        getTopProductsTool: cradle.getTopProductsTool,
+        getLowStockProductsTool: cradle.getLowStockProductsTool,
+        llmProvider,
+        rateLimiter: cradle.rateLimiter,
+        copilotLog: cradle.copilotLog,
+        clock: () => NOW,
+      }).execute({ intent: "focus" }, { id: `${OWNER.id}-llm` });
+
+      const sales = await cradle.getSalesSummaryUseCase.execute({ period: PERIOD });
+      const top = await cradle.getTopProductsUseCase.execute({ period: PERIOD, limit: 5 });
+      const best = top.rows[0];
+      expect(llmAnswer).toMatchObject({
+        origin: "llm",
+        fallbackReason: null,
+        model: "scripted-model",
+        summary: `Paid orders in the last 7 days: ${sales.paidOrders}.`,
+      });
+      expect(llmAnswer.recommendations[0]).toMatchObject({
+        relatedProductIds: [best?.productId],
+        evidence: [{ metric: `Units sold: ${best?.name}`, value: String(best?.units) }],
+      });
+      // The daily LLM cap is a store-wide counter in the same table.
+      const { rows } = await pool.query<{ count: number }>(
+        "select count from rate_limit_buckets where key = 'copilot:llm:day'",
+      );
+      expect(rows).toEqual([{ count: 1 }]);
     } finally {
       await scope.dispose();
     }
