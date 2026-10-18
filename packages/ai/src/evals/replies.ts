@@ -106,6 +106,17 @@ export const unknownCitationReply = derive((reply) => ({
   })),
 }));
 
+/** Reuses a day number from the cited fact's period label as if it were a value. */
+export const periodLabelNumberReply = derive((reply, data) => {
+  const paid = paidOrders(data);
+  const day = /\((\d+)/.exec(paid.period)?.[1];
+  if (!day) throw new Error("The paid orders period has no date range");
+  return {
+    ...reply,
+    summary: `Paid orders in the last 7 days: ${paid.value}, ${day} of them repeat.`,
+  };
+});
+
 /** Claims a cause in the observation. */
 export const causalReply = derive((reply) => ({
   ...reply,

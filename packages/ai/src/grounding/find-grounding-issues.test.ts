@@ -157,11 +157,42 @@ describe("findGroundingIssues: numbers", () => {
     ]);
   });
 
-  it("accepts the period length and the numbers of a cited fact's period label", () => {
+  it("accepts the period length and a quoted period label, never its numbers alone", () => {
+    expect(findFact(table, "sales.paidOrders")?.period).toContain("(11–17 Oct 2026)");
     expect(numberIssues("29 paid orders in the last 7 days (11–17 Oct 2026).", [paid])).toEqual([]);
+    expect(numberIssues("29 paid orders in Last 7 days (11–17 Oct 2026).", [paid])).toEqual([]);
     expect(codes(numberIssues("29 paid orders in the last 14 days.", [paid]))).toEqual([
       "ungrounded_number",
     ]);
+    // Regression: the day and year numbers of the label are not values (review of #64).
+    for (const text of ["Only 11 units left.", "17 orders this week.", "2026 paid orders."]) {
+      expect(codes(numberIssues(text, [paid]))).toEqual(["ungrounded_number"]);
+    }
+  });
+
+  it("accepts a quoted metric label, but not the number inside it as a value", () => {
+    const lowTotal = key(table, "lowStock.total");
+    const label = findFact(table, "lowStock.total")?.metric ?? "";
+    expect(label).toMatch(/\d/);
+    const value = findFact(table, "lowStock.total")?.value;
+    expect(numberIssues(`${value} ${label.toLowerCase()}.`, [lowTotal])).toEqual([]);
+    const threshold = /\d+/.exec(label)?.[0];
+    expect(codes(numberIssues(`Order ${threshold} more units.`, [lowTotal]))).toEqual([
+      "ungrounded_number",
+    ]);
+  });
+
+  it("matches product names as whole words only", () => {
+    const pad = buildFacts({
+      sales: sales(),
+      topProducts: top([{ productId: "x", name: "Pad", units: 2, revenueMinor: 100 }]),
+    });
+    const issues = findGroundingIssues(
+      draft({ recommendations: [recommendation({ suggestedAction: "Update the home page." })] }),
+      pad,
+      OPTIONS,
+    );
+    expect(issues).toEqual([]);
   });
 
   it("scopes numbers to the recommendation's own facts", () => {

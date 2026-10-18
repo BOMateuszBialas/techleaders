@@ -2,7 +2,12 @@ import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import type { StructuredGenerationRequest } from "../ports/llm-provider.port";
 import { evalStore } from "./eval-store";
-import { groundedReply, insufficientDataReply, wrongProductReply } from "./replies";
+import {
+  groundedReply,
+  insufficientDataReply,
+  periodLabelNumberReply,
+  wrongProductReply,
+} from "./replies";
 import { ScriptedLlmProvider, promptDataOf, type PromptData } from "./scripted-llm-provider";
 
 function requestWith(data: PromptData | null): StructuredGenerationRequest<unknown> {
@@ -53,6 +58,11 @@ describe("eval replies", () => {
     expect(() =>
       insufficientDataReply(requestWith({ facts: [fact("f1", "Paid orders")], products: [] })),
     ).toThrow("The data has no orders placed");
+    const noRange = {
+      facts: [fact("f1", "Paid orders"), fact("f2", "Units sold: X", "p1")],
+      products: [{ alias: "p1", name: "X", sku: null }],
+    };
+    expect(() => periodLabelNumberReply(requestWith(noRange))).toThrow("no date range");
   });
 
   it("need a data line in a user message", () => {

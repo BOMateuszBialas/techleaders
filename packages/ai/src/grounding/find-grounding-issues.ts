@@ -50,15 +50,46 @@ function numbersIn(text: string): number[] {
   return [...text.matchAll(NUMBER_TOKEN)].flatMap((match) => readings(match[0]));
 }
 
-/** The numbers a text may state: the cited facts' values, and the numbers in their labels. */
+/**
+ * The numbers a text may state: the cited facts' values and the period length. Numbers inside a
+ * fact's metric or period label ("Products at or below 5 in stock", "11–17 Oct 2026") are not
+ * values: a text may quote the label itself (blanked out by `withoutLabels`), never reuse them.
+ */
 function allowedNumbers(facts: readonly CopilotFact[], periodDays: number): number[] {
   return [
     periodDays,
     ...facts.flatMap((fact) => [
       ...(fact.number === null ? [] : [Math.abs(fact.number)]),
-      ...numbersIn(`${fact.value} ${fact.metric} ${fact.period}`),
+      ...numbersIn(fact.value),
     ]),
   ];
+}
+
+const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/** `label` as a whole phrase: not inside a longer word ("Pad" in "update"). */
+function phrase(label: string): RegExp {
+  return new RegExp(`(?<![\\p{L}\\p{N}])${escapeRegExp(label)}(?![\\p{L}\\p{N}])`, "giu");
+}
+
+/**
+ * The cited facts' metric and period labels, and the parts of a period label around and inside
+ * its brackets ("Last 7 days", "11–17 Oct 2026"), which a text may quote on their own.
+ */
+function labelsOf(facts: readonly CopilotFact[]): string[] {
+  return facts.flatMap((fact) => [
+    fact.metric,
+    fact.period,
+    ...fact.period.split(/[()]/).map((part) => part.trim()),
+  ]);
+}
+
+/** Blanks every quoted label, longest first, so its digits are not read as stated numbers. */
+function withoutLabels(text: string, labels: readonly string[]): string {
+  return [...labels]
+    .filter((label) => label !== "")
+    .sort((a, b) => b.length - a.length)
+    .reduce((rest, label) => rest.replace(phrase(label), " "), text);
 }
 
 /** A token is grounded if one reading is allowed, or if every space-separated part is. */
@@ -83,13 +114,13 @@ function findProducts(text: string, products: readonly CopilotProduct[]): Mentio
     ...(product.sku ? [{ label: product.sku, alias: product.alias }] : []),
   ]);
   names.sort((a, b) => b.label.length - a.label.length);
-  let rest = text.toLowerCase();
+  let rest = text;
   const found = new Set<string>();
   for (const { label, alias } of names) {
-    const needle = label.toLowerCase();
-    if (needle === "" || !rest.includes(needle)) continue;
+    const pattern = phrase(label);
+    if (label === "" || !pattern.test(rest)) continue;
     found.add(alias);
-    rest = rest.split(needle).join(" ");
+    rest = rest.replace(pattern, " ");
   }
   return { text: rest, products: found };
 }
@@ -119,12 +150,13 @@ function checkScope(
     return fact ? [fact] : [];
   });
   const allowed = allowedNumbers(cited, options.periodDays);
+  const labels = labelsOf(cited);
 
   const mentioned = new Set<string>();
   for (const text of scope.texts) {
     const mention = findProducts(text, table.products);
     mention.products.forEach((alias) => mentioned.add(alias));
-    const tokens = mention.text.match(NUMBER_TOKEN) ?? [];
+    const tokens = withoutLabels(mention.text, labels).match(NUMBER_TOKEN) ?? [];
     if (tokens.some((token) => !isGrounded(token, allowed))) {
       issues.push({ code: "ungrounded_number", recommendation: at });
     }
@@ -201,7 +233,10 @@ function dedupe(issues: GroundingIssue[]): GroundingIssue[] {
  * recommendations. An empty list means the draft may be shown.
  *
  * Not machine-checked (covered by the prompt, evals and the fallback): spelled-out numbers,
- * paraphrased product references and qualitative claims no number backs.
+ * paraphrased product references and qualitative claims no number backs. A number is compared
+ * by absolute value in either decimal reading ("9 847,00" or "9,847.00"), so a wrong sign or
+ * direction ("rose" for a fall), a misplaced decimal separator ("2,5" for 25) or a wrong unit
+ * ("29 zł" for 29 units) is not caught.
  */
 export function findGroundingIssues(
   draft: CopilotDraft,

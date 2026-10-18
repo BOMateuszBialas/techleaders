@@ -7,6 +7,7 @@ import {
   injectionObeyedReply,
   insufficientDataReply,
   notJsonReply,
+  periodLabelNumberReply,
   unknownCitationReply,
   wrongProductReply,
 } from "../replies";
@@ -67,6 +68,21 @@ export const ANSWERED_CASES: EvalCase[] = [
       fallbackReason: "invalid_output",
       llmCalls: 2,
       absent: ["Titan MMO Mouse: 25 sold"],
+    },
+  },
+  {
+    id: "period-label-number",
+    covers: "grounding",
+    description: "A day number taken from a period label is not a value and is rejected.",
+    store: "demo",
+    request: focus,
+    script: [periodLabelNumberReply, periodLabelNumberReply],
+    expected: {
+      kind: "answered",
+      origin: "rules",
+      fallbackReason: "invalid_output",
+      llmCalls: 2,
+      absent: ["of them repeat"],
     },
   },
   {

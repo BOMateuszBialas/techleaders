@@ -110,6 +110,25 @@ const eslintConfig = defineConfig([
       ],
     },
   },
+  // The eval set and scripted models are test code: app tests may use them, production code
+  // never. A separate rule name, so the boundary block above keeps its own options.
+  {
+    files: ["packages/app/src/**"],
+    ignores: ["**/*.test.ts", "**/*.test.tsx"],
+    rules: {
+      "@typescript-eslint/no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "@commerceos/ai/evals",
+              message: "Scripted models and eval cases are for tests only; use LlmProviderPort.",
+            },
+          ],
+        },
+      ],
+    },
+  },
   // Generated shadcn/ui components are vendored code; keep them as generated.
   {
     files: ["packages/app/src/components/ui/**"],
