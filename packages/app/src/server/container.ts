@@ -15,6 +15,7 @@ import {
   AddToCartUseCase,
   AdjustStockUseCase,
   ChangeOrderStatusUseCase,
+  ChangeRecommendationStatusUseCase,
   ConfirmDemoPaymentUseCase,
   CreateCategoryUseCase,
   CreateProductUseCase,
@@ -36,11 +37,13 @@ import {
   ListCatalogCategoriesUseCase,
   ListCatalogProductsUseCase,
   ListCategoriesUseCase,
+  ListCopilotRecommendationsUseCase,
   ListFeaturedProductsUseCase,
   ListProductsUseCase,
   ListStockAdjustmentsUseCase,
   PlaceOrderUseCase,
   RemoveCartLineUseCase,
+  SaveCopilotAnswerUseCase,
   SetProductStatusUseCase,
   UpdateCartLineUseCase,
   UpdateCategoryUseCase,
@@ -48,6 +51,7 @@ import {
   type CatalogReadPort,
   type Clock,
   type CategoryRepositoryPort,
+  type CopilotRecommendationRepositoryPort,
   type HealthCheckPort,
   type OrderAdminPort,
   type OrderRepositoryPort,
@@ -63,6 +67,7 @@ import {
 import {
   DatabaseCatalogRepository,
   DatabaseCategoryRepository,
+  DatabaseCopilotRecommendationRepository,
   DatabaseHealthCheck,
   DatabaseOrderAdminRepository,
   DatabaseOrderRepository,
@@ -168,6 +173,10 @@ export type Cradle = {
   getLowStockProductsTool: GetLowStockProductsTool;
   getTrafficSummaryTool: GetTrafficSummaryTool;
   copilotLog: CopilotLogPort;
+  copilotRecommendationRepository: CopilotRecommendationRepositoryPort;
+  saveCopilotAnswerUseCase: SaveCopilotAnswerUseCase;
+  listCopilotRecommendationsUseCase: ListCopilotRecommendationsUseCase;
+  changeRecommendationStatusUseCase: ChangeRecommendationStatusUseCase;
   askCopilotUseCase: AskCopilotUseCase;
   authPool: Pool;
   auth: Auth;
@@ -261,6 +270,13 @@ function buildContainer(): AwilixContainer<Cradle> {
     getLowStockProductsTool: asClass(GetLowStockProductsTool).scoped(),
     getTrafficSummaryTool: asClass(GetTrafficSummaryTool).scoped(),
     copilotLog: asValue(copilotLog),
+    // Copilot's recommendation records (Copilot spec, Phase 4): the adapter writes only
+    // `copilot_recommendations`, on the request's EntityManager, so it and its use cases are
+    // scoped; `askCopilotUseCase` stores each answer through `saveCopilotAnswerUseCase`.
+    copilotRecommendationRepository: asClass(DatabaseCopilotRecommendationRepository).scoped(),
+    saveCopilotAnswerUseCase: asClass(SaveCopilotAnswerUseCase).scoped(),
+    listCopilotRecommendationsUseCase: asClass(ListCopilotRecommendationsUseCase).scoped(),
+    changeRecommendationStatusUseCase: asClass(ChangeRecommendationStatusUseCase).scoped(),
     askCopilotUseCase: asClass(AskCopilotUseCase).scoped(),
     authPool: asFunction(() => createAuthPool(env.DATABASE_URL))
       .singleton()

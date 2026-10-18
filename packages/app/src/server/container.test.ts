@@ -8,6 +8,7 @@ import {
 import {
   AddToCartUseCase,
   ChangeOrderStatusUseCase,
+  ChangeRecommendationStatusUseCase,
   PlaceOrderUseCase,
   AdjustStockUseCase,
   DeleteCategoryUseCase,
@@ -18,6 +19,7 @@ import {
 import {
   DatabaseCatalogRepository,
   DatabaseCategoryRepository,
+  DatabaseCopilotRecommendationRepository,
   DatabaseOrderAdminRepository,
   DatabaseProductRepository,
   DatabaseStockRepository,
@@ -228,10 +230,21 @@ describe("composition root", () => {
       "getLowStockProductsTool",
       "getTrafficSummaryTool",
       "askCopilotUseCase",
+      "copilotRecommendationRepository",
+      "saveCopilotAnswerUseCase",
+      "listCopilotRecommendationsUseCase",
+      "changeRecommendationStatusUseCase",
     ] as const) {
       expect(first.cradle[key] === second.cradle[key]).toBe(false);
     }
     expect(first.cradle.askCopilotUseCase instanceof AskCopilotUseCase).toBe(true);
+    expect(
+      first.cradle.copilotRecommendationRepository instanceof
+        DatabaseCopilotRecommendationRepository,
+    ).toBe(true);
+    expect(
+      first.cradle.changeRecommendationStatusUseCase instanceof ChangeRecommendationStatusUseCase,
+    ).toBe(true);
     expect(first.cradle.getLowStockProductsTool instanceof GetLowStockProductsTool).toBe(true);
     expect(first.cradle.copilotLog === copilotLog).toBe(true);
   });

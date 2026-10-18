@@ -129,6 +129,7 @@ describe("AskCopilotUseCase (PostgreSQL, real container)", () => {
         rateLimiter: cradle.rateLimiter,
         copilotLog: cradle.copilotLog,
         clock: () => NOW,
+        saveCopilotAnswerUseCase: cradle.saveCopilotAnswerUseCase,
       });
       answer = await useCase.execute({ intent: "focus" }, OWNER);
       funnelAnswer = await useCase.execute({ intent: "funnel" }, TRAFFIC_OWNER);
@@ -220,6 +221,7 @@ describe("AskCopilotUseCase (PostgreSQL, real container)", () => {
         rateLimiter: cradle.rateLimiter,
         copilotLog: cradle.copilotLog,
         clock: () => NOW,
+        saveCopilotAnswerUseCase: cradle.saveCopilotAnswerUseCase,
       }).execute({ intent: "focus" }, { id: `${OWNER.id}-llm` });
 
       const sales = await cradle.getSalesSummaryUseCase.execute({ period: PERIOD });
@@ -235,11 +237,62 @@ describe("AskCopilotUseCase (PostgreSQL, real container)", () => {
         relatedProductIds: [best?.productId],
         evidence: [{ metric: `Units sold: ${best?.name}`, value: String(best?.units) }],
       });
+      // Phase 4: the AI answer is stored with its provider, model and prompt version.
+      const stored = await pool.query<{ origin: string; provider: string; model: string }>(
+        "select origin, provider, model from copilot_recommendations where answer_id = $1",
+        [llmAnswer.answerId],
+      );
+      expect(stored.rows[0]).toEqual({
+        origin: "llm",
+        provider: "scripted",
+        model: "scripted-model",
+      });
       // The daily LLM cap is a store-wide counter in the same table.
       const { rows } = await pool.query<{ count: number }>(
         "select count from rate_limit_buckets where key = 'copilot:llm:day'",
       );
       expect(rows).toEqual([{ count: 1 }]);
+    } finally {
+      await scope.dispose();
+    }
+  });
+
+  it("stores each shown recommendation as new; the owner saves and completes one", async () => {
+    const ids = answer.recommendations.map((recommendation) => recommendation.id);
+    expect(answer.answerId).not.toBeNull();
+    const { rows } = await pool.query<{ id: string; status: string; fallback_reason: string }>(
+      "select id, status, fallback_reason from copilot_recommendations where answer_id = $1",
+      [answer.answerId],
+    );
+    expect(rows.map((row) => row.id).sort()).toEqual([...ids].sort());
+    expect(rows.every((row) => row.status === "new")).toBe(true);
+    expect(rows.every((row) => row.fallback_reason === "not_configured")).toBe(true);
+
+    const [first] = ids;
+    const scope = container.createRequestScope();
+    try {
+      const { cradle } = scope;
+      const saved = await cradle.changeRecommendationStatusUseCase.execute({
+        recommendationId: String(first),
+        from: "new",
+        to: "saved",
+      });
+      expect(saved.recommendation).toMatchObject({ id: first, status: "saved" });
+      const list = await cradle.listCopilotRecommendationsUseCase.execute({});
+      expect(list.rows.map((row) => row.id)).toContain(first);
+      await expect(
+        cradle.changeRecommendationStatusUseCase.execute({
+          recommendationId: String(first),
+          from: "new",
+          to: "dismissed",
+        }),
+      ).rejects.toMatchObject({ code: "CONFLICT", currentStatus: "saved" });
+      const completed = await cradle.changeRecommendationStatusUseCase.execute({
+        recommendationId: String(first),
+        from: "saved",
+        to: "completed",
+      });
+      expect(completed.recommendation.statusChangedAt).toBeInstanceOf(Date);
     } finally {
       await scope.dispose();
     }

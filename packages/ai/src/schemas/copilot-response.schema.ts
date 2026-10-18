@@ -1,3 +1,4 @@
+import { RECOMMENDATION_PRIORITIES } from "@commerceos/core";
 import { z } from "zod";
 
 /**
@@ -15,7 +16,7 @@ export const recommendationEvidenceSchema = z.object({
 
 export const copilotRecommendationSchema = z.object({
   title: z.string().min(1).max(160),
-  priority: z.enum(["high", "medium", "low"]),
+  priority: z.enum(RECOMMENDATION_PRIORITIES),
   observation: z.string().min(1).max(1000),
   evidence: z.array(recommendationEvidenceSchema).min(1).max(10),
   reasoning: z.string().min(1).max(2000),

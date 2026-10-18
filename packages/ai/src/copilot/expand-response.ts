@@ -72,11 +72,17 @@ export class UnknownCitationError extends Error {
   }
 }
 
+/** A displayed recommendation; expansion always fills its product ids and limitations. */
+export type ExpandedRecommendation = CopilotAnswerRecommendation & {
+  relatedProductIds: string[];
+  limitations: string[];
+};
+
 export type ExpandedAnswer = {
   summary: string;
   /** The facts the summary cites, as evidence rows. */
   summaryEvidence: RecommendationEvidence[];
-  recommendations: CopilotAnswerRecommendation[];
+  recommendations: ExpandedRecommendation[];
 };
 
 /** A fact as an evidence row: what the page shows and nothing else. */

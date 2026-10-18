@@ -1,4 +1,10 @@
-import type { CopilotIntentId, MetricDefinition } from "@commerceos/core";
+import {
+  COPILOT_FALLBACK_REASONS,
+  type CopilotFallbackReason,
+  type CopilotIntentId,
+  type MetricDefinition,
+  type RecommendationStatus,
+} from "@commerceos/core";
 import type {
   CopilotRecommendation,
   RecommendationEvidence,
@@ -6,26 +12,16 @@ import type {
 
 /**
  * Why an answered question shows rule-based insights instead of an AI answer (Copilot spec
- * A12): no provider is configured, the provider failed (`LlmUnavailableReason`), the daily cap
- * is spent, or no attempt passed the schema and grounding checks.
+ * A12). Defined in core, which the stored recommendations check against (Phase 4).
  */
-export const FALLBACK_REASONS = [
-  "not_configured",
-  "timeout",
-  "rate_limited",
-  "provider_error",
-  "auth",
-  "refused",
-  "daily_limit",
-  "invalid_output",
-] as const;
-export type FallbackReason = (typeof FALLBACK_REASONS)[number];
+export const FALLBACK_REASONS = COPILOT_FALLBACK_REASONS;
+export type FallbackReason = CopilotFallbackReason;
 
-/** Recommendation statuses (A14). Before Phase 4 nothing is stored, so every one is `new`. */
-export type RecommendationStatus = "new" | "saved" | "dismissed" | "completed";
+/** Recommendation statuses (A14), defined in core with their transition table. */
+export type { RecommendationStatus };
 
 export type CopilotAnswerRecommendation = CopilotRecommendation & {
-  /** `null` until recommendations are stored (Phase 4). */
+  /** The stored row's id; `null` only if the answer was not stored. */
   id: string | null;
   status: RecommendationStatus;
   /** The products behind `relatedProductIds`, named for the admin links. */
@@ -45,7 +41,10 @@ export type CopilotAnswerPeriod = {
 
 /** `POST /api/admin/copilot/answers` response data (Copilot spec, API Contracts). */
 export type CopilotAnswerDto = {
-  /** `null` for declined and unsupported questions, and until answers are stored (Phase 4). */
+  /**
+   * Groups the stored recommendations of one answer (Phase 4). `null` for declined and
+   * unsupported questions and for an answer without recommendations: nothing was stored.
+   */
   answerId: string | null;
   kind: "answered" | "declined" | "unsupported";
   intent: CopilotIntentId | null;
