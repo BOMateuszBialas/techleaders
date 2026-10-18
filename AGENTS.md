@@ -41,7 +41,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 | Validation | **Zod 4** (env, request input, AI output) |
 | Tests / quality | Vitest 5 (`unit`, `integration`, `e2e` projects) with v8 coverage, Testcontainers (PostgreSQL), agent-browser (e2e), ESLint 9 (`eslint-config-next`), Prettier 3, GitHub Actions CI |
 | Admin auth | **Better Auth `~1.7.10`**: email + password, DB-backed revocable sessions, one `owner` role (spec `.ai/specs/implemented/2026-10-15-admin-authentication.md`) |
-| Not chosen yet | LLM provider, Stripe. Each is a separate decision; do not add one silently |
+| LLM provider | **Google Gemini API, free tier** (`@google/genai`, model from `LLM_MODEL`), optional: only `GeminiLlmProvider` in `packages/ai/src/adapters/` imports the SDK (Copilot spec A1–A4) |
+| Not chosen yet | Stripe. A separate decision; do not add it silently |
 
 Do not add libraries without a stated reason. TS 7 and ESLint 10 were deliberately not adopted (compatibility with Next 16.4 is unverified).
 
