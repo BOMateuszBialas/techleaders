@@ -10,7 +10,8 @@ export type EvalProperty =
   | "insufficient_data"
   | "prompt_injection"
   | "provider_failure"
-  | "declined";
+  | "declined"
+  | "demo_labels";
 
 /**
  * One version-controlled eval case: a store, a question, the scripted model's replies, and the
@@ -33,6 +34,11 @@ export type EvalCase = {
     llmCalls: number;
     /** Text that must not appear anywhere in the answer: fabricated or injected claims. */
     absent?: string[];
+    /**
+     * Demo traffic answers (D08): every evidence row is flagged `demo` and the answer carries the
+     * "fictional demo data" limitation, whatever the model wrote.
+     */
+    demoLabelled?: boolean;
     /** Declined cases: the missing data the answer names. */
     missingData?: string;
   };

@@ -1,17 +1,21 @@
 import {
+  DEMO_TRAFFIC_LABEL,
   GetLowStockProductsUseCase,
   GetOrderSummaryUseCase,
   GetSalesSummaryUseCase,
   GetTopProductsUseCase,
+  GetTrafficSummaryUseCase,
   ValidationError,
   resolvePeriod,
   type StoreMetricsPort,
+  type TrafficStatsPort,
 } from "@commerceos/core";
 import { describe, expect, it, vi } from "vitest";
 import { GetLowStockProductsTool } from "./get-low-stock-products.tool";
 import { GetOrderSummaryTool } from "./get-order-summary.tool";
 import { GetSalesSummaryTool } from "./get-sales-summary.tool";
 import { GetTopProductsTool } from "./get-top-products.tool";
+import { GetTrafficSummaryTool } from "./get-traffic-summary.tool";
 
 const PERIOD = resolvePeriod("7d", new Date("2026-10-17T10:00:00.000Z"));
 
@@ -123,4 +127,54 @@ describe("approved Copilot tools", () => {
       threshold: 1000,
     });
   });
+});
+
+describe("approved tool getTrafficSummary (demo traffic, D08)", () => {
+  function trafficTool() {
+    const storeMetrics = fakeMetrics();
+    const trafficStats: TrafficStatsPort = {
+      sessionsBySource: vi.fn(async () => [{ source: "direct" as const, sessions: 10 }]),
+      funnel: vi.fn(async () => ({
+        sessions: 10,
+        productViews: 8,
+        addToCarts: 2,
+        checkoutsStarted: 1,
+      })),
+      productViews: vi.fn(async () => ({ rows: [], productsWithoutViewData: 3 })),
+    };
+    const useCase = new GetTrafficSummaryUseCase({
+      trafficStats,
+      getSalesSummaryUseCase: new GetSalesSummaryUseCase({ storeMetrics }),
+      getTopProductsUseCase: new GetTopProductsUseCase({ storeMetrics }),
+    });
+    return {
+      trafficStats,
+      useCase,
+      tool: new GetTrafficSummaryTool({ getTrafficSummaryUseCase: useCase }),
+    };
+  }
+
+  it("is named as AGENTS.md lists it and returns the use case DTO unchanged, labelled", async () => {
+    const { tool, useCase, trafficStats } = trafficTool();
+    expect(tool.name).toBe("getTrafficSummary");
+    const result = await tool.run({ period: PERIOD, productLimit: 10 });
+    expect(result).toEqual(await useCase.execute({ period: PERIOD, productLimit: 10 }));
+    expect(result).toMatchObject({ source: DEMO_TRAFFIC_LABEL, demo: true, productLimit: 10 });
+    expect(trafficStats.productViews).toHaveBeenCalledWith(
+      { firstDay: "2026-10-11", lastDay: "2026-10-17" },
+      10,
+    );
+  });
+
+  it.each([0, 11, 2.5, "5", undefined])(
+    "refuses the product limit %j (1–10) before reading anything",
+    async (productLimit) => {
+      const { tool, trafficStats } = trafficTool();
+      await expect(tool.run({ period: PERIOD, productLimit })).rejects.toBeInstanceOf(
+        ValidationError,
+      );
+      await expect(tool.run({ productLimit: 5 })).rejects.toBeInstanceOf(ValidationError);
+      expect(trafficStats.funnel).not.toHaveBeenCalled();
+    },
+  );
 });

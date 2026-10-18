@@ -8,6 +8,7 @@ import {
   insufficientDataReply,
   notJsonReply,
   periodLabelNumberReply,
+  trafficReply,
   unknownCitationReply,
   wrongProductReply,
 } from "../replies";
@@ -166,6 +167,22 @@ export const ANSWERED_CASES: EvalCase[] = [
     request: focus,
     script: [failingReply("rate_limited")],
     expected: { kind: "answered", origin: "rules", fallbackReason: "rate_limited", llmCalls: 1 },
+  },
+  {
+    id: "traffic-demo-labels",
+    covers: "demo_labels",
+    description:
+      "A grounded funnel answer from demo traffic is shown with every evidence row flagged demo and the demo limitation.",
+    store: "demo",
+    request: { intent: "funnel" },
+    script: [trafficReply],
+    expected: {
+      kind: "answered",
+      origin: "llm",
+      fallbackReason: null,
+      llmCalls: 1,
+      demoLabelled: true,
+    },
   },
   {
     id: "insufficient-data",

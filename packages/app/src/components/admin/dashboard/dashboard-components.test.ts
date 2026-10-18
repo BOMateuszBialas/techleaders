@@ -1,4 +1,5 @@
 import {
+  DEMO_TRAFFIC_METRIC_IDS,
   METRIC_DEFINITIONS,
   METRIC_IDS,
   ORDER_STATUSES,
@@ -203,7 +204,7 @@ describe("DashboardView", () => {
 describe("README metric definitions", () => {
   it("mirror METRIC_DEFINITIONS word for word", () => {
     const readme = readFileSync(new URL("../../../../../../README.md", import.meta.url), "utf8");
-    for (const id of METRIC_IDS) {
+    for (const id of [...METRIC_IDS, ...DEMO_TRAFFIC_METRIC_IDS]) {
       const { label, definition } = METRIC_DEFINITIONS[id];
       expect(readme).toContain(`| ${label} | ${definition} |`);
     }

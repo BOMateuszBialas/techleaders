@@ -118,9 +118,10 @@ Payment variables will be added when a payment integration is implemented. The e
 `/admin/copilot` (signed-in owner) answers one question at a time: seven suggested questions (decision D09) or a typed question in English (1–500 characters). It works without any AI provider: then every answer is rule-based and labelled "Rule-based insights · AI is not configured". With `LLM_PROVIDER=gemini`, `LLM_API_KEY` and `LLM_MODEL` set, an answered question is written by the model (see [AI answers](#ai-answers-gemini)); the app never fabricates an AI answer.
 
 - **Routing is deterministic:** keyword patterns map a typed question to one of the seven intents. Questions about margin or profit, ad spend, customer demographics or segments, competitors, forecasts or conversion by traffic source are declined with the data they would need ("Copilot can't answer this. It needs product cost data, which this store does not record."). Anything else gets the list of questions Copilot answers. Neither runs a tool.
-- **Approved tools only:** `getSalesSummary`, `getOrderSummary`, `getTopProducts`, `getLowStockProducts` (`packages/ai/src/tools/`), each a validated wrapper around the dashboard's metric use case, unchanged. Every number shown comes from them, so the Copilot and `/admin` cannot disagree.
+- **Approved tools only:** `getSalesSummary`, `getOrderSummary`, `getTopProducts`, `getLowStockProducts` (`packages/ai/src/tools/`), each a validated wrapper around the dashboard's metric use case, unchanged, plus `getTrafficSummary`, which reads the seeded, **fictional demo traffic** (decision D08) through `GetTrafficSummaryUseCase` and takes every order figure from the same metric use cases. Every number shown comes from them, so the Copilot and `/admin` cannot disagree.
 - **Rule-based insights:** a summary plus at most 3 recommendations: a best seller of the period at or below 5 in stock ("Restock …", high), no paid orders in the period (high), and, for "What could explain the recent change in sales?", the change against the previous period of the same length (medium, with "it cannot show what caused the change"). Each recommendation shows its evidence (metric, value, period, source), why it matters, a suggested next step that stays the owner's decision, and limitations.
-- **Traffic questions** ("Where does my traffic come from?", funnel, views without sales) answer "Traffic data is not available yet" until the fictional demo traffic data is connected (Copilot spec Phase 3).
+- **Traffic questions** (Copilot spec Phase 3): "Where does my traffic come from?" (demo sessions by source with their shares), "Where in the funnel do visitors drop off?" (the funnel and the step with the largest drop-off, medium) and "Which products get views but few sales?" (the most viewed products; an out-of-stock product with views gets "Restock or hide …", high; a product with at least 50 views converting at under half the store's view-to-purchase rate gets "Review the product page and price of …", medium). The primary question reads the same data. Every demo figure carries a "Fictional demo data" tag, every answer that read it says the figures are fictional demo data, and conversion is never computed per traffic source (that question is declined). A product without demo view rows has no rate, never 0 views. Storefront visits write nothing: the traffic tables change only with `npm run db:seed`.
+- **Evidence for the summary too:** the numbers in an answer's summary are listed under "Figures in this summary" with their metric, period and source.
 - **Limits and logs:** 10 questions per owner per 10 minutes (429 after that). One `copilot.answer` log line per question with the intent, tools and outcome, never the question text or store figures.
 - Copilot reads store data and changes nothing; recommendations are not stored yet (save, dismiss and complete arrive in Phase 4).
 
@@ -151,6 +152,15 @@ Purchase flow: cart → `/checkout` (guest: name, email, address in Poland; pric
 | Average order value | Revenue ÷ paid orders, rounded half up to a whole grosz; "Not enough data" when there are no paid orders. |
 | Top products | Line items of paid orders in the period, ranked by units, then revenue, then name; top 5. |
 | Low stock | Published products with 5 or fewer in stock now, out-of-stock included. |
+
+Fictional demo traffic (decision D08) has its own definitions in the same file (`DEMO_TRAFFIC_METRIC_IDS`). The dashboard does not show them; only the Copilot's `getTrafficSummary` reports them, always labelled as demo data:
+
+| Metric | Definition |
+| --- | --- |
+| Sessions (demo) | Fictional seeded visits per day and traffic source; not measured from real visitors. |
+| Funnel (demo) | Demo sessions → product views → add-to-cart → checkout started, then paid orders from the orders table. A step's drop-off is the share of the step before it that did not reach it. |
+| Store conversion rate (demo) | Paid orders divided by demo sessions over the same days; "Not enough data" when there are no sessions. It is not computed per source, because orders carry no traffic source. |
+| Product view-to-purchase rate (demo) | Units of the product in paid orders divided by its demo views over the same days; no rate for a product without demo view data. The store's rate divides all units in paid orders by all demo product views. |
 
 - Metrics cover the store currency (PLN) only; paid orders in another currency are left out and counted in a note ("N orders in other currencies are not included."). "Orders placed" counts every currency.
 - An order placed before the period but paid inside it counts in revenue (by payment date) and not in "Orders placed" (by creation date).

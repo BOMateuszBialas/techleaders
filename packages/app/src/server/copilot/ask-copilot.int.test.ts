@@ -26,6 +26,7 @@ const pool = new Pool({ connectionString: databaseUrl });
 const NOW = new Date("2026-10-17T10:00:00.000Z");
 const PERIOD = resolvePeriod("7d", NOW);
 const OWNER = { id: `int-owner-${randomUUID()}` };
+const TRAFFIC_OWNER = { id: `int-owner-${randomUUID()}` };
 
 async function cli(script: string, ...args: string[]) {
   await run(process.execPath, [tsxCli, `packages/database/src/cli/${script}`, ...args], {
@@ -34,7 +35,15 @@ async function cli(script: string, ...args: string[]) {
   });
 }
 
-async function count(table: "orders" | "order_items" | "products" | "stock_adjustments") {
+type CountedTable =
+  | "orders"
+  | "order_items"
+  | "products"
+  | "stock_adjustments"
+  | "traffic_daily_stats"
+  | "product_view_daily_stats";
+
+async function count(table: CountedTable) {
   const { rows } = await pool.query<{ n: string }>(`select count(*) as n from ${table}`);
   return Number(rows[0]?.n);
 }
@@ -73,7 +82,8 @@ async function insertPaidOrder(slug: string, quantity: number, paidAt: string) {
 describe("AskCopilotUseCase (PostgreSQL, real container)", () => {
   let container: typeof ContainerModule;
   let answer: CopilotAnswerDto;
-  const before = { orders: 0, items: 0, products: 0, adjustments: 0 };
+  let funnelAnswer: CopilotAnswerDto;
+  const before = { orders: 0, items: 0, products: 0, adjustments: 0, traffic: 0, views: 0 };
 
   beforeAll(async () => {
     await cli("migrate.ts", "up");
@@ -83,10 +93,24 @@ describe("AskCopilotUseCase (PostgreSQL, real container)", () => {
     await pool.query("update products set stock_quantity = 2 where slug = 'arena-fight-stick'");
     await insertPaidOrder("arena-fight-stick", 1, "2026-10-14T10:00:00Z");
     await insertPaidOrder("vortex-wireless-mouse", 2, "2026-10-15T10:00:00Z");
+    // Hand-built demo traffic inside the period (the seed's rows follow the real date).
+    await pool.query("delete from product_view_daily_stats");
+    await pool.query("delete from traffic_daily_stats");
+    await pool.query(
+      `insert into traffic_daily_stats
+         (date, source, sessions, product_views, add_to_carts, checkouts_started)
+       values ('2026-10-14', 'direct', 70, 60, 15, 4), ('2026-10-15', 'social', 30, 20, 5, 1)`,
+    );
+    await pool.query(
+      `insert into product_view_daily_stats (date, product_id, views, add_to_carts)
+       select '2026-10-14', id, 60, 9 from products where slug = 'arena-fight-stick'`,
+    );
     before.orders = await count("orders");
     before.items = await count("order_items");
     before.products = await count("products");
     before.adjustments = await count("stock_adjustments");
+    before.traffic = await count("traffic_daily_stats");
+    before.views = await count("product_view_daily_stats");
 
     process.env.DATABASE_URL = databaseUrl;
     process.env.BETTER_AUTH_SECRET ??= "integration-secret-integration-secret-1";
@@ -95,16 +119,19 @@ describe("AskCopilotUseCase (PostgreSQL, real container)", () => {
     try {
       // The container's use case with a fixed clock, so the fixture lands in the period.
       const { cradle } = scope;
-      answer = await new AskCopilotUseCase({
+      const useCase = new AskCopilotUseCase({
         getSalesSummaryTool: cradle.getSalesSummaryTool,
         getOrderSummaryTool: cradle.getOrderSummaryTool,
         getTopProductsTool: cradle.getTopProductsTool,
         getLowStockProductsTool: cradle.getLowStockProductsTool,
+        getTrafficSummaryTool: cradle.getTrafficSummaryTool,
         llmProvider: new UnconfiguredLlmProvider(),
         rateLimiter: cradle.rateLimiter,
         copilotLog: cradle.copilotLog,
         clock: () => NOW,
-      }).execute({ intent: "focus" }, OWNER);
+      });
+      answer = await useCase.execute({ intent: "focus" }, OWNER);
+      funnelAnswer = await useCase.execute({ intent: "funnel" }, TRAFFIC_OWNER);
     } finally {
       await scope.dispose();
     }
@@ -148,6 +175,36 @@ describe("AskCopilotUseCase (PostgreSQL, real container)", () => {
     }
   });
 
+  it("answers the funnel question with the demo traffic the use case returns, flagged demo", async () => {
+    const scope = container.createRequestScope();
+    try {
+      const traffic = await scope.cradle.getTrafficSummaryUseCase.execute({
+        period: PERIOD,
+        productLimit: 10,
+      });
+      expect(traffic.funnel).toEqual({
+        sessions: 100,
+        productViews: 80,
+        addToCarts: 20,
+        checkoutsStarted: 5,
+        paidOrders: 2,
+      });
+      expect(
+        traffic.products.map((product) => [product.name, product.views, product.unitsSold]),
+      ).toEqual([["Arena Fight Stick", 60, 1]]);
+      expect(funnelAnswer.summary).toContain(
+        "sessions (demo) 100 → product views (demo) 80 → add-to-carts (demo) 20 → checkouts started (demo) 5 → paid orders 2",
+      );
+      const [step] = funnelAnswer.recommendations;
+      expect(step?.title).toBe("Look at the add-to-cart step");
+      expect(step?.evidence.every((row) => row.demo)).toBe(true);
+      expect(funnelAnswer.limitations[0]).toContain("fictional demo data");
+      expect(funnelAnswer).toMatchObject({ origin: "rules", fallbackReason: "not_configured" });
+    } finally {
+      await scope.dispose();
+    }
+  });
+
   it("shows a grounded AI answer from a scripted model, with evidence from the seeded store", async () => {
     const scope = container.createRequestScope();
     try {
@@ -158,6 +215,7 @@ describe("AskCopilotUseCase (PostgreSQL, real container)", () => {
         getOrderSummaryTool: cradle.getOrderSummaryTool,
         getTopProductsTool: cradle.getTopProductsTool,
         getLowStockProductsTool: cradle.getLowStockProductsTool,
+        getTrafficSummaryTool: cradle.getTrafficSummaryTool,
         llmProvider,
         rateLimiter: cradle.rateLimiter,
         copilotLog: cradle.copilotLog,
@@ -188,6 +246,8 @@ describe("AskCopilotUseCase (PostgreSQL, real container)", () => {
   });
 
   it("changes no store data and counts the question against the owner's limit", async () => {
+    expect(await count("traffic_daily_stats")).toBe(before.traffic);
+    expect(await count("product_view_daily_stats")).toBe(before.views);
     expect(await count("orders")).toBe(before.orders);
     expect(await count("order_items")).toBe(before.items);
     expect(await count("products")).toBe(before.products);

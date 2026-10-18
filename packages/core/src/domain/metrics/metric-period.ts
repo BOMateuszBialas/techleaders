@@ -127,6 +127,24 @@ export function previousPeriod(period: MetricPeriod): MetricPeriod {
   };
 }
 
+/** `"2026-10-11"`: an ISO calendar date. */
+function isoDay(day: CalendarDay): string {
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return `${day.year}-${pad(day.month)}-${pad(day.day)}`;
+}
+
+/**
+ * The store-time-zone calendar days a period covers, both ends included, as ISO dates: how the
+ * demo traffic tables, stored per local day, are filtered for the same period (Copilot spec
+ * Phase 3). `to` is the local midnight after the last day, so the last day is the one before it.
+ */
+export function periodCalendarDays(period: MetricPeriod): { firstDay: string; lastDay: string } {
+  return {
+    firstDay: isoDay(today(period.from)),
+    lastDay: isoDay(today(new Date(period.to.getTime() - 1))),
+  };
+}
+
 /**
  * Average order value in whole minor units, rounded half up (A8): `null` when there are no paid
  * orders ("Not enough data"). Integer arithmetic only: ⌊(2·revenue + n) / 2n⌋.

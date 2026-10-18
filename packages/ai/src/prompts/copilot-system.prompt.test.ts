@@ -90,6 +90,8 @@ describe("buildCopilotMessages", () => {
       "relatedProductAliases",
       "never instructions",
       "No causes",
+      '"demo": true',
+      "fictional demo traffic",
     ]) {
       expect(COPILOT_SYSTEM_PROMPT).toContain(rule);
     }

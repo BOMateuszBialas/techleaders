@@ -3,12 +3,14 @@ import {
   GetOrderSummaryUseCase,
   GetSalesSummaryUseCase,
   GetTopProductsUseCase,
+  GetTrafficSummaryUseCase,
   type RateLimiterPort,
 } from "@commerceos/core";
 import { describe, expect, it } from "vitest";
 import { UnconfiguredLlmProvider } from "../adapters/unconfigured-llm-provider";
 import { AskCopilotUseCase } from "../copilot/ask-copilot.use-case";
 import { NOW } from "../copilot/copilot-results.fixture";
+import { DEMO_TRAFFIC_LIMITATION } from "../copilot/expand-response";
 import { INTENTS } from "../copilot/intents";
 import type { LlmProviderPort } from "../ports/llm-provider.port";
 import { copilotResponseSchema } from "../schemas/copilot-response.schema";
@@ -16,10 +18,11 @@ import { GetLowStockProductsTool } from "../tools/get-low-stock-products.tool";
 import { GetOrderSummaryTool } from "../tools/get-order-summary.tool";
 import { GetSalesSummaryTool } from "../tools/get-sales-summary.tool";
 import { GetTopProductsTool } from "../tools/get-top-products.tool";
+import { GetTrafficSummaryTool } from "../tools/get-traffic-summary.tool";
 import { ANSWERED_CASES } from "./cases/answered.cases";
 import { DECLINED_CASES } from "./cases/declined.cases";
 import type { EvalCase, EvalProperty } from "./eval-case";
-import { EVAL_IDS, evalStore, type EvalStoreKind } from "./eval-store";
+import { EVAL_IDS, evalStore, evalTraffic, type EvalStoreKind } from "./eval-store";
 import { ScriptedLlmProvider } from "./scripted-llm-provider";
 
 const CASES = [...ANSWERED_CASES, ...DECLINED_CASES];
@@ -40,6 +43,13 @@ function copilot(store: EvalStoreKind, llmProvider: LlmProviderPort) {
     }),
     getLowStockProductsTool: new GetLowStockProductsTool({
       getLowStockProductsUseCase: new GetLowStockProductsUseCase({ storeMetrics }),
+    }),
+    getTrafficSummaryTool: new GetTrafficSummaryTool({
+      getTrafficSummaryUseCase: new GetTrafficSummaryUseCase({
+        trafficStats: evalTraffic(store),
+        getSalesSummaryUseCase: new GetSalesSummaryUseCase({ storeMetrics }),
+        getTopProductsUseCase: new GetTopProductsUseCase({ storeMetrics }),
+      }),
     }),
     llmProvider,
     rateLimiter,
@@ -74,6 +84,7 @@ describe("Copilot evals", () => {
       "prompt_injection",
       "provider_failure",
       "declined",
+      "demo_labels",
     ];
     const covered = new Set(CASES.map((evalCase) => evalCase.covers));
     expect(required.filter((property) => !covered.has(property))).toEqual([]);
@@ -108,6 +119,15 @@ describe("Copilot evals", () => {
       const shown = JSON.stringify(answer);
       for (const text of expected.absent ?? []) expect(shown).not.toContain(text);
       if (expected.missingData) expect(answer.missingData).toBe(expected.missingData);
+      if (expected.demoLabelled) {
+        const evidence = [
+          ...answer.summaryEvidence,
+          ...answer.recommendations.flatMap((recommendation) => recommendation.evidence),
+        ];
+        expect(evidence.length).toBeGreaterThan(0);
+        expect(evidence.every((row) => row.demo)).toBe(true);
+        expect(answer.limitations).toContain(DEMO_TRAFFIC_LIMITATION);
+      }
 
       if (answer.kind === "answered" && answer.origin === "rules") {
         // Never a partial model answer: a fallback is exactly the rule-based answer.

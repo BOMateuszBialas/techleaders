@@ -164,3 +164,39 @@ export function failingReply(reason: LlmUnavailableReason): ScriptStep {
     throw new LlmProviderUnavailableError("Scripted provider failure.", { reason });
   };
 }
+
+/**
+ * Answers a funnel question from the fictional demo traffic only (D08): the summary quotes the
+ * add-to-cart drop-off, the recommendation the most viewed product's demo views, and both say
+ * the figures are demo data. The server, not the model, marks the evidence `demo`.
+ */
+export const trafficReply: ScriptStep = (request) => {
+  const data = promptDataOf(request);
+  const drop = fact(
+    data,
+    (item) => item.demo && item.metric.startsWith("Drop-off before add-to-carts"),
+    "add-to-cart drop-off",
+  );
+  const views = fact(
+    data,
+    (item) => item.demo && item.metric.startsWith("Views (demo): "),
+    "views",
+  );
+  const product = productOf(data, views.product);
+  return {
+    summary: `In the demo traffic data, ${drop.value} of product viewers did not add anything to the cart.`,
+    summaryFactIds: [drop.id],
+    recommendations: [
+      {
+        title: `Review the product page of ${product.name}`,
+        priority: "medium",
+        observation: `${product.name} had ${views.value} demo views in the period.`,
+        evidenceFactIds: [views.id],
+        reasoning: "The most viewed page is where a clearer offer reaches the most shoppers.",
+        suggestedAction: "Consider checking its photos, price and description; you decide.",
+        relatedProductAliases: [product.alias],
+        limitations: ["The view figures are fictional demo data, not real visitors."],
+      },
+    ],
+  };
+};
