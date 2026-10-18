@@ -52,11 +52,12 @@ describe("DatabaseRateLimiter (PostgreSQL)", () => {
     expect(rows).toEqual([{ count: 25 }]);
   });
 
-  it("starts a new window with a fresh count and deletes windows older than an hour", async () => {
+  it("starts a new window with a fresh count and deletes windows older than a day", async () => {
     await orm.em.fork().execute(
       `insert into rate_limit_buckets (key, window_start, count) values
-           ('order-lookup|roll', now() - interval '2 hours', 99),
-           ('order-lookup|recent', now() - interval '10 minutes', 5)`,
+           ('order-lookup|roll', now() - interval '25 hours', 99),
+           ('order-lookup|recent', now() - interval '10 minutes', 5),
+           ('copilot:llm:day', now() - interval '2 hours', 7)`,
     );
     expect(await limiter().consume("order-lookup|roll", 3, 60)).toEqual({
       allowed: true,
@@ -67,7 +68,9 @@ describe("DatabaseRateLimiter (PostgreSQL)", () => {
       .execute<{ key: string; count: number }[]>(
         "select key, count from rate_limit_buckets order by key",
       );
+    // Regression: a running daily window (the Copilot's LLM cap) survives another key's cleanup.
     expect(keys).toEqual([
+      { key: "copilot:llm:day", count: 7 },
       { key: "order-lookup|recent", count: 5 },
       { key: "order-lookup|roll", count: 1 },
     ]);
