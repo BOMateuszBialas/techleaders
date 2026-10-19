@@ -11,6 +11,12 @@ Keep entries short; put longer write-ups in `.ai/lessons/YYYY-MM-DD-slug.md` and
 
 <!-- Newest first -->
 
+- **2026-10-19 — Live evals: assert safety, report outcome; "absent" lists must survive faithful output; show the cause code**:
+  - A model's outcome (shown or fallback) is nondeterministic, so `npm run eval -- --live` asserts only the safety properties and reports an acceptance rate.
+  - An `absent` string must be something no correct answer would contain. `"Bluetooth"` on a case whose notes say "no Bluetooth" would fail a faithful draft; leave that to the re-run grounding check.
+  - The first live smoke hit a bare `provider_error` that the report could not explain. Eval reports now carry the log-safe cause code. Record it whenever a run spends real calls.
+  - From a worktree, `npx tsx --env-file=../<main checkout>/.env …` uses the root key without copying `.env`.
+
 - **2026-10-19 — Regex grounding checks are blind to invisible characters**: a zero-width space inside a term (`Blue​tooth`) matched no glossary pattern, so a draft claiming Bluetooth for a wired product passed `findDescriptionIssues` while the owner would read "Bluetooth". NFKC does not remove `\p{Cf}`. Any check that matches words in model output must first reject (not strip) `\p{Cc}` other than `\n` and `\p{Cf}` (zero-width, bidi, soft hyphen, BOM); the description `markup` rule does since the #72 review.
 
 - **2026-10-19 — Gemini 3 Flash thinking eats the output-token cap and the timeout on short texts**: a product-description draft (60 output tokens) at the adapter's `LOW` thinking level spent 1 440 thinking tokens and stopped at a 1 500 `maxOutputTokens` cap (`finish_max_tokens`: thinking counts as output), and with a 4 000 cap it thought 4 564 tokens for 20 s, past a 15 s attempt timeout. `ThinkingLevel.MINIMAL` gave the same grounded draft in 1.4 s. Short, fully specified generations pass `effort: "minimal"` on `StructuredGenerationRequest`; measure one uncapped call (latency and `usageThinking`) before tuning timeouts. Also: the root `.env` may hold `LLM_API_KEY` without `LLM_PROVIDER`/`LLM_MODEL`, so a smoke script must not assume the model name is set.
