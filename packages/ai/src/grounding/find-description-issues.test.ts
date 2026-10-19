@@ -210,8 +210,20 @@ describe("findDescriptionIssues: markup", () => {
     "A\tmouse.",
     "A mouse.\r\nReally.",
     "A mouse\u0000.",
+    "A mouse\u007f.",
+    "A mouse\u0085really.", // C1 next line
+    "A ‮wireless mouse.", // bidi override
+    "A wire­less mouse.", // soft hyphen
+    "A mouse﻿.", // byte order mark
   ])("rejects %j", (draft) => {
     expect(codes(findDescriptionIssues(draft, VORTEX))).toContain("markup");
+  });
+
+  it("rejects a zero-width character that would hide an ungrounded term", () => {
+    // Without the check, "Blue​tooth" matches no glossary term and the draft passes.
+    expect(
+      codes(findDescriptionIssues("A wired mouse with Blue​tooth and paracord.", PULSE)),
+    ).toEqual(["markup"]);
   });
 
   it("allows paragraphs, hyphens and decimals", () => {

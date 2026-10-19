@@ -47,13 +47,13 @@ const MARKUP: readonly RegExp[] = [
   /[^\s@]+@[^\s@]+\.[^\s@]+/, // e-mail address
 ];
 
-/** A control character other than a line feed (tab and carriage return included). */
-function hasControlCharacter(text: string): boolean {
-  return [...text].some((char) => {
-    const code = char.charCodeAt(0);
-    return (code < 0x20 && code !== 0x0a) || code === 0x7f;
-  });
-}
+/**
+ * A control character other than a line feed (C0 including tab and carriage return, DEL, C1)
+ * or an invisible format character (zero-width space and joiners, bidi controls, soft hyphen,
+ * BOM). A format character inside a term ("Blue​tooth") would hide it from every glossary
+ * check while the owner still reads "Bluetooth", so it is rejected, never stripped.
+ */
+const HIDDEN_CHARACTER = /(?!\n)[\p{Cc}\p{Cf}]/u;
 
 /**
  * The problems of one draft (descriptions spec, "Grounding rules"), checked on the draft's text
@@ -71,7 +71,7 @@ export function findDescriptionIssues(
   const issues = new Map<string, DescriptionIssue>();
   const add = (issue: DescriptionIssue) => issues.set(`${issue.code}:${issue.term ?? ""}`, issue);
 
-  if (MARKUP.some((pattern) => pattern.test(text)) || hasControlCharacter(text)) {
+  if (MARKUP.some((pattern) => pattern.test(text)) || HIDDEN_CHARACTER.test(text)) {
     add({ code: "markup" });
   }
 
@@ -102,7 +102,7 @@ const ISSUE_HINTS: Readonly<Record<DescriptionIssueCode, string>> = {
   commerce_talk:
     "It mentioned stock, shipping, delivery, discounts or deals, which the description must never mention.",
   markup:
-    "It contained markup, a link or an e-mail address. Write plain text only: no HTML, no Markdown, no bullets.",
+    "It contained markup, a link, an e-mail address or invisible characters. Write plain text only: no HTML, no Markdown, no bullets.",
   instruction_text: "It talked about instructions or prompts instead of describing the product.",
   schema:
     "It was not valid JSON that matches the response schema (80 to 1190 characters, at most 3 paragraphs).",
