@@ -1,5 +1,7 @@
 import type { Clock, MetricPeriod, RateLimiterPort } from "@commerceos/core";
 import { describeGroundingIssues, findGroundingIssues } from "../grounding/find-grounding-issues";
+import { consumeLlmDailyAttempt } from "../llm/llm-daily-cap";
+import { addLlmUsage, NO_LLM_USAGE } from "../llm/llm-usage";
 import type { CopilotLogValue } from "../ports/copilot-log.port";
 import {
   llmCauseCodeOf,
@@ -23,10 +25,8 @@ import type { FactTable } from "./build-facts";
 import type { FallbackReason } from "./copilot-answer";
 import type { CopilotDraft } from "./rule-insights";
 
-/** Store-wide: 100 LLM attempts per day, consumed per attempt (Copilot spec A4). */
-export const LLM_DAILY_KEY = "copilot:llm:day";
-export const LLM_DAILY_LIMIT = 100;
-export const LLM_DAILY_WINDOW_SECONDS = 86_400;
+/** The shared daily cap now lives in `llm/llm-daily-cap.ts` (descriptions spec A2). */
+export { LLM_DAILY_KEY, LLM_DAILY_LIMIT, LLM_DAILY_WINDOW_SECONDS } from "../llm/llm-daily-cap";
 
 /** Copilot spec A11: at most 2 attempts, 20 s each, one 40 s deadline, 4 000 output tokens. */
 export const MAX_ATTEMPTS = 2;
@@ -69,16 +69,6 @@ export type Generation = {
   usage: LlmUsage;
 };
 
-function addUsage(total: LlmUsage, usage: LlmUsage | undefined): LlmUsage {
-  const sum = (a: number | null, b: number | null | undefined) =>
-    b === null || b === undefined ? a : (a ?? 0) + b;
-  return {
-    inputTokens: sum(total.inputTokens, usage?.inputTokens),
-    outputTokens: sum(total.outputTokens, usage?.outputTokens),
-    thinkingTokens: sum(total.thinkingTokens, usage?.thinkingTokens),
-  };
-}
-
 /**
  * The generation path (Copilot spec, "AskCopilotUseCase flow"): without a configured provider
  * the rule-based answer is returned at once. Otherwise up to 2 structured-output attempts within
@@ -94,7 +84,7 @@ export async function generateAnswer(
 ): Promise<Generation> {
   const { llmProvider, rateLimiter, clock } = deps;
   let attempts = 0;
-  let usage: LlmUsage = { inputTokens: null, outputTokens: null, thinkingTokens: null };
+  let usage: LlmUsage = NO_LLM_USAGE;
   const issueCodes = new Set<string>();
   let providerCause: string | null = null;
   const result = (
@@ -120,12 +110,7 @@ export async function generateAnswer(
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
     const remaining = deadline - clock().getTime();
     if (attempt > 1 && remaining < MIN_RETRY_MS) break;
-    const daily = await rateLimiter.consume(
-      LLM_DAILY_KEY,
-      LLM_DAILY_LIMIT,
-      LLM_DAILY_WINDOW_SECONDS,
-    );
-    if (!daily.allowed) return rules("daily_limit");
+    if (!(await consumeLlmDailyAttempt(rateLimiter))) return rules("daily_limit");
     attempts += 1;
 
     let output: StructuredGenerationResult<CopilotModelOutput>;
@@ -139,7 +124,7 @@ export async function generateAnswer(
       });
     } catch (error) {
       // A response rejected after it arrived still used tokens.
-      usage = addUsage(usage, llmUsageOf(error));
+      usage = addLlmUsage(usage, llmUsageOf(error));
       const failure = llmFailureOf(error);
       if (failure?.kind === "invalid_output") {
         issueCodes.add("invalid_output");
@@ -151,7 +136,7 @@ export async function generateAnswer(
       return rules(failure?.reason ?? "provider_error");
     }
 
-    usage = addUsage(usage, output.usage);
+    usage = addLlmUsage(usage, output.usage);
     const issues = findGroundingIssues(output.data, input.table, {
       periodDays: PERIOD_DAYS[input.period.preset],
     });
