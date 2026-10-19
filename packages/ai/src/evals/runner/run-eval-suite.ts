@@ -1,3 +1,5 @@
+import { MAX_ATTEMPTS as COPILOT_MAX_ATTEMPTS } from "../../copilot/generate-answer";
+import { DRAFT_MAX_ATTEMPTS } from "../../descriptions/draft-product-description.use-case";
 import type { LlmProviderPort } from "../../ports/llm-provider.port";
 import { ANSWERED_CASES } from "../cases/answered.cases";
 import { DECLINED_CASES } from "../cases/declined.cases";
@@ -16,8 +18,8 @@ export const COPILOT_EVAL_CASES: readonly EvalCase[] = [...ANSWERED_CASES, ...DE
 /** Live calls per run (eval-script spec A2): default and hard ceiling. */
 export const DEFAULT_LIVE_MAX_CALLS = 5;
 export const LIVE_MAX_CALLS_CEILING = 20;
-/** Both use cases make at most 2 attempts (Copilot A11, descriptions A7): reserved per case. */
-export const MAX_ATTEMPTS_PER_CASE = 2;
+/** The most attempts one case can make (Copilot A11, descriptions A7): reserved per case. */
+export const MAX_ATTEMPTS_PER_CASE = Math.max(COPILOT_MAX_ATTEMPTS, DRAFT_MAX_ATTEMPTS);
 /** Provider failures after which no further live case is started (spec A5). */
 export const STOP_ON_PROVIDER_FAILURES: readonly string[] = [
   "auth",

@@ -199,6 +199,24 @@ describe("describeCopilotOutcome and copilotAccepted", () => {
   });
 });
 
+describe("runCopilotCase, budget refused", () => {
+  it("live: a call the spent budget refuses makes the case unavailable with its own cause", async () => {
+    const budget = new CallBudget(1);
+    budget.take();
+    const result = await runCopilotCase(caseById("grounded-answer"), {
+      mode: "live",
+      liveProvider: new ScriptedLlmProvider([groundedReply]),
+      budget,
+    });
+    expect(result).toMatchObject({
+      status: "unavailable",
+      providerFailure: null,
+      providerCause: "eval_budget",
+      attempts: 0,
+    });
+  });
+});
+
 describe("runCopilotCase", () => {
   it("offline: reports the outcome, attempts and scripted usage", async () => {
     const result = await runCopilotCase(caseById("fabricated-number-twice"), { mode: "offline" });

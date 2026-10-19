@@ -3,6 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { LlmProviderUnavailableError, type LlmProviderPort } from "../../ports/llm-provider.port";
+import { DESCRIPTION_EVAL_CASES } from "../descriptions/description.cases";
 import { groundedReply } from "../replies";
 import { executeCopilotCase } from "../runner/copilot-eval";
 import { RecordingLlmProvider } from "../runner/recording-llm-provider";
@@ -45,8 +46,9 @@ describe("runEvalCli, offline", () => {
   it("runs every case with scripted models and exits 0 without reading env", async () => {
     const run = cli([]);
     expect(await run.run()).toBe(EXIT_OK);
-    expect(run.out()).toContain("CommerceOS evals · offline (scripted models) · 43 cases");
-    expect(run.out()).toMatch(/Summary: 43 passed, 0 failed/);
+    const total = COPILOT_EVAL_CASES.length + DESCRIPTION_EVAL_CASES.length;
+    expect(run.out()).toContain(`CommerceOS evals · offline (scripted models) · ${total} cases`);
+    expect(run.out()).toContain(`Summary: ${total} passed, 0 failed`);
     expect(run.deps.loadEnv).not.toHaveBeenCalled();
     expect(run.deps.createLiveProvider).not.toHaveBeenCalled();
   });

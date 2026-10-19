@@ -13,6 +13,13 @@ export const done = runEvalCli({
     new GeminiLlmProvider({ apiKey: env.LLM_API_KEY, model: env.LLM_MODEL }),
   write: (text) => process.stdout.write(text),
   error: (text) => process.stderr.write(text),
-}).then((code) => {
-  process.exitCode = code;
-});
+}).then(
+  (code) => {
+    process.exitCode = code;
+  },
+  () => {
+    // Never print the error: it could carry a request or provider detail (spec A8).
+    process.stderr.write("The eval run crashed.\n");
+    process.exitCode = 2;
+  },
+);

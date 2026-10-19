@@ -30,7 +30,8 @@ describe("live eval env parity with the app's env", () => {
       let appUsesProvider: boolean;
       try {
         appUsesProvider = createLlmProvider(parseEnv({ ...BASE, ...llm })).isConfigured;
-      } catch {
+      } catch (error) {
+        expect(String(error)).toContain("Invalid environment configuration");
         appUsesProvider = false;
       }
       expect(live).toBe(appUsesProvider);

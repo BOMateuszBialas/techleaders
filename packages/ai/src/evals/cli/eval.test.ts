@@ -42,3 +42,16 @@ describe("npm run eval entry point", () => {
     expect(err).toHaveBeenCalledWith("oops");
   });
 });
+
+describe("npm run eval entry point, crash", () => {
+  it("prints no error detail and exits 2 when the run throws", async () => {
+    vi.resetModules();
+    vi.mocked(runEvalCli).mockRejectedValueOnce(new Error("secret request detail"));
+    const err = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+    const { done } = await import("./eval");
+    await done;
+    expect(err).toHaveBeenCalledWith("The eval run crashed.\n");
+    expect(JSON.stringify(err.mock.calls)).not.toContain("secret request detail");
+    expect(process.exitCode).toBe(2);
+  });
+});

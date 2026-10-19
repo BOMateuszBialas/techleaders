@@ -52,6 +52,8 @@ export class RecordingLlmProvider implements LlmProviderPort {
   providerFailure: LlmUnavailableReason | null = null;
   /** Its log-safe cause code, when the provider gave one. */
   providerCause: string | null = null;
+  /** A call was refused because the run's budget was spent (never a provider failure). */
+  budgetRefused = false;
 
   constructor(
     private readonly inner: LlmProviderPort,
@@ -70,6 +72,7 @@ export class RecordingLlmProvider implements LlmProviderPort {
     request: StructuredGenerationRequest<T>,
   ): Promise<StructuredGenerationResult<T>> {
     if (this.budget && !this.budget.take()) {
+      this.budgetRefused = true;
       throw new LlmProviderUnavailableError("The eval call budget is spent.", {
         reason: "rate_limited",
         causeCode: EVAL_BUDGET_CAUSE,

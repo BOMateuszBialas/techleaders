@@ -106,5 +106,6 @@ describe("RecordingLlmProvider", () => {
     expect(llmCauseCodeOf(refused)).toBe(EVAL_BUDGET_CAUSE);
     expect({ calls, requests: recording.requests.length }).toEqual({ calls: 1, requests: 1 });
     expect(recording.providerFailure).toBeNull();
+    expect(recording.budgetRefused).toBe(true);
   });
 });

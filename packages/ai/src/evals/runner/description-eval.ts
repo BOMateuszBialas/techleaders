@@ -17,7 +17,7 @@ import {
   type PropertyResult,
 } from "./case-result";
 import { UUID } from "./copilot-eval";
-import { type CallBudget, RecordingLlmProvider } from "./recording-llm-provider";
+import { type CallBudget, EVAL_BUDGET_CAUSE, RecordingLlmProvider } from "./recording-llm-provider";
 
 export type DescriptionLog = Record<string, CopilotLogValue>;
 
@@ -25,17 +25,18 @@ export type DescriptionLog = Record<string, CopilotLogValue>;
 export async function executeDescriptionCase(
   evalCase: DescriptionEvalCase,
   provider: LlmProviderPort,
-): Promise<{ result: DescriptionDraftDto; log: DescriptionLog }> {
+): Promise<{ result: DescriptionDraftDto; log: DescriptionLog; events: DescriptionLog[] }> {
   const rateLimiter: RateLimiterPort = { consume: async () => ({ allowed: true, remaining: 1 }) };
-  // The use case writes exactly one `description.draft` event per draft (descriptions spec A13).
-  let log: DescriptionLog = {};
+  // The use case writes one `description.draft` event per draft (descriptions spec A13); all are
+  // kept so a second event could never escape the checks.
+  const events: DescriptionLog[] = [];
   const useCase = new DraftProductDescriptionUseCase({
     llmProvider: provider,
     rateLimiter,
     getCategoryUseCase: evalCategories(),
     copilotLog: {
       info: (_event, data) => {
-        log = data;
+        events.push(data);
       },
     },
     clock: () => new Date("2026-10-19T10:00:00Z"),
@@ -46,7 +47,7 @@ export async function executeDescriptionCase(
     categoryId: category ? EVAL_CATEGORY_IDS[category] : "",
   });
   const result = await useCase.execute(input, { id: "eval" });
-  return { result, log };
+  return { result, log: Object.assign({}, ...events), events };
 }
 
 /** `draft`, or `unavailable: <reason>`. */
@@ -76,6 +77,7 @@ export function checkDescriptionResult(
   result: DescriptionDraftDto,
   requests: readonly StructuredGenerationRequest<unknown>[],
   log: DescriptionLog,
+  events: readonly DescriptionLog[] = [log],
 ): PropertyResult[] {
   const { expected } = evalCase;
   const properties: PropertyResult[] = [];
@@ -164,7 +166,7 @@ export function checkDescriptionResult(
   properties.push(
     check(
       "log_has_no_values",
-      !JSON.stringify(log).includes(evalCase.input.name),
+      !JSON.stringify(events).includes(evalCase.input.name),
       "the description.draft log carries the product name",
     ),
   );
@@ -184,14 +186,24 @@ export async function runDescriptionCase(
     options.mode === "offline"
       ? new RecordingLlmProvider(new ScriptedLlmProvider(evalCase.script))
       : new RecordingLlmProvider(options.liveProvider, options.budget);
-  const { result, log } = await executeDescriptionCase(evalCase, provider);
-  const properties = checkDescriptionResult(evalCase, options.mode, result, provider.requests, log);
+  const { result, log, events } = await executeDescriptionCase(evalCase, provider);
+  const properties = checkDescriptionResult(
+    evalCase,
+    options.mode,
+    result,
+    provider.requests,
+    log,
+    events,
+  );
   return {
     set: "descriptions",
     id: evalCase.id,
     covers: evalCase.covers,
     mode: options.mode,
-    status: statusOf(properties, options.mode === "live" && provider.providerFailure !== null),
+    status: statusOf(
+      properties,
+      options.mode === "live" && (provider.providerFailure !== null || provider.budgetRefused),
+    ),
     outcome: describeDescriptionOutcome(result),
     accepted: descriptionAccepted(result),
     attempts: provider.requests.length,
@@ -199,7 +211,7 @@ export async function runDescriptionCase(
     tokens: provider.tokens,
     model: provider.model,
     providerFailure: provider.providerFailure,
-    providerCause: provider.providerCause,
+    providerCause: provider.budgetRefused ? EVAL_BUDGET_CAUSE : provider.providerCause,
     issueCodes: issueCodesOf(log),
     properties,
   };

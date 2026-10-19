@@ -192,6 +192,32 @@ describe("description outcome helpers", () => {
   });
 });
 
+describe("runDescriptionCase, budget refused", () => {
+  it("live: a call the spent budget refuses makes the case unavailable with its own cause", async () => {
+    const budget = new CallBudget(1);
+    budget.take();
+    const result = await runDescriptionCase(caseById("grounded-mouse"), {
+      mode: "live",
+      liveProvider: new ScriptedLlmProvider([]),
+      budget,
+    });
+    expect(result).toMatchObject({
+      status: "unavailable",
+      outcome: "unavailable: rate_limited",
+      providerFailure: null,
+      providerCause: "eval_budget",
+    });
+  });
+
+  it("checks every log event for field values", async () => {
+    const evalCase = caseById("grounded-mouse");
+    const { result } = await drafted(evalCase);
+    const events = [{}, { name: evalCase.input.name }];
+    const properties = checkDescriptionResult(evalCase, "live", result, [], {}, events);
+    expect(failedNames(properties)).toEqual(["log_has_no_values"]);
+  });
+});
+
 describe("runDescriptionCase", () => {
   it("offline: reports the outcome, attempts and issue codes", async () => {
     const result = await runDescriptionCase(caseById("retry-recovers"), { mode: "offline" });

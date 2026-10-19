@@ -33,7 +33,7 @@ import {
   type EvalMode,
   type PropertyResult,
 } from "./case-result";
-import { type CallBudget, RecordingLlmProvider } from "./recording-llm-provider";
+import { type CallBudget, EVAL_BUDGET_CAUSE, RecordingLlmProvider } from "./recording-llm-provider";
 
 export const UUID = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
 
@@ -254,7 +254,8 @@ export async function runCopilotCase(
   const fellBack = answer.kind === "answered" && answer.origin === "rules";
   const rules = fellBack ? await rulesAnswerOf(evalCase) : null;
   const properties = checkCopilotAnswer(evalCase, options.mode, answer, provider.requests, rules);
-  const unavailable = options.mode === "live" && provider.providerFailure !== null;
+  const unavailable =
+    options.mode === "live" && (provider.providerFailure !== null || provider.budgetRefused);
   return {
     set: "copilot",
     id: evalCase.id,
@@ -264,7 +265,7 @@ export async function runCopilotCase(
     outcome: describeCopilotOutcome(answer),
     accepted: copilotAccepted(answer),
     providerFailure: provider.providerFailure,
-    providerCause: provider.providerCause,
+    providerCause: provider.budgetRefused ? EVAL_BUDGET_CAUSE : provider.providerCause,
     attempts: provider.requests.length,
     latencyMs: provider.latencyMs,
     tokens: provider.tokens,
