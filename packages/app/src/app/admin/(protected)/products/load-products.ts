@@ -17,9 +17,22 @@ export function loadAdminProducts(): Promise<LoadResult<AdminProduct[]>> {
   );
 }
 
-/** The category options for `/admin/products/new`. */
-export function loadNewProductForm(): Promise<LoadResult<ProductCategoryOption[]>> {
-  return loadWithRequestScope({ page: "/admin/products/new" }, categoryOptions);
+/** Whether AI description drafts can run (descriptions spec, Phase 2): an LLM key is set. */
+function aiDraftAvailable(cradle: Cradle): boolean {
+  return cradle.llmProvider.isConfigured;
+}
+
+export type NewProductFormData = {
+  categories: ProductCategoryOption[];
+  aiDraftAvailable: boolean;
+};
+
+/** The category options for `/admin/products/new`, and whether AI drafts are available. */
+export function loadNewProductForm(): Promise<LoadResult<NewProductFormData>> {
+  return loadWithRequestScope({ page: "/admin/products/new" }, async (cradle) => ({
+    categories: await categoryOptions(cradle),
+    aiDraftAvailable: aiDraftAvailable(cradle),
+  }));
 }
 
 export type AdminProductPageData = {
@@ -27,6 +40,7 @@ export type AdminProductPageData = {
   categories: ProductCategoryOption[];
   /** The last stock changes, newest first (spec Phase 2, "Stock panel"). */
   stockHistory: StockAdjustment[];
+  aiDraftAvailable: boolean;
 };
 
 /**
@@ -38,5 +52,6 @@ export function loadAdminProduct(id: string): Promise<LoadResult<AdminProductPag
     product: await cradle.getProductUseCase.execute({ id }),
     categories: await categoryOptions(cradle),
     stockHistory: await cradle.listStockAdjustmentsUseCase.execute({ productId: id }),
+    aiDraftAvailable: aiDraftAvailable(cradle),
   }));
 }

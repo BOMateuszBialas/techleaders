@@ -11,6 +11,7 @@ import {
   productNotice,
   storefrontProductHref,
 } from "@/components/admin/products/product-copy";
+import { DescriptionDraftPanel } from "@/components/admin/products/description-draft-panel";
 import { ProductForm } from "@/components/admin/products/product-form";
 import { PublishControl } from "@/components/admin/products/publish-control";
 import { ownerLocale, toStockHistoryRows } from "@/components/admin/products/stock-copy";
@@ -48,7 +49,7 @@ async function ProductDetails({ params, searchParams }: ProductPageProps) {
   // Control flow runs after the loader has mapped every error (never inside a try block).
   if (result.kind === "not-found") notFound();
   if (result.kind === "error") throw new AdminPageLoadError();
-  const { product, categories, stockHistory } = result.data;
+  const { product, categories, stockHistory, aiDraftAvailable } = result.data;
   const locale = ownerLocale((await headers()).get("accept-language"));
   const storeHref = storefrontProductHref(product.slug);
   const featured = featuredNote(product);
@@ -103,6 +104,7 @@ async function ProductDetails({ params, searchParams }: ProductPageProps) {
           key={product.status}
           action={updateProduct}
           categories={categories}
+          descriptionDraft={<DescriptionDraftPanel available={aiDraftAvailable} />}
           product={{
             id: product.id,
             name: product.name,

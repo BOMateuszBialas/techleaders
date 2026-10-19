@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import { DescriptionDraftPanel } from "@/components/admin/products/description-draft-panel";
 import { ProductForm } from "@/components/admin/products/product-form";
 import { PRODUCTS_PATH } from "@/components/admin/products/product-copy";
 import { requireAdminPage } from "@/server/auth/require-admin";
@@ -33,5 +34,12 @@ async function NewProductForm() {
   await requireAdminPage();
   const result = await loadNewProductForm();
   if (result.kind !== "ok") throw new AdminPageLoadError();
-  return <ProductForm action={createProduct} categories={result.data} />;
+  const { categories, aiDraftAvailable } = result.data;
+  return (
+    <ProductForm
+      action={createProduct}
+      categories={categories}
+      descriptionDraft={<DescriptionDraftPanel available={aiDraftAvailable} />}
+    />
+  );
 }

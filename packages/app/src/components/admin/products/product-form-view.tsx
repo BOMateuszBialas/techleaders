@@ -8,6 +8,7 @@ import {
   type AdminProduct,
   type CurrencyCode,
 } from "@commerceos/core";
+import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -51,6 +52,8 @@ export type ProductFormViewProps = {
   categories: ProductCategoryOption[];
   /** Absent on the "new product" page. */
   product?: ProductFormProduct;
+  /** Rendered under the Description field: the "Draft with AI" panel (descriptions spec). */
+  descriptionDraft?: ReactNode;
 };
 
 /** New products are priced in PLN (spec A9). */
@@ -72,6 +75,7 @@ export function ProductFormView({
   pending,
   categories,
   product,
+  descriptionDraft,
 }: ProductFormViewProps) {
   const errors = state.fieldErrors ?? {};
   const slugHints = ["product-slug-hint"];
@@ -123,6 +127,7 @@ export function ProductFormView({
           {...fieldA11y("product-description-error", errors.description)}
         />
         <FieldError id="product-description-error" messages={errors.description} />
+        {descriptionDraft}
       </div>
       <div className="flex flex-col gap-2">
         <Label htmlFor="product-price">Price ({product?.currency ?? NEW_PRODUCT_CURRENCY})</Label>
