@@ -324,7 +324,7 @@ describe("DescriptionDraftPanelView", () => {
     expect(html).toContain(IDLE_HINT);
     expect(html).toContain('aria-live="polite"');
     expect(html).toContain('aria-busy="false"');
-    expect(html).not.toMatch(/ disabled=""|aria-disabled/);
+    expect(html).not.toMatch(/ disabled=""|aria-disabled="true"/);
     expect(html).toContain('type="button"');
   });
 
@@ -332,7 +332,8 @@ describe("DescriptionDraftPanelView", () => {
     const html = renderPanel({ pending: true });
     expect(html).toContain(PENDING_TEXT);
     expect(html).toContain('aria-busy="true"');
-    expect(html).toMatch(/ disabled=""/);
+    // Keyboard focus stays on the button while the draft is pending (review m1 on #74).
+    expect(html).toContain('aria-disabled="true"');
   });
 
   it("shows a ready draft as plain text with its sources, the warning and the actions", () => {

@@ -68,6 +68,7 @@ export function DescriptionDraftPanelView({
           type="button"
           variant="secondary"
           disabled={pending}
+          focusableWhenDisabled
           aria-describedby={HINT_ID}
           onClick={onDraft}
         >
@@ -101,9 +102,7 @@ export function DescriptionDraftPanelView({
         ) : null}
         {state.kind === "applied" ? (
           <div className="flex flex-wrap items-center gap-2">
-            <p role="status" className="text-sm">
-              {APPLIED_TEXT}
-            </p>
+            <p className="text-sm">{APPLIED_TEXT}</p>
             <Button type="button" variant="outline" size="sm" disabled={pending} onClick={onUndo}>
               {UNDO_LABEL}
             </Button>
