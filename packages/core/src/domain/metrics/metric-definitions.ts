@@ -110,3 +110,11 @@ export const METRIC_DEFINITIONS: Readonly<Record<MetricId, MetricDefinition>> = 
       "Units of the product in paid orders divided by its demo views over the same days; no rate for a product without demo view data. The store's rate divides all units in paid orders by all demo product views.",
   },
 };
+
+/**
+ * How the dashboard compares a period with the one before it (date-range spec A12). Printed
+ * once on the dashboard and mirrored in the README; it adds no metric, it explains the change
+ * shown beside four of them.
+ */
+export const PERIOD_COMPARISON_DEFINITION =
+  "Each figure is compared with the previous period of the same number of days, which ends the day before this one starts. The change is this period minus the previous one; the percentage is the change divided by the previous value, rounded to a whole percent, and is not shown when the previous value is 0 or when the store has no order before the previous period starts. A period that ends today includes only part of today. Top products and low stock are not compared. A change between two periods does not show what caused it.";
