@@ -1,4 +1,11 @@
 import { randomUUID } from "node:crypto";
+import {
+  GetDashboardUseCase,
+  GetLowStockProductsUseCase,
+  GetOrderSummaryUseCase,
+  GetSalesSummaryUseCase,
+  GetTopProductsUseCase,
+} from "@commerceos/core";
 import { afterAll, beforeAll, describe, expect, inject, it } from "vitest";
 import type { MikroORM } from "@mikro-orm/postgresql";
 import { initToolingOrm } from "../cli/cli-orm";
@@ -311,6 +318,65 @@ describe("DatabaseStoreMetrics (PostgreSQL)", () => {
       expect(
         await metrics().demoOrderCount({ from: new Date("2026-09-01T00:00:00Z"), to: RANGE.to }),
       ).toBe(2);
+    });
+
+    /** The dashboard use case on these queries (date-range spec step 4), clock on 19 Oct 2026. */
+    function dashboard() {
+      const storeMetrics = metrics();
+      return new GetDashboardUseCase({
+        clock: () => new Date("2026-10-19T10:00:00.000Z"),
+        storeMetrics,
+        getSalesSummaryUseCase: new GetSalesSummaryUseCase({ storeMetrics }),
+        getOrderSummaryUseCase: new GetOrderSummaryUseCase({ storeMetrics }),
+        getTopProductsUseCase: new GetTopProductsUseCase({ storeMetrics }),
+        getLowStockProductsUseCase: new GetLowStockProductsUseCase({ storeMetrics }),
+      });
+    }
+
+    it("compares a custom range with the previous 7 days, boundaries exact", async () => {
+      const result = await dashboard().execute({ from: "2026-10-11", to: "2026-10-17" });
+
+      // The same instants as RANGE: the figures equal the hand-computed ones above.
+      expect(result.period).toMatchObject({ preset: "custom", ...RANGE });
+      expect(result.sales).toMatchObject({
+        paidOrders: 7,
+        revenueMinor: 194_000,
+        aovMinor: 27_714,
+      });
+      expect(result.orders.total).toBe(11);
+      // 4–10 Oct: H and I were placed (O, at the boundary, is in the current period); only I
+      // was paid. DEMO-0002 (1 Oct) is before the comparison period, so history is not partial.
+      expect(result.comparison.period).toMatchObject({
+        from: new Date("2026-10-03T22:00:00.000Z"),
+        to: RANGE.from,
+        label: "4–10 Oct 2026",
+      });
+      expect(result.comparison.orders.total).toBe(2);
+      expect(result.comparison.sales).toMatchObject({ paidOrders: 1, revenueMinor: 24_900 });
+      expect(result.comparison.demoOrderCount).toBe(0);
+      expect(result.comparison.partialHistory).toBe(false);
+      expect(result.comparison.includesToday).toBe(false);
+      expect(result.comparison.changes).toEqual({
+        ordersPlaced: { current: 11, previous: 2, delta: 9, percent: 450, direction: "up" },
+        paidOrders: { current: 7, previous: 1, delta: 6, percent: 600, direction: "up" },
+        revenue: {
+          current: 194_000,
+          previous: 24_900,
+          delta: 169_100,
+          percent: 679,
+          direction: "up",
+        },
+        aov: { current: 27_714, previous: 24_900, delta: 2814, percent: 11, direction: "up" },
+      });
+    });
+
+    it("withholds percentages when no order exists before the comparison period", async () => {
+      // 4–10 Oct against 27 Sep – 3 Oct: the earliest order (DEMO-0002, 1 Oct) is inside it.
+      const { comparison } = await dashboard().execute({ from: "2026-10-04", to: "2026-10-10" });
+
+      expect(comparison.partialHistory).toBe(true);
+      expect(comparison.orders.total).toBe(1);
+      expect(comparison.changes.ordersPlaced).toMatchObject({ delta: 1, percent: null });
     });
 
     it("lists published low-stock products now, out of stock first, drafts excluded", async () => {
