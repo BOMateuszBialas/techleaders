@@ -21,6 +21,11 @@ export type EvalProperty =
 export type EvalCase = {
   id: string;
   covers: EvalProperty;
+  /**
+   * Also run against the configured model by `npm run eval -- --live` (eval-script spec A3): the
+   * input is what is evaluated, not a scripted failure.
+   */
+  live?: true;
   description: string;
   store: EvalStoreKind;
   request: { intent: CopilotIntentId } | { question: string };
