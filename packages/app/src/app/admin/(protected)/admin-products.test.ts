@@ -7,6 +7,7 @@ const getProduct = vi.fn();
 const listCategories = vi.fn();
 const listStockAdjustments = vi.fn();
 const dispose = vi.fn(async () => {});
+const llmProvider = { isConfigured: false };
 
 vi.mock("@/server/container", () => ({
   createRequestScope: () => ({
@@ -15,6 +16,7 @@ vi.mock("@/server/container", () => ({
       getProductUseCase: { execute: getProduct },
       listCategoriesUseCase: { execute: listCategories },
       listStockAdjustmentsUseCase: { execute: listStockAdjustments },
+      llmProvider,
     },
     dispose,
   }),
@@ -29,6 +31,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.spyOn(logger, "error").mockImplementation(() => {});
   listCategories.mockResolvedValue([mice]);
+  llmProvider.isConfigured = false;
 });
 
 describe("admin product loaders", () => {
@@ -38,14 +41,15 @@ describe("admin product loaders", () => {
     expect(dispose).toHaveBeenCalledOnce();
   });
 
-  it("loads the category options for a new product", async () => {
+  it("loads the category options for a new product, and whether AI drafts can run", async () => {
     await expect(loadNewProductForm()).resolves.toEqual({
       kind: "ok",
-      data: [{ id: "c-1", name: "Mice" }],
+      data: { categories: [{ id: "c-1", name: "Mice" }], aiDraftAvailable: false },
     });
   });
 
   it("loads one product with the category options and its stock history, or reports not-found", async () => {
+    llmProvider.isConfigured = true;
     getProduct.mockResolvedValueOnce({ id: "p-1" });
     listStockAdjustments.mockResolvedValueOnce([{ id: "adj-1" }]);
     await expect(loadAdminProduct("p-1")).resolves.toEqual({
@@ -54,6 +58,7 @@ describe("admin product loaders", () => {
         product: { id: "p-1" },
         categories: [{ id: "c-1", name: "Mice" }],
         stockHistory: [{ id: "adj-1" }],
+        aiDraftAvailable: true,
       },
     });
     expect(getProduct).toHaveBeenCalledWith({ id: "p-1" });

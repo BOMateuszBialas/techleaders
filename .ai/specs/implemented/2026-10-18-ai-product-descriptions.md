@@ -1,7 +1,7 @@
 # AI-drafted product descriptions
 
 - Backlog: parked P1 item in epic E06 ([#13](https://github.com/BOMateuszBialas/techleaders/issues/13)), "AI-drafted product descriptions (named by the owner, D05)". No story issue yet; `om-backlog` or `om-followup-issue-from-pr` files one after this spec merges.
-- Status: **draft, design only**; drafted autonomously (`om-spec-writing --autonomous`) on 2026-10-18. **Merge is gated on the product owner confirming the ⚠ items in "Resolved assumptions"** (A1, A2, A3).
+- Status: **implemented** (2026-10-19): Phase 1 in #72 (service and route), Phase 2 in the stacked Phase 2 PR (product form panel). Deviations from this text are listed in `.ai/runs/2026-10-19-ai-product-descriptions.md`, "Decisions and log".
 - Design authority: `.ai/specs/2026-10-13-commerceos-mvp.md` §3 P1 ("Product description drafting in the admin, with merchant review before saving"), §6 (untrusted content); `.ai/specs/product-brief.md` (R02, R06, R07, N04, D02, D05, D10); AGENTS.md "Commerce Copilot rules", "Security and validation", "Testing"; `.ai/specs/implemented/2026-10-17-commerce-copilot.md` (A1–A4, A11, the port, the adapter, the daily cap, the eval pattern); `.ai/specs/implemented/2026-10-15-admin-catalog-management.md` (product form, `runAdminAction`, hook-free views).
 - **Entry gate:** P0 stable (AGENTS.md "P1 only after P0 is stable"). As of 2026-10-18 every P0 story (E01–E05) is closed; the only open issue is #59 (dev-server container rebuild, not P0 behaviour).
 

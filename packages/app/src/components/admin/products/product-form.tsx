@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, type ReactNode } from "react";
 import { IDLE_ACTION_STATE, type AdminFormAction } from "@/lib/action-state";
 import {
   ProductFormView,
@@ -16,10 +16,12 @@ export function ProductForm({
   action,
   categories,
   product,
+  descriptionDraft,
 }: {
   action: AdminFormAction;
   categories: ProductCategoryOption[];
   product?: ProductFormProduct;
+  descriptionDraft?: ReactNode;
 }) {
   const [state, formAction, pending] = useActionState(action, IDLE_ACTION_STATE);
   return (
@@ -29,6 +31,7 @@ export function ProductForm({
       pending={pending}
       categories={categories}
       product={product}
+      descriptionDraft={descriptionDraft}
     />
   );
 }
