@@ -146,6 +146,7 @@ describe("findDescriptionIssues: one rule per glossary group", () => {
     // platform (#76); "for switch" before a noun is still the keyboard part.
     for (const draft of [
       "Ready for Switch.",
+      "Ready for Switch\n\nLight and quiet.",
       "A pad made for your Switch, and for travel.",
       "Built for Switch and PC.",
       "Great on PC or Switch!",

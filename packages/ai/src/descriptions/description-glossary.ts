@@ -270,7 +270,7 @@ const COMPATIBILITY: GlossaryTerm[] = [
       patterns: [
         "(?:works?|working|compatible|pairs?|plays?|playing) (?:with|on) (?:the |your )?switch(?!e)",
         "switch (?:console|lite|oled|2)",
-        "for (?:the |your )?switch(?=\\s*(?:[.,;:!?)]|$))",
+        "for (?:the |your )?switch(?=[^\\S\\n]*(?:[.,;:!?)\\n]|$))",
         `(?:${OTHER_PLATFORMS}) (?:and|or) switch(?!e)`,
         `switch (?:and|or) (?:${OTHER_PLATFORMS})(?![\\p{L}\\d])`,
       ],
