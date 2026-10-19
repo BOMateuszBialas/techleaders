@@ -3,6 +3,11 @@ import {
   METRIC_DEFINITIONS,
   METRIC_IDS,
   ORDER_STATUSES,
+  PERIOD_COMPARISON_DEFINITION,
+  aovChange,
+  metricChange,
+  previousPeriod,
+  resolveCustomPeriod,
   resolvePeriod,
   type Dashboard,
 } from "@commerceos/core";
@@ -14,7 +19,13 @@ import {
   EMPTY_LOW_STOCK,
   EMPTY_PERIOD_HINT,
   EMPTY_TOP_PRODUCTS,
+  NOT_COMPARED,
   NOT_ENOUGH_DATA,
+  NOT_ENOUGH_DATA_TO_COMPARE,
+  TODAY_NOTE,
+  changeText,
+  comparisonHeader,
+  comparisonNotes,
   demoOrdersNote,
   formatAov,
   isEmptyPeriod,
@@ -28,6 +39,7 @@ import { DashboardView } from "./dashboard-view";
 
 const NOW = new Date("2026-10-17T10:00:00.000Z");
 const PERIOD = resolvePeriod("7d", NOW);
+const PREVIOUS = previousPeriod(PERIOD);
 
 function dashboard(overrides: Partial<Dashboard> = {}): Dashboard {
   const counts: Record<string, number> = { paid: 2, shipped: 1, cancelled: 1 };
@@ -68,9 +80,48 @@ function dashboard(overrides: Partial<Dashboard> = {}): Dashboard {
       ],
     },
     demoOrderCount: 0,
+    range: {
+      firstDay: "2026-10-11",
+      lastDay: "2026-10-17",
+      minDay: "2000-01-01",
+      maxDay: "2026-10-17",
+    },
+    rangeError: null,
+    comparison: {
+      period: PREVIOUS,
+      sales: {
+        period: PREVIOUS,
+        currency: "PLN",
+        definitionIds: ["paidOrders", "revenue", "aov"],
+        paidOrders: 2,
+        revenueMinor: 100_000,
+        aovMinor: 50_000,
+        otherCurrencyOrders: 0,
+      },
+      orders: {
+        period: PREVIOUS,
+        definitionIds: ["ordersPlaced"],
+        total: 4,
+        byStatus: ORDER_STATUSES.map((status) => ({ status, count: status === "paid" ? 4 : 0 })),
+      },
+      demoOrderCount: 0,
+      changes: {
+        ordersPlaced: metricChange(4, 4),
+        paidOrders: metricChange(3, 2),
+        revenue: metricChange(98_470, 100_000),
+        aov: aovChange(32_823, 50_000),
+      },
+      partialHistory: false,
+      includesToday: false,
+    },
     definitions: METRIC_DEFINITIONS,
+    comparisonDefinition: PERIOD_COMPARISON_DEFINITION,
     ...overrides,
   };
+}
+
+function withComparison(overrides: Partial<Dashboard["comparison"]>): Dashboard {
+  return dashboard({ comparison: { ...dashboard().comparison, ...overrides } });
 }
 
 const EMPTY: Dashboard = dashboard({
@@ -201,6 +252,134 @@ describe("DashboardView", () => {
   });
 });
 
+describe("comparison copy (date-range spec)", () => {
+  const count = (value: number) => String(value);
+
+  it("names the previous range and its length", () => {
+    expect(comparisonHeader(PREVIOUS)).toBe("Compared with 4–10 Oct 2026, the previous 7 days.");
+    expect(comparisonHeader(resolveCustomPeriod("2026-10-16", "2026-10-16"))).toBe(
+      "Compared with 16 Oct 2026, the previous day.",
+    );
+  });
+
+  it("says the change in words, with a signed whole percent", () => {
+    expect(changeText(metricChange(14, 12), count)).toBe("Up 2 (+17%) from 12");
+    expect(changeText(metricChange(9, 12), count)).toBe("Down 3 (−25%) from 12");
+    expect(changeText(metricChange(12, 12), count)).toBe("No change from 12");
+    expect(changeText(metricChange(3, 0), count)).toBe(
+      "Up 3 from 0 (no % change: the previous period had none)",
+    );
+    expect(changeText(metricChange(14, 12, { withPercent: false }), count)).toBe("Up 2 from 12");
+    expect(changeText(null, count)).toBe(NOT_ENOUGH_DATA_TO_COMPARE);
+  });
+
+  it("lists only the comparison notes that apply", () => {
+    expect(comparisonNotes(dashboard())).toEqual([]);
+    const previousSales = { ...dashboard().comparison.sales, otherCurrencyOrders: 1 };
+    expect(
+      comparisonNotes(
+        withComparison({
+          includesToday: true,
+          partialHistory: true,
+          demoOrderCount: 1,
+          sales: previousSales,
+        }),
+      ),
+    ).toEqual([
+      TODAY_NOTE,
+      "No order was placed before 4 Oct 2026, so the previous period may include days before the store started selling; percentages are not shown.",
+      "The previous period includes 1 seeded demo order (fictional).",
+      "In the previous period, 1 order in another currency is not included.",
+    ]);
+    expect(
+      comparisonNotes(
+        withComparison({
+          demoOrderCount: 15,
+          sales: { ...previousSales, otherCurrencyOrders: 2 },
+        }),
+      ),
+    ).toEqual([
+      "The previous period includes 15 seeded demo orders (fictional).",
+      "In the previous period, 2 orders in other currencies are not included.",
+    ]);
+  });
+
+  it("marks no preset link as current for a custom range", () => {
+    expect(periodLinks("custom").every((link) => !link.current)).toBe(true);
+  });
+});
+
+describe("DashboardView comparison", () => {
+  it("adds a comparison line to the four compared cards and keeps metric-value bare", () => {
+    const html = render(dashboard());
+    const body = text(html);
+
+    expect(body).toContain("Compared with 4–10 Oct 2026, the previous 7 days.");
+    expect(body).toContain(PERIOD_COMPARISON_DEFINITION);
+    expect(body).toContain("No change from 4");
+    expect(body).toContain("Up 1 (+50%) from 2");
+    expect(body).toContain("Down 15,30 zł (−2%) from 1000,00 zł");
+    expect(body).toContain("Down 171,77 zł (−34%) from 500,00 zł");
+    expect(html.match(/data-testid="metric-change"/g)).toHaveLength(6);
+    expect(body.split(NOT_COMPARED)).toHaveLength(3);
+    const values = [...html.matchAll(/data-testid="metric-value"[^>]*>([^<]*)</g)].map((match) =>
+      text(match[1] ?? ""),
+    );
+    expect(values).toEqual(["4", "3", "984,70 zł", "328,23 zł", "12"]);
+  });
+
+  it("says Not enough data to compare for AOV without paid orders", () => {
+    const changes = { ...dashboard().comparison.changes, aov: null };
+    expect(text(render(withComparison({ changes })))).toContain(NOT_ENOUGH_DATA_TO_COMPARE);
+  });
+
+  it("renders the range form with the shown days and its bounds", () => {
+    const html = render(dashboard());
+
+    const form = html.match(/<form[^>]*>/)?.[0] ?? "";
+    expect(form).toContain('method="get"');
+    expect(form).toContain('action="/admin"');
+    const from = html.match(/<input[^>]*id="range-from"[^>]*>/)?.[0] ?? "";
+    expect(from).toContain('name="from"');
+    expect(from).toContain('type="date"');
+    expect(from).toContain('value="2026-10-11"');
+    expect(from).toContain('min="2000-01-01"');
+    expect(from).toContain('max="2026-10-17"');
+    expect(from).not.toContain('aria-invalid="');
+    expect(html).toContain('for="range-to"');
+    expect(html).not.toContain('role="alert"');
+  });
+
+  it("shows an invalid range as an alert, refilled with the submitted values", () => {
+    const html = render(
+      dashboard({
+        rangeError: {
+          message: "The end date must not be before the start date.",
+          from: "2026-10-14",
+          to: "2026-10-01",
+        },
+      }),
+    );
+
+    expect(text(html)).toContain(
+      "The end date must not be before the start date. Showing the preset period instead.",
+    );
+    const to = html.match(/<input[^>]*id="range-to"[^>]*>/)?.[0] ?? "";
+    expect(to).toContain('value="2026-10-01"');
+    expect(to).toContain('aria-invalid="true"');
+    expect(to).toContain('aria-describedby="range-error"');
+    expect(html).toContain('id="range-error" role="alert"');
+  });
+
+  it("marks no preset as current for a custom range", () => {
+    const custom = resolveCustomPeriod("2026-10-01", "2026-10-14");
+    const html = render(dashboard({ period: custom }));
+
+    expect(html).not.toContain('aria-current="page"');
+    expect(text(html)).toContain("1–14 Oct 2026 (Europe/Warsaw)");
+  });
+});
+
 describe("README metric definitions", () => {
   it("mirror METRIC_DEFINITIONS word for word", () => {
     const readme = readFileSync(new URL("../../../../../../README.md", import.meta.url), "utf8");
@@ -208,5 +387,22 @@ describe("README metric definitions", () => {
       const { label, definition } = METRIC_DEFINITIONS[id];
       expect(readme).toContain(`| ${label} | ${definition} |`);
     }
+  });
+});
+
+describe("README comparison definition", () => {
+  it("mirrors PERIOD_COMPARISON_DEFINITION word for word", () => {
+    const readme = readFileSync(new URL("../../../../../../README.md", import.meta.url), "utf8");
+    expect(readme).toContain(PERIOD_COMPARISON_DEFINITION);
+  });
+});
+
+describe("DashboardView comparison notes", () => {
+  it("prints the notes that apply under the comparison header", () => {
+    const html = render(withComparison({ includesToday: true, demoOrderCount: 2 }));
+
+    expect(html.match(/data-testid="comparison-note"/g)).toHaveLength(2);
+    expect(text(html)).toContain(TODAY_NOTE);
+    expect(text(html)).toContain("The previous period includes 2 seeded demo orders (fictional).");
   });
 });
