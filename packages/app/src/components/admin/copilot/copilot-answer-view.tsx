@@ -59,7 +59,8 @@ function EvidenceTable({ caption, rows }: { caption: string; rows: Recommendatio
         {rows.map((row, index) => (
           // Evidence rows have no id; the order is fixed by the answer.
           <TableRow key={index}>
-            <TableCell>
+            {/* Text cells wrap so the value stays in view on a phone (no sideways scroll). */}
+            <TableCell className="min-w-24 whitespace-normal">
               {row.metric}
               {row.demo ? (
                 <Badge variant="outline" className="ml-2">
@@ -68,8 +69,10 @@ function EvidenceTable({ caption, rows }: { caption: string; rows: Recommendatio
               ) : null}
             </TableCell>
             <TableCell className="tabular-nums">{row.value}</TableCell>
-            <TableCell>{row.period}</TableCell>
-            <TableCell className="text-muted-foreground">{row.source}</TableCell>
+            <TableCell className="whitespace-normal">{row.period}</TableCell>
+            <TableCell className="whitespace-normal wrap-anywhere text-muted-foreground">
+              {row.source}
+            </TableCell>
           </TableRow>
         ))}
       </TableBody>

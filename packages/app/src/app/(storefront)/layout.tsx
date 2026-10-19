@@ -24,11 +24,13 @@ export default function StorefrontLayout({ children }: LayoutProps<"/">) {
         {DEMO_NOTICE}
       </p>
       <header className="border-b">
-        <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between gap-4 px-4">
+        <div className="mx-auto flex min-h-14 w-full max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2 sm:h-14 sm:flex-nowrap sm:py-0">
           <Link href="/" className="font-semibold tracking-tight">
             {STORE_NAME}
           </Link>
-          <div className="flex items-center gap-3">
+          {/* On a phone the actions take their own full-width row, so the cart stays in view; from
+              `sm` the header keeps one fixed-height row, so streamed menu links never shift the page. */}
+          <div className="flex w-full items-center gap-3 sm:w-auto">
             <HeaderSearch />
             <Suspense fallback={<HeaderMenu categories={[]} />}>
               <LoadedHeaderMenu />
