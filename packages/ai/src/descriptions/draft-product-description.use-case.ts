@@ -46,7 +46,12 @@ export const DRAFT_WINDOW_SECONDS = 600;
 export const DRAFT_RATE_LIMITED_MESSAGE =
   "You asked for many drafts in a short time. Try again in a few minutes.";
 
-/** A7: at most 2 attempts, min(15 s, time left) each, one 30 s deadline, 1 500 output tokens. */
+/**
+ * A7: at most 2 attempts, min(15 s, time left) each, one 30 s deadline, 1 500 output tokens,
+ * with minimal model effort: at the default (low) effort the real-key smoke test spent 4 500
+ * thinking tokens and 20 s on one draft (thinking counts against the token limit); at minimal
+ * effort the same draft took 1.4 s and passed the checks.
+ */
 export const DRAFT_MAX_ATTEMPTS = 2;
 export const DRAFT_ATTEMPT_TIMEOUT_MS = 15_000;
 export const DRAFT_DEADLINE_MS = 30_000;
@@ -169,6 +174,7 @@ export class DraftProductDescriptionUseCase {
           messages,
           schema: productDescriptionOutputSchema,
           maxOutputTokens: DRAFT_MAX_OUTPUT_TOKENS,
+          effort: "minimal",
           timeoutMs: Math.min(DRAFT_ATTEMPT_TIMEOUT_MS, remaining),
           signal,
         });

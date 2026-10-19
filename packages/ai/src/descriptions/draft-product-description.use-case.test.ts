@@ -207,6 +207,7 @@ describe("DraftProductDescriptionUseCase", () => {
     expect(request).toMatchObject({
       schema: productDescriptionOutputSchema,
       maxOutputTokens: 1500,
+      effort: "minimal",
       timeoutMs: 15_000,
     });
     expect(request?.signal).toBeInstanceOf(AbortSignal);

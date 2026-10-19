@@ -258,7 +258,10 @@ export class GeminiLlmProvider implements LlmProviderPort {
           responseMimeType: "application/json",
           responseJsonSchema: toGeminiJsonSchema(request.schema),
           maxOutputTokens: request.maxOutputTokens,
-          thinkingConfig: { thinkingLevel: GEMINI_THINKING_LEVEL },
+          thinkingConfig: {
+            thinkingLevel:
+              request.effort === "minimal" ? ThinkingLevel.MINIMAL : GEMINI_THINKING_LEVEL,
+          },
           abortSignal: signal,
         },
       });

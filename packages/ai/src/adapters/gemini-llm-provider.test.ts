@@ -100,6 +100,16 @@ describe("GeminiLlmProvider", () => {
     expect(GEMINI_THINKING_LEVEL).toBe("LOW");
   });
 
+  it("thinks at the minimal level when the caller asks for minimal effort", async () => {
+    const { provider, generateContent } = ok({});
+    await provider.generateStructured(request({ effort: "minimal" }));
+    await provider.generateStructured(request({ effort: "low" }));
+    expect(generateContent.mock.calls.map((call) => call[0].config?.thinkingConfig)).toEqual([
+      { thinkingLevel: "MINIMAL" },
+      { thinkingLevel: "LOW" },
+    ]);
+  });
+
   it("omits the system instruction when there is none and reports unknown usage as null", async () => {
     // No finish reason: read as STOP.
     const { provider, generateContent } = ok({

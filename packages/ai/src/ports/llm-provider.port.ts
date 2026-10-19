@@ -15,7 +15,15 @@ export type StructuredGenerationRequest<T> = {
   timeoutMs: number;
   /** The caller's overall deadline; aborting it fails the call with reason `timeout`. */
   signal?: AbortSignal;
+  /**
+   * How much the model may reason before it answers; `low` when omitted. `minimal` suits short,
+   * fully specified texts (descriptions spec: a draft took 4 500 thinking tokens and 20 s at
+   * `low`). An adapter whose model has no such setting ignores it.
+   */
+  effort?: LlmEffort;
 };
+
+export type LlmEffort = "minimal" | "low";
 
 /** Token counts the provider reported; `null` when it reported none. */
 export type LlmUsage = {
