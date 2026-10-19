@@ -5,6 +5,7 @@ export * from "./adapters/database-health-check";
 export * from "./adapters/database-catalog-repository";
 export * from "./adapters/database-category-repository";
 export * from "./adapters/database-copilot-recommendation-repository";
+export * from "./adapters/database-product-import-repository";
 export * from "./adapters/database-product-repository";
 export * from "./adapters/database-stock-repository";
 export * from "./adapters/database-store-metrics";

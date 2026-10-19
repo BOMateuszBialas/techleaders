@@ -15,6 +15,7 @@ import {
   DeleteCategoryUseCase,
   GetDashboardUseCase,
   ListCatalogProductsUseCase,
+  ImportProductsUseCase,
   SetProductStatusUseCase,
 } from "@commerceos/core";
 import {
@@ -22,6 +23,7 @@ import {
   DatabaseCategoryRepository,
   DatabaseCopilotRecommendationRepository,
   DatabaseOrderAdminRepository,
+  DatabaseProductImportRepository,
   DatabaseProductRepository,
   DatabaseStockRepository,
   DatabaseStoreMetrics,
@@ -146,6 +148,16 @@ describe("composition root", () => {
       expect(first.cradle[key] === second.cradle[key]).toBe(false);
     }
     expect(first.cradle.setProductStatusUseCase instanceof SetProductStatusUseCase).toBe(true);
+  });
+
+  it("wires the product import repository and use cases per request", () => {
+    const repository = first.cradle.productImportRepository;
+    expect(repository instanceof DatabaseProductImportRepository).toBe(true);
+    expect(repository === second.cradle.productImportRepository).toBe(false);
+    for (const key of ["previewProductImportUseCase", "importProductsUseCase"] as const) {
+      expect(first.cradle[key] === second.cradle[key]).toBe(false);
+    }
+    expect(first.cradle.importProductsUseCase instanceof ImportProductsUseCase).toBe(true);
   });
 
   it("wires the stock repository and use cases per request", () => {
