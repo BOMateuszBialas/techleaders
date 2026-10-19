@@ -321,42 +321,57 @@ export function logAuthMessage(
 // Cached on globalThis so dev-mode hot reloads do not open a new connection pool each time.
 const globalForContainer = globalThis as typeof globalThis & {
   __commerceosContainer?: AwilixContainer<Cradle>;
-  __commerceosContainerOwner?: symbol;
+  __commerceosContainerGeneration?: number;
+  __commerceosContainerEvaluations?: number;
 };
 
 /**
- * Identity of this evaluation of the module. `next dev` re-evaluates this file when it or a
- * module it registers changes; a container cached by an older evaluation lacks the new
- * registrations (AwilixResolutionError until a restart), so it is disposed and rebuilt.
+ * How long a container replaced by a newer evaluation stays open before it is disposed, so
+ * requests still running on it (including Better Auth calls) can finish (#59).
  */
-const MODULE_INSTANCE = Symbol("commerceos-container-module");
+export const STALE_CONTAINER_GRACE_MS = 30_000;
 
 /**
- * One owner for every evaluation in a production build (#57). The bundler evaluates this file
- * once per server layer (route handlers, pages and server actions), and all of them come from
- * the same build, so they share one container. With a per-evaluation owner they disposed each
- * other's container on every alternating request, closing the connection pools under requests
- * still in flight ("Failed to get session" from Better Auth).
+ * Generation of this evaluation of the module, counted across every evaluation in the process.
+ *
+ * `next dev` evaluates this file once per server layer and route entry (route handlers, each
+ * page), and again after a hot reload of it or of any module it registers. A container built by
+ * an older evaluation can lack new registrations or hold old class code, so a newer evaluation
+ * replaces it. An older evaluation (another layer that has not re-evaluated) reuses the newer
+ * container instead of replacing it back, so alternating page and API requests no longer
+ * rebuild and dispose each other's container (#59; the per-evaluation owner of #35 did).
+ *
+ * A production build gets generation 0 for every evaluation (#57): all layers come from the
+ * same build, so they share one container and never replace it.
  */
-const PRODUCTION_OWNER = Symbol.for("commerceos-container-production");
+const EVALUATION_GENERATION = (globalForContainer.__commerceosContainerEvaluations =
+  (globalForContainer.__commerceosContainerEvaluations ?? 0) + 1);
 
-function containerOwner(): symbol {
-  return getEnv().NODE_ENV === "production" ? PRODUCTION_OWNER : MODULE_INSTANCE;
+function containerGeneration(): number {
+  return getEnv().NODE_ENV === "production" ? 0 : EVALUATION_GENERATION;
+}
+
+/** Disposes a replaced container after the grace period; a failure must not break a request. */
+function retireContainer(container: AwilixContainer<Cradle>): void {
+  const timer = setTimeout(() => {
+    container.dispose().catch((error: unknown) => {
+      logger.warn("A stale DI container could not be disposed", { error });
+    });
+  }, STALE_CONTAINER_GRACE_MS);
+  // A pending disposal must not keep the process alive on shutdown.
+  timer.unref();
 }
 
 function getRootContainer(): AwilixContainer<Cradle> {
-  const owner = containerOwner();
+  const generation = containerGeneration();
   const cached = globalForContainer.__commerceosContainer;
-  if (cached && globalForContainer.__commerceosContainerOwner !== owner) {
+  if (cached && (globalForContainer.__commerceosContainerGeneration ?? 0) < generation) {
     globalForContainer.__commerceosContainer = undefined;
-    // Closes the stale connection pools in the background; a failure must not break the request.
-    cached.dispose().catch((error: unknown) => {
-      logger.warn("A stale DI container could not be disposed", { error });
-    });
+    retireContainer(cached);
   }
   if (!globalForContainer.__commerceosContainer) {
     globalForContainer.__commerceosContainer = buildContainer();
-    globalForContainer.__commerceosContainerOwner = owner;
+    globalForContainer.__commerceosContainerGeneration = generation;
   }
   return globalForContainer.__commerceosContainer;
 }
