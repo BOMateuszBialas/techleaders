@@ -144,7 +144,7 @@ export function DashboardView({ dashboard }: { dashboard: Dashboard }) {
               <TableBody>
                 {topProducts.rows.map((row) => (
                   <TableRow key={row.productId ?? `deleted:${row.name}`}>
-                    <TableCell>
+                    <TableCell className="whitespace-normal">
                       {row.name}
                       {row.productId === null ? (
                         <span className="text-muted-foreground"> (deleted product)</span>
