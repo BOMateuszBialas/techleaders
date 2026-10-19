@@ -1,4 +1,8 @@
-import { type GetCategoryUseCase, hasAppErrorCode, type RateLimiterPort } from "@commerceos/core";
+import {
+  descriptionDraftSchema,
+  type GetCategoryUseCase,
+  type RateLimiterPort,
+} from "@commerceos/core";
 import { describe, expect, it, vi } from "vitest";
 import { UnconfiguredLlmProvider } from "../adapters/unconfigured-llm-provider";
 import { EVAL_CATEGORY_IDS, evalCategories } from "../evals/descriptions/eval-categories";
@@ -20,12 +24,12 @@ import {
 const OWNER = { id: "owner-1" };
 const NOTES =
   "[DEMO] Wireless gaming mouse with a 26,000 DPI optical sensor, 70 hours of battery life and five programmable buttons.";
-const INPUT = {
+const INPUT = descriptionDraftSchema.parse({
   name: "Vortex Wireless Mouse",
   categoryId: EVAL_CATEGORY_IDS.Mice,
   price: "249.00",
   notes: NOTES,
-};
+});
 const GOOD =
   "The Vortex Wireless Mouse pairs a 26,000 DPI optical sensor with 70 hours of battery life, and its five programmable buttons keep every bind in reach.";
 const BAD =
@@ -133,14 +137,6 @@ describe("DraftProductDescriptionUseCase", () => {
     ]);
   });
 
-  it("refuses an invalid body with field errors and logs nothing", async () => {
-    const { useCase, events } = setup();
-    const error = await rejection(useCase.execute({ name: " " }, OWNER));
-    expect(hasAppErrorCode(error, "VALIDATION_FAILED")).toBe(true);
-    expect(error).toMatchObject({ fieldErrors: { name: ["Enter a name."] } });
-    expect(events).toEqual([]);
-  });
-
   it("answers an unknown category with a field error on categoryId", async () => {
     const { useCase, consume, events } = setup({ script: [reply(GOOD)] });
     const error = await rejection(
@@ -169,7 +165,10 @@ describe("DraftProductDescriptionUseCase", () => {
   it("returns insufficient_input without a call or a limiter step (A5)", async () => {
     const { useCase, provider, consume } = setup({ script: [reply(GOOD)] });
     expect(
-      await useCase.execute({ name: "Mouse", categoryId: "", price: "", notes: "Light." }, OWNER),
+      await useCase.execute(
+        descriptionDraftSchema.parse({ name: "Mouse", notes: "Light." }),
+        OWNER,
+      ),
     ).toEqual({ kind: "unavailable", reason: "insufficient_input" });
     expect(consume).not.toHaveBeenCalled();
     expect((provider as ScriptedLlmProvider).requests).toHaveLength(0);

@@ -1,4 +1,4 @@
-import type { RateLimiterPort } from "@commerceos/core";
+import { descriptionDraftSchema, type RateLimiterPort } from "@commerceos/core";
 import { describe, expect, it } from "vitest";
 import { buildDescriptionSources } from "../descriptions/description-sources";
 import { DraftProductDescriptionUseCase } from "../descriptions/draft-product-description.use-case";
@@ -26,7 +26,10 @@ async function run(evalCase: DescriptionEvalCase) {
     clock: () => new Date("2026-10-19T10:00:00Z"),
   });
   const { category, ...fields } = evalCase.input;
-  const input = { ...fields, categoryId: category ? EVAL_CATEGORY_IDS[category] : "" };
+  const input = descriptionDraftSchema.parse({
+    ...fields,
+    categoryId: category ? EVAL_CATEGORY_IDS[category] : "",
+  });
   const result = await useCase.execute(input, { id: "eval" });
   return { result, provider, log: logged[0] ?? {} };
 }

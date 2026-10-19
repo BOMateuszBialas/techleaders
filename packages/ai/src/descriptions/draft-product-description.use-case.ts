@@ -2,10 +2,8 @@ import {
   CATEGORY_CHOICE_MESSAGE,
   TooManyRequestsError,
   ValidationError,
-  descriptionDraftSchema,
   hasAppErrorCode,
   isNotFoundError,
-  parseInput,
   type Clock,
   type DescriptionDraftInput,
   type GetCategoryUseCase,
@@ -93,8 +91,11 @@ type Trace = {
 export class DraftProductDescriptionUseCase {
   constructor(private readonly deps: DraftProductDescriptionDeps) {}
 
-  async execute(input: unknown, admin: { id: string }): Promise<DescriptionDraftDto> {
-    const request = parseInput(descriptionDraftSchema, input);
+  /** `request` is already validated with `descriptionDraftSchema` (the route's `parseRequestBody`). */
+  async execute(
+    request: DescriptionDraftInput,
+    admin: { id: string },
+  ): Promise<DescriptionDraftDto> {
     const started = Date.now();
     const trace: Trace = {
       outcome: "error",
