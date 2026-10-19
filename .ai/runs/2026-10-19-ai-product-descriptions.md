@@ -51,14 +51,14 @@ No new env variables, no migration, no change to `LlmProviderPort` or the Gemini
 
 ### Phase 1: Drafting service and route
 
-- [ ] 1.1 Shared daily cap module
-- [ ] 1.2 Request schema
-- [ ] 1.3 Sources, glossary and text analysis
-- [ ] 1.4 Grounding rules
-- [ ] 1.5 Prompt and output schema
-- [ ] 1.6 Use case
-- [ ] 1.7 Eval cases
-- [ ] 1.8 Route, container, integration test, docs
+- [x] 1.1 Shared daily cap module — 19baa2b
+- [x] 1.2 Request schema — e1a44d8
+- [x] 1.3 Sources, glossary and text analysis — 42d189d
+- [x] 1.4 Grounding rules — b052610
+- [x] 1.5 Prompt and output schema — fb8e7b8
+- [x] 1.6 Use case — 28fa7fd, d58e0d1
+- [x] 1.7 Eval cases — d0a714f
+- [x] 1.8 Route, container, integration test, docs — e962d3e
 
 ### Phase 2: Product form panel
 
@@ -68,4 +68,17 @@ No new env variables, no migration, no change to `LlmProviderPort` or the Gemini
 
 ## Decisions and log
 
-(appended during the run)
+Choices where the spec was silent, contradictory or did not survive contact with the real model (each is also in the PR body):
+
+1. **Minimal model effort (port and adapter touched, spec said "no change").** A real-key smoke test showed Gemini 3 Flash at the adapter's default `LOW` thinking level spending 1 440 thinking tokens and hitting the spec's 1 500-token cap (`finish_max_tokens`); with 4 000 tokens it used 4 564 thinking tokens and 20 s, past the 15 s attempt timeout (three timeouts in a row). `StructuredGenerationRequest` gained an optional `effort?: "minimal" | "low"`; `GeminiLlmProvider` maps `minimal` to `ThinkingLevel.MINIMAL` and keeps `LOW` otherwise, so the Copilot is unchanged. The draft use case asks for `minimal`; the same draft then took 1.4 s with no thinking tokens and passed the checks. The spec's A7 numbers (15 s, 30 s, 1 500 tokens) stay as written.
+2. **"works with Switch".** The spec says bare "switch" is never a platform, but its edge-case table and eval list expect "works with Switch" on a keyboard to be rejected as a platform. Resolved with two patterns on the Nintendo Switch term: "works/compatible/pairs/plays with/on (the/your) Switch" and "Switch console/Lite/OLED/2"; "switches", "each switch" and "linear switch" stay keyboard parts.
+3. **Polarity both ways.** The spec negates source terms only. A draft term is grounded only by a source mention with the same polarity, so "without Bluetooth" in a draft is not grounded by "Bluetooth" in the notes either. "non" negates only when attached ("non-RGB"; "non-slip rubber" negates neither), and "-free" after a term negates it ("honeycomb-free").
+4. **A price of 0.00 counts as not set** (a placeholder, #41): it is not sent and no money amount is grounded by it.
+5. **The use case takes the parsed input.** `parseRequestBody` returns the schema's output (price in minor units), so the use case receives `DescriptionDraftInput` instead of parsing `unknown` again (the Copilot's schema has no transform, so it can).
+6. **Spelled numbers above twenty** are read word by word ("twenty-six thousand buttons" → 20 and 6), so such a draft is rejected rather than misread as 26 000 (spec: residual).
+7. **Seed fixture.** `ai` may not import the database package, so the seeded descriptions are copied into `packages/ai/src/evals/descriptions/seeded-products.ts`; the integration test compares them with the seeded rows (name, category, description), so a seed change fails until the fixture and the glossary follow.
+8. **Extra glossary terms** from the seeded catalog (linear, tactile, volume roller, wrist rest, paddles, ball-top lever, steel, stitched, non-slip, rubber, textured, etched, speed/control surface, cushions, jack, MMO, MOBA, ...) and extra brands (Nintendo, Sony, Microsoft); the coverage test pins every seeded word to the glossary or a plain-word list.
+
+Real-key smoke test (Phase 1, 8 of the ~10 allowed calls): 1 call hit the 1 500-token cap at `LOW` effort; 3 calls timed out at 15 s with a 4 000 cap; 1 direct uncapped call took 20 s and 4 564 thinking tokens, draft grounded; 1 direct call at `minimal` took 1.4 s, draft grounded; through the use case at `minimal`: Titan returned a grounded draft with the `[DEMO] ` prefix in 1.1 s, Pulse got a transient Gemini 5xx (correctly `provider_error`, no retry). (The first three attempts with an empty model name failed locally with `network` and reached no model.)
+
+Phase 1 gate (merged with origin/main at 820c563): lint, format, typecheck, unit with coverage (1 530 tests, 100 %), build, integration (142), e2e (85): all green.
