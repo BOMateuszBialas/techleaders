@@ -47,6 +47,8 @@ No new env variables, no migration, no change to `LlmProviderPort` or the Gemini
 
 ## Progress
 
+PR: #72 (Phase 1), #74 (Phase 2, stacked on #72)
+
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles.
 
 ### Phase 1: Drafting service and route
@@ -62,9 +64,9 @@ No new env variables, no migration, no change to `LlmProviderPort` or the Gemini
 
 ### Phase 2: Product form panel
 
-- [ ] 2.1 Views and client helpers
-- [ ] 2.2 Page wiring
-- [ ] 2.3 E2E, smoke test, docs, spec moved
+- [x] 2.1 Views and client helpers — e2de15b
+- [x] 2.2 Page wiring — e2de15b
+- [x] 2.3 E2E, smoke test, docs, spec moved — d024908, 2cb0ae2
 
 ## Decisions and log
 
@@ -82,3 +84,13 @@ Choices where the spec was silent, contradictory or did not survive contact with
 Real-key smoke test (Phase 1, 8 of the ~10 allowed calls): 1 call hit the 1 500-token cap at `LOW` effort; 3 calls timed out at 15 s with a 4 000 cap; 1 direct uncapped call took 20 s and 4 564 thinking tokens, draft grounded; 1 direct call at `minimal` took 1.4 s, draft grounded; through the use case at `minimal`: Titan returned a grounded draft with the `[DEMO] ` prefix in 1.1 s, Pulse got a transient Gemini 5xx (correctly `provider_error`, no retry). (The first three attempts with an empty model name failed locally with `network` and reached no model.)
 
 Phase 1 gate (merged with origin/main at 820c563): lint, format, typecheck, unit with coverage (1 530 tests, 100 %), build, integration (142), e2e (85): all green.
+
+Phase 1 review (`om-auto-review-pr --autofix`): approved after one fix, 7dc2a15 (invisible and C1 control characters slipped past the `markup` rule; every `\p{Cc}` except `\n` and every `\p{Cf}` is now rejected). Open minor: "for Switch" (no verb) is not read as a platform. Open nit: `generate-answer.ts` re-exports `LLM_DAILY_*` for its test. Follow-up suggested: the Copilot's `findGroundingIssues` likely has the same invisible-character blind spot.
+
+Phase 2 decisions:
+
+1. **One `useActionState` for the whole panel.** Draft, replace, undo and discard are commands dispatched in a transition from `type="button"` clicks; the handlers and the action live in `description-draft-client.ts`, so the `"use client"` wrapper has no branches and no own functions. Buttons are not `formAction`s, so the product form is never submitted or reset by drafting.
+2. **No DOM test library.** Node's `FormData` cannot read a form and there is no `HTMLTextAreaElement`; the unit tests stub both globals with small fakes instead of adding jsdom or happy-dom.
+3. **Not configured** uses Base UI's `disabled` + `focusableWhenDisabled` (renders `aria-disabled="true"`, stays focusable) with `aria-describedby` on the explanation.
+
+Phase 2 real-key UI check (calls 9 and 10 of the budget; throwaway database in the dev Postgres, throwaway owner, `next start` with the key, dropped afterwards): Vortex Wireless Mouse → **Draft with AI** gave a grounded `[DEMO] ` draft in its own panel with "Based on: name, category, price, your notes"; **Replace** filled the textarea, **Undo** restored the seeded text; a second draft was replaced and saved, and the storefront page showed it. The injected-notes check was not run against the real model (budget spent); it is covered by the eval cases with a scripted model that obeys the injection, and documented as a manual step in the README.
