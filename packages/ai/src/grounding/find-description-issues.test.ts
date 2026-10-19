@@ -142,6 +142,22 @@ describe("findDescriptionIssues: one rule per glossary group", () => {
         { code: "unsupported_compatibility", term: "nintendo switch" },
       ]);
     }
+    // "for Switch" without a verb names the console at the end of a clause or next to another
+    // platform (#76); "for switch" before a noun is still the keyboard part.
+    for (const draft of [
+      "Ready for Switch.",
+      "A pad made for your Switch, and for travel.",
+      "Built for Switch and PC.",
+      "Great on PC or Switch!",
+    ]) {
+      const terms = findDescriptionIssues(draft, NOVA).map((issue) => issue.term);
+      expect(terms.sort()).toEqual(
+        draft.includes("PC") ? ["nintendo switch", "pc"] : ["nintendo switch"],
+      );
+    }
+    expect(findDescriptionIssues("Hot-swap sockets for switch changes in seconds.", NOVA)).toEqual(
+      [],
+    );
     expect(findDescriptionIssues("Works with Nintendo Switch.", NOVA)).toEqual([
       { code: "unsupported_compatibility", term: "nintendo switch" },
       { code: "unsupported_compatibility", term: "nintendo" },
