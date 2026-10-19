@@ -2,6 +2,7 @@ import { METRIC_DEFINITIONS } from "@commerceos/core";
 import { beforeAll, describe, expect, it } from "vitest";
 import { z } from "zod";
 import { ARTIFACTS_DIR, useBrowser } from "./support/browser-test";
+import { resetCopilotQuestionBudget } from "./support/copilot-budget";
 import { useOwnerSession } from "./support/sign-in";
 
 /** Each page with text from its streamed content: widths are measured once it has rendered. */
@@ -33,6 +34,7 @@ describe("admin shell at 390 px", () => {
 
   // No viewport reset afterwards: the session belongs to this file and closes with it.
   beforeAll(async () => {
+    await resetCopilotQuestionBudget();
     await browser().clearCookies();
     await useOwnerSession(browser());
     await browser().setViewport(390, 844);
@@ -61,5 +63,22 @@ describe("admin shell at 390 px", () => {
     expect(nav.right).toBeLessThanOrEqual(390);
     // QA evidence for #56; the folder is git-ignored and CI uploads it only on failure.
     await browser().screenshot(`${ARTIFACTS_DIR}/admin-nav-390.png`);
+  });
+
+  it("keeps Copilot evidence tables readable without sideways scrolling", async () => {
+    await browser().open("/admin/copilot");
+    await browser().waitForText("Or ask about your store");
+    await browser().clickRole("button", "Which products get views but few sales?");
+    await browser().waitForText("Most viewed products in the last 7 days");
+    const overflow = z
+      .array(z.number())
+      .parse(
+        await browser().evaluate(
+          "[...document.querySelectorAll('main [data-testid=\"copilot-answer\"] [data-slot=table-container]')].map((c) => c.scrollWidth - c.clientWidth)",
+        ),
+      );
+    expect(overflow.length).toBeGreaterThan(0);
+    for (const extra of overflow) expect(extra).toBe(0);
+    await browser().screenshot(`${ARTIFACTS_DIR}/admin-copilot-390.png`);
   });
 });
