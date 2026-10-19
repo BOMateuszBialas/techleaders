@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createRequestScope, disposeRootContainer } from "./container";
+import { STALE_CONTAINER_GRACE_MS, createRequestScope, disposeRootContainer } from "./container";
 import { logger } from "./logger";
 
 // No real Better Auth instance: it would start a background schema check.
@@ -10,46 +10,52 @@ process.env.BETTER_AUTH_SECRET ??= "unit-test-secret-unit-test-secret-1234";
 
 type ContainerGlobal = {
   __commerceosContainer?: unknown;
-  __commerceosContainerOwner?: symbol;
+  __commerceosContainerGeneration?: number;
 };
 const cache = globalThis as typeof globalThis & ContainerGlobal;
 
 /** A container left behind by an older evaluation of container.ts (dev hot reload). */
-function plantStaleContainer(dispose: () => Promise<void>) {
+function plantStaleContainer(dispose: () => Promise<void>, generation?: number) {
   cache.__commerceosContainer = { dispose };
-  cache.__commerceosContainerOwner = Symbol("older-module-evaluation");
+  cache.__commerceosContainerGeneration = generation;
 }
 
 afterEach(async () => {
   await disposeRootContainer();
+  vi.useRealTimers();
   vi.restoreAllMocks();
 });
 
 describe("composition root after a dev hot reload", () => {
-  it("disposes a container built by an older module evaluation and builds a fresh one", async () => {
+  it("replaces a container built by an older module evaluation, disposing it after a grace period", async () => {
+    vi.useFakeTimers();
     const dispose = vi.fn(async () => {});
-    plantStaleContainer(dispose);
+    plantStaleContainer(dispose, 0);
 
     const scope = createRequestScope();
 
-    expect(dispose).toHaveBeenCalledTimes(1);
+    // A request still running on the old container keeps its pools for the grace period.
+    expect(dispose).not.toHaveBeenCalled();
     // The fresh container knows the current registrations.
     expect(typeof scope.cradle.getSystemHealthUseCase.execute).toBe("function");
+    await vi.advanceTimersByTimeAsync(STALE_CONTAINER_GRACE_MS);
+    expect(dispose).toHaveBeenCalledTimes(1);
     await scope.dispose();
   });
 
   it("keeps serving when the stale container fails to close, and logs it", async () => {
+    vi.useFakeTimers();
     const warn = vi.spyOn(logger, "warn").mockImplementation(() => {});
+    // No generation recorded: treated as the oldest.
     plantStaleContainer(async () => {
       throw new Error("pool already closed");
     });
 
     const scope = createRequestScope();
-    await vi.waitFor(() =>
-      expect(warn).toHaveBeenCalledWith("A stale DI container could not be disposed", {
-        error: expect.any(Error),
-      }),
-    );
+    await vi.advanceTimersByTimeAsync(STALE_CONTAINER_GRACE_MS);
+    expect(warn).toHaveBeenCalledWith("A stale DI container could not be disposed", {
+      error: expect.any(Error),
+    });
     await scope.dispose();
   });
 
@@ -58,6 +64,43 @@ describe("composition root after a dev hot reload", () => {
     const second = createRequestScope();
     // Identity via ===: matchers on container objects make Vitest serialise them.
     expect(first.cradle.orm === second.cradle.orm).toBe(true);
+  });
+});
+
+describe("composition root in next dev with several server layers (#59)", () => {
+  it("lets alternating page and route requests share the newest container", async () => {
+    vi.useFakeTimers();
+    // `next dev` evaluates container.ts once per layer: route handlers first, then a page.
+    vi.resetModules();
+    const routeLayer = await import("./container");
+    const firstRouteScope = routeLayer.createRequestScope();
+    const routeOrm = firstRouteScope.cradle.orm;
+    const closeRouteOrm = vi.spyOn(routeOrm, "close");
+
+    vi.resetModules();
+    const pageLayer = await import("./container");
+    const pageScope = pageLayer.createRequestScope();
+    const pageOrm = pageScope.cradle.orm;
+    const closePageOrm = vi.spyOn(pageOrm, "close");
+
+    // The newer evaluation builds its own container; the route request in flight keeps its pools.
+    expect(pageOrm === routeOrm).toBe(false);
+    expect(closeRouteOrm).not.toHaveBeenCalled();
+
+    // Before the fix the older route layer replaced the page layer's container on every
+    // alternating request, disposing pools under requests still in flight.
+    const nextRouteScope = routeLayer.createRequestScope();
+    const nextPageScope = pageLayer.createRequestScope();
+    expect(nextRouteScope.cradle.orm === pageOrm).toBe(true);
+    expect(nextPageScope.cradle.orm === pageOrm).toBe(true);
+
+    await vi.advanceTimersByTimeAsync(STALE_CONTAINER_GRACE_MS);
+    expect(closePageOrm).not.toHaveBeenCalled();
+    // Only the container the newer evaluation replaced is closed, once the grace period ends.
+    expect(closeRouteOrm).toHaveBeenCalledTimes(1);
+    await Promise.all(
+      [firstRouteScope, pageScope, nextRouteScope, nextPageScope].map((scope) => scope.dispose()),
+    );
   });
 });
 
