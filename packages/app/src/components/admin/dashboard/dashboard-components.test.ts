@@ -154,6 +154,9 @@ describe("dashboard copy", () => {
       { preset: "30d", label: "Last 30 days", href: "/admin?period=30d", current: true },
     ]);
     expect(periodRangeLabel(PERIOD)).toBe("11–17 Oct 2026 (Europe/Warsaw)");
+    expect(periodRangeLabel(resolveCustomPeriod("2026-10-01", "2026-10-14"))).toBe(
+      "Custom range: 1–14 Oct 2026 (Europe/Warsaw)",
+    );
   });
 
   it("mentions demo orders only when the period has any", () => {
@@ -376,7 +379,7 @@ describe("DashboardView comparison", () => {
     const html = render(dashboard({ period: custom }));
 
     expect(html).not.toContain('aria-current="page"');
-    expect(text(html)).toContain("1–14 Oct 2026 (Europe/Warsaw)");
+    expect(text(html)).toContain("Custom range: 1–14 Oct 2026 (Europe/Warsaw)");
   });
 });
 

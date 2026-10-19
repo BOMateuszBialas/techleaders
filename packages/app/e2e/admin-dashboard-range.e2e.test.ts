@@ -78,7 +78,7 @@ describe("admin dashboard date range", () => {
     await browser().waitForUrl(`**/admin?from=${firstDay}&to=${lastDay}`);
     await browser().waitForText(`Compared with ${previous.label}`);
 
-    expect(await browser().text(RANGE)).toBe(`${period.label} (Europe/Warsaw)`);
+    expect(await browser().text(RANGE)).toBe(`Custom range: ${period.label} (Europe/Warsaw)`);
     expect(await browser().count('main nav[aria-label="Period"] a[aria-current="page"]')).toBe(0);
     expect(await browser().value("#range-from")).toBe(firstDay);
     expect(await browser().value("#range-to")).toBe(lastDay);

@@ -47,9 +47,13 @@ export function periodLinks(active: DashboardPeriod["preset"]): PeriodLink[] {
   }));
 }
 
-/** "11–17 Oct 2026 (Europe/Warsaw)". */
+/**
+ * "11–17 Oct 2026 (Europe/Warsaw)", or "Custom range: 1–14 Oct 2026 (Europe/Warsaw)" when no
+ * preset is active (date-range spec UI/UX), so the page says which kind of period it shows.
+ */
 export function periodRangeLabel(period: DashboardPeriod): string {
-  return `${period.label} (${period.timeZone})`;
+  const range = `${period.label} (${period.timeZone})`;
+  return period.preset === "custom" ? `${RANGE_FORM_LEGEND}: ${range}` : range;
 }
 
 /** "Includes 3 seeded demo orders (fictional)." when the period has any (A14), else null. */
