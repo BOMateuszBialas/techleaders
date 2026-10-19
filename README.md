@@ -1,72 +1,130 @@
 # CommerceOS
 
-CommerceOS is a lightweight, single-store e-commerce platform: a customer storefront plus a merchant admin dashboard. **Commerce Copilot** is its AI merchant advisor. It analyses the store's own data (sales, orders, products, inventory) and suggests a few prioritised, evidence-backed actions. The Copilot is **advisory only**: it never changes prices, products or orders by itself.
+CommerceOS is a lightweight, single-store e-commerce platform: a customer storefront plus a merchant admin. Its **Commerce Copilot** is an AI merchant advisor. It reads the store's own data (sales, orders, products, stock and fictional demo traffic) and answers with a short summary and up to 3 prioritised recommendations, each backed by evidence. The Copilot is **advisory only**: it never changes prices, products or orders.
 
-This is a 5-week AI Engineering portfolio MVP. The full specification is in [`.ai/specs/2026-10-13-commerceos-mvp.md`](.ai/specs/2026-10-13-commerceos-mvp.md), the agent rules are in [`AGENTS.md`](AGENTS.md), and the day-to-day coding conventions are in [`ENGINEERING_STANDARDS.md`](ENGINEERING_STANDARDS.md).
+It is a 5-week AI Engineering portfolio MVP. The P0 scope of the [MVP spec](.ai/specs/2026-10-13-commerceos-mvp.md) is complete: storefront, cart, demo checkout, admin catalog, stock, orders, metrics dashboard and the Copilot. The demo store sells fictional gaming accessories.
 
-> **Current state: foundation, admin sign-in, admin catalog management and storefront browsing.** The monorepo, database layer, DI container, env validation, health check, tests, owner authentication for `/admin`, admin product and category management, manual stock adjustment with a recorded history, and the storefront (a shop-front home page with featured products, browse by category, search, product pages) exist. The demo store sells fictional gaming accessories. The cart, demo checkout, admin orders, the metrics dashboard and a rule-based Commerce Copilot exist too; with a Google Gemini API key the Copilot writes its answers with an LLM (optional; without a key it stays rule-based). The owner can save, dismiss or complete each recommendation (see [Commerce Copilot](#commerce-copilot)).
+**What to look at as a reviewer:**
 
-## Monorepo structure
+- **Grounded AI, not a chat box.** Questions are routed deterministically to approved, read-only tools. The model sees aggregates only, its JSON is schema-validated and checked number by number against the tool results, and a bounded retry falls back to rule-based insights. Without an API key everything still works, rule-based and labelled as such.
+- **Commerce rules on the server.** Prices, totals and stock are re-checked when an order is placed. Stock is decremented atomically in one transaction (no overselling), and order status changes follow a transition table with conditional updates.
+- **Engineering gate.** A modular monorepo with enforced package boundaries, one DI composition root, and migrations as the source of truth. Unit tests run at 100% coverage, integration tests against a real PostgreSQL (Testcontainers), and browser e2e tests against the production build, all in CI on every pull request.
+
+Contents: [Quick start](#quick-start) · [5-minute demo](#5-minute-demo-walkthrough) · [Limitations](#what-is-real-and-what-is-not) · [Architecture](#architecture) · [Specs and process](#specs-and-process-documents) · [Reference](#reference)
+
+## Quick start
+
+You need Node.js **≥ 22.17** (developed on 24) with npm, and Docker for the local PostgreSQL. Any PostgreSQL 17 reachable through `DATABASE_URL` works instead of Docker.
+
+```bash
+npm install                 # installs all workspaces
+cp .env.example .env        # one .env for the whole repo, at the root
+# edit .env: set BETTER_AUTH_SECRET to 32+ random characters (openssl rand -base64 32)
+#            and add ADMIN_EMAIL and ADMIN_PASSWORD (12+ characters) for the owner account
+npm run db:up               # starts PostgreSQL 17 (docker compose)
+npm run db:migrate          # applies the migrations
+npm run db:seed             # loads the demo store: catalog, ~150 DEMO- orders, fictional traffic
+npm run admin:create        # creates the single store owner from ADMIN_EMAIL / ADMIN_PASSWORD
+npm run dev                 # http://localhost:3000
+```
+
+- Open the app at `http://localhost:3000`, not at the "Network" address `next dev` prints: sign-in trusts only `APP_URL`, and the dev server blocks hot reload from another origin.
+- `npm run admin:create` reads `ADMIN_EMAIL` and `ADMIN_PASSWORD` from the environment or from `.env`, and the app itself never reads them. You can remove them from `.env` afterwards.
+- No AI key is needed. The Copilot then gives rule-based answers; see [demo step 6](#5-minute-demo-walkthrough) to turn on Gemini.
+- `curl http://localhost:3000/api/health` returns `200 {"status":"ok",...}` when the database is reachable.
+
+## 5-minute demo walkthrough
+
+The demo follows the [primary demo story](.ai/specs/2026-10-13-commerceos-mvp.md#primary-demo-story) on a freshly seeded database. The seed's demo orders and traffic are anchored to the day you run `npm run db:seed`.
+
+1. **Storefront.** Open http://localhost:3000. The home page shows featured products with category tabs. Use the header search (try "mouse"), or click **Shop all products** and filter by category. Open **Vortex Wireless Mouse** (`/products/vortex-wireless-mouse`).
+2. **Cart.** Click **Add to cart**, open the cart from the header, change the quantity, then click **Checkout**. The cart cookie holds only product ids and quantities: every page re-reads prices and stock on the server.
+3. **Demo checkout.** Fill in a name, an email and an address in Poland (postal code `NN-NNN`, e.g. `80-827`), then click **Place order**. The server re-checks prices and stock and decrements stock in one transaction. The payment page says it is a demo payment: click **Confirm demo payment (no charge)**. The confirmation page shows the order reference (`CO-…`). Save it: it is the only way back to the order (`/orders/lookup`).
+4. **Admin orders.** Open http://localhost:3000/admin and sign in as the owner. In **Orders**, your order is at the top with the status **Paid**, above the seeded `DEMO-` orders. Open it, then click **Mark as processing** and **Mark as shipped**. Only allowed transitions are offered, and there is no "mark as paid": only the payment flow sets it.
+5. **Dashboard metrics.** Back on the dashboard (**Last 7 days**, or **Last 30 days**), every card prints its definition next to the number: orders placed, paid orders, revenue, average order value, top products and low stock. Your order is included, and so are the seeded demo orders (the page says how many).
+6. **Commerce Copilot, rule-based.** Open **Copilot** and click **What should I focus on to improve sales this week?**. Without an API key the answer is labelled "Rule-based insights · AI is not configured". It shows a summary and recommendations such as restocking the best seller that is running low, each with evidence (metric, value, period, source) and limitations. Try **Where does my traffic come from?**: every figure carries a "Fictional demo data" tag. Type a question it cannot answer into **Or ask about your store**, e.g. "What is my profit margin per product?", and click **Ask**: it declines and names the data it would need.
+7. **Commerce Copilot, with Gemini (optional).** Add to `.env`:
+
+   ```bash
+   LLM_PROVIDER=gemini
+   LLM_API_KEY=<your Google AI Studio key>
+   LLM_MODEL=gemini-3-flash-preview
+   ```
+
+   Restart `npm run dev` and ask the same question. The answer is now labelled "AI-generated · gemini-3-flash-preview". It is shown only if every number and product in it matches the tool results. An answer that fails these checks gets one retry; on any failure the Copilot falls back to the rule-based answer and says why ("The AI answer failed our checks", "The AI provider is busy", "Daily AI limit reached").
+8. **Recommendation actions.** On a recommendation, click **Save**. It appears under **Your recommendations** below the answer. Click **Mark completed** there. Dismissed and completed are final, every change is recorded with its time, and none of them changes store data.
+
+To start the demo again from a clean store, see [Demo data](#known-limitations) (re-seeding regenerates the demo orders and traffic; `docker compose down -v` resets everything).
+
+## What is real and what is not
+
+| Area | What the demo does | What it does not do |
+|---|---|---|
+| Payment | A clearly labelled **demo payment** (`DemoPaymentGateway` behind a `PaymentGateway` port). No card field exists and nothing is charged. | No Stripe or any real provider (Stripe test mode is a P1 option behind the same port). |
+| Shipping, refunds, tax | Orders move through `paid → processing → shipped`; "refunded" is a recorded status. | No carrier, no money movement on refund, no tax, Poland only, shipping always free. |
+| Traffic and conversion | Sessions, funnel and product views are **seeded, fictional data** (decisions D07 and D08), labelled as such wherever they appear. | No analytics integration; storefront visits are not tracked. |
+| Demo orders | About 150 seeded `DEMO-` orders with `[DEMO]` customers give the metrics and the Copilot a history. | Not real purchases; they never changed stock. |
+| AI answers | Optional Google Gemini **free tier** through `@google/genai`. `gemini-3-flash-preview` is a preview model id and can be retired (update `LLM_MODEL`). Free-tier quotas change often, and Google may use free-tier prompts to improve its products. The Copilot sends only aggregates of a fictional store. | No automated test calls a real provider; the eval set runs against a scripted model. |
+| Accounts | One owner account, email and password, revocable DB sessions. | No sign-up, no password-reset email, no customer accounts (guest checkout). |
+
+The full list, area by area, is in [Known limitations](#known-limitations). This is a portfolio MVP, not a production-ready store.
+
+## Architecture
 
 ```text
 packages/
-  app/        Next.js app: storefront, admin, API routes, DI composition root, env validation
+  app/        Next.js app: storefront, admin, route handlers and server actions,
+              DI composition root (src/server/container.ts), env validation
   core/       Domain rules, use cases, Zod input schemas, ports, typed errors (no framework)
-  database/   MikroORM config, entities, migrations, seeders, infrastructure adapters
-  ai/         Commerce Copilot: LLM provider port and adapters, output schemas, grounding checks
+  database/   MikroORM config, entities, migrations, seeders, adapters implementing core ports
+  ai/         Commerce Copilot: LLM provider port and Gemini adapter, approved tools, prompt,
+              output schemas, grounding checks, eval set
   config/     Shared tsconfig
 docker-compose.yml   Local PostgreSQL
 .ai/                 Specs, run logs and lessons for agent-assisted development
 ```
 
-Dependency direction: `app → core, ai` (and `app → database` only in the DI composition root `packages/app/src/server/container.ts`); `database → core`; `ai → core`. `core` depends only on Zod. ESLint (`no-restricted-imports` in `eslint.config.mjs`) fails the lint step if a package crosses these boundaries. Internal packages are consumed as TypeScript source (no build step).
+- **Modular monolith.** One deployable Next.js 16 app. Domain rules and use cases live in framework-free packages consumed as TypeScript source (no build step). Dependency direction: `app → core, ai`, and `app → database` only in the composition root; `database → core`; `ai → core`; `core` depends only on Zod. ESLint (`no-restricted-imports`) fails the lint step when a package crosses a boundary.
+- **Thin presentation.** Route handlers and server actions validate input with Zod, resolve a use case from a per-request scope and map typed `AppError`s to HTTP statuses or form states. Every admin entry point goes through one guard (`packages/app/src/server/auth/require-admin.ts`), and a test fails when a page, route or action skips it.
+- **Dependency injection (Awilix, strict mode).** `packages/app/src/server/container.ts` is the only place that builds infrastructure. The ORM, the Better Auth instance and the LLM provider are singletons. Each request gets a scope with its own forked MikroORM `EntityManager`, and strict mode stops a singleton from capturing a scoped object.
+- **Data.** PostgreSQL 17 with MikroORM 7. Migrations are the source of truth, and an integration test fails on drift between entities and migrations. Money is stored as integer minor units with DB `check` constraints. Stock has exactly three writers: a manual change with history, the checkout decrement and the cancel restock.
+- **Commerce Copilot pipeline.** Owner check and rate limit, then deterministic intent routing (seven questions; others are declined with the data they would need). Approved, read-only tools call the same metric use cases as the dashboard. Rule-based insights are always computed. When an LLM is configured, it receives a versioned prompt with the fact table under aliases, its JSON is validated with Zod and grounded against the facts, it gets at most 2 attempts within 40 s, and it falls back to the rule-based answer.
+- **Tests and the gate.** `npm run lint`, `format:check`, `typecheck`, `test:coverage` (unit tests at 100% lines, branches, functions and statements), `build`, `test:integration` (Testcontainers PostgreSQL) and `test:e2e` (the production build driven by agent-browser). [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs them on every pull request. See [Tests and CI](#tests-and-ci).
 
-## Technology stack
+Stack: Next.js 16.4 (App Router, Turbopack, Cache Components) · React 19.3 · TypeScript 5.9 (strict) · PostgreSQL 17 · MikroORM 7 · Awilix 13 · Better Auth 1.7 · Tailwind CSS 4 · shadcn/ui · Zod 4 · Google Gemini API (`@google/genai`, optional) · Vitest 5 · Testcontainers · agent-browser · ESLint 9 · Prettier 3 · npm workspaces.
 
-Next.js 16.4 (App Router, Turbopack, Cache Components) · React 19.3 · TypeScript 5.9 (strict) · PostgreSQL 17 · MikroORM 7 · Awilix 13 · Tailwind CSS 4 · shadcn/ui · Zod 4 · Google Gemini API (`@google/genai`, optional) · Vitest 5 · ESLint 9 · Prettier 3 · npm workspaces.
+## Specs and process documents
 
-### Key architectural decisions
+- [MVP spec](.ai/specs/2026-10-13-commerceos-mvp.md): the source of truth for scope, architecture and the Copilot design.
+- Implemented feature specs in [`.ai/specs/implemented/`](.ai/specs/implemented/):
+  - [Foundation](.ai/specs/implemented/2026-10-13-foundation-init.md)
+  - [Engineering standards](.ai/specs/implemented/2026-10-13-engineering-standards.md)
+  - [CI and test safety net](.ai/specs/implemented/2026-10-13-ci-and-test-safety-net.md)
+  - [Admin authentication](.ai/specs/implemented/2026-10-15-admin-authentication.md)
+  - [Admin catalog](.ai/specs/implemented/2026-10-15-admin-catalog-management.md)
+  - [Storefront catalog](.ai/specs/implemented/2026-10-15-storefront-catalog.md)
+  - [Cart and demo checkout](.ai/specs/implemented/2026-10-15-cart-and-demo-checkout.md)
+  - [Orders, dashboard and demo store](.ai/specs/implemented/2026-10-16-orders-dashboard-demo-store.md)
+  - [Commerce Copilot](.ai/specs/implemented/2026-10-17-commerce-copilot.md)
+- [Product brief](.ai/specs/product-brief.md) with its decisions (D01–D10) in [`.ai/specs/research/decisions/`](.ai/specs/research/decisions/), and the [backlog](.ai/specs/backlog.md).
+- [`AGENTS.md`](AGENTS.md) (agent rules), [`ENGINEERING_STANDARDS.md`](ENGINEERING_STANDARDS.md) (coding conventions), [`SDLC.md`](SDLC.md) (ticket flow and labels), [`CODE_REVIEW.md`](CODE_REVIEW.md), [`BACKWARD_COMPATIBILITY.md`](BACKWARD_COMPATIBILITY.md).
+- [`.ai/runs/`](.ai/runs/) logs every autonomous agent run, and [`.ai/lessons.md`](.ai/lessons.md) records what went wrong and the rule that came out of it.
 
-- **Modular monolith.** One deployable Next.js app; domain and use cases live in framework-free packages.
-- **One DI composition root** (`packages/app/src/server/container.ts`). The ORM and LLM provider are singletons. Every request gets its own scope with a forked MikroORM `EntityManager`. Awilix strict mode prevents scoped objects from leaking into singletons.
-- **Migrations are the source of truth** for the schema. There is no automatic schema sync, and an integration test fails if entities and migrations drift apart.
-- **Money in integer minor units** (grosze/cents), with DB `check` constraints for invariants.
-- **Provider-neutral LLM port.** Gemini is one adapter behind `LlmProviderPort`. Without credentials the app uses an explicit "unconfigured" provider that fails clearly, and the Copilot shows rule-based insights; it never fabricates answers.
+## Reference
 
-## Prerequisites
+### Prerequisites in detail
 
-- Node.js **≥ 22.17** (developed on 24) and npm 11
-- Docker Desktop: local PostgreSQL, and the Testcontainers PostgreSQL used by integration and e2e tests. On Windows it requires the **Virtual Machine Platform** / WSL 2 feature. To only run the app, any PostgreSQL 17 instance works via `DATABASE_URL`.
+- Node.js **≥ 22.17** (developed on 24) and npm 11.
+- Docker Desktop: the local PostgreSQL, and the Testcontainers PostgreSQL used by integration and e2e tests. On Windows it requires the **Virtual Machine Platform** / WSL 2 feature. To only run the app, any PostgreSQL 17 instance works via `DATABASE_URL`.
 - For e2e tests: agent-browser and Chrome for Testing, installed with `bash .ai/scripts/ensure-agent-browser.sh` (pinned and checksum-verified; use Git Bash on Windows).
 
-## Getting started
+More pages to check after the quick start:
 
-```bash
-npm install                 # installs all workspaces
-cp .env.example .env        # one .env for the whole repo, at the root
-                            # then set BETTER_AUTH_SECRET (openssl rand -base64 32)
-npm run db:up               # starts PostgreSQL for local development
-npm run db:migrate          # applies migrations
-npm run db:seed             # loads the demo store (repeatable; marked [DEMO] / DEMO-)
-                            # (a gaming-accessories store; see "Demo data" below)
-ADMIN_EMAIL=you@example.com ADMIN_PASSWORD='at-least-12-chars' npm run admin:create
-                            # creates the single store owner (or put both in .env)
-npm run dev                 # http://localhost:3000
-```
+- http://localhost:3000/products: published products, filterable with `?category=<slug>` and searchable with `?q=<term>`.
+- http://localhost:3000/admin/products and http://localhost:3000/admin/categories (signed in): catalog management. Create and edit products and categories, publish or unpublish a product, tick "Featured on home page", and set stock in the **Stock** panel of a product page.
+- http://localhost:3000/api/health: `200 {"status":"ok",...}` when the database is reachable, `503 {"status":"degraded",...}` otherwise.
 
-Verify the setup:
-
-- http://localhost:3000: storefront home with a hero, featured products (tabs: `/?category=<slug>`), a header menu and a footer
-- http://localhost:3000/products: published products, filterable with `?category=<slug>` and searchable with `?q=<term>` (the header search box and the listing's search form); http://localhost:3000/products/vortex-wireless-mouse: a product page
-- http://localhost:3000/admin: redirects to `/admin/sign-in`; after signing in as the owner, the dashboard: store metrics for the last 7 days (`?period=30d` for 30 days), each with its definition, and the live system status
-- http://localhost:3000/admin/products and http://localhost:3000/admin/categories (signed in): catalog management. Create and edit products and categories, publish or unpublish a product (the page says what shoppers will see), and tick "Featured on home page" to put a published product in the home page slider
-- http://localhost:3000/api/health: returns `200 {"status":"ok",...}` when the database is reachable, `503 {"status":"degraded",...}` otherwise
-
-Always open the app at `http://localhost:3000`, not at the "Network" address `next dev` prints:
-- From another origin, the dev server blocks hot-reload, and the page keeps reloading ("Compiling" never stops).
-- Sign-in trusts only `APP_URL`.
-
-## Environment variables
+### Environment variables
 
 Defined and validated in `packages/app/src/server/env.ts`; invalid configuration fails with a message listing the problems.
 
@@ -83,9 +141,9 @@ Defined and validated in `packages/app/src/server/env.ts`; invalid configuration
 | `LLM_MODEL` | when `LLM_PROVIDER` is set | Gemini model id, e.g. `gemini-3-flash-preview` (no default in code) |
 | `NODE_ENV` | no | Standard Node environment |
 
-Payment variables will be added when a payment integration is implemented. The e2e suite blanks the three `LLM_*` variables, so a developer key never reaches it.
+There are no payment variables: the demo payment needs none. The e2e suite blanks the three `LLM_*` variables, so a developer key never reaches it.
 
-## Commands
+### Commands
 
 | Command | What it does |
 |---|---|
@@ -102,8 +160,9 @@ Payment variables will be added when a payment integration is implemented. The e
 | `npm run db:migrate` | Apply pending migrations |
 | `npm run db:migration:create` | Generate a migration from entity changes (review it before committing) |
 | `npm run db:seed` | Load the demo catalog (insert-only) and regenerate the demo orders and traffic |
+| `npm run admin:create` | Create the store owner from `ADMIN_EMAIL` / `ADMIN_PASSWORD` (`-- --rotate-password` sets a new password and signs the owner out everywhere) |
 
-## Tests and CI
+### Tests and CI
 
 | Layer | Files | Runs against |
 |---|---|---|
@@ -113,7 +172,7 @@ Payment variables will be added when a payment integration is implemented. The e
 
 `.github/workflows/ci.yml` runs on every pull request and on `main`, with one check per job: lint/format/typecheck, unit tests with coverage, build, integration tests, and e2e tests (screenshots of failing e2e tests are uploaded as an artifact). Docker is the only service the tests need; there is no shared test database.
 
-## Commerce Copilot
+### Commerce Copilot
 
 `/admin/copilot` (signed-in owner) answers one question at a time: seven suggested questions (decision D09) or a typed question in English (1–500 characters). It works without any AI provider: then every answer is rule-based and labelled "Rule-based insights · AI is not configured". With `LLM_PROVIDER=gemini`, `LLM_API_KEY` and `LLM_MODEL` set, an answered question is written by the model (see [AI answers](#ai-answers-gemini)); the app never fabricates an AI answer.
 
@@ -124,9 +183,9 @@ Payment variables will be added when a payment integration is implemented. The e
 - **Evidence for the summary too:** the numbers in an answer's summary are listed under "Figures in this summary" with their metric, period and source.
 - **Limits and logs:** 10 questions per owner per 10 minutes (429 after that). One `copilot.answer` log line per question with the intent, tools and outcome, never the question text or store figures.
 - **Recommendation actions** (Copilot spec Phase 4, #26): every answered question's recommendations are stored as `new` in `copilot_recommendations` (with the answer's origin, fallback reason, model and evidence, including the demo flags; never the question text). Each card offers **Save**, **Dismiss** and **Mark completed**; a saved one can still be completed or dismissed, and dismissed and completed are final. Every change records the time and applies only if the recommendation is still in the status the page showed (a second tab gets "This recommendation is already …"). **Your recommendations** below the answer lists saved and completed ones, newest first, 20 per page (`/admin/copilot?page=2`). A product deleted since shows as "(deleted product)".
-- Copilot reads store data and changes nothing in it: the only rows it writes are its own recommendations and the rate-limit counters. After pulling this change run `npm run db:migrate` (migration `Migration20261018180016_copilot_recommendations`).
+- Copilot reads store data and changes nothing in it: the only rows it writes are its own recommendations and the rate-limit counters. An existing database needs `npm run db:migrate` for its table (migration `Migration20261018180016_copilot_recommendations`).
 
-### AI answers (Gemini)
+#### AI answers (Gemini)
 
 - **Provider:** Google Gemini API, **free tier**, through the official `@google/genai` SDK (`GeminiLlmProvider` behind `LlmProviderPort`, `packages/ai/src/adapters/`). Create a key in Google AI Studio and pick a Flash model the free tier offers; `gemini-3-flash-preview` was used in the smoke test (Gemini 2.5 models are not open to new keys). **Cost: $0** on the free tier; free-tier quotas change often, and a provider 429 falls back to rule-based insights ("The AI provider is busy").
 - **One structured call per attempt:** the model gets a versioned system prompt and returns JSON that follows a response schema. At most **2 attempts** within one **40 s** deadline (20 s per attempt, low thinking level, 4 000 output tokens); a second attempt runs only when the first failed the checks and at least 10 s remain. Timeouts and provider errors are not retried.
@@ -135,15 +194,15 @@ Payment variables will be added when a payment integration is implemented. The e
 - **Limits:** 10 questions per owner per 10 minutes, plus **100 LLM attempts per day** for the whole store (each attempt counts); above it the rule-based answer says "Daily AI limit reached". The log line adds the provider, model, prompt version, attempts, issue codes, token usage and latency, never the prompt or the answer.
 - **Evals:** `packages/ai/src/evals/` holds the version-controlled eval set: a grounded answer, a fabricated number, a real number on the wrong product, unknown ids, a causal claim, a prompt injection in a product name (obeyed and ignored), invalid JSON, timeout, provider 429, an empty store, and every declined category. `run-evals.test.ts` runs them in the unit suite against a scripted model and asserts properties (origin, fallback reason, number of calls, absent fabrications, no product id in the prompt), never wording. No automated test calls a real provider; a live eval script is P1.
 
-## Payments
+### Payments
 
 **Demo payment only** (decision D03). After "Place order" the shopper sees `/checkout/pay/<reference>` with the banner "Demo store — this is a demo payment. No real money is charged and no card details are collected." and one button, "Confirm demo payment (no charge)". It goes through the `PaymentGateway` port to `DemoPaymentGateway` (`packages/app/src/server/payments/`), which contacts no provider, charges nothing and returns `DEMO-PAY-<order id>`. No card field exists anywhere and no card data is stored. Stripe (test mode) is a P1 option behind the same port; it is not integrated.
 
 Purchase flow: cart → `/checkout` (guest: name, email, address in Poland; prices and stock re-checked on the server) → `/checkout/pay/<reference>` → `/orders/<reference>?paid=1`. `/orders/lookup` finds an order again by its reference.
 
-## Store metrics (admin dashboard)
+### Store metrics (admin dashboard)
 
-`/admin` shows the store's metrics for **"Last 7 days"** (default) or **"Last 30 days"** (`/admin?period=7d|30d`; any other value means 7 days): whole calendar days in the store time zone **Europe/Warsaw**, today included. Each card prints its definition next to the number. The definitions below are a product rule (R05, orders spec A8, confirmed by the product owner); they live once in `packages/core/src/domain/metrics/metric-definitions.ts`, the SQL in `packages/database/src/adapters/database-store-metrics.ts` implements them, and the Commerce Copilot tools (E05) will call the same use cases (`GetSalesSummaryUseCase`, `GetOrderSummaryUseCase`, `GetTopProductsUseCase`, `GetLowStockProductsUseCase`). Change them only together.
+`/admin` shows the store's metrics for **"Last 7 days"** (default) or **"Last 30 days"** (`/admin?period=7d|30d`; any other value means 7 days): whole calendar days in the store time zone **Europe/Warsaw**, today included. Each card prints its definition next to the number. The definitions below are a product rule (R05, orders spec A8, confirmed by the product owner); they live once in `packages/core/src/domain/metrics/metric-definitions.ts`, the SQL in `packages/database/src/adapters/database-store-metrics.ts` implements them, and the Commerce Copilot tools call the same use cases (`GetSalesSummaryUseCase`, `GetOrderSummaryUseCase`, `GetTopProductsUseCase`, `GetLowStockProductsUseCase`). Change them only together.
 
 | Metric | Definition |
 | --- | --- |
@@ -169,14 +228,14 @@ Fictional demo traffic (decision D08) has its own definitions in the same file (
 - A deleted product keeps its sales in "Top products" under the name on its order lines (one row per name it was sold under), marked "(deleted product)".
 - Every figure comes from SQL aggregates at request time (AOV is divided from them); nothing is cached or precomputed.
 
-## MVP scope
+### MVP scope
 
 - **Storefront:** catalog, search/filter, cart, server-validated checkout, order confirmation.
 - **Admin:** authentication, real database-backed metrics, product/category CRUD, inventory, orders and status workflow.
 - **Commerce Copilot:** a performance summary plus up to 3 prioritised recommendations with evidence, grounded in tool results from application services; save, dismiss and complete actions; a safe fallback.
 - **Out of scope:** multi-tenancy, marketplaces, real shipping and refunds, discounts, multi-currency checkout, a CMS page builder, autonomous AI actions, microservices.
 
-## Known limitations
+### Known limitations
 
 - **Admin access:**
   - There is one owner account and no public sign-up.
@@ -207,10 +266,9 @@ Fictional demo traffic (decision D08) has its own definitions in the same file (
   - Catalog rows are never deleted, so a database seeded before 2026-10-15 still holds the old coffee products. To start clean, drop the local database and seed again: `docker compose down -v`, then `npm run db:up`, `npm run db:migrate`, `npm run db:seed` and `npm run admin:create` (this also deletes the owner account and sessions).
 - **Cart:**
   - The cart lives in an `httpOnly` cookie (`commerceos_cart`) holding only product ids and quantities, never prices; every page and action re-reads prices, availability and stock from the catalog. A tampered or unreadable cookie is treated as an empty cart. It needs cookies enabled and does not follow the shopper to another browser.
-  - Adding to the cart **does not reserve stock**: the quantity is checked against the current stock for feedback only, and the order placement (checkout, next PR) will be the authoritative check.
+  - Adding to the cart **does not reserve stock**: the quantity is checked against the current stock for feedback only, and placing the order is the authoritative check.
   - Up to 20 different products and 99 of each; one currency per cart.
   - A product that is unpublished or sold out while in a cart disappears from it, and a quantity above the stock is lowered to it, each with a message on the cart page. The cookie itself is corrected by the next cart change (a page render cannot set cookies), so until then the message shows again and the header count may include the removed item.
-  - Checkout is not available yet: the cart page says "Checkout is coming soon."
 - **Checkout and orders:**
   - **Stock is decremented when the order is placed**, before payment, and an unpaid order keeps it (spec A5). There is no expiry: the owner cancels an unpaid order in the admin, which returns its stock. Anyone can still hold stock with unpaid orders until then; checkout is not rate-limited. Fine for a local demo; add an expiry or a checkout limit before any public hosting.
   - The order reference (`CO-XXXXX-XXXXX-XXXXX-XXXXX`, 100 random bits) is a **bearer secret**: whoever has it sees the order's status, items and totals (never the name, email or address). It is part of the URL, so a hosting provider's access log could record it; the app's own logger never does. Order pages are `noindex` and send no referrer.
@@ -230,10 +288,8 @@ Fictional demo traffic (decision D08) has its own definitions in the same file (
 - Commerce Copilot AI answers: the free tier's quotas and data terms are Google's; preview model ids can be retired, so `LLM_MODEL` may need updating. Grounding checks numbers, products and causal phrases, not spelled-out numbers or qualitative claims.
 - `npm audit` reports advisories in development tooling dependencies (e.g. `braces` via linting and test tooling); they do not affect runtime code and are tracked for a later update.
 
-## Roadmap
+### Roadmap
 
-1. **Week 1:** foundation (done), admin authentication (done), product/category model and admin catalog management (done), stock adjustment (done).
-2. **Week 2:** storefront listing and detail, search/filter, cart, server-side price and stock validation.
-3. **Week 3:** checkout and transactional order creation, payment test mode or demo payment, orders admin, dashboard metrics.
-4. **Week 4:** Commerce Copilot: analytics tools, LLM adapter, structured output, grounding, fallback, recommendation actions, eval set.
-5. **Week 5:** hardening, E2E tests, deployment, demo script and architecture diagram.
+1. **Weeks 1–4 (done):** foundation, admin authentication, catalog and stock, storefront, cart, demo checkout, admin orders, dashboard metrics, demo store data, Commerce Copilot (tools, rule-based insights, Gemini adapter with grounding and fallback, recommendation actions, eval set).
+2. **Week 5 (in progress):** hardening and polish for the demo: dev-server fixes, this README and demo guide, a mobile layout pass.
+3. **P1, only after P0 is stable:** AI-drafted product descriptions, date-range comparison, a live eval script, Stripe test mode and webhooks, CSV import, image upload.

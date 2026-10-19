@@ -11,6 +11,11 @@ Keep entries short; put longer write-ups in `.ai/lessons/YYYY-MM-DD-slug.md` and
 
 <!-- Newest first -->
 
+- **2026-10-19 — "No page scroll" is not "readable on a phone"; check table containers and the storefront too**:
+  - The #56 mobile test checked only `scrollWidth` of admin pages. Meanwhile the storefront header pushed the cart link off-screen (page 485 px wide at 390). Copilot evidence tables hid the Value column inside their scroll container, because shadcn `TableCell` defaults to `whitespace-nowrap`.
+  - At 390 px, also measure `[data-slot=table-container]` (`scrollWidth - clientWidth`) and the position of key controls.
+  - Let text cells wrap (`whitespace-normal`, plus `wrap-anywhere` for long ids). Keep numbers `nowrap`.
+
 - **2026-10-18 — A per-evaluation cache key cannot tell a sibling server layer from a hot reload (#59)**: in `next dev` each server layer (route handlers, pages) evaluates `container.ts` separately, and Turbopack bakes the layer into the bundled code (`[app-route]`, `[app-rsc]` in import names), so neither a `Symbol` per evaluation nor a hash of class sources is shared between layers. Ordering is: a process-wide generation counter on `globalThis`; the newest evaluation owns the container, older ones reuse it, and a replaced container is disposed after a grace period so in-flight requests keep their pools. Verify such fixes with a temporary log in a real `next dev`, alternating page and API requests and then editing a file.
 
 - **2026-10-18 — Compare rules on raw values, not display values; one record shown twice needs shared client state (#63, #67)**: Copilot rule 5 compared percentages already rounded to 0.1%, so a store rate under 0.05% turned the rule off and products at the threshold flipped; a sort used `Number(fact.value)`, which is `NaN` for a formatted value. Rate facts now carry the unrounded `ratio` for rules (never sent to the model). Separately, a recommendation shown in the answer and in "Your recommendations" kept two independent client states, so the answer offered actions the server would refuse; a page-level context now shares the status each action returns. Also: `@google/genai`'s `response.text` getter writes `console.warn` past our logger; read the candidate's text parts instead (#65).
