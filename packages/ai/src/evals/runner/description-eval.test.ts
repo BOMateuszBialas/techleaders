@@ -12,6 +12,7 @@ import {
 import { ScriptedLlmProvider } from "../scripted-llm-provider";
 import {
   checkDescriptionResult,
+  type DescriptionLog,
   descriptionAccepted,
   describeDescriptionOutcome,
   executeDescriptionCase,
@@ -212,7 +213,7 @@ describe("runDescriptionCase, budget refused", () => {
   it("checks every log event for field values", async () => {
     const evalCase = caseById("grounded-mouse");
     const { result } = await drafted(evalCase);
-    const events = [{}, { name: evalCase.input.name }];
+    const events: DescriptionLog[] = [{ outcome: "draft" }, { name: evalCase.input.name }];
     const properties = checkDescriptionResult(evalCase, "live", result, [], {}, events);
     expect(failedNames(properties)).toEqual(["log_has_no_values"]);
   });
