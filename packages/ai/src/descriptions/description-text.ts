@@ -122,13 +122,18 @@ function canonicalNumber(units: string, decimals: string | null): string {
  * is a decimal mark ("2.4", "2,4"); any other space separates two numbers.
  */
 function splitDigitRun(run: string): string[] {
-  const parts = run.split(/([., ])/);
   const values: string[] = [];
-  let units = parts[0] ?? "";
+  let units = "";
   let decimals: string | null = null;
-  for (let index = 1; index < parts.length; index += 2) {
-    const separator = parts[index];
-    const digits = parts[index + 1] ?? "";
+  // Pieces: "26", ",000", ".5", " 40": the first is the leading digits, each other one starts
+  // with its separator.
+  for (const { 0: piece, index } of run.matchAll(/[., ]?\d+/g)) {
+    if (index === 0) {
+      units = piece;
+      continue;
+    }
+    const separator = piece.charAt(0);
+    const digits = piece.slice(1);
     if (decimals === null && digits.length === 3) {
       units += digits;
     } else if (decimals === null && separator !== " ") {
@@ -246,11 +251,12 @@ export function findMoney(text: string): MoneyMention[] {
     if (found.some((other) => start < other.end && other.start < end)) return;
     found.push({ minor: PLN.has(currency) ? amountToMinor(amount) : null, start, end });
   };
+  // Both expressions always capture both groups, so `String()` only narrows the types.
   for (const match of text.matchAll(MONEY_AFTER)) {
-    add(match.index, match[0].length, match[1] ?? "", match[2] ?? "");
+    add(match.index, match[0].length, String(match[1]), String(match[2]));
   }
   for (const match of text.matchAll(MONEY_BEFORE)) {
-    add(match.index, match[0].length, match[2] ?? "", match[1] ?? "");
+    add(match.index, match[0].length, String(match[2]), String(match[1]));
   }
   return found;
 }

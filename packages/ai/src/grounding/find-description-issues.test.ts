@@ -133,6 +133,15 @@ describe("findDescriptionIssues: one rule per glossary group", () => {
 
   it("never reads the bare word 'switch' as a platform", () => {
     expect(findDescriptionIssues("Linear switches feel smooth.", NOVA)).toEqual([]);
+    expect(findDescriptionIssues("Each switch is linear; swap a switch in seconds.", NOVA)).toEqual(
+      [],
+    );
+    // ...but "works with Switch" and "Switch OLED" name the console.
+    for (const draft of ["It works with Switch.", "Plays on your Switch OLED."]) {
+      expect(findDescriptionIssues(draft, NOVA)).toEqual([
+        { code: "unsupported_compatibility", term: "nintendo switch" },
+      ]);
+    }
     expect(findDescriptionIssues("Works with Nintendo Switch.", NOVA)).toEqual([
       { code: "unsupported_compatibility", term: "nintendo switch" },
       { code: "unsupported_compatibility", term: "nintendo" },

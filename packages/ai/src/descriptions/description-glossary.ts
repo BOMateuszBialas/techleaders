@@ -31,16 +31,19 @@ export type GlossaryTerm = {
   patterns?: readonly string[];
 };
 
+/** At least one variant: the first is the term's canonical name. */
+type Variants = readonly [string, ...string[]];
+
 function terms(
   kind: GlossaryKind,
   group: string,
-  ...entries: ReadonlyArray<readonly string[] | { variants: string[]; patterns: string[] }>
+  ...entries: ReadonlyArray<Variants | { variants: Variants; patterns: readonly string[] }>
 ): GlossaryTerm[] {
   return entries.map((entry) => {
     const variants = "patterns" in entry ? entry.variants : entry;
     const patterns = "patterns" in entry ? entry.patterns : undefined;
     return {
-      id: variants[0] ?? "",
+      id: variants[0],
       kind,
       group,
       variants,
@@ -255,8 +258,15 @@ const COMPATIBILITY: GlossaryTerm[] = [
     ["ps4"],
     ["ps5"],
     ["xbox"],
-    // The bare word "switch" is a keyboard part (feature group "build"), never a platform.
-    ["nintendo switch"],
+    // The bare word "switch" is a keyboard part (feature group "build"). It names the console
+    // only after "works with" and the like ("works with Switch") or before a model name.
+    {
+      variants: ["nintendo switch"],
+      patterns: [
+        "(?:works?|working|compatible|pairs?|plays?|playing) (?:with|on) (?:the |your )?switch(?!e)",
+        "switch (?:console|lite|oled|2)",
+      ],
+    },
     ["steam deck"],
     ["handheld"],
     ["mobile", "smartphone", "phone", "tablet"],

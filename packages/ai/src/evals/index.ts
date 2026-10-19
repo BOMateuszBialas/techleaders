@@ -6,3 +6,6 @@ export * from "./eval-case";
 export * from "./eval-store";
 export * from "./replies";
 export * from "./scripted-llm-provider";
+export * from "./descriptions/description.cases";
+export * from "./descriptions/eval-categories";
+export * from "./descriptions/seeded-products";

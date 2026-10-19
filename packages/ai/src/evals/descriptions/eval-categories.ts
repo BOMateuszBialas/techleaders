@@ -15,8 +15,8 @@ export const EVAL_CATEGORY_IDS = {
 
 export type EvalCategoryName = keyof typeof EVAL_CATEGORY_IDS;
 
-/** The real `GetCategoryUseCase` over an in-memory, read-only category list. */
-export function evalCategories(): GetCategoryUseCase {
+/** An in-memory, read-only category repository holding the seeded categories. */
+export function evalCategoryRepository(): CategoryRepositoryPort {
   const records: AdminCategoryRecord[] = Object.entries(EVAL_CATEGORY_IDS).map(([name, id]) => ({
     id,
     slug: name.toLowerCase(),
@@ -27,7 +27,7 @@ export function evalCategories(): GetCategoryUseCase {
   const readOnly = async (): Promise<never> => {
     throw new Error("The description evals never write categories");
   };
-  const categoryRepository: CategoryRepositoryPort = {
+  return {
     list: async () => records,
     findById: async (id) => records.find((record) => record.id === id) ?? null,
     listProducts: async () => [],
@@ -35,5 +35,9 @@ export function evalCategories(): GetCategoryUseCase {
     update: readOnly,
     deleteIfEmpty: readOnly,
   };
-  return new GetCategoryUseCase({ categoryRepository });
+}
+
+/** The real `GetCategoryUseCase` over `evalCategoryRepository`. */
+export function evalCategories(): GetCategoryUseCase {
+  return new GetCategoryUseCase({ categoryRepository: evalCategoryRepository() });
 }

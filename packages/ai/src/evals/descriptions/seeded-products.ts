@@ -5,10 +5,12 @@
  * test (`packages/app/src/server/catalog/description-draft.int.test.ts`) compares it with the
  * seeded rows, so a change to the seed fails until this list and the glossary follow.
  */
+import type { EvalCategoryName } from "./eval-categories";
+
 export type SeededProduct = {
   slug: string;
   name: string;
-  category: string;
+  category: EvalCategoryName;
   priceMinor: number;
   description: string;
 };

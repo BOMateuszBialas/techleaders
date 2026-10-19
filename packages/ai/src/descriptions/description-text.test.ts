@@ -118,6 +118,8 @@ describe("findMoney", () => {
       24900, 24900, 24900, 123456, 24990,
     ]);
     expect(money("26,000 złotych")).toEqual([2600000]);
+    // One amount, even when a currency stands on both sides of it.
+    expect(money("PLN 249 PLN")).toEqual([24900]);
   });
 
   it("marks other currencies as unknown and ignores bare numbers", () => {
