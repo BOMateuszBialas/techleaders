@@ -35,7 +35,7 @@ Phase 1 follows the spec's steps 1–8.
 - [x] 1.5 UI — 8abcf6e
 - [x] 1.6 E2E — e268400
 - [x] 1.7 Docs — (this commit)
-- [ ] 1.8 Full gate
+- [x] 1.8 Full gate — lint, format, typecheck, 1613 unit tests at 100 % coverage, build, 144 integration, 94 e2e (all green on b1abbcb)
 
 ## Log
 
