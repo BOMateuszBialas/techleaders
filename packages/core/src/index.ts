@@ -82,4 +82,5 @@ export * from "./validators/metrics/metric-query.schema";
 export * from "./validators/orders/checkout.schema";
 export * from "./validators/orders/order-status-change.schema";
 export * from "./validators/parse-input";
+export * from "./validators/products/description-draft.schema";
 export * from "./validators/products/product-input.schema";

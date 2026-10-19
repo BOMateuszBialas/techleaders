@@ -1,6 +1,7 @@
 import { afterAll, describe, expect, it, vi } from "vitest";
 import {
   AskCopilotUseCase,
+  DraftProductDescriptionUseCase,
   GeminiLlmProvider,
   GetLowStockProductsTool,
   UnconfiguredLlmProvider,
@@ -247,6 +248,15 @@ describe("composition root", () => {
     ).toBe(true);
     expect(first.cradle.getLowStockProductsTool instanceof GetLowStockProductsTool).toBe(true);
     expect(first.cradle.copilotLog === copilotLog).toBe(true);
+  });
+
+  it("wires the description drafting use case per request", () => {
+    expect(
+      first.cradle.draftProductDescriptionUseCase === second.cradle.draftProductDescriptionUseCase,
+    ).toBe(false);
+    expect(
+      first.cradle.draftProductDescriptionUseCase instanceof DraftProductDescriptionUseCase,
+    ).toBe(true);
   });
 
   it("routes Copilot answer events through the server logger", () => {

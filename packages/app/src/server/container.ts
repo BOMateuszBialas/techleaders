@@ -1,6 +1,7 @@
 import "server-only";
 import {
   AskCopilotUseCase,
+  DraftProductDescriptionUseCase,
   GeminiLlmProvider,
   GetLowStockProductsTool,
   GetOrderSummaryTool,
@@ -178,6 +179,7 @@ export type Cradle = {
   listCopilotRecommendationsUseCase: ListCopilotRecommendationsUseCase;
   changeRecommendationStatusUseCase: ChangeRecommendationStatusUseCase;
   askCopilotUseCase: AskCopilotUseCase;
+  draftProductDescriptionUseCase: DraftProductDescriptionUseCase;
   authPool: Pool;
   auth: Auth;
 };
@@ -278,6 +280,9 @@ function buildContainer(): AwilixContainer<Cradle> {
     listCopilotRecommendationsUseCase: asClass(ListCopilotRecommendationsUseCase).scoped(),
     changeRecommendationStatusUseCase: asClass(ChangeRecommendationStatusUseCase).scoped(),
     askCopilotUseCase: asClass(AskCopilotUseCase).scoped(),
+    // AI product description drafts (descriptions spec, Phase 1): scoped, because the rate limiter
+    // and the category lookup use the request's EntityManager. It writes nothing but rate limits.
+    draftProductDescriptionUseCase: asClass(DraftProductDescriptionUseCase).scoped(),
     authPool: asFunction(() => createAuthPool(env.DATABASE_URL))
       .singleton()
       .disposer((pool) => pool.end()),
