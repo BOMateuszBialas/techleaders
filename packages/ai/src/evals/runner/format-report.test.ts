@@ -17,6 +17,7 @@ function result(overrides: Partial<CaseResult>): CaseResult {
     tokens: { input: 10, output: 2, thinking: 1 },
     model: "scripted-model",
     providerFailure: null,
+    providerCause: null,
     issueCodes: [],
     properties: [{ property: "contract", passed: true }],
     ...overrides,
@@ -93,6 +94,8 @@ describe("formatReport", () => {
           id: "x",
           status: "unavailable",
           outcome: "rules: auth",
+          providerFailure: "auth",
+          providerCause: "http_401",
           accepted: null,
           latencyMs: null,
           tokens: { input: 0, output: 0, thinking: 0 },
@@ -112,7 +115,7 @@ describe("formatReport", () => {
     const text = formatReport(live, "text");
     expect(text).toContain("CommerceOS evals · live · gemini · flash · budget 5 calls · 3 cases");
     expect(text).toContain("PASS         llm · 1 attempt · 1200 ms · tokens 10/2/1");
-    expect(text).toContain("UNAVAILABLE  rules: auth · 1 attempt · tokens 0/0/0");
+    expect(text).toContain("UNAVAILABLE  rules: auth (http_401) · 1 attempt · tokens 0/0/0");
     expect(text).toContain("SKIPPED      skipped: provider\n");
     expect(text).toContain(
       "Summary: 1 passed, 0 failed, 1 unavailable, 1 skipped · properties 2/2",

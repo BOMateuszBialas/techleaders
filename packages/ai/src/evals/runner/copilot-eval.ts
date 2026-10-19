@@ -264,6 +264,7 @@ export async function runCopilotCase(
     outcome: describeCopilotOutcome(answer),
     accepted: copilotAccepted(answer),
     providerFailure: provider.providerFailure,
+    providerCause: provider.providerCause,
     attempts: provider.requests.length,
     latencyMs: provider.latencyMs,
     tokens: provider.tokens,

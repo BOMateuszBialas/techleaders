@@ -62,12 +62,14 @@ describe("RecordingLlmProvider", () => {
       provider(async () => {
         throw new LlmProviderUnavailableError("quota", {
           reason: "rate_limited",
+          causeCode: "http_429",
           usage: { inputTokens: 5, outputTokens: null, thinkingTokens: 2 },
         });
       }),
     );
     await expect(recording.generateStructured(request)).rejects.toThrow("quota");
     expect(recording.providerFailure).toBe("rate_limited");
+    expect(recording.providerCause).toBe("http_429");
     expect(recording.tokens).toEqual({ input: 5, output: 0, thinking: 2 });
     expect(recording.latencyMs).toBeNull();
   });

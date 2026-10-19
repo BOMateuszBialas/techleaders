@@ -21,7 +21,9 @@ function header(report: EvalReport): string {
 
 /** Outcome, attempts and (live) latency and tokens: never prompt or model text (spec A8). */
 function details(result: CaseResult): string {
-  const parts = [result.outcome];
+  const parts = [
+    result.providerCause ? `${result.outcome} (${result.providerCause})` : result.outcome,
+  ];
   if (result.status !== "skipped") parts.push(plural(result.attempts, "attempt"));
   if (result.mode === "live" && result.status !== "skipped") {
     if (result.latencyMs !== null) parts.push(`${result.latencyMs} ms`);

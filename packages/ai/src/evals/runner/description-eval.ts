@@ -199,6 +199,7 @@ export async function runDescriptionCase(
     tokens: provider.tokens,
     model: provider.model,
     providerFailure: provider.providerFailure,
+    providerCause: provider.providerCause,
     issueCodes: issueCodesOf(log),
     properties,
   };

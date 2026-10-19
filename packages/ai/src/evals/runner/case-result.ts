@@ -39,6 +39,8 @@ export type CaseResult = {
   model: string | null;
   /** The provider's own failure reason (`timeout`, `auth`, …); never a budget refusal. */
   providerFailure: string | null;
+  /** The failure's short, log-safe cause code (`bad_request`, `finish_max_tokens`, …; #65). */
+  providerCause: string | null;
   /** Description checks that rejected an attempt (constants, e.g. `ungrounded_number`). */
   issueCodes: string[];
   properties: PropertyResult[];

@@ -1,4 +1,5 @@
 import {
+  llmCauseCodeOf,
   llmFailureOf,
   llmUsageOf,
   LlmProviderUnavailableError,
@@ -49,6 +50,8 @@ export class RecordingLlmProvider implements LlmProviderPort {
   model: string | null = null;
   /** The reason of the last failure the wrapped provider reported (a budget refusal is not one). */
   providerFailure: LlmUnavailableReason | null = null;
+  /** Its log-safe cause code, when the provider gave one. */
+  providerCause: string | null = null;
 
   constructor(
     private readonly inner: LlmProviderPort,
@@ -82,7 +85,10 @@ export class RecordingLlmProvider implements LlmProviderPort {
     } catch (error) {
       this.addUsage(llmUsageOf(error));
       const failure = llmFailureOf(error);
-      if (failure?.kind === "unavailable") this.providerFailure = failure.reason;
+      if (failure?.kind === "unavailable") {
+        this.providerFailure = failure.reason;
+        this.providerCause = llmCauseCodeOf(error);
+      }
       throw error;
     }
   }

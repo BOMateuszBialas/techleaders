@@ -133,6 +133,7 @@ function skipped(selected: SelectedCase, reason: "budget" | "provider"): CaseRes
     tokens: { input: 0, output: 0, thinking: 0 },
     model: null,
     providerFailure: null,
+    providerCause: null,
     issueCodes: [],
     properties: [],
   };

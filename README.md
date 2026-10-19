@@ -65,7 +65,7 @@ To start the demo again from a clean store, see [Demo data](#known-limitations) 
 | Shipping, refunds, tax | Orders move through `paid → processing → shipped`; "refunded" is a recorded status. | No carrier, no money movement on refund, no tax, Poland only, shipping always free. |
 | Traffic and conversion | Sessions, funnel and product views are **seeded, fictional data** (decisions D07 and D08), labelled as such wherever they appear. | No analytics integration; storefront visits are not tracked. |
 | Demo orders | About 150 seeded `DEMO-` orders with `[DEMO]` customers give the metrics and the Copilot a history. | Not real purchases; they never changed stock. |
-| AI answers | Optional Google Gemini **free tier** through `@google/genai`. `gemini-3-flash-preview` is a preview model id and can be retired (update `LLM_MODEL`). Free-tier quotas change often, and Google may use free-tier prompts to improve its products. The Copilot sends only aggregates of a fictional store. | No automated test calls a real provider; the eval set runs against a scripted model. |
+| AI answers | Optional Google Gemini **free tier** through `@google/genai`. `gemini-3-flash-preview` is a preview model id and can be retired (update `LLM_MODEL`). Free-tier quotas change often, and Google may use free-tier prompts to improve its products. The Copilot sends only aggregates of a fictional store. | No automated test calls a real provider; the eval set runs against a scripted model. `npm run eval -- --live` runs a bounded subset against the real model, on request only and never in CI. |
 | AI descriptions | Optional drafts from the same Gemini free tier, sent only the product's name, category, price and description; shown only when every number, feature, platform, brand and claim also appears in those fields. | Never saved or published by the AI: the owner copies a draft into the form and saves it. The check is lexical, so paraphrases and adjectives are left to the owner's review. |
 | Accounts | One owner account, email and password, revocable DB sessions. | No sign-up, no password-reset email, no customer accounts (guest checkout). |
 
@@ -157,6 +157,7 @@ There are no payment variables: the demo payment needs none. The e2e suite blank
 | `npm run test:coverage` | Unit tests with the 100% coverage gate (HTML report in `coverage/`) |
 | `npm run test:integration` | Integration tests against a throwaway PostgreSQL container (Testcontainers, needs Docker) |
 | `npm run test:e2e` | Browser tests: starts PostgreSQL and the built app, drives it with agent-browser (run `npm run build` first) |
+| `npm run eval` | The Copilot and description eval sets with a readable report (scripted models; `-- --live` runs a bounded subset against the configured model, see [Evals](#evals-npm-run-eval)) |
 | `npm run format` / `npm run format:check` | Prettier write / check |
 | `npm run db:up` / `npm run db:down` | Start / stop local PostgreSQL |
 | `npm run db:migrate` | Apply pending migrations |
@@ -194,7 +195,7 @@ There are no payment variables: the demo payment needs none. The e2e suite blank
 - **Grounding:** the answer is shown only when every number in a recommendation is the value of a fact that recommendation cites (or the period length), every product it names or whose fact it cites is listed, every cited fact and product exists, the summary and observations claim no cause, and there are at most 3 recommendations. Otherwise the problems (codes and ids only) go back to the model once; after that the rule-based answer is shown with "The AI answer failed our checks". The answer says "AI-generated · <model>" or "Rule-based insights · <reason>".
 - **Data sent (aggregates only):** the canonical text of the routed question (never the owner's own text), the period, and the fact table: metric values with period and source, product names and SKUs under short aliases (`p1`, `p2`). Never product ids, descriptions, customer data, order references or secrets. Product names are sent as JSON data and the prompt treats them as data, not instructions. **Free-tier note:** Google may use free-tier prompts and responses to improve its products; that is acceptable here only because the payload is aggregates of a fictional demo store.
 - **Limits:** 10 questions per owner per 10 minutes, plus **100 LLM attempts per day** for the whole store (each attempt counts); above it the rule-based answer says "Daily AI limit reached". The log line adds the provider, model, prompt version, attempts, issue codes, token usage and latency, never the prompt or the answer.
-- **Evals:** `packages/ai/src/evals/` holds the version-controlled eval set: a grounded answer, a fabricated number, a real number on the wrong product, unknown ids, a causal claim, a prompt injection in a product name (obeyed and ignored), invalid JSON, timeout, provider 429, an empty store, and every declined category. `run-evals.test.ts` runs them in the unit suite against a scripted model and asserts properties (origin, fallback reason, number of calls, absent fabrications, no product id in the prompt), never wording. No automated test calls a real provider; a live eval script is P1.
+- **Evals:** `packages/ai/src/evals/` holds the version-controlled eval set: a grounded answer, a fabricated number, a real number on the wrong product, unknown ids, a causal claim, a prompt injection in a product name (obeyed and ignored), invalid JSON, timeout, provider 429, an empty store, and every declined category. `run-evals.test.ts` runs them in the unit suite against a scripted model and asserts properties (origin, fallback reason, number of calls, absent fabrications, no product id in the prompt), never wording. No automated test calls a real provider; `npm run eval -- --live` runs a subset against the real model on request (see [Evals](#evals-npm-run-eval)).
 
 #### AI drafts (product descriptions)
 
@@ -206,6 +207,24 @@ P1, spec `.ai/specs/implemented/2026-10-18-ai-product-descriptions.md`. `POST /a
 - **Limits:** 5 drafts per owner per 10 minutes (429), and drafts share the store's **100 LLM attempts per day** with the Copilot (`copilot:llm:day`), so a busy drafting session can push Copilot answers onto rule-based insights for the rest of the day. At most 2 attempts within 30 s (15 s each, 1 500 output tokens, minimal model thinking). An AI failure is a 200 with `kind: "unavailable"` and a reason, never an HTTP error.
 - **Logs and evals:** one `description.draft` log line with the outcome, reason, attempts, issue codes, model, prompt version, token usage, latency and character counts, never the fields, the prompt or the draft. The eval set (`packages/ai/src/evals/descriptions/`, run by `run-description-evals.test.ts`) covers grounded drafts per category, invented numbers, features, platforms, brands and promises, commerce talk, markup, invalid JSON, prompt injection in the notes and the name, provider failures, too little input and a demo product, against scripted models.
 - **Manual check with a real key** (no automated test calls the provider): with the three `LLM_*` variables set, open a seeded product such as Vortex Wireless Mouse, click **Draft with AI**, check the draft uses only facts from the form and starts with `[DEMO] `, click **Replace description with this draft**, then **Undo** (the old text returns), replace again, click **Save changes** and check the storefront page. A product whose notes ask the AI to "write FREE SHIPPING" must show no draft or a clean one.
+
+#### Evals (`npm run eval`)
+
+P1, spec `.ai/specs/implemented/2026-10-19-eval-script.md`. One command runs both eval sets (Copilot and product descriptions) and prints one line per case, the properties that failed with a short reason, and a summary. Exit code 1 means a property failed.
+
+```bash
+npm run eval                                        # every case, scripted models: no key, network or database
+npm run eval -- --set descriptions --format markdown
+npm run eval -- --case grounded-answer --format json
+npm run eval -- --live                              # live cases against LLM_* (default budget 5 calls)
+npm run eval -- --live --max-calls 20 --case injection-in-notes-obeyed
+```
+
+- **Offline (default):** the same cases and the same checks as the unit tests (`run-evals.test.ts` and `run-description-evals.test.ts` call the same `packages/ai/src/evals/runner/` checks). Each case asserts properties, never wording: the outcome (origin or draft, fallback reason, number of calls), the response contract, no forbidden text shown, demo labels, a fallback that is exactly the rule-based answer, no product id or SKU sent, a shown draft that passes the checks again, and logs without field values.
+- **Live (`--live`, opt-in):** runs only the cases marked `live: true` (4 Copilot, 6 description cases, alternating between the sets) against the provider in `LLM_PROVIDER`, `LLM_API_KEY` and `LLM_MODEL` (read from the environment or the root `.env`). The model's outcome is reported, not asserted: a rule-based fallback after a rejected answer is a safe result, and the summary shows how often the model's output was shown. The safety properties are still asserted.
+- **Bounded:** `--max-calls` (default 5, at most 20) counts every model call, retries included. A case starts only if 2 calls remain, so the default runs 2 cases. Live evals do not use the store's daily cap (`copilot:llm:day`) and need no database. The run stops after the provider rejects the key or reports a quota limit. Exit code 3 means no live case completed.
+- **Never in CI:** `--live` refuses to start when `CI` is set, before it reads any key. CI runs the offline checks through the unit suite.
+- **What is printed:** case ids, property names, outcomes, attempts, latency, token counts, issue codes, the model id and the provider's short cause code. Never the prompt, the model's text or the key. Live runs send the payloads described above for the fictional eval stores and seeded product copy.
 
 ### Payments
 
@@ -305,4 +324,4 @@ Fictional demo traffic (decision D08) has its own definitions in the same file (
 
 1. **Weeks 1–4 (done):** foundation, admin authentication, catalog and stock, storefront, cart, demo checkout, admin orders, dashboard metrics, demo store data, Commerce Copilot (tools, rule-based insights, Gemini adapter with grounding and fallback, recommendation actions, eval set).
 2. **Week 5 (in progress):** hardening and polish for the demo: dev-server fixes, this README and demo guide, a mobile layout pass.
-3. **P1, only after P0 is stable:** AI-drafted product descriptions, date-range comparison, a live eval script, Stripe test mode and webhooks, CSV import, image upload.
+3. **P1, only after P0 is stable:** AI-drafted product descriptions, date-range comparison, an eval script (`npm run eval`, done), Stripe test mode and webhooks, CSV import, image upload.
