@@ -28,15 +28,19 @@ Phase 1 follows the spec's steps 1–8.
 
 ### Phase 1: Date range and comparison on the dashboard
 
-- [ ] 1.1 Periods from days
-- [ ] 1.2 Change rule and definition
-- [ ] 1.3 Range validation
-- [ ] 1.4 Use case
-- [ ] 1.5 UI
-- [ ] 1.6 E2E
-- [ ] 1.7 Docs
+- [x] 1.1 Periods from days — 33cc305
+- [x] 1.2 Change rule and definition — 18ab55f
+- [x] 1.3 Range validation — b4f9a1a
+- [x] 1.4 Use case — b3f8912, 2661c1d
+- [x] 1.5 UI — 8abcf6e
+- [x] 1.6 E2E — e268400
+- [x] 1.7 Docs — (this commit)
 - [ ] 1.8 Full gate
 
 ## Log
 
 - Spec written with `om-spec-writing --autonomous` and reviewed by a fresh-context subagent. All 8 findings were applied: the today note, hiding the % on partial history, no `ai` change, the other-currency note, the type test, no new query, the `metric-value` test, and the split step. Spec PR #78 opened.
+- Implementation: the core helpers make the metric use cases generic over the period type, so the Copilot still infers `MetricPeriod` (checked by an `expectTypeOf` test), and no file in `packages/ai` changed. The partial-history check reuses `GetOrderSummaryUseCase` over `[epoch, comparison start)`; no new query was added.
+- Deviation: the form is a plain GET `<form>`, not `next/form`. This is recorded in the spec's implementation notes.
+- An e2e run found that agent-browser `fill` cannot set a date input. The value is now set with `evaluate`; see the lesson.
+- Integration test: on the hand-built fixture, a custom range of 11–17 Oct is compared with 4–10 Oct, with orders exactly on the boundary, and history is partial for 4–10 Oct.
