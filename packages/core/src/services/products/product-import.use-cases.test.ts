@@ -140,6 +140,20 @@ describe("PreviewProductImportUseCase", () => {
     ]);
   });
 
+  it("compares later rows only with earlier rows that are valid (A18 rule 3)", async () => {
+    const { preview } = setup();
+    const result = await preview.execute({
+      csv: ["name,price,sku", "Pad,1,A-1", "Pad,2,B-2", "Mat,3,B-2"].join("\n"),
+    });
+
+    // Line 3 repeats line 2's slug, so it is an error and its SKU B-2 is not "taken".
+    expect(result.rows.map((row) => [row.line, row.outcome, row.errors])).toEqual([
+      [2, "create", []],
+      [3, "error", ["slug: same slug as line 2."]],
+      [4, "create", []],
+    ]);
+  });
+
   it("treats a repeat of a skipped row as a skip too", async () => {
     const { preview, repository } = setup();
     repository.existing.push(VORTEX);

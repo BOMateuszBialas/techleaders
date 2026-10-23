@@ -37,6 +37,9 @@ export type ProductImportViewProps = {
   pending: boolean;
 };
 
+/** The form message, referenced by the file input when it reports a file problem. */
+const FILE_ERROR_ID = "product-import-file-error";
+
 const OUTCOME_BADGES: Record<ProductImportOutcome, "secondary" | "outline" | "destructive"> = {
   create: "secondary",
   skip: "outline",
@@ -80,8 +83,16 @@ export function ProductImportView({ action, state, pending }: ProductImportViewP
   const confirm = preview && isImportable(preview) ? preview : null;
   return (
     <section className="flex flex-col gap-4">
-      {confirm ? null : <UploadForm action={action} pending={pending} />}
-      <FormMessage state={state} />
+      {confirm ? null : (
+        <UploadForm
+          action={action}
+          pending={pending}
+          fileError={state.status === "error" && !preview}
+        />
+      )}
+      <div id={FILE_ERROR_ID}>
+        <FormMessage state={state} />
+      </div>
       {preview ? <PreviewTable preview={preview} fileName={state.fileName} /> : null}
       {preview && preview.counts.error > 0 ? <p className="text-sm">{HAS_ERRORS_NOTE}</p> : null}
       {preview && preview.counts.error === 0 && preview.counts.create === 0 ? (
@@ -105,7 +116,11 @@ export function ProductImportView({ action, state, pending }: ProductImportViewP
   );
 }
 
-function UploadForm({ action, pending }: Pick<ProductImportViewProps, "action" | "pending">) {
+function UploadForm({
+  action,
+  pending,
+  fileError,
+}: Pick<ProductImportViewProps, "action" | "pending"> & { fileError: boolean }) {
   return (
     <form action={action} className="flex max-w-xl flex-col gap-3">
       <input type="hidden" name="intent" value="preview" />
@@ -117,7 +132,10 @@ function UploadForm({ action, pending }: Pick<ProductImportViewProps, "action" |
           type="file"
           accept=".csv,text/csv"
           required
-          aria-describedby="product-import-file-hint"
+          aria-invalid={fileError}
+          aria-describedby={
+            fileError ? `product-import-file-hint ${FILE_ERROR_ID}` : "product-import-file-hint"
+          }
         />
         <p id="product-import-file-hint" className="text-sm text-muted-foreground">
           {FILE_HINT}

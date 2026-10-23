@@ -258,6 +258,31 @@ describe("submitProductImport, import", () => {
     expect(updateTag).not.toHaveBeenCalled();
   });
 
+  it("returns the fresh preview of the same text with a write conflict", async () => {
+    importProductsUseCase.execute.mockRejectedValue(new ProductImportConflictError());
+    const fresh = { ...preview, counts: { create: 0, skip: 2, error: 0 } };
+    previewProductImportUseCase.execute.mockResolvedValue(fresh);
+    const state = await submitProductImport(IDLE_ACTION_STATE, importForm());
+    expect(previewProductImportUseCase.execute).toHaveBeenCalledWith({ csv: CSV });
+    expect(state).toMatchObject({
+      status: "error",
+      preview: fresh,
+      csv: CSV,
+      fileName: "products.csv",
+    });
+  });
+
+  it("keeps the conflict message when the re-check after a conflict fails too", async () => {
+    importProductsUseCase.execute.mockRejectedValue(new ProductImportConflictError());
+    previewProductImportUseCase.execute.mockRejectedValue(new Error("connection refused"));
+    const state = await submitProductImport(IDLE_ACTION_STATE, importForm());
+    expect(state).toMatchObject({
+      status: "error",
+      message: expect.stringMatching(/^The catalog/),
+    });
+    expect(state.preview).toBeUndefined();
+  });
+
   it("shows a generic message for an unexpected failure", async () => {
     importProductsUseCase.execute.mockRejectedValue(new Error("connection refused"));
     const state = await submitProductImport(IDLE_ACTION_STATE, importForm());

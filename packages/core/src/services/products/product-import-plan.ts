@@ -104,8 +104,12 @@ export function planProductImport(
     const skuLine = input.sku === null ? undefined : firstLineOfSku.get(input.sku);
     if (slugLine !== undefined) errors.push(`slug: same slug as line ${slugLine}.`);
     if (skuLine !== undefined) errors.push(`sku: same SKU as line ${skuLine}.`);
-    if (slugLine === undefined) firstLineOfSlug.set(input.slug, check.line);
-    if (input.sku !== null && skuLine === undefined) firstLineOfSku.set(input.sku, check.line);
+    // Only a row that ends as create or skip is an "earlier valid row" for later lines (A18
+    // rule 3); a duplicate-error row registers neither of its keys.
+    if (owner || errors.length === 0) {
+      if (slugLine === undefined) firstLineOfSlug.set(input.slug, check.line);
+      if (input.sku !== null && skuLine === undefined) firstLineOfSku.set(input.sku, check.line);
+    }
 
     if (owner) {
       const key = slugOwner ? "slug" : "SKU";

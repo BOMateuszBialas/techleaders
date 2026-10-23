@@ -3,6 +3,7 @@
 import {
   decodeCsvFile,
   FILE_TOO_LARGE_MESSAGE,
+  hasAppErrorCode,
   MAX_IMPORT_FILE_BYTES,
   ValidationError,
   type ProductImportPreview,
@@ -61,10 +62,19 @@ export async function submitProductImport(
       if (intent === "import") {
         const csv = readFormValue(formData, "csv");
         const fileName = readFormValue(formData, "fileName").slice(0, MAX_FILE_NAME_LENGTH);
-        const result = await importProductsUseCase.execute({
-          csv,
-          fingerprint: readFormValue(formData, "fingerprint"),
-        });
+        const result = await importProductsUseCase
+          .execute({ csv, fingerprint: readFormValue(formData, "fingerprint") })
+          .catch(async (error: unknown) => {
+            // A write conflict rolled everything back: check the same text again, so the
+            // owner sees the current preview with the conflict message (spec, API Contracts).
+            if (hasAppErrorCode(error, "CONFLICT")) {
+              const fresh = await previewProductImportUseCase.execute({ csv }).catch(() => null);
+              // If even the re-check fails, the conflict message alone still tells the owner
+              // to check the file again; the original error is what gets reported.
+              if (fresh) payload = { preview: fresh, csv, fileName };
+            }
+            throw error;
+          });
         if (result.kind === "changed") {
           refused = true;
           payload = { preview: result.preview, csv, fileName };

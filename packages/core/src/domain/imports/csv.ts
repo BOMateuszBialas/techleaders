@@ -36,12 +36,15 @@ export function decodeCsvFile(bytes: Uint8Array): string {
   }
 }
 
-/** Comma or semicolon: whichever appears more often outside quotes on the header line. */
+/**
+ * Comma or semicolon: whichever appears more often outside quotes on the header line, the
+ * first line that is not blank (blank lines are ignored everywhere).
+ */
 function detectDelimiter(text: string): "," | ";" {
   let commas = 0;
   let semicolons = 0;
   let quoted = false;
-  for (const char of text) {
+  for (const char of text.replace(/^(?:[ \t]*\n)+/, "")) {
     if (char === '"') quoted = !quoted;
     else if (!quoted && char === "\n") break;
     else if (!quoted && char === ",") commas += 1;

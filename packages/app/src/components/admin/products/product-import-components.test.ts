@@ -15,7 +15,7 @@ import {
   templateHref,
   type ProductImportState,
 } from "./product-import-copy";
-import { ProductImportForm } from "./product-import-form";
+import { ProductImportForm, withoutPreviousState } from "./product-import-form";
 import { ProductImportView } from "./product-import-view";
 
 const action = vi.fn();
@@ -130,6 +130,9 @@ describe("ProductImportView", () => {
     const html = render({ status: "error", message: "The file has no price column." });
     expect(html).toContain('role="alert"');
     expect(html).toContain('type="file"');
+    expect(html).toContain('aria-invalid="true"');
+    expect(html).toContain('aria-describedby="product-import-file-hint product-import-file-error"');
+    expect(html).toContain('id="product-import-file-error"><p role="alert"');
     expect(html).not.toContain("Import preview");
   });
 
@@ -221,5 +224,15 @@ describe("ProductImportForm", () => {
     const serverAction = vi.fn(async (state: ProductImportState) => state);
     const html = renderToStaticMarkup(createElement(ProductImportForm, { action: serverAction }));
     expect(html).toContain(">Check file<");
+  });
+
+  it("never posts the previous state (preview rows and text) back to the server", async () => {
+    const serverAction = vi.fn(async () => ({ status: "success" as const }));
+    const data = new FormData();
+    await withoutPreviousState(serverAction)(
+      { status: "success", preview: ready, csv: "name;price\nA;1" },
+      data,
+    );
+    expect(serverAction).toHaveBeenCalledWith({ status: "idle" }, data);
   });
 });

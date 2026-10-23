@@ -60,6 +60,12 @@ describe("parseCsvText", () => {
     expect(parsed.records).toEqual([{ line: 2, cells: ["Mouse", "249,90"] }]);
   });
 
+  it("detects the delimiter on the first non-blank line", () => {
+    const parsed = parseCsvText("\n  \r\nname;price\nMouse;249,90\n");
+    expect(parsed.header).toEqual(["name", "price"]);
+    expect(parsed.records).toEqual([{ line: 4, cells: ["Mouse", "249,90"] }]);
+  });
+
   it("counts delimiters on the header line only, outside quotes", () => {
     const parsed = parseCsvText('"a;b;c",name\nx,y\nz;z;z;z,w');
     expect(parsed.header).toEqual(["a;b;c", "name"]);
