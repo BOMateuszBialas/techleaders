@@ -26,7 +26,8 @@
     "db:migrate": "npm run migrate -w @commerceos/database",
     "db:migration:create": "npm run migration:create -w @commerceos/database",
     "db:seed": "npm run seed -w @commerceos/database",
-    "admin:create": "npm run admin:create -w @commerceos/app --"
+    "admin:create": "npm run admin:create -w @commerceos/app --",
+    "eval": "tsx packages/ai/src/evals/cli/eval.ts"
   },
   "devDependencies": {
     "@testcontainers/postgresql": "^12.2.1",
