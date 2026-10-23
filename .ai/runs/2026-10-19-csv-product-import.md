@@ -20,18 +20,18 @@ Core CSV parsing and row rules, plan and two use cases, one port and its databas
 
 ### Phase 1: Core
 
-- [ ] 1.1 CSV decoding and parsing
-- [ ] 1.2 Import row rules
-- [ ] 1.3 Plan, port and use cases
+- [x] 1.1 CSV decoding and parsing — 23892bf
+- [x] 1.2 Import row rules — 23892bf
+- [x] 1.3 Plan, port and use cases — 23892bf
 
 ### Phase 2: Persistence and wiring
 
-- [ ] 2.1 Database adapter and integration tests
-- [ ] 2.2 Container wiring
+- [x] 2.1 Database adapter and integration tests — 26e0a3c
+- [x] 2.2 Container wiring — 26e0a3c
 
 ### Phase 3: Admin UI
 
-- [ ] 3.1 Server action and runAdminAction options
+- [x] 3.1 Server action and runAdminAction options — 3a8479a
 - [ ] 3.2 Import page, view and wrapper
 - [ ] 3.3 E2E test
 
