@@ -70,6 +70,7 @@ One request, top to bottom:
 | `unlisted_product` | A catalog product name or SKU (from the product table) that appears in a recommendation's text is in its `relatedProductAliases`; every cited fact that carries a `productAlias` belongs to one of those aliases |
 | `causal_claim` | Observation and summary contain no attribution phrase from a short list (`caused`, `led to`, `due to`, `as a result of`, `because of`, `drove`). "Why it matters" is exempt: it explains consequences, which is its job |
 | `too_many` | At most 3 recommendations (also enforced by the schema) |
+| `hidden_character` | No text (summary, title, observation, reasoning, suggested action, limitations) holds a control character other than a line feed (`\p{Cc}`, tab and C1 included) or an invisible format character (`\p{Cf}`: zero-width, bidi, soft hyphen, BOM), outside the catalog product names it quotes. Such a character inside a word (`dro\u200Bve`) would hide it from every other check while the owner still reads it; the text is rejected, never stripped. Same rule as the description drafts (`grounding/hidden-character.ts`, #75) |
 
 Attached by the server, never required of the model: `demo: true` on every evidence row from a traffic fact and the limitation "Traffic figures are fictional demo data", the A8 causation limitation on `sales_change`, the A21 "no traffic data yet" limitation, and E04's "N orders in other currencies are not included" note when present.
 

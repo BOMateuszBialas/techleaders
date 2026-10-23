@@ -17,6 +17,8 @@ export const DISCARD_LABEL = "Discard";
 export const APPLIED_TEXT =
   "The draft is now in the Description field. Edit it and click Save to keep it.";
 export const UNDO_LABEL = "Undo";
+export const UNDO_UNAVAILABLE_TEXT =
+  "Undo is no longer available: the description was edited, saved or submitted after Replace, and Undo would overwrite that. It was left as it is.";
 export const RATE_LIMITED_TEXT =
   "You asked for many drafts in a short time. Try again in a few minutes.";
 export const SESSION_ENDED_TEXT = "Your session has ended. Sign in again to draft with AI.";

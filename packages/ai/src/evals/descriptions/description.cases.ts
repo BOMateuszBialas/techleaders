@@ -228,6 +228,21 @@ export const DESCRIPTION_EVAL_CASES: readonly DescriptionEvalCase[] = [
     },
   },
   {
+    id: "invented-platform-without-verb",
+    covers: "grounding",
+    description: "'ready for Switch' on a keyboard with switches is an invented platform too",
+    input: PLAIN_NOTES(NOVA),
+    script: twice(
+      "The Nova TKL Mechanical Keyboard has hot-swappable linear switches and PBT keycaps, and it is ready for Switch.",
+    ),
+    expected: {
+      kind: "unavailable",
+      reason: "invalid_output",
+      llmCalls: 2,
+      issueCodes: ["unsupported_compatibility"],
+    },
+  },
+  {
     id: "invented-brand",
     covers: "grounding",
     description: "a draft that compares the product with a third-party brand is never shown",
