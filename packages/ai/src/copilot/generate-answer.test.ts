@@ -20,13 +20,11 @@ import { NOW, PERIOD, lowStock, orders, sales, top } from "./copilot-results.fix
 import {
   ATTEMPT_TIMEOUT_MS,
   INVALID_OUTPUT_PROBLEM,
-  LLM_DAILY_KEY,
-  LLM_DAILY_LIMIT,
-  LLM_DAILY_WINDOW_SECONDS,
   MAX_OUTPUT_TOKENS,
   generateAnswer,
   generationLogFields,
 } from "./generate-answer";
+import { LLM_DAILY_KEY, LLM_DAILY_LIMIT, LLM_DAILY_WINDOW_SECONDS } from "../llm/llm-daily-cap";
 import { INTENTS } from "./intents";
 import { buildRuleInsights } from "./rule-insights";
 

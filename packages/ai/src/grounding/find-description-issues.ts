@@ -8,6 +8,7 @@ import {
   mentionKey,
   normalizeText,
 } from "../descriptions/description-text";
+import { HIDDEN_CHARACTER } from "./hidden-character";
 
 /** Why a draft was rejected (descriptions spec, "Grounding rules"); `schema` comes from Zod. */
 export const DESCRIPTION_ISSUE_CODES = [
@@ -46,14 +47,6 @@ const MARKUP: readonly RegExp[] = [
   /(?<![\p{L}\d])[a-z0-9-]+\.(?:com|net|org|pl|io|eu|shop|store)(?![\p{L}\d])/u, // bare domain
   /[^\s@]+@[^\s@]+\.[^\s@]+/, // e-mail address
 ];
-
-/**
- * A control character other than a line feed (C0 including tab and carriage return, DEL, C1)
- * or an invisible format character (zero-width space and joiners, bidi controls, soft hyphen,
- * BOM). A format character inside a term ("Blue​tooth") would hide it from every glossary
- * check while the owner still reads "Bluetooth", so it is rejected, never stripped.
- */
-const HIDDEN_CHARACTER = /(?!\n)[\p{Cc}\p{Cf}]/u;
 
 /**
  * The problems of one draft (descriptions spec, "Grounding rules"), checked on the draft's text
