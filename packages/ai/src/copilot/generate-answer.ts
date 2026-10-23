@@ -25,9 +25,6 @@ import type { FactTable } from "./build-facts";
 import type { FallbackReason } from "./copilot-answer";
 import type { CopilotDraft } from "./rule-insights";
 
-/** The shared daily cap now lives in `llm/llm-daily-cap.ts` (descriptions spec A2). */
-export { LLM_DAILY_KEY, LLM_DAILY_LIMIT, LLM_DAILY_WINDOW_SECONDS } from "../llm/llm-daily-cap";
-
 /** Copilot spec A11: at most 2 attempts, 20 s each, one 40 s deadline, 4 000 output tokens. */
 export const MAX_ATTEMPTS = 2;
 export const ATTEMPT_TIMEOUT_MS = 20_000;

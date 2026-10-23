@@ -27,6 +27,7 @@ import {
   UNAVAILABLE_REASON_TEXT,
   UNAVAILABLE_TEXT,
   UNDO_LABEL,
+  UNDO_UNAVAILABLE_TEXT,
 } from "./description-draft-copy";
 import { DescriptionDraftPanel } from "./description-draft-panel";
 import {
@@ -37,7 +38,14 @@ import { ProductFormView } from "./product-form-view";
 
 /** The Description field as the browser has it; `instanceof` is checked against this class. */
 class FakeTextArea {
-  constructor(public value: string) {}
+  /** The stored description the form was rendered with (React keeps it in sync). */
+  defaultValue: string;
+  constructor(
+    public value: string,
+    defaultValue = value,
+  ) {
+    this.defaultValue = defaultValue;
+  }
 }
 
 type FakeForm = { values: Record<string, string>; elements: { namedItem(name: string): unknown } };
@@ -189,11 +197,19 @@ describe("createDraftPanelAction: draft", () => {
       200,
       { ok: true, data: { kind: "unavailable", reason: "invalid_output" } },
       UNAVAILABLE_REASON_TEXT.invalid_output,
+      "error",
+    ],
+    [
+      200,
+      { ok: true, data: { kind: "unavailable", reason: "insufficient_input" } },
+      UNAVAILABLE_REASON_TEXT.insufficient_input,
+      "guidance",
     ],
     [
       200,
       { ok: true, data: { kind: "unavailable", reason: "not_configured" } },
       NOT_CONFIGURED_TEXT,
+      "guidance",
     ],
     [
       400,
@@ -206,6 +222,7 @@ describe("createDraftPanelAction: draft", () => {
         },
       },
       "Enter a name.",
+      "guidance",
     ],
     [
       400,
@@ -214,21 +231,33 @@ describe("createDraftPanelAction: draft", () => {
         error: { code: "VALIDATION_FAILED", message: "The request body must be valid JSON." },
       },
       "The request body must be valid JSON.",
+      "error",
     ],
-    [401, { ok: false, error: { code: "UNAUTHORIZED", message: "No." } }, SESSION_ENDED_TEXT],
-    [429, { ok: false, error: { code: "RATE_LIMITED", message: "Slow down." } }, RATE_LIMITED_TEXT],
+    [
+      401,
+      { ok: false, error: { code: "UNAUTHORIZED", message: "No." } },
+      SESSION_ENDED_TEXT,
+      "error",
+    ],
+    [
+      429,
+      { ok: false, error: { code: "RATE_LIMITED", message: "Slow down." } },
+      RATE_LIMITED_TEXT,
+      "error",
+    ],
     [
       500,
       { ok: false, error: { code: "INTERNAL", message: "Something went wrong." } },
       UNAVAILABLE_TEXT,
+      "error",
     ],
-    [502, "<html>bad gateway</html>", UNAVAILABLE_TEXT],
-  ])("shows a message for status %i", async (status, body, message) => {
+    [502, "<html>bad gateway</html>", UNAVAILABLE_TEXT, "error"],
+  ])("shows a message for status %i", async (status, body, message, tone) => {
     const state = await createDraftPanelAction(respond(status, body))(IDLE_DRAFT_STATE, {
       type: "draft",
       form: fakeForm(FORM_VALUES),
     });
-    expect(state).toEqual({ kind: "message", message });
+    expect(state).toEqual({ kind: "message", message, tone });
   });
 
   it("shows the generic message when the network fails", async () => {
@@ -240,7 +269,7 @@ describe("createDraftPanelAction: draft", () => {
         type: "draft",
         form: fakeForm(FORM_VALUES),
       }),
-    ).toEqual({ kind: "message", message: UNAVAILABLE_TEXT });
+    ).toEqual({ kind: "message", message: UNAVAILABLE_TEXT, tone: "error" });
   });
 });
 
@@ -251,16 +280,41 @@ describe("createDraftPanelAction: replace, undo, discard", () => {
     const textarea = new FakeTextArea("My own text");
     const form = fakeForm({}, textarea);
     const applied = await action(READY, { type: "apply", form });
-    expect(applied).toEqual({ kind: "applied", previous: "My own text" });
-    expect(textarea.value).toBe(READY.kind === "ready" ? READY.text : "");
+    const draftText = READY.kind === "ready" ? READY.text : "";
+    expect(applied).toEqual({ kind: "applied", previous: "My own text", text: draftText });
+    expect(textarea.value).toBe(draftText);
 
     expect(await action(applied, { type: "undo", form })).toEqual(IDLE_DRAFT_STATE);
     expect(textarea.value).toBe("My own text");
   });
 
+  // Review m2 on #74: Undo used to put the old text back over the owner's edits, and after Save.
+  it("keeps edits made after Replace and says Undo is no longer available", async () => {
+    const applied: DraftPanelState = { kind: "applied", previous: "Before", text: "Draft" };
+    const textarea = new FakeTextArea("Draft, edited by hand", "Before");
+    expect(await action(applied, { type: "undo", form: fakeForm({}, textarea) })).toEqual({
+      kind: "message",
+      message: UNDO_UNAVAILABLE_TEXT,
+      tone: "guidance",
+    });
+    expect(textarea.value).toBe("Draft, edited by hand");
+  });
+
+  it("does not undo a draft the owner has already saved", async () => {
+    const applied: DraftPanelState = { kind: "applied", previous: "Before", text: "Draft" };
+    // After Save the form re-renders with the stored description, which is now the draft.
+    const textarea = new FakeTextArea("Draft", "Draft");
+    expect(await action(applied, { type: "undo", form: fakeForm({}, textarea) })).toEqual({
+      kind: "message",
+      message: UNDO_UNAVAILABLE_TEXT,
+      tone: "guidance",
+    });
+    expect(textarea.value).toBe("Draft");
+  });
+
   it("changes nothing when there is no draft, nothing to undo or no field", async () => {
     const textarea = new FakeTextArea("Mine");
-    const applied: DraftPanelState = { kind: "applied", previous: "Before" };
+    const applied: DraftPanelState = { kind: "applied", previous: "Before", text: "Draft" };
     expect(await action(IDLE_DRAFT_STATE, { type: "apply", form: fakeForm({}, textarea) })).toBe(
       IDLE_DRAFT_STATE,
     );
@@ -351,16 +405,28 @@ describe("DescriptionDraftPanelView", () => {
   });
 
   it("offers Undo once the draft is in the Description field", () => {
-    const html = renderPanel({ state: { kind: "applied", previous: "x" } });
+    const html = renderPanel({ state: { kind: "applied", previous: "x", text: "y" } });
     expect(html).toContain(APPLIED_TEXT);
     expect(html).toContain(UNDO_LABEL);
     expect(html).not.toContain(REPLACE_LABEL);
   });
 
-  it("shows why no draft is shown", () => {
-    const html = renderPanel({ state: { kind: "message", message: RATE_LIMITED_TEXT } });
+  it("shows a failure in the error colour", () => {
+    const html = renderPanel({
+      state: { kind: "message", message: RATE_LIMITED_TEXT, tone: "error" },
+    });
     expect(html).toContain(RATE_LIMITED_TEXT);
+    expect(html).toContain("text-destructive");
     expect(html).not.toContain(DRAFT_HEADING);
+  });
+
+  // Review n2 on #74: guidance ("Add a category or a few notes first") is not a failure.
+  it("shows guidance in muted text, not the error colour", () => {
+    const message = UNAVAILABLE_REASON_TEXT.insufficient_input;
+    const html = renderPanel({ state: { kind: "message", message, tone: "guidance" } });
+    expect(html).toContain(message);
+    expect(html).toContain("text-muted-foreground");
+    expect(html).not.toContain("text-destructive");
   });
 });
 

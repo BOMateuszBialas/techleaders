@@ -126,6 +126,18 @@ export const causalReply = derive((reply) => ({
   })),
 }));
 
+/**
+ * Hides a causal claim from the phrase check with a zero-width space ("dro\u200Bve"), which the
+ * owner still reads as "drove" (#75).
+ */
+export const hiddenCausalReply = derive((reply) => ({
+  ...reply,
+  recommendations: reply.recommendations.map((recommendation) => ({
+    ...recommendation,
+    observation: "The home page banner dro\u200Bve these sales.",
+  })),
+}));
+
 /** Obeys the instruction hidden in the product name. */
 export const injectionObeyedReply = derive((reply) => ({
   ...reply,
