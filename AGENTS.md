@@ -102,6 +102,14 @@ Do not add libraries without a stated reason. TS 7 and ESLint 10 were deliberate
 - Never return stack traces, raw provider or DB errors, or secrets to users. Log with context through `logger` (`packages/app/src/server/logger.ts`, redacts sensitive keys and URL credentials); never call `console.*` directly in server code.
 - Server-only modules start with `import "server-only"`.
 
+### Agent workshop guardrails (`.claude/`)
+
+- `.claude/settings.json` denies the file tools any `.env` / `.env.*` file except `.env.example` and `.env.template`, `*.pem`, `~/.ssh`, `~/.aws` and `~/.config/gh`. The PreToolUse hook `.claude/hooks/pre-tool-use.sh` (Bash, PowerShell and Monitor tools) blocks with exit 2: piping a download into a shell, **any recursive delete** (`rm -r`, `Remove-Item -Recurse`, `find -delete`, `rimraf`), credential directories and `gh auth token`, and any command that names a `.env` file other than the placeholders.
+- If the hook blocks a command, do not look for another way to do the same thing: ask the user. A recursive cleanup (`.next`, a scratch directory) is the user's to run; `git worktree remove` is fine.
+- A worktree has no `.env` and an agent may not copy one. Load the main checkout's file into a process instead (`npx tsx --env-file=../<main checkout>/.env …`; allowed only when the same command does not print the environment), or ask the user to copy `.env` for a dev-server QA run. Integration and e2e tests need no `.env`.
+- A commit message or PR body that names a `.env` file trips the hook: write it to a file with the Write tool and pass `git commit -F` / `gh pr create --body-file`.
+- Change the hook together with its tests (`npm run test:hooks`); the known gaps and the reasons are in `.ai/security-notes.md`. Changes under `.claude/`, `.agents/`, `.github/workflows/` and the agent instructions are owned by the maintainer (`.github/CODEOWNERS`).
+
 ### Commerce Copilot rules
 
 - Flow: auth → input validation and limits → deterministic intent routing or a bounded tool-calling loop → **approved tools only** (`getSalesSummary`, `getTopProducts`, `getLowStockProducts`, `getOrderSummary`, `getTrafficSummary`; the last reads seeded, fictional demo traffic data and its output is always labelled as such, see spec §6 and decision D08). No raw SQL or ORM access for the model.
@@ -159,6 +167,7 @@ Before starting a task, read the files listed for the area it touches.
 | API / Route Handlers | `packages/app/src/server/http/`, `BACKWARD_COMPATIBILITY.md` | `apiHandler` + `parseRequestBody` + `ApiResult` envelope; per-request scope; no internal error details in responses; additive API changes only (`/api/health` keeps its own shape) |
 | Commerce Copilot / LLM | `packages/ai/src/`, Commerce Copilot rules above | Go through the port only; schema-validate; ground every claim; handle the fallback; add eval cases |
 | New package or shared code | Packages and boundaries above | Do not create a new package without approval; respect the dependency direction |
+| Agent settings, hooks, skills, MCP (`.claude/`, `.agents/`, `.mcp.json`) | `.ai/security-notes.md`, `.claude/settings.json`, `.claude/hooks/` | Never weaken a deny rule or the hook without the user's approval; hook changes ship with `npm run test:hooks` cases; new skills and MCP servers arrive by PR and are read first |
 | Build / TS / lint / test config | `packages/app/next.config.ts`, `packages/config/tsconfig.base.json`, `eslint.config.mjs`, `vitest.config.mts` | Changes to config and env variables follow `BACKWARD_COMPATIBILITY.md` |
 | Tests | Testing above, `vitest.config.mts`, `packages/app/e2e/support/` | `*.test.ts` = unit (100% coverage), `*.int.test.ts` = integration (Testcontainers), `*.e2e.test.ts` = e2e (agent-browser) |
 | CI / GitHub | `.github/workflows/ci.yml`, `.ai/trackers/github.md`, `SDLC.md` | Jobs mirror the validation gate (lint, unit + coverage, build, integration, e2e); keep the workflow and the gate in sync |
@@ -172,6 +181,7 @@ Run before every commit or PR (the gate from `.ai/agentic.config.json`; CI runs 
 ```bash
 npm run lint
 npm run format:check
+npm run test:hooks         # dry-run tests of the agent PreToolUse hook (.claude/hooks/)
 npm run typecheck
 npm run test:coverage      # unit tests, fails below 100% coverage
 npm run build

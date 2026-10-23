@@ -21,6 +21,7 @@
     "test:e2e": "vitest run --project e2e",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "test:hooks": "bash .claude/hooks/test-pre-tool-use.sh",
     "db:up": "docker compose up -d postgres",
     "db:down": "docker compose down",
     "db:migrate": "npm run migrate -w @commerceos/database",
