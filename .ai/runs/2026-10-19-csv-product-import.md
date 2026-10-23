@@ -32,8 +32,8 @@ Core CSV parsing and row rules, plan and two use cases, one port and its databas
 ### Phase 3: Admin UI
 
 - [x] 3.1 Server action and runAdminAction options — 3a8479a
-- [ ] 3.2 Import page, view and wrapper
-- [ ] 3.3 E2E test
+- [x] 3.2 Import page, view and wrapper — 2ac6a5e
+- [x] 3.3 E2E test — ac16833
 
 ### Phase 4: Docs and gate
 
