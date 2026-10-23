@@ -37,7 +37,7 @@ Core CSV parsing and row rules, plan and two use cases, one port and its databas
 
 ### Phase 4: Docs and gate
 
-- [ ] 4.1 Docs, spec moved to implemented
+- [x] 4.1 Docs, spec moved to implemented — dccb07a
 - [ ] 4.2 Full validation gate
 
 ## Decisions (resume 2026-10-23)
