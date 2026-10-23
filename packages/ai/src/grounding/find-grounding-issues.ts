@@ -1,5 +1,6 @@
 import type { CopilotFact, CopilotProduct, FactTable } from "../copilot/build-facts";
 import type { CopilotDraft, DraftRecommendation } from "../copilot/rule-insights";
+import { HIDDEN_CHARACTER } from "./hidden-character";
 
 /** Copilot spec, "Grounding rules". */
 export const GROUNDING_ISSUE_CODES = [
@@ -9,6 +10,7 @@ export const GROUNDING_ISSUE_CODES = [
   "unlisted_product",
   "causal_claim",
   "too_many",
+  "hidden_character",
 ] as const;
 export type GroundingIssueCode = (typeof GROUNDING_ISSUE_CODES)[number];
 
@@ -156,6 +158,10 @@ function checkScope(
   for (const text of scope.texts) {
     const mention = findProducts(text, table.products);
     mention.products.forEach((alias) => mentioned.add(alias));
+    // Checked after catalog names are blanked: an owner's name is not model text.
+    if (HIDDEN_CHARACTER.test(mention.text)) {
+      issues.push({ code: "hidden_character", recommendation: at });
+    }
     const tokens = withoutLabels(mention.text, labels).match(NUMBER_TOKEN) ?? [];
     if (tokens.some((token) => !isGrounded(token, allowed))) {
       issues.push({ code: "ungrounded_number", recommendation: at });
@@ -229,8 +235,9 @@ function dedupe(issues: GroundingIssue[]): GroundingIssue[] {
  * spec, "Grounding rules"): every cited fact and product exists; every number in a
  * recommendation is a value of one of that recommendation's own cited facts (or the period
  * length), and summary numbers come from the summary's facts; every product a text names, or
- * whose fact it cites, is listed; observation and summary claim no cause; at most 3
- * recommendations. An empty list means the draft may be shown.
+ * whose fact it cites, is listed; observation and summary claim no cause; no text holds an
+ * invisible or control character other than a line feed (outside catalog names), which could
+ * hide a number or phrase from these checks; at most 3 recommendations. An empty list means the draft may be shown.
  *
  * Not machine-checked (covered by the prompt, evals and the fallback): spelled-out numbers,
  * paraphrased product references and qualitative claims no number backs. A number is compared
@@ -279,6 +286,8 @@ const PROBLEM_TEXT: Readonly<Record<GroundingIssueCode, string>> = {
     "names a product, or cites a fact about a product, without listing its alias in relatedProductAliases (the summary may only name products of the facts it cites)",
   causal_claim: "claims a cause in the observation or summary; state only what the data shows",
   too_many: "has more than 3 recommendations",
+  hidden_character:
+    "contains an invisible or control character (zero-width, bidi, soft hyphen, tab); write plain text, line feeds only",
 };
 
 /**

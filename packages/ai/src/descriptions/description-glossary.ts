@@ -10,7 +10,7 @@
  * ("switch" = "switches"). All variants of a term are one fact: "cordless" in a draft is grounded
  * by "wireless" in the owner's fields.
  */
-export const DESCRIPTION_GLOSSARY_VERSION = "description-glossary-2026-10-19.1";
+export const DESCRIPTION_GLOSSARY_VERSION = "description-glossary-2026-10-19.2";
 
 /**
  * - `feature`, `compatibility`, `claim`: allowed in a draft only when the owner's fields mention
@@ -248,6 +248,9 @@ const FEATURES: GlossaryTerm[] = [
   ),
 ];
 
+/** Platforms that, next to "switch" ("PC or Switch"), make it the console. */
+const OTHER_PLATFORMS = "pc|windows|mac|macos|playstation|ps4|ps5|xbox|steam deck|android|ios";
+
 const COMPATIBILITY: GlossaryTerm[] = [
   ...terms(
     "compatibility",
@@ -259,12 +262,17 @@ const COMPATIBILITY: GlossaryTerm[] = [
     ["ps5"],
     ["xbox"],
     // The bare word "switch" is a keyboard part (feature group "build"). It names the console
-    // only after "works with" and the like ("works with Switch") or before a model name.
+    // only after "works with" and the like ("works with Switch"), before a model name, after
+    // "for" at the end of a clause ("ready for Switch."), or next to another platform ("PC or
+    // Switch"). "for switch changes" stays the keyboard part (#76).
     {
       variants: ["nintendo switch"],
       patterns: [
         "(?:works?|working|compatible|pairs?|plays?|playing) (?:with|on) (?:the |your )?switch(?!e)",
         "switch (?:console|lite|oled|2)",
+        "for (?:the |your )?switch(?=[^\\S\\n]*(?:[.,;:!?)\\n]|$))",
+        `(?:${OTHER_PLATFORMS}) (?:and|or) switch(?!e)`,
+        `switch (?:and|or) (?:${OTHER_PLATFORMS})(?![\\p{L}\\d])`,
       ],
     },
     ["steam deck"],

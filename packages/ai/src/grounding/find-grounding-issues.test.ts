@@ -438,6 +438,82 @@ describe("findGroundingIssues: causal claims", () => {
   });
 });
 
+describe("findGroundingIssues: hidden characters", () => {
+  const table = focusTable();
+
+  it("flags a zero-width character that would hide a causal claim", () => {
+    // Without the check, "dro\u200Bve" matches no causal phrase and the draft passes.
+    const issues = findGroundingIssues(
+      draft({
+        recommendations: [recommendation({ observation: "The banner dro\u200Bve these sales." })],
+      }),
+      table,
+      OPTIONS,
+    );
+    expect(issues).toEqual([{ code: "hidden_character", recommendation: 1 }]);
+  });
+
+  it.each([
+    ["a C1 control", "A quiet\u0085week."],
+    ["a bidi override", "A \u202Equiet week."],
+    ["a soft hyphen", "A qui\u00ADet week."],
+    ["a byte order mark", "A quiet week.\uFEFF"],
+    ["a tab", "A quiet\tweek."],
+    ["DEL", "A quiet week.\u007F"],
+  ])("flags %s in the summary", (_name, summary) => {
+    expect(codes(findGroundingIssues(draft({ summary }), table, OPTIONS))).toEqual([
+      "hidden_character",
+    ]);
+  });
+
+  it("checks every text field of a recommendation", () => {
+    for (const field of ["title", "reasoning", "suggestedAction"] as const) {
+      const issues = findGroundingIssues(
+        draft({ recommendations: [recommendation({ [field]: "Plan\u200Bahead." })] }),
+        table,
+        OPTIONS,
+      );
+      expect(codes(issues)).toEqual(["hidden_character"]);
+    }
+    const limitation = findGroundingIssues(
+      draft({ recommendations: [recommendation({ limitations: ["Plan\u200Bahead."] })] }),
+      table,
+      OPTIONS,
+    );
+    expect(codes(limitation)).toEqual(["hidden_character"]);
+  });
+
+  it("allows line feeds and the no-break spaces of Polish number formatting", () => {
+    const issues = findGroundingIssues(
+      draft({ summary: "A quiet week.\nNothing\u00A0else\u202Fto add." }),
+      table,
+      OPTIONS,
+    );
+    expect(issues).toEqual([]);
+  });
+
+  it("allows a format character inside a catalog product name the text quotes", () => {
+    // The owner's name (an emoji joiner, say) is not model text; rule answers quote it too.
+    const named = buildFacts({
+      topProducts: top([{ productId: "a", name: "Pulse\u200DMouse", units: 4, revenueMinor: 20 }]),
+    });
+    const issues = findGroundingIssues(
+      draft({
+        recommendations: [
+          recommendation({
+            observation: "Pulse\u200DMouse sold 4 units.",
+            evidenceFactIds: [key(named, "top.units:p1")],
+            relatedProductAliases: ["p1"],
+          }),
+        ],
+      }),
+      named,
+      OPTIONS,
+    );
+    expect(issues).toEqual([]);
+  });
+});
+
 describe("describeGroundingIssues", () => {
   it("lists codes, positions and ids for the second attempt, never model text", () => {
     const message = describeGroundingIssues([

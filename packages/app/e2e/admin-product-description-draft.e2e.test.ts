@@ -107,5 +107,28 @@ describe("admin product description drafts (no AI key)", () => {
       await browser().waitForText("Saved.");
       expect((await vortexRow()).description).toBe(vortex.description);
     });
+
+    // The draft panel's Undo refuses to overwrite a saved draft by comparing the draft with the
+    // textarea's `defaultValue` (#76). This pins that a successful Save re-renders the field
+    // with the stored description as its default.
+    it("re-renders the Description field with the saved text as its default after Save", async () => {
+      const saved = `${vortex.description} Saved by the e2e test.`;
+      try {
+        await browser().open(`/admin/products/${vortex.id}`);
+        await browser().waitForText("Save changes");
+        await browser().fillLabel("Description", saved);
+        await browser().clickRole("button", "Save changes");
+        await browser().waitForText("Saved.");
+        expect((await vortexRow()).description).toBe(saved);
+        const field = `document.querySelector("#product-description")`;
+        expect(await browser().evaluate(`${field}.defaultValue`)).toBe(saved);
+        expect(await browser().evaluate(`${field}.value`)).toBe(saved);
+      } finally {
+        await pool.query("update products set description = $1 where id = $2", [
+          vortex.description,
+          vortex.id,
+        ]);
+      }
+    });
   });
 });

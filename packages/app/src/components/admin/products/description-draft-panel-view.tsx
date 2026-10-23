@@ -109,7 +109,13 @@ export function DescriptionDraftPanelView({
           </div>
         ) : null}
         {state.kind === "message" ? (
-          <p className="text-sm text-destructive">{state.message}</p>
+          <p
+            className={
+              state.tone === "error" ? "text-sm text-destructive" : "text-sm text-muted-foreground"
+            }
+          >
+            {state.message}
+          </p>
         ) : null}
       </div>
     </div>
