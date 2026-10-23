@@ -1,6 +1,15 @@
-import { describe, expect, it } from "vitest";
-import { METRIC_DEFINITIONS } from "../../domain/metrics/metric-definitions";
-import { resolvePeriod } from "../../domain/metrics/metric-period";
+import { describe, expect, expectTypeOf, it } from "vitest";
+import {
+  METRIC_DEFINITIONS,
+  PERIOD_COMPARISON_DEFINITION,
+} from "../../domain/metrics/metric-definitions";
+import {
+  previousPeriod,
+  resolveCustomPeriod,
+  resolvePeriod,
+  type MetricPeriod,
+} from "../../domain/metrics/metric-period";
+import { DASHBOARD_RANGE_MESSAGES } from "../../validators/metrics/dashboard-range.schema";
 import { hasAppErrorCode } from "../../errors/app-error";
 import type {
   LowStockAggregate,
@@ -13,7 +22,7 @@ import type {
 import { GetDashboardUseCase } from "./get-dashboard.use-case";
 import { GetLowStockProductsUseCase } from "./get-low-stock-products.use-case";
 import { GetOrderSummaryUseCase } from "./get-order-summary.use-case";
-import { GetSalesSummaryUseCase } from "./get-sales-summary.use-case";
+import { GetSalesSummaryUseCase, type SalesSummary } from "./get-sales-summary.use-case";
 import { GetTopProductsUseCase } from "./get-top-products.use-case";
 
 const NOW = new Date("2026-10-17T10:00:00.000Z");
@@ -201,10 +210,22 @@ describe("GetDashboardUseCase", () => {
     expect(dashboard.lowStock.total).toBe(1);
     expect(dashboard.demoOrderCount).toBe(2);
     expect(dashboard.definitions).toBe(METRIC_DEFINITIONS);
+    expect(dashboard.comparisonDefinition).toBe(PERIOD_COMPARISON_DEFINITION);
+    expect(dashboard.range).toEqual({
+      firstDay: "2026-09-18",
+      lastDay: "2026-10-17",
+      minDay: "2000-01-01",
+      maxDay: "2026-10-17",
+    });
+    expect(dashboard.rangeError).toBeNull();
     expect(storeMetrics.calls.map((call) => call.method).sort()).toEqual([
+      "demoOrderCount",
       "demoOrderCount",
       "lowStockProducts",
       "orderSummary",
+      "orderSummary",
+      "orderSummary",
+      "salesSummary",
       "salesSummary",
       "topProducts",
     ]);
@@ -215,6 +236,99 @@ describe("GetDashboardUseCase", () => {
 
     expect((await getDashboard.execute()).period).toEqual(PERIOD);
     expect((await getDashboard.execute({ period: "abc" })).period).toEqual(PERIOD);
+  });
+
+  it("compares with the previous period of the same length through the same use cases", async () => {
+    const { storeMetrics, getDashboard } = useCases();
+
+    const { comparison } = await getDashboard.execute();
+    expect(comparison.period).toEqual(previousPeriod(PERIOD));
+    expect(comparison.sales.period).toEqual(previousPeriod(PERIOD));
+    expect(comparison.orders.total).toBe(3);
+    expect(comparison.demoOrderCount).toBe(2);
+    expect(comparison.partialHistory).toBe(false);
+    expect(comparison.includesToday).toBe(true);
+    // The fake answers the same for both periods: no change anywhere.
+    expect(comparison.changes).toEqual({
+      ordersPlaced: { current: 3, previous: 3, delta: 0, percent: 0, direction: "same" },
+      paidOrders: { current: 3, previous: 3, delta: 0, percent: 0, direction: "same" },
+      revenue: { current: 1000, previous: 1000, delta: 0, percent: 0, direction: "same" },
+      aov: { current: 333, previous: 333, delta: 0, percent: 0, direction: "same" },
+    });
+    // The partial-history check asks for everything before the comparison period.
+    const ranges = storeMetrics.calls
+      .filter((call) => call.method === "orderSummary")
+      .map((call) => call.args[0] as MetricRange);
+    expect(ranges).toContainEqual(
+      expect.objectContaining({ from: new Date(0), to: previousPeriod(PERIOD).from }),
+    );
+  });
+
+  it("shows a valid custom range, which may end before today", async () => {
+    const { getDashboard } = useCases();
+
+    const dashboard = await getDashboard.execute({
+      period: "30d",
+      from: "2026-10-01",
+      to: "2026-10-14",
+    });
+    expect(dashboard.period).toEqual(resolveCustomPeriod("2026-10-01", "2026-10-14"));
+    expect(dashboard.topProducts.period.preset).toBe("custom");
+    expect(dashboard.comparison.period.label).toBe("17–30 Sep 2026");
+    expect(dashboard.comparison.includesToday).toBe(false);
+    expect(dashboard.range).toMatchObject({ firstDay: "2026-10-01", lastDay: "2026-10-14" });
+  });
+
+  it("falls back to the preset and reports an invalid range with the submitted values", async () => {
+    const { getDashboard } = useCases();
+
+    const dashboard = await getDashboard.execute({
+      period: "30d",
+      from: "2026-10-14",
+      to: "2026-10-01",
+    });
+    expect(dashboard.period).toEqual(resolvePeriod("30d", NOW));
+    expect(dashboard.rangeError).toEqual({
+      message: DASHBOARD_RANGE_MESSAGES.endBeforeStart,
+      from: "2026-10-14",
+      to: "2026-10-01",
+    });
+  });
+
+  it("withholds percentages when no order exists before the comparison period (A9)", async () => {
+    const storeMetrics = new FakeStoreMetrics();
+    const orderSummary = storeMetrics.orderSummary.bind(storeMetrics);
+    storeMetrics.orderSummary = async (range: MetricRange) =>
+      range.from.getTime() === 0 ? [] : orderSummary(range);
+    storeMetrics.sales = { paidOrders: 0, revenueMinor: 0, otherCurrencyOrders: 0 };
+
+    const { comparison } = await useCases(storeMetrics).getDashboard.execute();
+    expect(comparison.partialHistory).toBe(true);
+    expect(comparison.changes.ordersPlaced).toMatchObject({ delta: 0, percent: null });
+    expect(comparison.changes.aov).toBeNull();
+  });
+
+  it("needs no partial-history note when neither period has an order", async () => {
+    const storeMetrics = new FakeStoreMetrics();
+    storeMetrics.statuses = [];
+    storeMetrics.sales = { paidOrders: 0, revenueMinor: 0, otherCurrencyOrders: 0 };
+
+    const { comparison } = await useCases(storeMetrics).getDashboard.execute();
+    expect(comparison.partialHistory).toBe(false);
+  });
+
+  it("keeps the Copilot's preset types: a MetricPeriod in, a MetricPeriod out", async () => {
+    const { getSalesSummaryUseCase, getOrderSummaryUseCase, getTopProductsUseCase } = useCases();
+
+    expectTypeOf(await getSalesSummaryUseCase.execute({ period: PERIOD })).toEqualTypeOf<
+      SalesSummary<MetricPeriod>
+    >();
+    expectTypeOf(
+      (await getOrderSummaryUseCase.execute({ period: PERIOD })).period,
+    ).toEqualTypeOf<MetricPeriod>();
+    expectTypeOf(
+      (await getTopProductsUseCase.execute({ period: PERIOD })).period.preset,
+    ).toEqualTypeOf<"7d" | "30d">();
   });
 
   it("returns no customer field anywhere", async () => {

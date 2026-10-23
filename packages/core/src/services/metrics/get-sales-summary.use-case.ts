@@ -1,10 +1,14 @@
 import { STORE_CURRENCY, type MetricId } from "../../domain/metrics/metric-definitions";
-import { averageOrderValue, type MetricPeriod } from "../../domain/metrics/metric-period";
+import {
+  averageOrderValue,
+  type LabelledMetricRange,
+  type MetricPeriod,
+} from "../../domain/metrics/metric-period";
 import type { CurrencyCode } from "../../domain/money";
 import type { StoreMetricsPort } from "../../ports/store-metrics.port";
 
-export type SalesSummary = {
-  period: MetricPeriod;
+export type SalesSummary<P extends LabelledMetricRange = MetricPeriod> = {
+  period: P;
   currency: CurrencyCode;
   /** The `METRIC_DEFINITIONS` entries these figures follow. */
   definitionIds: MetricId[];
@@ -23,7 +27,7 @@ export type SalesSummary = {
 export class GetSalesSummaryUseCase {
   constructor(private readonly deps: { storeMetrics: StoreMetricsPort }) {}
 
-  async execute(input: { period: MetricPeriod }): Promise<SalesSummary> {
+  async execute<P extends LabelledMetricRange>(input: { period: P }): Promise<SalesSummary<P>> {
     const sales = await this.deps.storeMetrics.salesSummary(input.period, STORE_CURRENCY);
     return {
       period: input.period,
