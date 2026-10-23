@@ -38,7 +38,7 @@ Core CSV parsing and row rules, plan and two use cases, one port and its databas
 ### Phase 4: Docs and gate
 
 - [x] 4.1 Docs, spec moved to implemented — dccb07a
-- [ ] 4.2 Full validation gate
+- [x] 4.2 Full validation gate — 5564073 (gate green: lint, format, typecheck, unit 1658 at 100%, build, integration 146, e2e 93)
 
 ## Decisions (resume 2026-10-23)
 
