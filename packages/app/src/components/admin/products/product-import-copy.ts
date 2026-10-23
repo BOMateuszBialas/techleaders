@@ -36,6 +36,7 @@ export const NOTHING_TO_IMPORT_NOTE = "Every row is already in the catalog. Noth
 export const IMPORT_CHANGED_MESSAGE =
   "The file or the catalog changed since the check, or the file cannot be imported as it is. Nothing was imported. Review the new check below.";
 export const IMPORT_ANOTHER = "Import another file";
+export const CHECK_ANOTHER = "Check another file";
 export const TEMPLATE_LINK = "Download template";
 export const TEMPLATE_FILE_NAME = "product-import-template.csv";
 

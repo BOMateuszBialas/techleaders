@@ -108,6 +108,8 @@ describe("admin guard inventory", () => {
         "server/catalog/category.action.ts",
         "server/catalog/product.action.ts",
         "server/catalog/stock.action.ts",
+        "app/admin/(protected)/products/import/page.tsx",
+        "server/catalog/product-import.action.ts",
         "app/admin/(protected)/orders/page.tsx",
         "app/admin/(protected)/orders/[id]/page.tsx",
         "server/orders/order-status.action.ts",

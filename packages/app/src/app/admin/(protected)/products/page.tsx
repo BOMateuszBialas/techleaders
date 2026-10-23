@@ -8,6 +8,7 @@ import {
   NEW_PRODUCT_PATH,
   productPath,
 } from "@/components/admin/products/product-copy";
+import { PRODUCT_IMPORT_PATH } from "@/components/admin/products/product-import-copy";
 import { buttonVariants } from "@/components/ui/button";
 import {
   Table,
@@ -33,9 +34,14 @@ export default function ProductsPage() {
             Every product in any status. &quot;Hidden&quot; products are drafts shoppers cannot see.
           </p>
         </div>
-        <Link href={NEW_PRODUCT_PATH} className={buttonVariants()}>
-          New product
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link href={PRODUCT_IMPORT_PATH} className={buttonVariants({ variant: "outline" })}>
+            Import CSV
+          </Link>
+          <Link href={NEW_PRODUCT_PATH} className={buttonVariants()}>
+            New product
+          </Link>
+        </div>
       </div>
       <Suspense fallback={<p className="text-sm text-muted-foreground">Loading products…</p>}>
         <ProductList />
