@@ -46,3 +46,7 @@ Core CSV parsing and row rules, plan and two use cases, one port and its databas
 - The view shows exactly one submitting form at a time (the upload form, or the confirm form for an importable preview), so the shared `pending` flag always labels the button that was pressed. "Check another file" / "Import another file" are plain GET forms (a full reload resets `useActionState`).
 - A3 implemented as the spec default (optional `stock` column, initial value only); the PR keeps `do-not-merge` until spec PR #84 is approved.
 - `next build` stopped once with a Next.js "SecurityFatalError" upgrade nudge for 16.4.0; the retry built. Upgrading Next.js is outside this PR's scope and is reported as a follow-up.
+
+## Review (2026-10-23, fresh-context reviewer)
+
+No blockers or majors. Fixed in e09dd93: the wrapper no longer posts the previous state (preview + text) back, which could push a 256 KB file past the 1 MB server-action limit; a write conflict returns the fresh preview; a duplicate-error row no longer registers its keys; delimiter detection skips leading blank lines; the file input references the file error. Declined: allowing U+200D (ZWJ) in text cells. `\p{Cf}` is refused on purpose (lesson 2026-10-19, invisible characters defeat word checks downstream); an emoji ZWJ sequence in a product name is rare and the error says what to remove.
