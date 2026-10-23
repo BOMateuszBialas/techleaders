@@ -166,6 +166,11 @@ export class BrowserSession {
     }
   }
 
+  /** Puts a local file into the `<input type="file">` matching a CSS selector. */
+  async upload(selector: string, path: string): Promise<void> {
+    await this.command(["upload", selector, resolve(path)]);
+  }
+
   async setViewport(width: number, height: number): Promise<void> {
     await this.command(["set", "viewport", String(width), String(height)]);
   }

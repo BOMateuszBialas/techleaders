@@ -64,6 +64,28 @@ describe("runAdminAction", () => {
     );
   });
 
+  it("logs details with the id and skips the cache update and refresh when unchanged", async () => {
+    const handler = vi.fn(async () => ({
+      event: "catalog.product.import.previewed",
+      id: "import",
+      details: { rows: 3, create: 2 },
+      unchanged: true as const,
+      message: "Checked.",
+    }));
+
+    await expect(runAdminAction("test.action", values, handler)).resolves.toEqual({
+      status: "success",
+      message: "Checked.",
+    });
+    expect(logger.info).toHaveBeenCalledWith("catalog.product.import.previewed", {
+      rows: 3,
+      create: 2,
+      id: "import",
+    });
+    expect(updateTag).not.toHaveBeenCalled();
+    expect(refresh).not.toHaveBeenCalled();
+  });
+
   it("runs the handler on the request scope, then updates the catalog and refreshes", async () => {
     const handler = vi.fn(async (received: Cradle) => {
       expect(received === cradle).toBe(true);

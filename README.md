@@ -55,6 +55,8 @@ The demo follows the [primary demo story](.ai/specs/2026-10-13-commerceos-mvp.md
 8. **Recommendation actions.** On a recommendation, click **Save**. It appears under **Your recommendations** below the answer. Click **Mark completed** there. Dismissed and completed are final, every change is recorded with its time, and none of them changes store data.
 9. **AI product descriptions (optional, with the key).** Open **Products**, then **Vortex Wireless Mouse**, and click **Draft with AI** under Description. The draft appears in its own panel and uses only the name, category, price and description in the form; click **Replace description with this draft**, edit it if you like, and click **Save changes**. Without a key the button is disabled and says why.
 
+10. **CSV product import.** On **Products**, click **Import CSV**, download the template, and check it with **Check file**. The preview lists every row with its line number and what will happen (create, skip because the slug or SKU is already used, or the errors to fix); **Import 2 products** creates them as one transaction. Check the same file again: every row is now skipped, because an import never changes an existing product.
+
 To start the demo again from a clean store, see [Demo data](#known-limitations) (re-seeding regenerates the demo orders and traffic; `docker compose down -v` resets everything).
 
 ## What is real and what is not
@@ -123,7 +125,7 @@ Stack: Next.js 16.4 (App Router, Turbopack, Cache Components) · React 19.3 · T
 More pages to check after the quick start:
 
 - http://localhost:3000/products: published products, filterable with `?category=<slug>` and searchable with `?q=<term>`.
-- http://localhost:3000/admin/products and http://localhost:3000/admin/categories (signed in): catalog management. Create and edit products and categories, publish or unpublish a product, tick "Featured on home page", and set stock in the **Stock** panel of a product page.
+- http://localhost:3000/admin/products and http://localhost:3000/admin/categories (signed in): catalog management. Create and edit products and categories, publish or unpublish a product, tick "Featured on home page", and set stock in the **Stock** panel of a product page. http://localhost:3000/admin/products/import adds many products from a CSV file (see [CSV product import](#csv-product-import)).
 - http://localhost:3000/api/health: `200 {"status":"ok",...}` when the database is reachable, `503 {"status":"degraded",...}` otherwise.
 
 ### Environment variables
@@ -225,6 +227,18 @@ npm run eval -- --live --max-calls 20 --case injection-in-notes-obeyed
 - **Bounded:** `--max-calls` (default 5, at most 20) counts every model call, retries included. A case starts only if 2 calls remain, so the default runs 2 to 4 cases (a case that gets its answer on the first try uses 1 call). Live evals do not use the store's daily cap (`copilot:llm:day`) and need no database. The run stops after the provider rejects the key or reports a quota limit. Exit code 3 means no live case completed.
 - **Never in CI:** `--live` refuses to start when `CI` is set, before it reads any key. CI runs the offline checks through the unit suite.
 - **What is printed:** case ids, property names, outcomes, attempts, latency, token counts, issue codes, the model id and the provider's short cause code. Never the prompt, the model's text or the key. Live runs send the payloads described above for the fictional eval stores and seeded product copy.
+
+### CSV product import
+
+P1, spec `.ai/specs/implemented/2026-10-19-csv-product-import.md`. `/admin/products/import` (signed-in owner, linked from **Products** as **Import CSV**) adds many products from one CSV file in two steps: **Check file** shows a preview of every row (line number, name, SKU, category, price, status, stock and the outcome), then **Import N products** creates them.
+
+- **Create only.** A row whose slug or SKU an existing product already uses is skipped and never changed, so importing the same file twice is safe. Categories are never created: `category` must be the slug or name of an existing one, or blank.
+- **All or nothing.** One row with an error disables the import; the confirmed import creates every row in one transaction or none. The server checks the file again on import and refuses (showing the new preview, writing nothing) if the file or the catalog changed since the check.
+- **Same rules as the product form.** Columns `name` and `price` are required; `slug`, `description`, `sku`, `category`, `image_url`, `status` (`draft` by default, or `published`), `stock` (the initial stock, blank is 0) and `featured` (`yes`/`no`) are optional. Header names are case-insensitive; an unknown or repeated column is refused.
+- **File format.** UTF-8 (with or without a BOM), comma or semicolon separated (Excel's Polish "CSV UTF-8" works, so `249,90` needs no quotes with `;`), RFC 4180 quotes, at most **256 KB and 500 rows**.
+- **Refused content.** Text starting with `=`, `+`, `-` or `@` (spreadsheet formulas), control characters, `DEMO-` SKUs and `[DEMO]` text (reserved for the seeded demo data).
+- **Stock.** The `stock` column sets only the initial value of a new product, like the stock field of the new-product form; it is not recorded in the stock history and never touches an existing product.
+- The log records counts only (`catalog.product.import.previewed`, `catalog.product.imported`), never cell content.
 
 ### Payments
 

@@ -35,6 +35,7 @@ import {
   ListAdminOrdersUseCase,
   GetTopProductsUseCase,
   GetTrafficSummaryUseCase,
+  ImportProductsUseCase,
   ListCatalogCategoriesUseCase,
   ListCatalogProductsUseCase,
   ListCategoriesUseCase,
@@ -43,6 +44,7 @@ import {
   ListProductsUseCase,
   ListStockAdjustmentsUseCase,
   PlaceOrderUseCase,
+  PreviewProductImportUseCase,
   RemoveCartLineUseCase,
   SaveCopilotAnswerUseCase,
   SetProductStatusUseCase,
@@ -57,6 +59,7 @@ import {
   type OrderAdminPort,
   type OrderRepositoryPort,
   type PaymentGateway,
+  type ProductImportRepositoryPort,
   type ProductRepositoryPort,
   type RandomBytes,
   type RateLimiterPort,
@@ -72,6 +75,7 @@ import {
   DatabaseHealthCheck,
   DatabaseOrderAdminRepository,
   DatabaseOrderRepository,
+  DatabaseProductImportRepository,
   DatabaseProductRepository,
   DatabaseRateLimiter,
   DatabaseStockRepository,
@@ -140,6 +144,9 @@ export type Cradle = {
   createProductUseCase: CreateProductUseCase;
   updateProductUseCase: UpdateProductUseCase;
   setProductStatusUseCase: SetProductStatusUseCase;
+  productImportRepository: ProductImportRepositoryPort;
+  previewProductImportUseCase: PreviewProductImportUseCase;
+  importProductsUseCase: ImportProductsUseCase;
   stockRepository: StockRepositoryPort;
   adjustStockUseCase: AdjustStockUseCase;
   listStockAdjustmentsUseCase: ListStockAdjustmentsUseCase;
@@ -225,6 +232,10 @@ function buildContainer(): AwilixContainer<Cradle> {
     createProductUseCase: asClass(CreateProductUseCase).scoped(),
     updateProductUseCase: asClass(UpdateProductUseCase).scoped(),
     setProductStatusUseCase: asClass(SetProductStatusUseCase).scoped(),
+    // CSV product import: reads and inserts through the request's EntityManager, never updates.
+    productImportRepository: asClass(DatabaseProductImportRepository).scoped(),
+    previewProductImportUseCase: asClass(PreviewProductImportUseCase).scoped(),
+    importProductsUseCase: asClass(ImportProductsUseCase).scoped(),
     // Stock adjustment: the conditional update and its history row share the request's EntityManager.
     stockRepository: asClass(DatabaseStockRepository).scoped(),
     adjustStockUseCase: asClass(AdjustStockUseCase).scoped(),
