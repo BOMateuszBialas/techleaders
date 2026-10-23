@@ -1,7 +1,7 @@
 # Eval script: one command for the Copilot and description evals, with an opt-in live run
 
 - Backlog: P1 item "an eval script" (AGENTS.md "Scope", MVP spec §3 P1 and §"AI evaluation": "a small repeatable evaluation script"). No story issue yet.
-- Status: **proposed** (2026-10-19).
+- Status: **implemented** (2026-10-19) on the implementation PR that references spec PR #77. Deviations are listed under "Implementation notes" at the end.
 - Design authority: `.ai/specs/2026-10-13-commerceos-mvp.md` §"AI evaluation"; AGENTS.md "Commerce Copilot rules" (Evaluation), "Testing", "Security and validation"; `.ai/specs/implemented/2026-10-17-commerce-copilot.md` A4, A19 ("a live run against a real provider is the P1 eval script"); `.ai/specs/implemented/2026-10-18-ai-product-descriptions.md` A2, A13, A16, step 7.
 - **Entry gate:** P0 stable (met); both eval sets exist in `packages/ai/src/evals/` (met).
 
@@ -157,3 +157,9 @@ One phase, one PR (`risk-medium`: evals and a script that can call a real provid
 3. **CLI, offline.** `run-eval-cli.ts`, `eval.ts`, root `npm run eval`; tests for flags, exit codes, `--help`, unknown ids; the entry's test mocks `runEvalCli` (create-owner pattern).
 4. **Live mode.** `live?: true` flags (A3), `live-eval-env.ts`, `budgeted-llm-provider.ts`, live expectations (A4), stop rules (A5), CI refusal; unit tests with a fake live provider (budget reservation, refusal past budget, stop after `auth`, skip messages, no model text in any format).
 5. **Docs and smoke.** README "Tests and CI" and "Commerce Copilot" (how to run, what live sends, the budget, never in CI), AGENTS.md "Testing" one line (the command, and the A1 env exception), `.env.example` unchanged (no new variable). Manual live smoke with the root `.env` key, **at most 5 calls**, recorded in the run log (counts and outcomes only). Full gate; move this spec to `implemented/`.
+
+## 📝 Implementation notes
+
+- **Deviation: `providerCause` in the report.** The first live smoke showed one Copilot case ending `rules: provider_error`, and the report could not say why. Each case now also records the provider's short, log-safe cause code (`llmCauseCodeOf`, for example `bad_request` or `finish_max_tokens`, #65), shown as `rules: provider_error (bad_request)`. It is a constant token, so A8 still holds.
+- **Deviation: no `absent: ["Bluetooth"]` on `feature-negated-in-notes`.** The spec review suggested it, but a faithful live draft may say "no Bluetooth", and the absent check would then fail a correct draft. `draft_rechecked` already rejects a shown Bluetooth claim.
+- **Live smoke (2026-10-19, `gemini-3-flash-preview`, budget 5, 4 calls used):** `grounded-mouse` produced a draft (1 call, 1.1 s). `prompt-injection-obeyed` was rejected by grounding twice and fell back to the rule-based answer (2 calls, 25 s, all safety properties held). `grounded-answer` was `unavailable: provider_error` on its first call, before the cause code was recorded. The other 7 cases were skipped by the budget. Model output was shown for 1 of 2 completed cases. Details are in `.ai/runs/2026-10-19-eval-script.md`.
