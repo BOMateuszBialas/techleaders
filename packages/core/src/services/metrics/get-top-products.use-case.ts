@@ -1,12 +1,12 @@
 import { STORE_CURRENCY, type MetricId } from "../../domain/metrics/metric-definitions";
-import type { MetricPeriod } from "../../domain/metrics/metric-period";
+import type { LabelledMetricRange, MetricPeriod } from "../../domain/metrics/metric-period";
 import type { CurrencyCode } from "../../domain/money";
 import type { StoreMetricsPort, TopProductAggregate } from "../../ports/store-metrics.port";
 import { topProductsQuerySchema } from "../../validators/metrics/metric-query.schema";
 import { parseInput } from "../../validators/parse-input";
 
-export type TopProducts = {
-  period: MetricPeriod;
+export type TopProducts<P extends LabelledMetricRange = MetricPeriod> = {
+  period: P;
   currency: CurrencyCode;
   definitionIds: MetricId[];
   limit: number;
@@ -22,7 +22,10 @@ export type TopProducts = {
 export class GetTopProductsUseCase {
   constructor(private readonly deps: { storeMetrics: StoreMetricsPort }) {}
 
-  async execute(input: { period: MetricPeriod; limit?: unknown }): Promise<TopProducts> {
+  async execute<P extends LabelledMetricRange>(input: {
+    period: P;
+    limit?: unknown;
+  }): Promise<TopProducts<P>> {
     const { limit } = parseInput(topProductsQuerySchema, { limit: input.limit });
     const rows = await this.deps.storeMetrics.topProducts(input.period, STORE_CURRENCY, limit);
     return {

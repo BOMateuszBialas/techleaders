@@ -1,12 +1,12 @@
 import type { MetricId } from "../../domain/metrics/metric-definitions";
-import type { MetricPeriod } from "../../domain/metrics/metric-period";
+import type { LabelledMetricRange, MetricPeriod } from "../../domain/metrics/metric-period";
 import { ORDER_STATUSES, type OrderStatus } from "../../domain/orders/order";
 import type { StoreMetricsPort } from "../../ports/store-metrics.port";
 
 export type OrderStatusCountRow = { status: OrderStatus; count: number };
 
-export type OrderSummary = {
-  period: MetricPeriod;
+export type OrderSummary<P extends LabelledMetricRange = MetricPeriod> = {
+  period: P;
   definitionIds: MetricId[];
   /** Orders created in the period, any status and any currency. */
   total: number;
@@ -21,7 +21,7 @@ export type OrderSummary = {
 export class GetOrderSummaryUseCase {
   constructor(private readonly deps: { storeMetrics: StoreMetricsPort }) {}
 
-  async execute(input: { period: MetricPeriod }): Promise<OrderSummary> {
+  async execute<P extends LabelledMetricRange>(input: { period: P }): Promise<OrderSummary<P>> {
     const rows = await this.deps.storeMetrics.orderSummary(input.period);
     const countOf = (status: OrderStatus) =>
       rows.reduce((sum, row) => (row.status === status ? sum + row.count : sum), 0);

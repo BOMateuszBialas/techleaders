@@ -260,6 +260,15 @@ Fictional demo traffic (decision D08) has its own definitions in the same file (
 - A deleted product keeps its sales in "Top products" under the name on its order lines (one row per name it was sold under), marked "(deleted product)".
 - Every figure comes from SQL aggregates at request time (AOV is divided from them); nothing is cached or precomputed.
 
+**Custom range and comparison** (P1, `.ai/specs/implemented/2026-10-19-dashboard-date-range-comparison.md`). Besides the two presets, the owner can pick any range of whole days with the **From** / **To** fields (`/admin?from=2026-10-01&to=2026-10-14`, both days included, store time zone). The range must end no later than today, start on or after 1 Jan 2000 and cover at most 366 days. An invalid range shows the preset period and an alert saying what was wrong; it never shows an error page. Every period, preset or custom, is compared with the previous one. The dashboard prints this comparison definition (`PERIOD_COMPARISON_DEFINITION` in the same file):
+
+> Each figure is compared with the previous period of the same number of days, which ends the day before this one starts. The change is this period minus the previous one; the percentage is the change divided by the previous value, rounded to a whole percent, and is not shown when the previous value is 0 or when the store has no order before the previous period starts. A period that ends today includes only part of today. Top products and low stock are not compared. A change between two periods does not show what caused it.
+
+- Orders placed, paid orders, revenue and AOV each get a line such as "Up 2 (+17%) from 12". AOV says "Not enough data to compare" when either period has no paid orders.
+- The comparison runs the same metric use cases a second time, for the previous period. The percentage follows the Copilot's rule for "What could explain the recent change in sales?" (whole percent).
+- Notes appear when they apply: today is not over yet; no order exists before the previous period, so it may include days before the store started selling (the seeded history covers 35 days, so "Last 30 days" shows this note on a fresh demo database); and the previous period's seeded demo orders and orders in other currencies.
+- The Copilot does not take a custom range yet. It still answers for the last 7 or 30 days.
+
 ### MVP scope
 
 - **Storefront:** catalog, search/filter, cart, server-validated checkout, order confirmation.

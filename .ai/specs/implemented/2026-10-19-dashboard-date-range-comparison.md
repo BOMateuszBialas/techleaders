@@ -1,6 +1,6 @@
 # Dashboard date-range comparison
 
-- Status: draft (design-only spec PR; the implementation ships on its own PR)
+- Status: implemented (spec PR #78, implementation PR #79)
 - Date: 2026-10-19
 - Scope: P1 "Basic sales trend comparison across two date ranges" (`.ai/specs/2026-10-13-commerceos-mvp.md` §P1)
 - Design authority: `.ai/specs/product-brief.md` (R05, R07, D08), `.ai/specs/implemented/2026-10-16-orders-dashboard-demo-store.md` (A8 definitions, A9 periods, A14 demo orders), `.ai/specs/implemented/2026-10-17-commerce-copilot.md` (A8 previous period), AGENTS.md "Commerce Copilot rules" (one source for metrics)
@@ -171,3 +171,8 @@ One phase, one implementation PR (8 steps): the feature is small and each step k
 
 - Fresh-context review (2026-10-19), all applied: today is a partial day (A13 note); partial history now hides the percentage instead of only adding a note (A9); the Copilot import moved to a follow-up so no `packages/ai` file changes (A1); other-currency note for both periods (A11); `"custom"` is consumed only by the dashboard copy, with a type test for the Copilot; the new `earliestOrderAt` query was replaced by the existing order-summary use case; a view test pins `metric-value`; the last step was split.
 - Self-review (2026-10-19): the comparison reuses the use cases (no second metric path), the percentage rule is moved rather than duplicated, the Copilot keeps its contract, the URL change is additive, and every step has a test. Mockups: none rendered; the ASCII layout above is the design, and the implementation PR carries real screenshots from QA.
+- Implementation notes (2026-10-19, PR #79):
+  - The range form is a plain `<form method="get" action="/admin">` instead of `next/form`. Each submit is a full navigation, but the form stays a server-rendered view with no client code, and every other contract in A10 holds.
+  - The native `required`/`min`/`max` attributes block an empty or out-of-bounds submit in the browser, so the server messages are reached through the URL (the e2e test does this).
+  - The comparison card line is always present: compared cards show the change, and the other two say "Not compared with the previous period."
+  - Follow-up: `build-facts.ts` should import core `percentChange`.
