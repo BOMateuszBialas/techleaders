@@ -18,7 +18,8 @@ Retrofit the lesson 09 defences to a repo whose autonomous pipeline already runs
 5. Verified the Claude Code docs (permissions, hooks, sandboxing): deny-first precedence, gitignore `!` carve-outs in the same deny list, `Read` deny scope (file tools + recognised shell file commands, not arbitrary scripts), hook exit codes, matcher lists, Git Bash as the hook shell on Windows, PowerShell and Monitor inputs in `tool_input.command`, no sandbox on native Windows.
 6. Wrote `.claude/settings.json`, the hook and its tests (280 checks under jq and node, plus 9 reported known gaps), wired `npm run test:hooks` into CI (`lint` job step), the gate in `.ai/agentic.config.json`, `SDLC.md` and `AGENTS.md`; `.github/CODEOWNERS`; AGENTS.md guardrail section and routing row; BACKWARD_COMPATIBILITY note; lesson entry.
 7. Live checks on Windows with headless `claude -p` in the worktree: Bash `rm -r` and PowerShell `Remove-Item -Recurse` blocked with the hook message; `Read(.env)` denied (fake one-line `.env`, deleted afterwards) and `.env.example` readable.
-8. Prompt injection: one headless Opus 5.5 run on a temporary file outside the repo (deleted afterwards); the injection did not succeed.
+8. Fresh-context review (subagent, om-code-review checklist) requested changes; fixed in a second commit: `onFailure: block` + timeout, `//**/.env` deny rules, `rm -Force` and jq/dotfile-glob false positives, quoted or path-prefixed shells, `iwr | % { iex }`, `[scriptblock]::Create`, `"$HOME"/.ssh`, `$USERPROFILE`, `gh auth status -t`, `git credential fill`, `--env-file` only for node/tsx, glob-to-.env detection, gate step in CODE_REVIEW.md and README, `tr` for bash 3.2. Live re-check: a `.env` in a sibling directory is denied, Bash still runs.
+9. Prompt injection: one headless Opus 5.5 run on a temporary file outside the repo (deleted afterwards); the injection did not succeed.
 
 ## Decisions
 
@@ -34,7 +35,7 @@ Retrofit the lesson 09 defences to a repo whose autonomous pipeline already runs
 |---|---|
 | `npm run lint` | pass |
 | `npm run format:check` | pass |
-| `npm run test:hooks` | pass, 280/280, 9 known gaps |
+| `npm run test:hooks` | pass, 334/334, 9 known gaps |
 | `npm run typecheck` | pass |
 | `npm run test:coverage` | pass, 154 files, 1810 tests, 100 % thresholds |
 | `npm run build` | pass |
