@@ -2,7 +2,7 @@
 
 - Source: MVP spec `.ai/specs/2026-10-13-commerceos-mvp.md` §3 P1 "CSV product import"; AGENTS.md scope (P1)
 - Depends on: admin catalog management (`.ai/specs/implemented/2026-10-15-admin-catalog-management.md`): `createProductInputSchema`, `runAdminAction`, `toCatalogWriteError`, the view + wrapper form pattern
-- Status: draft, written in autonomous mode (2026-10-19). The defaults in "Resolved assumptions" need the product owner's review; ⚠ marks the ones that need explicit confirmation
+- Status: implemented 2026-10-23 (PR #85; spec PR #84). Written in autonomous mode (2026-10-19). A3 is implemented as its default (optional `stock` column, initial value only) pending the product owner's confirmation. The defaults in "Resolved assumptions" need the product owner's review; ⚠ marks the ones that need explicit confirmation
 - Design authority: `.ai/specs/product-brief.md` (D05, R04, R07), AGENTS.md (stock writers, admin entry points, security and validation)
 
 ## 📝 TLDR

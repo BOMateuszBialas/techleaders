@@ -1,7 +1,7 @@
 # Run: CSV product import (P1)
 
 - Goal: implement `.ai/specs/2026-10-19-csv-product-import.md` (spec PR #84): upload a CSV on `/admin/products/import`, see a checked preview, confirm a create-only, all-or-nothing import.
-- Source doc: `.ai/specs/2026-10-19-csv-product-import.md`
+- Source doc: `.ai/specs/implemented/2026-10-19-csv-product-import.md` (moved there in step 4.1)
 - Mode: autonomous (user away). Branch / worktree: `feat/csv-product-import`, `../wt-csv-import` (from `origin/main` f793905)
 - Merge order: this PR carries `do-not-merge` until spec PR #84 merges; the user merges.
 
@@ -39,3 +39,10 @@ Core CSV parsing and row rules, plan and two use cases, one port and its databas
 
 - [ ] 4.1 Docs, spec moved to implemented
 - [ ] 4.2 Full validation gate
+
+## Decisions (resume 2026-10-23)
+
+- The 3.1 WIP (`runAdminAction` `details`/`unchanged`, `submitProductImport`, the copy module) matched the spec and was kept; a write conflict returns the import-level message without the preview (the owner checks the file again).
+- The view shows exactly one submitting form at a time (the upload form, or the confirm form for an importable preview), so the shared `pending` flag always labels the button that was pressed. "Check another file" / "Import another file" are plain GET forms (a full reload resets `useActionState`).
+- A3 implemented as the spec default (optional `stock` column, initial value only); the PR keeps `do-not-merge` until spec PR #84 is approved.
+- `next build` stopped once with a Next.js "SecurityFatalError" upgrade nudge for 16.4.0; the retry built. Upgrading Next.js is outside this PR's scope and is reported as a follow-up.

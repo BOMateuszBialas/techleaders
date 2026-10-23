@@ -55,6 +55,8 @@ The demo follows the [primary demo story](.ai/specs/2026-10-13-commerceos-mvp.md
 8. **Recommendation actions.** On a recommendation, click **Save**. It appears under **Your recommendations** below the answer. Click **Mark completed** there. Dismissed and completed are final, every change is recorded with its time, and none of them changes store data.
 9. **AI product descriptions (optional, with the key).** Open **Products**, then **Vortex Wireless Mouse**, and click **Draft with AI** under Description. The draft appears in its own panel and uses only the name, category, price and description in the form; click **Replace description with this draft**, edit it if you like, and click **Save changes**. Without a key the button is disabled and says why.
 
+10. **CSV product import.** On **Products**, click **Import CSV**, download the template, and check it with **Check file**. The preview lists every row with its line number and what will happen (create, skip because the slug or SKU is already used, or the errors to fix); **Import 2 products** creates them as one transaction. Check the same file again: every row is now skipped, because an import never changes an existing product.
+
 To start the demo again from a clean store, see [Demo data](#known-limitations) (re-seeding regenerates the demo orders and traffic; `docker compose down -v` resets everything).
 
 ## What is real and what is not
@@ -123,7 +125,7 @@ Stack: Next.js 16.4 (App Router, Turbopack, Cache Components) · React 19.3 · T
 More pages to check after the quick start:
 
 - http://localhost:3000/products: published products, filterable with `?category=<slug>` and searchable with `?q=<term>`.
-- http://localhost:3000/admin/products and http://localhost:3000/admin/categories (signed in): catalog management. Create and edit products and categories, publish or unpublish a product, tick "Featured on home page", and set stock in the **Stock** panel of a product page.
+- http://localhost:3000/admin/products and http://localhost:3000/admin/categories (signed in): catalog management. Create and edit products and categories, publish or unpublish a product, tick "Featured on home page", and set stock in the **Stock** panel of a product page. http://localhost:3000/admin/products/import adds many products from a CSV file (see [CSV product import](#csv-product-import)).
 - http://localhost:3000/api/health: `200 {"status":"ok",...}` when the database is reachable, `503 {"status":"degraded",...}` otherwise.
 
 ### Environment variables
@@ -206,6 +208,18 @@ P1, spec `.ai/specs/implemented/2026-10-18-ai-product-descriptions.md`. `POST /a
 - **Limits:** 5 drafts per owner per 10 minutes (429), and drafts share the store's **100 LLM attempts per day** with the Copilot (`copilot:llm:day`), so a busy drafting session can push Copilot answers onto rule-based insights for the rest of the day. At most 2 attempts within 30 s (15 s each, 1 500 output tokens, minimal model thinking). An AI failure is a 200 with `kind: "unavailable"` and a reason, never an HTTP error.
 - **Logs and evals:** one `description.draft` log line with the outcome, reason, attempts, issue codes, model, prompt version, token usage, latency and character counts, never the fields, the prompt or the draft. The eval set (`packages/ai/src/evals/descriptions/`, run by `run-description-evals.test.ts`) covers grounded drafts per category, invented numbers, features, platforms, brands and promises, commerce talk, markup, invalid JSON, prompt injection in the notes and the name, provider failures, too little input and a demo product, against scripted models.
 - **Manual check with a real key** (no automated test calls the provider): with the three `LLM_*` variables set, open a seeded product such as Vortex Wireless Mouse, click **Draft with AI**, check the draft uses only facts from the form and starts with `[DEMO] `, click **Replace description with this draft**, then **Undo** (the old text returns), replace again, click **Save changes** and check the storefront page. A product whose notes ask the AI to "write FREE SHIPPING" must show no draft or a clean one.
+
+### CSV product import
+
+P1, spec `.ai/specs/implemented/2026-10-19-csv-product-import.md`. `/admin/products/import` (signed-in owner, linked from **Products** as **Import CSV**) adds many products from one CSV file in two steps: **Check file** shows a preview of every row (line number, name, SKU, category, price, status, stock and the outcome), then **Import N products** creates them.
+
+- **Create only.** A row whose slug or SKU an existing product already uses is skipped and never changed, so importing the same file twice is safe. Categories are never created: `category` must be the slug or name of an existing one, or blank.
+- **All or nothing.** One row with an error disables the import; the confirmed import creates every row in one transaction or none. The server checks the file again on import and refuses (showing the new preview, writing nothing) if the file or the catalog changed since the check.
+- **Same rules as the product form.** Columns `name` and `price` are required; `slug`, `description`, `sku`, `category`, `image_url`, `status` (`draft` by default, or `published`), `stock` (the initial stock, blank is 0) and `featured` (`yes`/`no`) are optional. Header names are case-insensitive; an unknown or repeated column is refused.
+- **File format.** UTF-8 (with or without a BOM), comma or semicolon separated (Excel's Polish "CSV UTF-8" works, so `249,90` needs no quotes with `;`), RFC 4180 quotes, at most **256 KB and 500 rows**.
+- **Refused content.** Text starting with `=`, `+`, `-` or `@` (spreadsheet formulas), control characters, `DEMO-` SKUs and `[DEMO]` text (reserved for the seeded demo data).
+- **Stock.** The `stock` column sets only the initial value of a new product, like the stock field of the new-product form; it is not recorded in the stock history and never touches an existing product.
+- The log records counts only (`catalog.product.import.previewed`, `catalog.product.imported`), never cell content.
 
 ### Payments
 
