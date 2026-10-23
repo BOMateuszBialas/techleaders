@@ -160,6 +160,7 @@ Every PR passes the full validation gate before review sign-off, in this order:
 
 - `npm run lint`
 - `npm run format:check`
+- `npm run test:hooks` (dry-run tests of the agent PreToolUse hook in `.claude/hooks/`)
 - `npm run typecheck`
 - `npm run test:coverage` (unit tests; fails below 100% coverage)
 - `npm run build`

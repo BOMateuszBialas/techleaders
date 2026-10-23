@@ -1,0 +1,15 @@
+# Changes to the files that configure coding agents (permissions, hooks, MCP servers, skills,
+# agent instructions) and to CI need the owner's review. CODEOWNERS enforces nothing on its own:
+# it takes effect only with "Require review from Code Owners" in the main branch ruleset
+# (see .ai/security-notes.md for the trade-off with agent self-merge).
+
+/.claude/            @BOMateuszBialas
+/.mcp.json           @BOMateuszBialas
+/.agents/            @BOMateuszBialas
+/.codex/             @BOMateuszBialas
+/skills-lock.json    @BOMateuszBialas
+/CLAUDE.md           @BOMateuszBialas
+/AGENTS.md           @BOMateuszBialas
+/packages/app/AGENTS.md @BOMateuszBialas
+/.github/workflows/  @BOMateuszBialas
+/.github/CODEOWNERS  @BOMateuszBialas

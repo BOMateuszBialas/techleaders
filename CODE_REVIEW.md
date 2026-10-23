@@ -9,6 +9,7 @@ Every PR must pass, in order (see `.ai/agentic.config.json`):
 ```bash
 npm run lint
 npm run format:check
+npm run test:hooks         # dry-run tests of the agent PreToolUse hook
 npm run typecheck
 npm run test:coverage      # unit tests, fails below 100% coverage
 npm run build

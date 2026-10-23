@@ -93,7 +93,7 @@ docker-compose.yml   Local PostgreSQL
 - **Dependency injection (Awilix, strict mode).** `packages/app/src/server/container.ts` is the only place that builds infrastructure. The ORM, the Better Auth instance and the LLM provider are singletons. Each request gets a scope with its own forked MikroORM `EntityManager`, and strict mode stops a singleton from capturing a scoped object.
 - **Data.** PostgreSQL 17 with MikroORM 7. Migrations are the source of truth, and an integration test fails on drift between entities and migrations. Money is stored as integer minor units with DB `check` constraints. Stock has exactly three writers: a manual change with history, the checkout decrement and the cancel restock.
 - **Commerce Copilot pipeline.** Owner check and rate limit, then deterministic intent routing (seven questions; others are declined with the data they would need). Approved, read-only tools call the same metric use cases as the dashboard. Rule-based insights are always computed. When an LLM is configured, it receives a versioned prompt with the fact table under aliases, its JSON is validated with Zod and grounded against the facts, it gets at most 2 attempts within 40 s, and it falls back to the rule-based answer.
-- **Tests and the gate.** `npm run lint`, `format:check`, `typecheck`, `test:coverage` (unit tests at 100% lines, branches, functions and statements), `build`, `test:integration` (Testcontainers PostgreSQL) and `test:e2e` (the production build driven by agent-browser). [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs them on every pull request. See [Tests and CI](#tests-and-ci).
+- **Tests and the gate.** `npm run lint`, `format:check`, `test:hooks` (dry-run tests of the agent PreToolUse hook in `.claude/hooks/`), `typecheck`, `test:coverage` (unit tests at 100% lines, branches, functions and statements), `build`, `test:integration` (Testcontainers PostgreSQL) and `test:e2e` (the production build driven by agent-browser). [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs them on every pull request. See [Tests and CI](#tests-and-ci).
 
 Stack: Next.js 16.4 (App Router, Turbopack, Cache Components) · React 19.3 · TypeScript 5.9 (strict) · PostgreSQL 17 · MikroORM 7 · Awilix 13 · Better Auth 1.7 · Tailwind CSS 4 · shadcn/ui · Zod 4 · Google Gemini API (`@google/genai`, optional) · Vitest 5 · Testcontainers · agent-browser · ESLint 9 · Prettier 3 · npm workspaces.
 
@@ -161,6 +161,7 @@ There are no payment variables: the demo payment needs none. The e2e suite blank
 | `npm run test:e2e` | Browser tests: starts PostgreSQL and the built app, drives it with agent-browser (run `npm run build` first) |
 | `npm run eval` | The Copilot and description eval sets with a readable report (scripted models; `-- --live` runs a bounded subset against the configured model, see [Evals](#evals-npm-run-eval)) |
 | `npm run format` / `npm run format:check` | Prettier write / check |
+| `npm run test:hooks` | Dry-run tests of the agent PreToolUse hook (`.claude/hooks/`, see `.ai/security-notes.md`) |
 | `npm run db:up` / `npm run db:down` | Start / stop local PostgreSQL |
 | `npm run db:migrate` | Apply pending migrations |
 | `npm run db:migration:create` | Generate a migration from entity changes (review it before committing) |

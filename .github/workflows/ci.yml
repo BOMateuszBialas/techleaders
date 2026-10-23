@@ -31,6 +31,8 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run format:check
+      # Dry-run tests of the agent PreToolUse hook (.claude/hooks/); not under the unit coverage gate.
+      - run: npm run test:hooks
       - run: npm run typecheck
 
   unit:
