@@ -13,11 +13,17 @@ import { CATALOG_CACHE_TAG } from "./cache-tags";
 /**
  * What a successful handler reports: a log event with the record id (ids only, no free text),
  * and either a message describing the effect (the form stays on the page, spec G12) or a
- * page to go to (create, delete).
+ * page to go to (create, delete). Optional (CSV import spec):
+ * - `details`: numbers logged next to the id (row counts; never free text);
+ * - `unchanged: true`: nothing was written (a preview, a refused import), so the catalog cache
+ *   tag is not updated and the page is not refreshed.
  */
-export type AdminActionSuccess = { event: string; id: string } & (
-  { message: string } | { redirectTo: string }
-);
+export type AdminActionSuccess = {
+  event: string;
+  id: string;
+  details?: Record<string, number>;
+  unchanged?: true;
+} & ({ message: string } | { redirectTo: string });
 
 export { GENERIC_ACTION_ERROR };
 
@@ -50,11 +56,12 @@ export async function runAdminAction(
     await requireAdmin();
     scope = createRequestScope();
     const success = await handler(scope.cradle);
-    logger.info(success.event, { id: success.id });
+    logger.info(success.event, { ...success.details, id: success.id });
+    const changed = success.unchanged !== true;
     outcome =
       "redirectTo" in success
-        ? { kind: "redirect", to: success.redirectTo, changed: true }
-        : { kind: "state", state: { status: "success", message: success.message }, changed: true };
+        ? { kind: "redirect", to: success.redirectTo, changed }
+        : { kind: "state", state: { status: "success", message: success.message }, changed };
   } catch (error) {
     unstable_rethrow(error);
     outcome = hasAppErrorCode(error, "UNAUTHORIZED")
