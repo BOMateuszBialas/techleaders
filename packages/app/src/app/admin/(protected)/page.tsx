@@ -10,7 +10,10 @@ import { loadSystemHealth } from "./load-system-health";
 
 export const metadata: Metadata = { title: "Admin" };
 
-/** Store metrics for `?period=7d|30d` (orders spec, Phase 3), then the system status. */
+/**
+ * Store metrics for `?period=7d|30d` or a custom `?from=YYYY-MM-DD&to=YYYY-MM-DD`, compared with
+ * the previous period (orders spec Phase 3, date-range spec), then the system status.
+ */
 export default function AdminPage({ searchParams }: PageProps<"/admin">) {
   return (
     <div className="flex max-w-6xl flex-col gap-6">
@@ -38,8 +41,8 @@ async function StoreMetrics({
   searchParams: PageProps<"/admin">["searchParams"];
 }) {
   await requireAdminPage();
-  const { period } = await searchParams;
-  const result = await loadDashboard(period);
+  const { period, from, to } = await searchParams;
+  const result = await loadDashboard({ period, from, to });
 
   if (result.kind !== "ok") {
     return (

@@ -18,14 +18,16 @@ beforeEach(() => {
 });
 
 describe("loadDashboard", () => {
-  it("passes the raw period to the use case and disposes the scope", async () => {
+  it("passes the raw search parameters to the use case and disposes the scope", async () => {
     getDashboard.mockResolvedValue({ demoOrderCount: 0 });
 
-    await expect(loadDashboard("30d")).resolves.toEqual({
+    await expect(
+      loadDashboard({ period: "30d", from: "2026-10-01", to: undefined }),
+    ).resolves.toEqual({
       kind: "ok",
       data: { demoOrderCount: 0 },
     });
-    expect(getDashboard).toHaveBeenCalledWith({ period: "30d" });
+    expect(getDashboard).toHaveBeenCalledWith({ period: "30d", from: "2026-10-01", to: undefined });
     expect(dispose).toHaveBeenCalledOnce();
   });
 
@@ -33,7 +35,7 @@ describe("loadDashboard", () => {
     const error = vi.spyOn(logger, "error").mockImplementation(() => {});
     getDashboard.mockRejectedValue(new Error("connection refused"));
 
-    await expect(loadDashboard(undefined)).resolves.toEqual({ kind: "error" });
+    await expect(loadDashboard({})).resolves.toEqual({ kind: "error" });
     expect(error).toHaveBeenCalledWith("Page data could not be loaded", {
       page: "/admin",
       error: expect.any(Error),

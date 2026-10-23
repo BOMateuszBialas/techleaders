@@ -22,6 +22,8 @@ export type DescriptionEvalProperty =
 export type DescriptionEvalCase = {
   id: string;
   covers: DescriptionEvalProperty;
+  /** Also run against the configured model by `npm run eval -- --live` (eval-script spec A3). */
+  live?: true;
   description: string;
   input: { name: string; category: EvalCategoryName | null; price: string; notes: string };
   script: ScriptStep[];
@@ -70,6 +72,7 @@ export const DESCRIPTION_EVAL_CASES: readonly DescriptionEvalCase[] = [
   // Grounded drafts, one per category of the D10 catalog.
   {
     id: "grounded-mouse",
+    live: true,
     covers: "grounding",
     description: "a mouse draft that only rephrases the notes is shown",
     input: PLAIN_NOTES(VORTEX),
@@ -190,6 +193,7 @@ export const DESCRIPTION_EVAL_CASES: readonly DescriptionEvalCase[] = [
   },
   {
     id: "feature-negated-in-notes",
+    live: true,
     covers: "grounding",
     description: "notes saying 'no Bluetooth' do not ground a draft that claims Bluetooth",
     input: {
@@ -272,6 +276,7 @@ export const DESCRIPTION_EVAL_CASES: readonly DescriptionEvalCase[] = [
   },
   {
     id: "commerce-talk-from-notes",
+    live: true,
     covers: "grounding",
     description: "stock and delivery talk is never shown, even when the notes mention it",
     input: {
@@ -328,6 +333,7 @@ export const DESCRIPTION_EVAL_CASES: readonly DescriptionEvalCase[] = [
   // Prompt injection in product content.
   {
     id: "injection-in-notes-obeyed",
+    live: true,
     covers: "prompt_injection",
     description: "a model that obeys injected notes never gets its draft shown",
     input: {
@@ -350,6 +356,7 @@ export const DESCRIPTION_EVAL_CASES: readonly DescriptionEvalCase[] = [
   },
   {
     id: "injection-in-name",
+    live: true,
     covers: "prompt_injection",
     description: "an injected product name cannot make the model's prompt echo visible",
     input: {
@@ -406,6 +413,7 @@ export const DESCRIPTION_EVAL_CASES: readonly DescriptionEvalCase[] = [
   // Demo marking (R07).
   {
     id: "demo-product",
+    live: true,
     covers: "demo_labels",
     description: "a demo product's draft starts with [DEMO] exactly once, whatever the model wrote",
     input: VORTEX,

@@ -2,11 +2,15 @@ import {
   LOW_STOCK_THRESHOLD,
   METRIC_PERIOD_LABELS,
   METRIC_PERIOD_PRESETS,
+  formatIsoDay,
   formatMoney,
   money,
+  periodCalendarDays,
+  periodDays,
   type CurrencyCode,
   type Dashboard,
-  type MetricPeriod,
+  type DashboardPeriod,
+  type MetricChange,
   type MetricPeriodPreset,
 } from "@commerceos/core";
 import { orderStatusLabel } from "@/components/checkout/checkout-copy";
@@ -34,7 +38,7 @@ export type PeriodLink = {
 };
 
 /** The period switch: "Last 7 days" / "Last 30 days", the active one marked current. */
-export function periodLinks(active: MetricPeriodPreset): PeriodLink[] {
+export function periodLinks(active: DashboardPeriod["preset"]): PeriodLink[] {
   return METRIC_PERIOD_PRESETS.map((preset) => ({
     preset,
     label: METRIC_PERIOD_LABELS[preset],
@@ -43,9 +47,13 @@ export function periodLinks(active: MetricPeriodPreset): PeriodLink[] {
   }));
 }
 
-/** "11–17 Oct 2026 (Europe/Warsaw)". */
-export function periodRangeLabel(period: MetricPeriod): string {
-  return `${period.label} (${period.timeZone})`;
+/**
+ * "11–17 Oct 2026 (Europe/Warsaw)", or "Custom range: 1–14 Oct 2026 (Europe/Warsaw)" when no
+ * preset is active (date-range spec UI/UX), so the page says which kind of period it shows.
+ */
+export function periodRangeLabel(period: DashboardPeriod): string {
+  const range = `${period.label} (${period.timeZone})`;
+  return period.preset === "custom" ? `${RANGE_FORM_LEGEND}: ${range}` : range;
 }
 
 /** "Includes 3 seeded demo orders (fictional)." when the period has any (A14), else null. */
@@ -88,4 +96,74 @@ export function statusBreakdown(dashboard: Dashboard): { status: string; text: s
 /** "Showing 10 of 12." when the low-stock list is cut, else null. */
 export function lowStockCountNote(shown: number, total: number): string | null {
   return total > shown ? `Showing ${shown} of ${total}.` : null;
+}
+
+/* Comparison with the previous period (date-range spec, UI/UX). */
+
+export const NOT_COMPARED = "Not compared with the previous period.";
+export const NOT_ENOUGH_DATA_TO_COMPARE = "Not enough data to compare";
+export const TODAY_NOTE =
+  "Today is not over yet, so this period has fewer hours of sales than the previous one.";
+export const RANGE_FORM_LEGEND = "Custom range";
+
+/** "Compared with 4–10 Oct 2026, the previous 7 days." */
+export function comparisonHeader(previous: DashboardPeriod): string {
+  const days = periodDays(previous);
+  const length = days === 1 ? "the previous day" : `the previous ${days} days`;
+  return `Compared with ${previous.label}, ${length}.`;
+}
+
+/** "+17%" or "−25%" (a real minus sign). */
+function signedPercent(percent: number): string {
+  return percent < 0 ? `−${Math.abs(percent)}%` : `+${percent}%`;
+}
+
+/**
+ * One comparison line, in words so direction never depends on colour: "Up 2 (+17%) from 12",
+ * "No change from 12", "Up 3 from 0 (no % change: the previous period had none)". With partial
+ * history the percentage is withheld and the page note says why.
+ */
+export function changeText(change: MetricChange | null, format: (value: number) => string): string {
+  if (change === null) return NOT_ENOUGH_DATA_TO_COMPARE;
+  const previous = format(change.previous);
+  if (change.direction === "same") return `No change from ${previous}`;
+  const word = change.direction === "up" ? "Up" : "Down";
+  const amount = format(Math.abs(change.delta));
+  if (change.percent !== null) {
+    return `${word} ${amount} (${signedPercent(change.percent)}) from ${previous}`;
+  }
+  if (change.previous === 0) {
+    return `${word} ${amount} from ${previous} (no % change: the previous period had none)`;
+  }
+  return `${word} ${amount} from ${previous}`;
+}
+
+/** The notes under the comparison header, in display order; empty when none applies. */
+export function comparisonNotes(dashboard: Dashboard): string[] {
+  const { comparison } = dashboard;
+  const notes: string[] = [];
+  if (comparison.includesToday) notes.push(TODAY_NOTE);
+  if (comparison.partialHistory) {
+    const { firstDay } = periodCalendarDays(comparison.period);
+    notes.push(
+      `No order was placed before ${formatIsoDay(firstDay)}, so the previous period may include days before the store started selling; percentages are not shown.`,
+    );
+  }
+  const demo = comparison.demoOrderCount;
+  if (demo > 0) {
+    notes.push(
+      demo === 1
+        ? "The previous period includes 1 seeded demo order (fictional)."
+        : `The previous period includes ${demo} seeded demo orders (fictional).`,
+    );
+  }
+  const other = comparison.sales.otherCurrencyOrders;
+  if (other > 0) {
+    notes.push(
+      other === 1
+        ? "In the previous period, 1 order in another currency is not included."
+        : `In the previous period, ${other} orders in other currencies are not included.`,
+    );
+  }
+  return notes;
 }
