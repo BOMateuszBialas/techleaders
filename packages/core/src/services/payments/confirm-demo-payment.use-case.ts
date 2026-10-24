@@ -1,5 +1,6 @@
 import { money } from "../../domain/money";
 import { OrderNotPayableError } from "../../domain/orders/order";
+import type { OrderViewer } from "../../domain/orders/order-access";
 import { NotFoundError } from "../../errors/app-error";
 import type { OrderRepositoryPort } from "../../ports/order-repository.port";
 import type { PaymentGateway } from "../../ports/payment-gateway.port";
@@ -17,15 +18,22 @@ export type ConfirmPaymentResult = {
  * gateway authorizes with the order id as its idempotency key, outside any transaction (a
  * real gateway is a network call), and a conditional update marks the order paid; of two
  * concurrent confirmations only one update wins, and both report success. A cancelled order
- * is `OrderNotPayableError`; an unknown reference `NotFoundError`.
+ * is `OrderNotPayableError`; an unknown reference `NotFoundError`, and so is an account order
+ * confirmed by anyone but its customer (E07 spec A2), whatever its status: the gateway and
+ * `markPaid` are never called for it.
  */
 export class ConfirmDemoPaymentUseCase {
   constructor(
     private readonly deps: { orderRepository: OrderRepositoryPort; paymentGateway: PaymentGateway },
   ) {}
 
-  async execute(input: { reference: string }): Promise<ConfirmPaymentResult> {
-    const order = await findOrderByReference(this.deps.orderRepository, input.reference);
+  async execute(input: { reference: string; viewer: OrderViewer }): Promise<ConfirmPaymentResult> {
+    // The ownership check (E07 A2) runs inside the lookup, before any status branch below.
+    const order = await findOrderByReference(
+      this.deps.orderRepository,
+      input.reference,
+      input.viewer,
+    );
     if (order.paidAt !== null) {
       return { orderId: order.id, reference: order.reference, outcome: "already_paid" };
     }

@@ -25,6 +25,11 @@ export type OrderRecord = {
   id: string;
   reference: string;
   requestFingerprint: string;
+  /**
+   * The customer account the order was placed with, or null for a guest order (E07 spec A2).
+   * Used only for ownership checks; never part of a shopper-facing view.
+   */
+  customerId: string | null;
   status: OrderStatus;
   currency: CurrencyCode;
   subtotalMinor: number;
@@ -41,6 +46,8 @@ export type PlaceOrderCommand = {
   idempotencyKey: string;
   requestFingerprint: string;
   customer: CustomerDetails;
+  /** The signed-in customer placing the order (from the session only), or null for a guest. */
+  customerId: string | null;
   lines: readonly CartLine[];
   /** A fresh public reference for each attempt (a collision re-runs the transaction once). */
   newReference: () => string;

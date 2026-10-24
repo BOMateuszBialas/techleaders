@@ -10,6 +10,7 @@ export * from "./domain/metrics/metric-period";
 export * from "./domain/money";
 export * from "./domain/orders/demo-order";
 export * from "./domain/orders/order";
+export * from "./domain/orders/order-access";
 export * from "./domain/orders/order-reference";
 export * from "./domain/orders/order-status";
 export * from "./domain/imports/csv";

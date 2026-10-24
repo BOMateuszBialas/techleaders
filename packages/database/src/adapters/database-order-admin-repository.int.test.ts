@@ -51,7 +51,10 @@ describe("DatabaseOrderAdminRepository (PostgreSQL)", () => {
   }
 
   /** Places an order through the real checkout use case; returns its id. */
-  async function place(lines: [slug: string, quantity: number][]): Promise<string> {
+  async function place(
+    lines: [slug: string, quantity: number][],
+    customerId: string | null = null,
+  ): Promise<string> {
     const cart: CartLine[] = lines.map(([slug, quantity]) => ({
       productId: ids[slug] ?? "",
       quantity,
@@ -83,7 +86,7 @@ describe("DatabaseOrderAdminRepository (PostgreSQL)", () => {
       catalogRepository: new DatabaseCatalogRepository({ em }),
       randomBytes: (length) => new Uint8Array(randomBytes(length)),
       sha256Hex: async (text) => createHash("sha256").update(text).digest("hex"),
-    }).execute({ lines: cart, request });
+    }).execute({ customerId, lines: cart, request });
     const rows = await query<{ id: string }>("select id from orders where public_reference = ?", [
       reference,
     ]);
@@ -119,6 +122,25 @@ describe("DatabaseOrderAdminRepository (PostgreSQL)", () => {
 
   afterAll(async () => {
     await orm?.close(true);
+  });
+
+  it("flags an account order to the owner without any account data (E07 A18)", async () => {
+    const [customer] = await query<{ id: string }>(
+      `insert into customer_users (name, email, email_verified) values ('Customer', 'admin-flag@db.test', false)
+        on conflict (email) do update set name = excluded.name returning id`,
+    );
+    const accountOrder = await place([[VORTEX, 1]], customer?.id ?? "");
+    const guestOrder = await place([[VORTEX, 1]]);
+
+    const { rows } = await admin().listOrders({ offset: 0, limit: 25 });
+    const flags = Object.fromEntries(rows.map((row) => [row.id, row.placedWithAccount]));
+    expect(flags).toEqual({ [accountOrder]: true, [guestOrder]: false });
+    expect((await admin().findOrderById(accountOrder))?.placedWithAccount).toBe(true);
+    expect((await admin().findOrderById(guestOrder))?.placedWithAccount).toBe(false);
+
+    const serialized = JSON.stringify([rows, await admin().findOrderById(accountOrder)]);
+    expect(serialized).not.toContain(customer?.id ?? "-");
+    expect(serialized).not.toContain("admin-flag@db.test");
   });
 
   it("lists orders newest first with their units, page by page", async () => {

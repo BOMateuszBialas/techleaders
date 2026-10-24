@@ -7,7 +7,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { IDLE_ACTION_STATE, type ActionState } from "@/lib/action-state";
-import { DemoBadge, OrderStatusBadge } from "./order-badges";
+import { DemoBadge, OrderOriginBadge, OrderStatusBadge } from "./order-badges";
 import {
   confirmationLabel,
   formatOrderDateTime,
@@ -143,6 +143,15 @@ describe("order badges", () => {
       renderToStaticMarkup(createElement(OrderStatusBadge, { status: "cancelled" })),
     ).toContain("Cancelled");
     expect(renderToStaticMarkup(createElement(DemoBadge))).toContain("Demo");
+  });
+
+  it("says whether an account or a guest placed the order (E07 A18)", () => {
+    expect(
+      renderToStaticMarkup(createElement(OrderOriginBadge, { placedWithAccount: true })),
+    ).toContain("Account order");
+    expect(
+      renderToStaticMarkup(createElement(OrderOriginBadge, { placedWithAccount: false })),
+    ).toContain("Guest order");
   });
 });
 

@@ -1,6 +1,12 @@
-import { InsufficientStockError, OrderNotPayableError } from "@commerceos/core";
+import {
+  InsufficientStockError,
+  NotFoundError,
+  ORDER_NOT_FOUND_MESSAGE,
+  OrderNotPayableError,
+} from "@commerceos/core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { IDLE_ACTION_STATE } from "@/lib/action-state";
+import type * as RequireCustomer from "../customer-auth/require-customer";
 import { readCartLines, writeCartLines } from "../cart/cart-cookie";
 import { createRequestScope } from "../container";
 import { logger } from "../logger";
@@ -11,6 +17,15 @@ import { REFERENCE_FORMAT_MESSAGE } from "./order-paths";
 const REFERENCE = "CO-0DT7M-1EV8N-2FW9P-3GXAQ";
 const VORTEX_ID = "7a2d3b63-7e1f-4b9c-8b62-4a4b2c2c3e01";
 const stored = [{ productId: VORTEX_ID, quantity: 1 }];
+
+const CUSTOMER_A = "c0000000-0000-4000-8000-00000000000a";
+const CUSTOMER_B = "c0000000-0000-4000-8000-00000000000b";
+const getCurrentCustomerId = vi.fn();
+
+vi.mock("../customer-auth/require-customer", async (importOriginal) => ({
+  ...(await importOriginal<typeof RequireCustomer>()),
+  getCurrentCustomerId: () => getCurrentCustomerId(),
+}));
 
 const placeOrderUseCase = { execute: vi.fn() };
 const confirmDemoPaymentUseCase = { execute: vi.fn() };
@@ -47,6 +62,7 @@ beforeEach(() => {
   } as never);
   vi.mocked(readCartLines).mockResolvedValue(stored);
   rateLimiter.consume.mockResolvedValue({ allowed: true, remaining: 119 });
+  getCurrentCustomerId.mockResolvedValue({ status: "none" });
   vi.spyOn(logger, "info").mockImplementation(() => {});
 });
 
@@ -59,11 +75,18 @@ describe("placeOrder (public, guest checkout)", () => {
     });
 
     await expect(
-      placeOrder(IDLE_ACTION_STATE, form({ customerName: "Ada", price: "1", lines: "x" })),
+      placeOrder(
+        IDLE_ACTION_STATE,
+        form({ customerName: "Ada", price: "1", lines: "x", customerId: CUSTOMER_B }),
+      ),
     ).rejects.toThrow(`NEXT_REDIRECT /checkout/pay/${REFERENCE}`);
 
     const call = placeOrderUseCase.execute.mock.calls[0]?.[0];
     expect(call.lines).toBe(stored);
+    // Phase 2a: a guest order, even with a customer session; never a posted customer id.
+    expect(call.customerId).toBeNull();
+    expect(call.request).not.toHaveProperty("customerId");
+    expect(getCurrentCustomerId).not.toHaveBeenCalled();
     // Only the checkout fields are read: a posted price or line list never reaches the use case.
     expect(call.request.customerName).toBe("Ada");
     expect(call.request).not.toHaveProperty("price");
@@ -109,8 +132,55 @@ describe("confirmDemoPayment", () => {
       confirmDemoPayment(IDLE_ACTION_STATE, form({ reference: REFERENCE })),
     ).rejects.toThrow(`NEXT_REDIRECT /orders/${REFERENCE}?paid=1`);
     expect(rateLimiter.consume).toHaveBeenCalledOnce();
-    expect(confirmDemoPaymentUseCase.execute).toHaveBeenCalledWith({ reference: REFERENCE });
+    expect(confirmDemoPaymentUseCase.execute).toHaveBeenCalledWith({
+      reference: REFERENCE,
+      viewer: { customerId: null },
+    });
     expect(logger.info).toHaveBeenCalledWith("payment.demo.confirmed", { id: "order-1" });
+  });
+
+  it.each([
+    [
+      "the signed-in customer",
+      { status: "customer", customerId: CUSTOMER_A, email: "a@x.test" },
+      CUSTOMER_A,
+    ],
+    ["a guest when the session read fails (A24)", { status: "error" }, null],
+  ] as const)(
+    "takes the viewer from the session only: %s (E07 A2)",
+    async (_label, session, expected) => {
+      getCurrentCustomerId.mockResolvedValueOnce(session);
+      confirmDemoPaymentUseCase.execute.mockResolvedValue({
+        orderId: "order-1",
+        reference: REFERENCE,
+        outcome: "paid",
+      });
+      await expect(
+        confirmDemoPayment(
+          IDLE_ACTION_STATE,
+          form({ reference: REFERENCE, customerId: CUSTOMER_B, viewer: CUSTOMER_B }),
+        ),
+      ).rejects.toThrow("NEXT_REDIRECT");
+      expect(getCurrentCustomerId).toHaveBeenCalledOnce();
+      expect(confirmDemoPaymentUseCase.execute).toHaveBeenCalledWith({
+        reference: REFERENCE,
+        viewer: { customerId: expected },
+      });
+    },
+  );
+
+  it("answers another customer's order as not found and never redirects (E07 A2)", async () => {
+    getCurrentCustomerId.mockResolvedValueOnce({
+      status: "customer",
+      customerId: CUSTOMER_B,
+      email: "b@x.test",
+    });
+    confirmDemoPaymentUseCase.execute.mockRejectedValueOnce(
+      new NotFoundError(ORDER_NOT_FOUND_MESSAGE),
+    );
+    await expect(
+      confirmDemoPayment(IDLE_ACTION_STATE, form({ reference: REFERENCE })),
+    ).resolves.toMatchObject({ status: "error", message: ORDER_NOT_FOUND_MESSAGE });
   });
 
   it("treats an already paid order as success", async () => {

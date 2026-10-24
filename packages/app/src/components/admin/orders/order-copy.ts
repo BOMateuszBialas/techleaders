@@ -28,6 +28,13 @@ export const FIRST_PAGE_LINK = "Go to the first page";
 export const NEWER_LINK = "Newer";
 export const OLDER_LINK = "Older";
 export const DEMO_BADGE = "Demo";
+/** Who placed the order (E07 spec A18): a flag only, never the account behind it. */
+export const ACCOUNT_ORDER_LABEL = "Account order";
+export const GUEST_ORDER_LABEL = "Guest order";
+
+export function orderOriginLabel(placedWithAccount: boolean): string {
+  return placedWithAccount ? ACCOUNT_ORDER_LABEL : GUEST_ORDER_LABEL;
+}
 export const DEMO_ORDER_NOTE =
   "Seeded demo order: the customer is fictional and no real purchase happened.";
 export const SHIPPING_FREE_LABEL = "free (demo store)";

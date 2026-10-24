@@ -1,5 +1,6 @@
 import { ORDER_STATUSES, PAYMENT_PROVIDERS, SUPPORTED_CURRENCIES } from "@commerceos/core";
 import { defineEntity, p, type InferEntity } from "@mikro-orm/core";
+import { CustomerUserSchema } from "../customers/customer-user.entity";
 
 /**
  * A shopper's order (cart spec, Data Model). Money in integer minor units; `paid_at` is the
@@ -36,6 +37,13 @@ export const OrderSchema = defineEntity({
     paymentProvider: p.enum(PAYMENT_PROVIDERS).nullable(),
     paymentReference: p.string().length(64).nullable().unique(),
     paidAt: p.datetime().nullable(),
+    /**
+     * The customer account the order was placed with (E07 spec A2, A3): set once at placement from
+     * the session, never changed; null for a guest order. `restrict` is intentional: deleting an
+     * account row must never turn its orders into guest orders reachable by reference again
+     * (spec Data Model).
+     */
+    customer: p.manyToOne(CustomerUserSchema).nullable().deleteRule("restrict"),
     createdAt: p
       .datetime()
       .defaultRaw("now()")
@@ -47,6 +55,10 @@ export const OrderSchema = defineEntity({
       .onCreate(() => new Date())
       .onUpdate(() => new Date()),
   },
+  indexes: [
+    // "My orders": one customer's orders, newest first (E07 spec A13).
+    { name: "orders_customer_id_created_at_index", properties: ["customer", "createdAt"] },
+  ],
   checks: [
     { name: "orders_total_check", expression: "total_minor = subtotal_minor + shipping_minor" },
     // A pending order has no payment yet; every paid state has one.

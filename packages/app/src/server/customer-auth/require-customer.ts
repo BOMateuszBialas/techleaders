@@ -1,5 +1,11 @@
 import "server-only";
-import { isCustomerRole, UnauthorizedError, type CustomerRole } from "@commerceos/core";
+import {
+  GUEST_ORDER_VIEWER,
+  isCustomerRole,
+  UnauthorizedError,
+  type CustomerRole,
+  type OrderViewer,
+} from "@commerceos/core";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
@@ -73,6 +79,16 @@ export async function getCurrentCustomerId(): Promise<CustomerIdResult> {
   return principal
     ? { status: "customer", customerId: principal.id, email: principal.email }
     : { status: "none" };
+}
+
+/**
+ * The viewer for reads by public reference (E07 spec A2, A24): the signed-in customer, or a guest
+ * viewer for no session **and** for a session-read failure, so account orders answer "not found"
+ * until the session read recovers while guest orders keep working. Only the public order and
+ * payment paths use it, never checkout (which must not turn a failure into a guest silently).
+ */
+export function toOrderViewer(result: CustomerIdResult): OrderViewer {
+  return result.status === "customer" ? { customerId: result.customerId } : GUEST_ORDER_VIEWER;
 }
 
 /** For Server Components and page loaders: no customer → redirect to the customer sign-in page. */

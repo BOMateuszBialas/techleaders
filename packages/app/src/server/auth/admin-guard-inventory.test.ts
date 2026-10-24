@@ -33,6 +33,9 @@ import { describe, expect, it } from "vitest";
  * - `getCustomerAuth(` is called only in `server/customer-auth/` and the customer auth route;
  *   `getAuth(` only in `server/auth/` and the owner auth route (plus their definitions in
  *   `server/container.ts`)
+ * - every file that resolves `getOrderByReferenceUseCase` or `confirmDemoPaymentUseCase` (the
+ *   public reference paths) must call `toOrderViewer(` from `require-customer.ts`, so the viewer
+ *   comes from the session (E07 spec A2, A14), except the container that registers them
  *
  * The inventory proves that a guard is imported or named, not that it runs on every path: each
  * entry point also has behaviour tests (no session, wrong role, session-read failure).
@@ -137,6 +140,13 @@ const RULES: Rule[] = [
     what: "call getCustomerAuth",
   },
   {
+    name: "public order reads",
+    matches: (path, code) =>
+      path !== "server/container.ts" &&
+      /\b(getOrderByReferenceUseCase|confirmDemoPaymentUseCase)\b/.test(code),
+    guards: ["toOrderViewer("],
+  },
+  {
     name: "files outside the owner auth module",
     matches: (path) =>
       !path.startsWith("server/auth/") &&
@@ -217,6 +227,7 @@ describe("admin guard inventory", () => {
         "app/api/auth/[...all]/route.ts",
         "app/api/customer-auth/[...all]/route.ts",
         "server/customer-auth/require-customer.ts",
+        "app/(storefront)/orders/load-order-page.ts",
       ]),
     );
     expect(findUnguarded(files)).toEqual([]);
@@ -304,6 +315,26 @@ describe("admin guard inventory", () => {
     expect(named).toEqual(expected);
     // No other kind of export can add an endpoint unseen.
     expect(code.match(/^export\s/gm)).toHaveLength(expected.length);
+  });
+
+  it("requires the session viewer on every public reference read (E07 A2)", () => {
+    expect(
+      findUnguarded({
+        "app/(storefront)/orders/load-order-page.ts":
+          "cradle.getOrderByReferenceUseCase.execute({ reference, viewer: { customerId: null } })",
+        "server/orders/order.action.ts":
+          '"use server";\nrunAction();\ncradle.confirmDemoPaymentUseCase.execute(values)',
+        "app/(storefront)/orders/commented.ts":
+          "// toOrderViewer(await getCurrentCustomerId())\ncradle.getOrderByReferenceUseCase.execute(x)",
+        "app/(storefront)/orders/ok.ts":
+          "const viewer = toOrderViewer(await getCurrentCustomerId());\ncradle.getOrderByReferenceUseCase.execute({ reference, viewer })",
+        "server/container.ts": "getOrderByReferenceUseCase: asClass(X), confirmDemoPaymentUseCase",
+      }),
+    ).toEqual([
+      "app/(storefront)/orders/load-order-page.ts (public order reads must call toOrderViewer)",
+      "server/orders/order.action.ts (public order reads must call toOrderViewer)",
+      "app/(storefront)/orders/commented.ts (public order reads must call toOrderViewer)",
+    ]);
   });
 
   it("forbids crossing the owner and customer guards and auth instances (E07)", () => {

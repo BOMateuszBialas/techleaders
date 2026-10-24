@@ -1,6 +1,6 @@
 import { ORDER_STATUS_LABELS, type OrderStatus } from "@commerceos/core";
 import { Badge } from "@/components/ui/badge";
-import { DEMO_BADGE } from "./order-copy";
+import { DEMO_BADGE, orderOriginLabel } from "./order-copy";
 
 const STATUS_VARIANTS: Record<OrderStatus, "default" | "secondary" | "outline" | "destructive"> = {
   pending_payment: "outline",
@@ -25,6 +25,15 @@ export function DemoBadge() {
   return (
     <Badge variant="outline" className="border-amber-500 text-amber-700 dark:text-amber-400">
       {DEMO_BADGE}
+    </Badge>
+  );
+}
+
+/** "Account order" or "Guest order" (E07 spec A18), as text. */
+export function OrderOriginBadge({ placedWithAccount }: { placedWithAccount: boolean }) {
+  return (
+    <Badge variant={placedWithAccount ? "secondary" : "outline"} className="border-border">
+      {orderOriginLabel(placedWithAccount)}
     </Badge>
   );
 }

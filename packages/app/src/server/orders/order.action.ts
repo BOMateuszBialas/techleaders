@@ -10,6 +10,7 @@ import { headers } from "next/headers";
 import type { ActionState } from "@/lib/action-state";
 import { readCartLines, writeCartLines } from "../cart/cart-cookie";
 import { readFormValue, readFormValues } from "../catalog/form-data";
+import { getCurrentCustomerId, toOrderViewer } from "../customer-auth/require-customer";
 import { getEnv } from "../env";
 import { runAction } from "../http/run-action";
 import { TOO_MANY_LOOKUPS_MESSAGE, consumeOrderLookup } from "./order-lookup-limit";
@@ -33,6 +34,9 @@ export async function placeOrder(_previous: ActionState, formData: FormData): Pr
       const result = await placeOrderUseCase.execute({
         lines: await readCartLines(),
         request: values,
+        // Guest orders only until E07 Phase 2b adds the checkout modes (`checkoutAs`, A24); the
+        // customer id will come from the session then, never from the form.
+        customerId: null,
       });
       await writeCartLines([]);
       return {
@@ -47,7 +51,9 @@ export async function placeOrder(_previous: ActionState, formData: FormData): Pr
 
 /**
  * Confirms the demo payment (`confirmDemoPayment`). Reading an order by reference counts
- * against the lookup limit (A15), so the button cannot be used to probe references.
+ * against the lookup limit (A15), so the button cannot be used to probe references. The viewer
+ * is the session's customer (E07 spec A2, A24): another customer's account order, or one posted
+ * without that customer's session, is "not found" and stays unpaid.
  */
 export async function confirmDemoPayment(
   _previous: ActionState,
@@ -58,7 +64,10 @@ export async function confirmDemoPayment(
     if (!(await consumeOrderLookup(cradle.rateLimiter, getEnv(), await headers()))) {
       throw new ConflictError(TOO_MANY_LOOKUPS_MESSAGE);
     }
-    const result = await cradle.confirmDemoPaymentUseCase.execute(values);
+    const result = await cradle.confirmDemoPaymentUseCase.execute({
+      reference: values.reference,
+      viewer: toOrderViewer(await getCurrentCustomerId()),
+    });
     return {
       event: result.outcome === "paid" ? "payment.demo.confirmed" : "payment.demo.already_paid",
       id: result.orderId,

@@ -49,6 +49,7 @@ function toRecord(order: Order, items: readonly OrderItem[]): OrderRecord {
     id: order.id,
     reference: order.publicReference,
     requestFingerprint: order.requestFingerprint,
+    customerId: order.customer?.id ?? null,
     status: order.status,
     currency: order.currency,
     subtotalMinor: order.subtotalMinor,
@@ -179,6 +180,8 @@ export class DatabaseOrderRepository implements OrderRepositoryPort {
       publicReference: command.newReference(),
       idempotencyKey: command.idempotencyKey,
       requestFingerprint: command.requestFingerprint,
+      // From the session only (E07 A14), written in the same transaction as the decrements.
+      customer: command.customerId,
       status: "pending_payment",
       customerName: customer.customerName,
       customerEmail: customer.customerEmail,

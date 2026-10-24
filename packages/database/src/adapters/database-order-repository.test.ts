@@ -18,6 +18,7 @@ function command(overrides: Partial<PlaceOrderCommand> = {}): PlaceOrderCommand 
   return {
     idempotencyKey: "key-1",
     requestFingerprint: "fp",
+    customerId: null,
     customer: {
       customerName: "Ada",
       customerEmail: "ada@example.test",
@@ -180,7 +181,7 @@ describe("DatabaseOrderRepository.placeOrder", () => {
 describe("DatabaseOrderRepository reads and markPaid", () => {
   it("loads an order with its items, or null", async () => {
     const { findOne, find, repository } = setup();
-    findOne.mockResolvedValueOnce(orderRow as never);
+    findOne.mockResolvedValueOnce({ ...orderRow, customer: { id: "c-1" } } as never);
     find.mockResolvedValueOnce([
       {
         product: { id: A },
@@ -192,6 +193,7 @@ describe("DatabaseOrderRepository reads and markPaid", () => {
     ] as never);
 
     expect(await repository.findByReference("CO-AAAAA-AAAAA-AAAAA-AAAAA")).toMatchObject({
+      customerId: "c-1",
       paymentProvider: "demo",
       paymentReference: "DEMO-PAY-order-1",
       paidAt: createdAt,
