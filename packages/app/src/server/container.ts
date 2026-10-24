@@ -101,6 +101,7 @@ import {
   type AuthLogLevel,
 } from "./auth/create-auth";
 import { createAuthPool } from "./auth/create-auth-pool";
+import { createCustomerAuth, type CustomerAuth } from "./customer-auth/create-customer-auth";
 import { getEnv, type Env } from "./env";
 import { logger } from "./logger";
 import { randomBytes, sha256Hex } from "./orders/order-crypto";
@@ -112,7 +113,8 @@ import { DemoPaymentGateway } from "./payments/demo-payment-gateway";
  *
  * Lifetimes:
  * - singleton: process-wide, stateless or connection-pool objects (env, orm, llm, health checks,
- *              the Better Auth instance and its pool: every auth call receives the request headers)
+ *              both Better Auth instances, owner and customer, and their shared pool: every auth
+ *              call receives the request headers)
  * - scoped:    one per request (EntityManager fork, use cases that touch the EM)
  *
  * Strict mode makes Awilix throw if a singleton depends on a scoped
@@ -189,6 +191,7 @@ export type Cradle = {
   draftProductDescriptionUseCase: DraftProductDescriptionUseCase;
   authPool: Pool;
   auth: Auth;
+  customerAuth: CustomerAuth;
 };
 
 function buildContainer(): AwilixContainer<Cradle> {
@@ -300,6 +303,11 @@ function buildContainer(): AwilixContainer<Cradle> {
     auth: asFunction(({ authPool }: Pick<Cradle, "authPool">) =>
       createAuth({ pool: authPool, env, log: logAuthMessage }),
     ).singleton(),
+    // The customer instance (E07 spec A1): its own tables, path, cookie and secret, sharing only
+    // the pool. No request state, so it is a singleton like the owner instance.
+    customerAuth: asFunction(({ authPool }: Pick<Cradle, "authPool">) =>
+      createCustomerAuth({ pool: authPool, env, log: logAuthMessage }),
+    ).singleton(),
   });
 
   return container;
@@ -406,6 +414,14 @@ export function createRequestScope(): AwilixContainer<Cradle> {
  */
 export function getAuth(): Auth {
   return getRootContainer().cradle.auth;
+}
+
+/**
+ * The customer Better Auth singleton (E07 spec A1). Like `getAuth`, request time only. Called
+ * only from `server/customer-auth/` and the customer auth route (guard inventory).
+ */
+export function getCustomerAuth(): CustomerAuth {
+  return getRootContainer().cradle.customerAuth;
 }
 
 /**

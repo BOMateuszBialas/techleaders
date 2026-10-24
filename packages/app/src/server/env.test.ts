@@ -37,8 +37,47 @@ describe("parseEnv", () => {
       /APP_URL: is required in production/,
     );
     expect(
-      parseEnv({ ...valid, NODE_ENV: "production", APP_URL: "https://shop.example" }).APP_URL,
+      parseEnv({
+        ...valid,
+        NODE_ENV: "production",
+        APP_URL: "https://shop.example",
+        CUSTOMER_AUTH_SECRET: "c".repeat(32),
+      }).APP_URL,
     ).toBe("https://shop.example");
+  });
+
+  describe("CUSTOMER_AUTH_SECRET (E07 A6)", () => {
+    const production = { ...valid, NODE_ENV: "production", APP_URL: "https://shop.example" };
+    const message =
+      /CUSTOMER_AUTH_SECRET: is required in production and must differ from BETTER_AUTH_SECRET/;
+
+    it("may stay unset (or blank) in development and test", () => {
+      expect(parseEnv(valid).CUSTOMER_AUTH_SECRET).toBeUndefined();
+      expect(
+        parseEnv({ ...valid, NODE_ENV: "test", CUSTOMER_AUTH_SECRET: "" }).CUSTOMER_AUTH_SECRET,
+      ).toBeUndefined();
+      // Outside production an equal value is allowed (the fallback is the same secret anyway).
+      expect(
+        parseEnv({ ...valid, CUSTOMER_AUTH_SECRET: valid.BETTER_AUTH_SECRET }).CUSTOMER_AUTH_SECRET,
+      ).toBe(valid.BETTER_AUTH_SECRET);
+    });
+
+    it("rejects a value shorter than 32 characters", () => {
+      expect(() => parseEnv({ ...valid, CUSTOMER_AUTH_SECRET: "short" })).toThrow(
+        /CUSTOMER_AUTH_SECRET: must be at least 32 characters/,
+      );
+    });
+
+    it("is required in production and must differ from BETTER_AUTH_SECRET", () => {
+      expect(() => parseEnv(production)).toThrow(message);
+      expect(() => parseEnv({ ...production, CUSTOMER_AUTH_SECRET: "" })).toThrow(message);
+      expect(() =>
+        parseEnv({ ...production, CUSTOMER_AUTH_SECRET: valid.BETTER_AUTH_SECRET }),
+      ).toThrow(message);
+      expect(
+        parseEnv({ ...production, CUSTOMER_AUTH_SECRET: "c".repeat(32) }).CUSTOMER_AUTH_SECRET,
+      ).toBe("c".repeat(32));
+    });
   });
 
   it("accepts a lowercase trusted IP header and rejects anything else", () => {

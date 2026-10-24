@@ -1,11 +1,10 @@
 import "server-only";
 import { signInSchema } from "@commerceos/core";
-import { parseSetCookieHeader, toCookieOptions } from "better-auth/cookies";
-import { cookies, headers } from "next/headers";
+import { headers } from "next/headers";
 import { z } from "zod";
 import { getAuth } from "../container";
-import { getEnv } from "../env";
 import { logger } from "../logger";
+import { copySetCookies, postToAuthHandler } from "./auth-handler-request";
 import type { SignInErrorCode } from "./sign-in-errors";
 
 export const ADMIN_HOME = "/admin";
@@ -13,10 +12,8 @@ const SIGN_IN_ENDPOINT = "/api/auth/sign-in/email";
 const signInResponseSchema = z.object({ user: z.object({ id: z.string() }) });
 
 /**
- * Signs the owner in from the server action. It goes through Better Auth's HTTP handler,
- * not `auth.api.signInEmail`: only the handler's router applies the rate limit and the
- * origin check. The router path skips `nextCookies()`, so the session cookie it returns
- * is copied into Next's cookie store here with the library's own parser.
+ * Signs the owner in from the server action, through Better Auth's HTTP handler (rate limit and
+ * origin check; see `postToAuthHandler`), then copies the session cookie it returns.
  */
 export async function attemptSignIn(formData: FormData): Promise<"ok" | SignInErrorCode> {
   const input = signInSchema.safeParse({
@@ -25,23 +22,9 @@ export async function attemptSignIn(formData: FormData): Promise<"ok" | SignInEr
   });
   if (!input.success) return "invalid";
 
-  const env = getEnv();
-  const incoming = await headers();
-  const forwarded = new Headers({ "content-type": "application/json" });
-  for (const name of ["origin", "user-agent", "cookie", env.AUTH_TRUSTED_IP_HEADER]) {
-    const value = name ? incoming.get(name) : null;
-    if (name && value) forwarded.set(name, value);
-  }
-
   let response: Response;
   try {
-    response = await getAuth().handler(
-      new Request(new URL(SIGN_IN_ENDPOINT, env.APP_URL), {
-        method: "POST",
-        headers: forwarded,
-        body: JSON.stringify(input.data),
-      }),
-    );
+    response = await postToAuthHandler(getAuth().handler, SIGN_IN_ENDPOINT, input.data);
   } catch (error) {
     logger.error("Admin sign-in failed", { event: "auth.sign_in_error", error });
     return "unavailable";
@@ -57,10 +40,7 @@ export async function attemptSignIn(formData: FormData): Promise<"ok" | SignInEr
     return "unavailable";
   }
 
-  const store = await cookies();
-  parseSetCookieHeader(response.headers.get("set-cookie") ?? "").forEach((attributes, name) => {
-    store.set(name, attributes.value, toCookieOptions(attributes));
-  });
+  await copySetCookies(response);
   const body = signInResponseSchema.safeParse(await response.json());
   logger.info("Admin signed in", { event: "auth.sign_in", userId: body.data?.user.id });
   return "ok";

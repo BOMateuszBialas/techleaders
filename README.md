@@ -138,6 +138,7 @@ Defined and validated in `packages/app/src/server/env.ts`; invalid configuration
 | `DATABASE_DEBUG` | no (`false`) | Log SQL queries |
 | `APP_URL` | no (`http://localhost:3000`); **yes in production** | Public base URL and the only origin trusted for sign-in |
 | `BETTER_AUTH_SECRET` | yes (32+ chars) | Signs Better Auth cookies and tokens |
+| `CUSTOMER_AUTH_SECRET` | production only (32+ chars, different from `BETTER_AUTH_SECRET`) | Signs customer-account sessions (second Better Auth instance). Unset in development and test: falls back to `BETTER_AUTH_SECRET` |
 | `AUTH_TRUSTED_IP_HEADER` | no | Client-IP header set by a trusted proxy (e.g. `x-real-ip`). Unset: sign-in is rate-limited globally (20/min) and order lookups to 120/min shared; set: 5/min per IP for sign-in, 30/min per IP for order lookups |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD` | CLI only | Read by `npm run admin:create` (password: 12+ chars), never by the app |
 | `LLM_PROVIDER` | no | `gemini` turns on AI answers in Commerce Copilot. Unset or empty: rule-based insights only, no network call |

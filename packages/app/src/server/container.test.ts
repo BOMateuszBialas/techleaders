@@ -35,14 +35,19 @@ import {
   createRequestScope,
   disposeRootContainer,
   getAuth,
+  getCustomerAuth,
   logAuthMessage,
 } from "./container";
 import { createAuth } from "./auth/create-auth";
+import { createCustomerAuth } from "./customer-auth/create-customer-auth";
 import { logger } from "./logger";
 
 // betterAuth() starts initialising (a database schema check) as soon as it is built. This
 // test checks wiring only, so it gets a stub and opens no connection.
 vi.mock("./auth/create-auth", () => ({ createAuth: vi.fn(() => ({ stub: "auth" })) }));
+vi.mock("./customer-auth/create-customer-auth", () => ({
+  createCustomerAuth: vi.fn(() => ({ stub: "customer-auth" })),
+}));
 
 // No database connection is opened: MikroORM connects lazily and these tests
 // only resolve registrations.
@@ -286,6 +291,16 @@ describe("composition root", () => {
     expect(getAuth() === first.cradle.auth).toBe(true);
     expect(first.cradle.authPool === second.cradle.authPool).toBe(true);
     const deps = vi.mocked(createAuth).mock.calls[0]?.[0];
+    expect(deps?.pool === first.cradle.authPool).toBe(true);
+    expect(deps?.log).toBe(logAuthMessage);
+    expect(deps?.env.BETTER_AUTH_SECRET).toBe(process.env.BETTER_AUTH_SECRET);
+  });
+
+  it("shares one customer Better Auth instance on the same pool, apart from the owner's (E07 A1)", () => {
+    expect(first.cradle.customerAuth === second.cradle.customerAuth).toBe(true);
+    expect(getCustomerAuth() === first.cradle.customerAuth).toBe(true);
+    expect((first.cradle.customerAuth as unknown) === (first.cradle.auth as unknown)).toBe(false);
+    const deps = vi.mocked(createCustomerAuth).mock.calls[0]?.[0];
     expect(deps?.pool === first.cradle.authPool).toBe(true);
     expect(deps?.log).toBe(logAuthMessage);
     expect(deps?.env.BETTER_AUTH_SECRET).toBe(process.env.BETTER_AUTH_SECRET);

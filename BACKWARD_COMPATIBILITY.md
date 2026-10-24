@@ -52,6 +52,7 @@ The contract surfaces this project protects, and how changes to them must be han
   - `APP_URL` became required when `NODE_ENV=production`.
 - **Added 2026-10-17 (Commerce Copilot, Phase 2):** `LLM_PROVIDER` (optional; `gemini` is the only accepted value), `LLM_API_KEY` and `LLM_MODEL` (both required when `LLM_PROVIDER` is set). An empty string counts as unset; without a provider the Copilot answers with rule-based insights.
 - **Added 2026-10-23 (agent workshop hardening):** the validation gate in `.ai/agentic.config.json` gained `npm run test:hooks` (additive; also a step of the CI `lint` job, whose check name is unchanged). The committed agent settings `.claude/settings.json` (deny rules and the PreToolUse hook) apply to every Claude Code session in this repository; loosening them is a change the user approves.
+- **Added 2026-10-24 (customer accounts, E07 Phase 1):** `CUSTOMER_AUTH_SECRET` signs the customer Better Auth instance. Optional in development and test (falls back to `BETTER_AUTH_SECRET`); **required in production and different from `BETTER_AUTH_SECRET`**, so a production start without it fails at startup by design (the `APP_URL` precedent). Any CI step or deployment that starts the production build must set it.
 - **Breaking:** renaming or removing an environment variable, or changing a config key's format.
 - **Required path:** support the old name as a fallback for one release and document the change in the PR and README.
 

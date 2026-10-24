@@ -11,6 +11,17 @@ declare module "vitest" {
      * Better Auth's limit of 20 per minute, which the whole e2e run shares.
      */
     ownerSessionCookie: string;
+    /**
+     * Customers A and B (E07 step 8), signed up over HTTP once by the global setup with random
+     * passwords. Suites reuse their session cookies (`useCustomerSession`) instead of a new
+     * sign-in or sign-up, which the customer instance limits to 20 per minute per path.
+     */
+    customerAEmail: string;
+    customerAPassword: string;
+    customerASessionCookie: string;
+    customerBEmail: string;
+    customerBPassword: string;
+    customerBSessionCookie: string;
   }
 }
 
