@@ -1,3 +1,4 @@
+import { IconMenu2 } from "@tabler/icons-react";
 import Link from "next/link";
 import type { CatalogCategory } from "@commerceos/core";
 import { productsHref } from "@/components/catalog/catalog-copy";
@@ -43,8 +44,8 @@ export function HeaderMenu({ categories }: HeaderMenuProps) {
         </ul>
       </nav>
       <details className="relative md:hidden">
-        <summary className="cursor-pointer list-none rounded-md whitespace-nowrap border px-3 py-1 text-sm hover:bg-muted focus-visible:bg-muted [&::-webkit-details-marker]:hidden">
-          <span aria-hidden="true">☰</span> Menu
+        <summary className="inline-flex cursor-pointer list-none items-center gap-1 rounded-md whitespace-nowrap border px-3 py-1 text-sm hover:bg-muted focus-visible:bg-muted [&::-webkit-details-marker]:hidden">
+          <IconMenu2 aria-hidden="true" className="size-4" /> Menu
         </summary>
         <nav
           aria-label="Main"

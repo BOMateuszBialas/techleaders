@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import type { CatalogCategory } from "@commerceos/core";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { productsHref } from "@/components/catalog/catalog-copy";
 import { DEMO_NOTICE, STORE_NAME, STORE_TAGLINE } from "./storefront-copy";
 
@@ -49,6 +50,7 @@ export function SiteFooter({ categoryLinks }: { categoryLinks: ReactNode }) {
           <Link href="/admin" className={LINK}>
             Owner sign-in
           </Link>
+          <ThemeToggle />
         </div>
       </div>
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-1 border-t px-4 py-4 text-xs text-muted-foreground">

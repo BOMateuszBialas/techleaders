@@ -1,0 +1,31 @@
+import { Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import * as SpacingStories from "./spacing-and-layout.stories";
+import { LayoutWidths, SpacingScale } from "./blocks/foundation-blocks";
+
+<Meta of={SpacingStories} />
+
+# Spacing and layout
+
+One 4 px grid: 4, 8, 12, 16, 24, 32, 48, 64, 96 px (Tailwind `1, 2, 3, 4, 6, 8, 12, 16, 24`). Choose spacing by the relation between elements, not by eye: closer means more related. 2, 6 and 10 px are out (the audit found 27 uses); 2 px is allowed only inside a badge.
+
+| Relation                 | Class            | Store                | Admin                          |
+| ------------------------ | ---------------- | -------------------- | ------------------------------ |
+| Inside a group           | `gap-related`    | 8                    | 8 (4 inside dense table cells) |
+| Between items of a group | `gap-group-item` | 16                   | 12                             |
+| Between groups           | `gap-group`      | 24                   | 16                             |
+| Inside a panel           | `p-panel`        | 24 (product tile 16) | 16                             |
+| Between sections         | `py-section`     | 64 (phone 48)        | 32 (phone 24)                  |
+| Hero                     | `py-hero`        | 96 (phone 48)        | none                           |
+| Page gutter              | `px-gutter`      | 16 / 24 / 32         | 16 / 24                        |
+
+Control heights are component tokens per density: store 40 / 44 / 48 px, admin desktop 28 / 32 / 36 px, and at least 44 px on a phone or a coarse pointer in both (WCAG 2.5.8, rule 16): `h-control-sm`, `h-control-md`, `h-control-lg`.
+
+<Unstyled>
+  <SpacingScale />
+</Unstyled>
+
+## Widths
+
+<Unstyled>
+  <LayoutWidths />
+</Unstyled>

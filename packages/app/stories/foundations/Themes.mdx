@@ -1,0 +1,27 @@
+import { Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import * as ThemeStories from "./themes.stories";
+import { ThemeToggle } from "../../src/components/theme/theme-toggle";
+import { Surface } from "./blocks/color-blocks";
+
+<Meta of={ThemeStories} />
+
+# Themes
+
+Light is the default, dark is optional, and "System" follows the operating system (decision "Motyw"). Every color token has a light and a dark value, and every pair is counted in both themes.
+
+| How it works                                                                                                                             | Where                                             |
+| ---------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| The theme is the `.dark` class on `<html>`, so dialogs and menus rendered in a portal get it too                                         | `globals.css`, prompt rule 9                      |
+| The choice is stored in `localStorage` (`commerceos-theme`); no entry means System                                                       | `src/lib/theme/theme.ts`                          |
+| An inline script in `<head>` sets the class before the first paint, so there is no flash and the server HTML stays the same for everyone | Next 16 guide "Preventing flash before hydration" |
+| The toggle is a native radio group (arrow keys, one tab stop) in the store footer and the admin sidebar                                  | WAI-ARIA APG Radio Group                          |
+| Without JavaScript the page stays light and the toggle does nothing                                                                      | Design system spec, edge cases                    |
+| In Storybook, the Theme toolbar sets the same class; the story tests run in both themes                                                  | `vitest.storybook.config.mts`                     |
+
+The dark frame and sidebar are darker than the dark page (P14), so the frame still reads as a frame.
+
+<Unstyled>
+  <Surface>
+    <ThemeToggle />
+  </Surface>
+</Unstyled>

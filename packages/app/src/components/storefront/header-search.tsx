@@ -1,4 +1,4 @@
-import { SearchIcon } from "lucide-react";
+import { IconSearch } from "@tabler/icons-react";
 import { CATALOG_SEARCH_MAX_LENGTH } from "@commerceos/core";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,7 +29,7 @@ export function HeaderSearch() {
         className="min-w-0 flex-1 sm:w-48 sm:flex-none"
       />
       <Button type="submit" variant="outline" size="icon" aria-label="Search">
-        <SearchIcon aria-hidden="true" />
+        <IconSearch aria-hidden="true" />
       </Button>
     </form>
   );

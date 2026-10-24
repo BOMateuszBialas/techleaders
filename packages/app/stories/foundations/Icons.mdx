@@ -1,0 +1,21 @@
+import { Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import * as IconStories from "./icons.stories";
+import { IconSet } from "./blocks/foundation-blocks";
+
+<Meta of={IconStories} />
+
+# Icons
+
+The icon set is Tabler (`@tabler/icons-react`, MIT), chosen by the owner instead of the default lucide (tokeny.md §6). ESLint blocks `lucide-react`, and `components.json` uses the Tabler library for new shadcn components.
+
+| Rule                                                                                                | Source                          |
+| --------------------------------------------------------------------------------------------------- | ------------------------------- |
+| Sizes: 16 px in the admin, 20 px in the store, 24 px in the store frame                             | tokeny.md §6                    |
+| Stroke 2 px at 20–24 px; 1.75 or 2 px at 16 px is still open (compare below)                        | tokeny.md §6                    |
+| An icon next to a word is decorative: `aria-hidden="true"`                                          | WCAG 1.1.1                      |
+| An icon-only button needs an accessible name (`aria-label`), and a visible label where space allows | WCAG 4.1.2, 2.5.3               |
+| No decorative icons, no emoji instead of icons, no sparkles as a symbol of AI                       | Audit, referencje.md (A02 note) |
+
+<Unstyled>
+  <IconSet />
+</Unstyled>

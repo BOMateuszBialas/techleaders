@@ -1,0 +1,45 @@
+import { Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import * as ColorsStories from "./colors.stories";
+import { ColorRoles, ContrastTable } from "./blocks/color-blocks";
+
+<Meta of={ColorsStories} />
+
+# Colors
+
+Color carries meaning, never decoration. The store has one red for buying; the admin is neutral and uses color only for status, links and errors. Every value comes from `packages/app/src/app/globals.css`; components use the semantic classes (`bg-action`, `text-muted-foreground`, `border-input`), never a raw token, a hex value or a Tailwind palette class (`npm run check:tokens` fails on them).
+
+## Three layers
+
+| Layer       | Example                                               | Who may use it                       |
+| ----------- | ----------------------------------------------------- | ------------------------------------ |
+| Raw palette | `--raw-red-600`                                       | Only the token file                  |
+| Semantic    | `--action`, `--muted-foreground`, `--surface-product` | Components, through Tailwind classes |
+| Component   | `--control-h-md`, `--radius-badge`                    | Base components that need them       |
+
+## Rules
+
+| Rule                                                                                                             | Source                    |
+| ---------------------------------------------------------------------------------------------------------------- | ------------------------- |
+| The price is never in the action color: it uses `--foreground` with tabular numbers                              | R03.1, A01                |
+| Red fills only purchase actions (Add to cart, Checkout, Place order, Pay (demo)); at most one red button in view | R03.1, K1                 |
+| No red fill on the dark frame (2.88:1); the frame accent is a mark or a line, never text on it                   | tokeny.md pairs 61–62     |
+| Admin: the main action is graphite `--primary`; red appears only as the active menu marker                       | R04.2, K7                 |
+| An error is text plus an icon plus `aria-invalid`, never a filled red button in the store                        | Owner decision 1          |
+| Status is never color alone: every badge has text                                                                | WCAG 1.4.1, P2            |
+| Demo data always uses `--demo`, never `--warning`                                                                | P3, AGENTS.md principle 6 |
+| `--border` is never the only edge of a control; fields, checkboxes and outline buttons use `--input`             | WCAG 1.4.11               |
+| States are colors, not opacity: hover uses `--primary-hover` and `--action-hover`                                | P5, P7                    |
+
+## Roles
+
+<Unstyled>
+  <ColorRoles />
+</Unstyled>
+
+## Contrast in both themes
+
+Measured in this browser from the real variables, for every pair the product uses. Text needs 4.5:1, large text and UI parts 3:1 (WCAG 1.4.3, 1.4.11). Two pairs are below on purpose: `--border` is decorative only. The four control pairs are pairings the rules forbid; they are listed to show why the focus offset and the frame rule exist. Any new pair is counted with `node .ai/design/kontrast/run.mjs` before it is written.
+
+<Unstyled>
+  <ContrastTable />
+</Unstyled>

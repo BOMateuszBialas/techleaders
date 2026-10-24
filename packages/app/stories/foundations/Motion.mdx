@@ -1,0 +1,21 @@
+import { Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import * as MotionStories from "./motion.stories";
+import { MotionTokens } from "./blocks/foundation-blocks";
+
+<Meta of={MotionStories} />
+
+# Motion
+
+Motion confirms an action; it never decorates (P9). Every reaction starts within 400 ms (the Doherty threshold); a longer operation shows a loading state, a skeleton or a pending button.
+
+| Rule                                                                                                                                               | Source     |
+| -------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| Hover and color: 120 ms, ease-out (the default `transition`)                                                                                       | P9         |
+| Menus, popovers and disclosures: 200 ms in, 150 ms out                                                                                             | P9         |
+| Dialogs and panels: 300 ms                                                                                                                         | P9         |
+| No loops or decorative animation; the skeleton pulse is the only exception                                                                         | P9, A01    |
+| With `prefers-reduced-motion: reduce`: no movement (the pressed-button shift is off), every duration is 120 ms at most, the skeleton stops pulsing | WCAG 2.3.3 |
+
+<Unstyled>
+  <MotionTokens />
+</Unstyled>

@@ -9,6 +9,10 @@ const INFRASTRUCTURE = ["@mikro-orm/*", "awilix"];
 const LLM_SDKS = ["@google/genai", "@google/genai/*"];
 const LLM_SDK_MESSAGE =
   "Only an LLM adapter (packages/ai/src/adapters/) may import a provider SDK; use LlmProviderPort.";
+/** The design system's icon set is Tabler (tokeny.md §6); lucide must not come back with a shadcn add. */
+const LUCIDE = ["lucide-react", "lucide-react/*"];
+const LUCIDE_MESSAGE =
+  "Icons come from @tabler/icons-react (design system, .ai/design/tokeny.md §6), not lucide-react.";
 
 /** One `no-restricted-imports` pattern group with the reason shown in the lint error. */
 function restrict(group, message) {
@@ -105,9 +109,18 @@ const eslintConfig = defineConfig([
               "Only the composition root (src/server/container.ts) may use the database package; resolve a use case from the request scope instead.",
             ),
             restrict(LLM_SDKS, LLM_SDK_MESSAGE),
+            restrict(LUCIDE, LUCIDE_MESSAGE),
           ],
         },
       ],
+    },
+  },
+  // Storybook (design system spec A2): configuration and stories outside src/. A separate glob,
+  // so the src block above keeps its options.
+  {
+    files: ["packages/app/.storybook/**", "packages/app/stories/**"],
+    rules: {
+      "no-restricted-imports": ["error", { patterns: [restrict(LUCIDE, LUCIDE_MESSAGE)] }],
     },
   },
   // The eval set and scripted models are test code: app tests may use them, production code
@@ -141,6 +154,7 @@ const eslintConfig = defineConfig([
     "**/out/**",
     "**/build/**",
     "**/coverage/**",
+    "**/storybook-static/**",
     "**/next-env.d.ts",
     "packages/database/src/migrations/**",
   ]),

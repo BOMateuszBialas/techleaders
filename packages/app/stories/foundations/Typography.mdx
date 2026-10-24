@@ -1,0 +1,31 @@
+import { Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import * as TypographyStories from "./typography.stories";
+import { TypeStyles } from "./blocks/foundation-blocks";
+
+<Meta of={TypographyStories} />
+
+# Typography
+
+One family, Archivo, self-hosted by `next/font`: a narrower, tight cut for headings and the normal width for everything else (R01.2, K2). Pick a named style, not a size. The admin uses the same names at a denser scale (`data-density="admin"`).
+
+| Role                                      | Class                               | Store (phone → desktop) | Admin                       |
+| ----------------------------------------- | ----------------------------------- | ----------------------- | --------------------------- |
+| Display: hero, metric value               | `type-display`                      | 40/44 → 56/60, 700      | 24/32, 600, tabular numbers |
+| Page title                                | `type-h1`                           | 28/32 → 40/44, 700      | 24/32, 600                  |
+| Section                                   | `type-h2`                           | 20/28 → 24/32, 600      | 16/24, 600                  |
+| Card title, product name, price in a card | `type-h3`                           | 18/24, 600              | 14/20, 600                  |
+| Body, table cells                         | `type-body`                         | 16/24, 400              | 14/20, 400                  |
+| Label, metadata, small button             | `type-small`                        | 14/20, 500              | 12/16, 500                  |
+| Numbers: prices, counts                   | `tabular-nums` with the body family | same                    | same                        |
+| Code: SKU, order number                   | `font-mono` (Geist Mono)            | same                    | same                        |
+
+| Rule                                                                              | Source                |
+| --------------------------------------------------------------------------------- | --------------------- |
+| Text is never smaller than 12 px; store body and form fields are 16 px on a phone | A01, tokeny.md rule 9 |
+| Running text stops at about 65 characters (`max-w-measure`)                       | Audit, rule 15        |
+| At most one display style per screen                                              | tokeny.md §4          |
+| No monospace headings                                                             | K2                    |
+
+<Unstyled>
+  <TypeStyles />
+</Unstyled>

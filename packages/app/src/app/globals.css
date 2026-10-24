@@ -2,129 +2,499 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/*
+ * CommerceOS design tokens: the one token file (spec .ai/specs/2026-10-24-design-system.md, A3).
+ * Values come from the approved .ai/design/tokeny.md; every color pair is checked with
+ * `node .ai/design/kontrast/verify-css.mjs` before it is written (tokeny.md, rule 19).
+ *
+ * Three layers:
+ *   1. raw      `--raw-*`: the palette. Only this file reads it, never a component or a class.
+ *   2. semantic named by purpose (`--action`, `--muted-foreground`, `--space-section`), with a
+ *               light value (`:root`, `.light`) and a dark value (`.dark`); the source of each
+ *               is in its comment (R = reference, A = anti-reference, P = proposal, K = conflict).
+ *   3. component only where a component needs it: control heights per density, badge radius.
+ *
+ * `@theme inline` maps the semantic layer to Tailwind classes (`bg-action`, `rounded-card`,
+ * `p-panel`, `h-control-md`). Nothing outside this file may use a color literal, a Tailwind
+ * palette class or an arbitrary value (`npm run check:tokens`).
+ */
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  /* Color: semantic layer (tokeny.md §1b). */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-surface-product: var(--surface-product);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-action: var(--action);
+  --color-action-hover: var(--action-hover);
+  --color-action-foreground: var(--action-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-surface: var(--destructive-surface);
+  --color-link: var(--link);
+  --color-success: var(--success);
+  --color-success-surface: var(--success-surface);
+  --color-warning: var(--warning);
+  --color-warning-surface: var(--warning-surface);
+  --color-warning-border: var(--warning-border);
+  --color-demo: var(--demo);
+  --color-demo-surface: var(--demo-surface);
+  --color-frame: var(--frame);
+  --color-frame-foreground: var(--frame-foreground);
+  --color-frame-muted-foreground: var(--frame-muted-foreground);
+  --color-frame-border: var(--frame-border);
+  --color-frame-input: var(--frame-input);
+  --color-frame-ring: var(--frame-ring);
+  --color-frame-accent: var(--frame-accent);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-muted-foreground: var(--sidebar-muted-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Type families (tokeny.md §4, owner decision 3: Archivo; P13: Geist Mono for SKU and order
+     numbers only). The font variables come from next/font in src/app/fonts.ts. */
+  --font-sans: var(--font-archivo);
+  --font-heading: var(--font-archivo);
+  --font-mono: var(--font-geist-mono);
+
+  /* Shape (tokeny.md §5, K4). `rounded-lg` is the control radius shadcn components already use;
+     `rounded-xl` the card radius. The named aliases are what new code should use. */
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-xl: var(--radius-card);
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-control: var(--radius-control);
+  --radius-card: var(--radius-card);
+  --radius-badge: var(--radius-badge);
+
+  /* Depth (tokeny.md §5, P8): cards have no shadow; one shadow for overlays only. */
+  --shadow-card: var(--elevation-card);
+  --shadow-overlay: var(--elevation-overlay);
+
+  /* Motion (tokeny.md §5, P9). The default `transition` uses the fast duration. */
+  --ease-out: var(--motion-ease-out);
+  --ease-in: var(--motion-ease-in);
+  --default-transition-duration: var(--duration-fast);
+  --default-transition-timing-function: var(--motion-ease-out);
+
+  /* Spacing by relation (tokeny.md §3): `gap-related`, `p-panel`, `py-section`, `px-gutter`. */
+  --spacing-related: var(--space-related);
+  --spacing-group-item: var(--space-group-item);
+  --spacing-group: var(--space-group);
+  --spacing-panel: var(--space-panel);
+  --spacing-section: var(--space-section);
+  --spacing-hero: var(--space-hero);
+  --spacing-gutter: var(--space-gutter);
+
+  /* Control heights (component layer): `h-control-sm`, `h-control-md`, `h-control-lg`. */
+  --spacing-control-sm: var(--control-h-sm);
+  --spacing-control-md: var(--control-h-md);
+  --spacing-control-lg: var(--control-h-lg);
+
+  /* Line length of running text (tokeny.md §1c, audit: 84 characters on /orders/lookup). */
+  --container-measure: var(--measure-prose);
 }
 
+/* ---------------------------------------------------------------------------------------------
+ * Layer 1: raw palette (tokeny.md §1a). Cool neutrals, hue 285 (P6: R01.3 #f1f1f6, R02.1 #eeeef1).
+ * All values are inside the sRGB gamut (checked by the contrast script).
+ * ------------------------------------------------------------------------------------------- */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --raw-gray-0: oklch(1 0 0);
+  --raw-gray-25: oklch(0.985 0.002 285);
+  --raw-gray-50: oklch(0.97 0.003 285);
+  --raw-gray-100: oklch(0.965 0.004 285);
+  --raw-gray-150: oklch(0.955 0.004 285);
+  --raw-gray-200: oklch(0.93 0.004 285);
+  --raw-gray-250: oklch(0.91 0.004 285);
+  --raw-gray-300: oklch(0.85 0.006 285);
+  --raw-gray-400: oklch(0.74 0.01 285);
+  --raw-gray-500: oklch(0.62 0.012 285);
+  --raw-gray-550: oklch(0.55 0.01 285);
+  --raw-gray-600: oklch(0.49 0.012 285);
+  --raw-gray-700: oklch(0.3 0.006 285);
+  --raw-gray-800: oklch(0.25 0.006 285);
+  --raw-gray-850: oklch(0.21 0.005 285);
+  --raw-gray-900: oklch(0.17 0.005 285);
+  --raw-gray-950: oklch(0.12 0.004 285);
+  --raw-red-50: oklch(0.95 0.02 25);
+  --raw-red-300: oklch(0.72 0.16 25);
+  --raw-red-400: oklch(0.66 0.19 25);
+  --raw-red-500: oklch(0.55 0.2 25);
+  --raw-red-600: oklch(0.5 0.19 25);
+  --raw-red-700: oklch(0.44 0.17 25);
+  --raw-red-950: oklch(0.27 0.06 25);
+  --raw-green-50: oklch(0.96 0.04 150);
+  --raw-green-300: oklch(0.78 0.13 150);
+  --raw-green-700: oklch(0.46 0.11 150);
+  --raw-green-950: oklch(0.27 0.05 150);
+  --raw-amber-50: oklch(0.96 0.04 95);
+  --raw-amber-100: oklch(0.94 0.07 90);
+  --raw-amber-200: oklch(0.88 0.1 85);
+  --raw-amber-300: oklch(0.82 0.12 80);
+  --raw-amber-500: oklch(0.62 0.12 70);
+  --raw-amber-700: oklch(0.48 0.1 65);
+  --raw-amber-900: oklch(0.38 0.08 60);
+  --raw-amber-950: oklch(0.28 0.05 75);
+  --raw-blue-300: oklch(0.76 0.11 258);
+  --raw-blue-600: oklch(0.48 0.17 258);
 }
 
+/* ---------------------------------------------------------------------------------------------
+ * Layer 2: semantic tokens, light theme (default; decision "Motyw": light first, dark optional).
+ * `.light` lets documentation show the light theme inside a dark page.
+ * ------------------------------------------------------------------------------------------- */
+:root,
+.light {
+  /* Surfaces and text */
+  --background: var(--raw-gray-0); /* R02.1: light commerce surfaces; owner decision 4 */
+  --foreground: var(--raw-gray-900); /* main text, prices and headings (R03.1: price is not red) */
+  --card: var(--raw-gray-0); /* R02.2: summary on a white card; R04.1 admin cards */
+  --card-foreground: var(--raw-gray-900);
+  --popover: var(--raw-gray-0); /* menus, popovers, dialogs */
+  --popover-foreground: var(--raw-gray-900);
+  --surface-product: var(--raw-gray-100); /* R01.3: product on a light card, no shadow */
+  --muted: var(--raw-gray-100); /* R04.1: table header; skeleton; empty state */
+  --muted-foreground: var(--raw-gray-600); /* captions and metadata; audit: 4.35:1 fixed */
+
+  /* Actions */
+  --primary: var(--raw-gray-850); /* R04.2: neutral main action in admin, K7 */
+  --primary-hover: var(--raw-gray-700); /* P7: states as colors, not opacity */
+  --primary-foreground: var(--raw-gray-25);
+  --action: var(--raw-red-600); /* R03.1, K1: purchase actions only (rule 2) */
+  --action-hover: var(--raw-red-700); /* R03.1 + P7 */
+  --action-foreground: var(--raw-gray-25); /* R03.1: text #fbfbfb on the red */
+  --secondary: var(--raw-gray-150); /* R03, R04.1: secondary actions, neutral status badge */
+  --secondary-foreground: var(--raw-gray-850);
+  --accent: var(--raw-gray-150); /* hover of ghost/outline, selected row; not a brand accent */
+  --accent-foreground: var(--raw-gray-850);
+  --link: var(--raw-blue-600); /* P1, R04.2: links in text and resource names in admin tables */
+
+  /* Lines and focus */
+  --border: var(--raw-gray-250); /* decorative only: separators, card outline (rule 12) */
+  --input: var(--raw-gray-500); /* control outline, WCAG 1.4.11 (audit: was 1.26:1) */
+  --ring: var(--raw-gray-900); /* owner decision 2: neutral focus ring, WCAG 2.4.7 / 2.4.13 */
+
+  /* Meaning (audit decision 4: tokens instead of the Tailwind palette) */
+  --destructive: var(--raw-red-600); /* owner decision 1: same red as the action; form differs */
+  --destructive-surface: var(--raw-red-50); /* error alert, "Cancelled" badge */
+  --success: var(--raw-green-700); /* "Added to cart.", "Paid", "Published" (R04.2) */
+  --success-surface: var(--raw-green-50);
+  --warning: var(--raw-amber-700); /* slug and AI-draft warnings, "Pending payment" */
+  --warning-surface: var(--raw-amber-50);
+  --warning-border: var(--raw-amber-500);
+  --demo: var(--raw-amber-900); /* P3, AGENTS.md principle 6: demo is always visibly marked */
+  --demo-surface: var(--raw-amber-100);
+
+  /* Store frame: dark header and footer (R02.1, R03) */
+  --frame: var(--raw-gray-900);
+  --frame-foreground: var(--raw-gray-25);
+  --frame-muted-foreground: var(--raw-gray-400);
+  --frame-border: var(--raw-gray-700);
+  --frame-input: var(--raw-gray-550); /* WCAG 1.4.11 inside the frame */
+  --frame-ring: var(--raw-gray-25);
+  --frame-accent: var(--raw-red-400); /* R03.1 + K7: brand mark only, never text on it (rule 3) */
+
+  /* Admin sidebar (R04.1); red only as the active marker (R04.2, K7) */
+  --sidebar: var(--raw-gray-850);
+  --sidebar-foreground: var(--raw-gray-200);
+  --sidebar-muted-foreground: var(--raw-gray-400);
+  --sidebar-accent: var(--raw-gray-700);
+  --sidebar-accent-foreground: var(--raw-gray-25);
+  --sidebar-primary: var(--raw-red-400);
+  --sidebar-primary-foreground: var(--raw-gray-900);
+  --sidebar-border: var(--raw-gray-700);
+  --sidebar-ring: var(--raw-gray-25);
+
+  /* Depth (P8, R01: one shadow; A01: no shadow on every card) */
+  --elevation-card: none;
+  --elevation-overlay: 0 8px 24px oklch(0.17 0.005 285 / 12%);
+}
+
+/* Layer 2: semantic tokens, dark theme (decision "Motyw"; P14: frame darker than the page). */
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: var(--raw-gray-900);
+  --foreground: var(--raw-gray-50);
+  --card: var(--raw-gray-850);
+  --card-foreground: var(--raw-gray-50);
+  --popover: var(--raw-gray-800); /* overlays lighter than the page in dark */
+  --popover-foreground: var(--raw-gray-50);
+  --surface-product: var(--raw-gray-850); /* tokeny.md §2: action on it 3.28:1 */
+  --muted: var(--raw-gray-800);
+  --muted-foreground: var(--raw-gray-400);
+
+  --primary: var(--raw-gray-200);
+  --primary-hover: var(--raw-gray-300);
+  --primary-foreground: var(--raw-gray-900);
+  --action: var(--raw-red-500); /* 5.16:1 with its text: do not darken without recounting */
+  --action-hover: var(--raw-red-600);
+  --action-foreground: var(--raw-gray-25);
+  --secondary: var(--raw-gray-800);
+  --secondary-foreground: var(--raw-gray-50);
+  --accent: var(--raw-gray-800);
+  --accent-foreground: var(--raw-gray-50);
+  --link: var(--raw-blue-300);
+
+  --border: var(--raw-gray-700);
+  --input: var(--raw-gray-550);
+  --ring: var(--raw-gray-200);
+
+  --destructive: var(--raw-red-300);
+  --destructive-surface: var(--raw-red-950);
+  --success: var(--raw-green-300);
+  --success-surface: var(--raw-green-950);
+  --warning: var(--raw-amber-300);
+  --warning-surface: var(--raw-amber-950);
+  --warning-border: var(--raw-amber-500);
+  --demo: var(--raw-amber-200);
+  --demo-surface: var(--raw-amber-950);
+
+  --frame: var(--raw-gray-950);
+  --frame-foreground: var(--raw-gray-25);
+  --frame-muted-foreground: var(--raw-gray-400);
+  --frame-border: var(--raw-gray-700);
+  --frame-input: var(--raw-gray-550);
+  --frame-ring: var(--raw-gray-25);
+  --frame-accent: var(--raw-red-400);
+
+  --sidebar: var(--raw-gray-950);
+  --sidebar-foreground: var(--raw-gray-200);
+  --sidebar-muted-foreground: var(--raw-gray-400);
+  --sidebar-accent: var(--raw-gray-800);
+  --sidebar-accent-foreground: var(--raw-gray-25);
+  --sidebar-primary: var(--raw-red-400);
+  --sidebar-primary-foreground: var(--raw-gray-900);
+  --sidebar-border: var(--raw-gray-700);
+  --sidebar-ring: var(--raw-gray-25);
+
+  --elevation-card: none;
+  --elevation-overlay: 0 8px 24px oklch(0 0 0 / 50%); /* overlays also keep a --border outline */
+}
+
+/* Layer 2: theme-independent semantic tokens. Store density is the default (P15). */
+:root {
+  /* Shape (K4, P4) */
+  --radius: 0.5rem; /* base for the radius scale; components use the named aliases */
+  --radius-control: var(--radius); /* 8 px: button, field, select, category filter */
+  --radius-card: 0.75rem; /* 12 px: card, panel, dialog, product tile (R01.3, R04.3) */
+
+  /* Type (tokeny.md §4, R01.2, K2): six named styles; store sizes are fluid 360 → 1440 px */
+  --font-heading-stretch: 87%; /* Archivo width axis: narrower display cut, body stays 100% */
+  --type-display-size: clamp(2.5rem, 2.1667rem + 1.4815vw, 3.5rem); /* 40 → 56 px */
+  --type-display-leading: clamp(2.75rem, 2.4167rem + 1.4815vw, 3.75rem); /* 44 → 60 px */
+  --type-display-weight: 700;
+  --type-display-tracking: -0.02em;
+  --type-display-numeric: normal;
+  --type-h1-size: clamp(1.75rem, 1.5rem + 1.1111vw, 2.5rem); /* 28 → 40 px */
+  --type-h1-leading: clamp(2rem, 1.75rem + 1.1111vw, 2.75rem); /* 32 → 44 px */
+  --type-h1-weight: 700;
+  --type-h1-tracking: -0.015em;
+  --type-h2-size: clamp(1.25rem, 1.1667rem + 0.3704vw, 1.5rem); /* 20 → 24 px */
+  --type-h2-leading: clamp(1.75rem, 1.6667rem + 0.3704vw, 2rem); /* 28 → 32 px */
+  --type-h2-weight: 600;
+  --type-h2-tracking: -0.01em;
+  --type-h3-size: 1.125rem; /* 18 px */
+  --type-h3-leading: 1.5rem;
+  --type-h3-weight: 600;
+  --type-body-size: 1rem; /* 16 px: store body and form fields (no iOS zoom) */
+  --type-body-leading: 1.5rem;
+  --type-body-weight: 400;
+  --type-small-size: 0.875rem; /* 14 px; text is never under 12 px (A01) */
+  --type-small-leading: 1.25rem;
+  --type-small-weight: 500;
+  --measure-prose: 65ch; /* rule 15: running text up to about 65 characters */
+
+  /* Spacing by relation on a 4 px grid (tokeny.md §3, R04.3, audit decision 3) */
+  --space-related: 0.5rem; /* label–field, icon–text, price–stock */
+  --space-group-item: 1rem; /* between fields of a form, rows of a list */
+  --space-group: 1.5rem; /* between groups: address → contact; filters → table */
+  --space-panel: 1.5rem; /* inside a card (product tile uses 1rem) */
+  --space-section: 4rem; /* between page sections */
+  --space-hero: 6rem; /* R01: sections 96–108 px; K6: short hero */
+  --space-gutter: 2rem; /* page gutter on desktop */
+
+  /* Motion (P9; Doherty threshold: every reaction under 400 ms) */
+  --duration-fast: 120ms; /* color and hover */
+  --duration-base: 200ms; /* menu, popover, disclosure (exit 150 ms) */
+  --duration-slow: 300ms; /* dialog and panel */
+  --motion-ease-out: cubic-bezier(0.2, 0, 0, 1); /* overlays entering */
+  --motion-ease-in: cubic-bezier(0.4, 0, 1, 1); /* overlays leaving */
+
+  /* Layer 3: component tokens. Control heights, store density (K7, R01: CTA 40/48, R02.2) */
+  --control-h-sm: 2.5rem; /* 40 px: CTA on a product card */
+  --control-h-md: 2.75rem; /* 44 px: default */
+  --control-h-lg: 3rem; /* 48 px: CTA on the product page and in the cart */
+  --radius-badge: 0.25rem; /* P4: status badge and photo label */
+}
+
+/* Admin density (P15, R04.3, K7): same tokens, smaller scale. Set by the admin layouts. */
+[data-density="admin"] {
+  --control-h-sm: 1.75rem; /* 28 px: row actions in tables */
+  --control-h-md: 2rem; /* 32 px (R04.3) */
+  --control-h-lg: 2.25rem; /* 36 px */
+  --type-display-size: 1.5rem; /* metric values on the dashboard */
+  --type-display-leading: 2rem;
+  --type-display-weight: 600;
+  --type-display-tracking: 0;
+  --type-display-numeric: tabular-nums;
+  --type-h1-size: 1.5rem;
+  --type-h1-leading: 2rem;
+  --type-h1-weight: 600;
+  --type-h1-tracking: -0.01em;
+  --type-h2-size: 1rem;
+  --type-h2-leading: 1.5rem;
+  --type-h2-tracking: 0;
+  --type-h3-size: 0.875rem;
+  --type-h3-leading: 1.25rem;
+  --type-body-size: 0.875rem; /* tables too: 14/20 */
+  --type-body-leading: 1.25rem;
+  --type-small-size: 0.75rem;
+  --type-small-leading: 1rem;
+  --space-related: 0.5rem; /* 4 px (gap-1) only inside dense table cells */
+  --space-group-item: 0.75rem;
+  --space-group: 1rem;
+  --space-panel: 1rem;
+  --space-section: 2rem;
+  --space-gutter: 1.5rem;
+}
+
+/* Tablet and phone: gutters and sections shrink (tokeny.md §3). */
+@media (width < 64rem) {
+  :root {
+    --space-gutter: 1.5rem;
+  }
+}
+
+@media (width < 48rem) {
+  :root {
+    --space-gutter: 1rem;
+    --space-section: 3rem;
+    --space-hero: 3rem;
+  }
+
+  [data-density="admin"] {
+    --space-gutter: 1rem;
+    --space-section: 1.5rem;
+  }
+}
+
+/* Touch targets: at least 44 px on a phone or a coarse pointer, store and admin (rule 16,
+   WCAG 2.5.8, 44 pt). */
+@media (width < 48rem), (pointer: coarse) {
+  :root,
+  [data-density="admin"] {
+    --control-h-sm: 2.75rem;
+    --control-h-md: 2.75rem;
+    --control-h-lg: 3rem;
+  }
+}
+
+/* Reduced motion (tokeny.md §5): no movement, short fades, no skeleton pulse. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-base: var(--duration-fast);
+    --duration-slow: var(--duration-fast);
+  }
+
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+
+  *:active {
+    translate: none !important;
+  }
+}
+
+/* Named text styles (tokeny.md §4). An agent picks a style, not a size. */
+@utility type-display {
+  font-family: var(--font-heading);
+  font-stretch: var(--font-heading-stretch);
+  font-size: var(--type-display-size);
+  line-height: var(--type-display-leading);
+  font-weight: var(--type-display-weight);
+  letter-spacing: var(--type-display-tracking);
+  font-variant-numeric: var(--type-display-numeric);
+}
+
+@utility type-h1 {
+  font-family: var(--font-heading);
+  font-stretch: var(--font-heading-stretch);
+  font-size: var(--type-h1-size);
+  line-height: var(--type-h1-leading);
+  font-weight: var(--type-h1-weight);
+  letter-spacing: var(--type-h1-tracking);
+}
+
+@utility type-h2 {
+  font-family: var(--font-heading);
+  font-stretch: var(--font-heading-stretch);
+  font-size: var(--type-h2-size);
+  line-height: var(--type-h2-leading);
+  font-weight: var(--type-h2-weight);
+  letter-spacing: var(--type-h2-tracking);
+}
+
+@utility type-h3 {
+  font-family: var(--font-sans);
+  font-size: var(--type-h3-size);
+  line-height: var(--type-h3-leading);
+  font-weight: var(--type-h3-weight);
+}
+
+@utility type-body {
+  font-family: var(--font-sans);
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-leading);
+  font-weight: var(--type-body-weight);
+}
+
+@utility type-small {
+  font-family: var(--font-sans);
+  font-size: var(--type-small-size);
+  line-height: var(--type-small-leading);
+  font-weight: var(--type-small-weight);
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
+    @apply border-border outline-ring;
   }
   html {
     @apply font-sans;
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
+  }
+  body {
+    @apply bg-background text-foreground;
   }
 }
