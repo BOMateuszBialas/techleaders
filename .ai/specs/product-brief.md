@@ -5,15 +5,16 @@
 - Evidence basis: one practitioner account from the project author, who builds Shopify stores for clients (not an independent interview; no single dated case, no frequency or cost). Everything else is the team's decisions (D01–D07), the MVP specification, and workshop hypotheses from the discovery pack. No merchant interviews, data or checked benchmarks exist yet. Most consequential untested belief: A03, that order, catalog and stock data alone support useful "improve sales" advice.
 - Coverage (last counted 2026-10-14, before D08 and D09): 35 claims — 32 sourced (interview 4, data 0, document 18, product 10, benchmark 0), 0 synthetic, 3 assumed; 1 entries on the collection plan. Tagged-line totals: the 4 interview lines come from one non-independent account, and the 18 document lines are the team's own decisions.
 - Synthetic hypotheses outside Coverage: 0
-- Definition of Ready signed by: product owner, for the portfolio path only (D04); ready for: implementation planning of the whole MVP P0 scope (D01), including the Copilot week since Q05 and Q01 were decided on 2026-10-15 (D08, D09) and the spec was updated. Not ready for any market-facing claim; the problem rests on one non-independent account (see DoR addendum).
-- Updated: 2026-10-15 (D08, D09 answer Q05 and Q01; D10 switches the demo catalog to gaming accessories)
-- Sources: `.ai/specs/research/interviews/2026-10-14-practitioner-shopify-builder.md`, `.ai/specs/research/decisions/D01`–`D10`, `.ai/specs/2026-10-13-commerceos-mvp.md`, `.ai/specs/research/2026-10-14-*.md` (discovery pack: hypotheses, plans and templates, no research results)
+- Definition of Ready signed by: product owner, for the portfolio path only (D04); ready for: implementation planning of the whole MVP P0 scope (D01), including the Copilot week since Q05 and Q01 were decided on 2026-10-15 (D08, D09) and the spec was updated. Not ready for any market-facing claim; the problem rests on one non-independent account (see DoR addendum). Customer accounts (D11) are ready for spec writing; the motivation is a course requirement, not shopper evidence.
+- Updated: 2026-10-24 (D11 adds customer accounts as a second role, for the course certificate; D08, D09 answer Q05 and Q01; D10 switches the demo catalog to gaming accessories)
+- Sources: `.ai/specs/research/interviews/2026-10-14-practitioner-shopify-builder.md`, `.ai/specs/research/decisions/D01`–`D11`, `.ai/specs/2026-10-13-commerceos-mvp.md`, `.ai/specs/research/2026-10-14-*.md` (discovery pack: hypotheses, plans and templates, no research results)
 
 ## Decision summary
 
 The decision is to build CommerceOS as a 5-week portfolio and course project (D04) with the scope of the MVP specification (D01). It is agreed by the product owner.
 The problem it aims at comes from the owner's practitioner experience: small-store owners have analytics data but do not know which changes to make, and agencies they hire recommend changes from misread or incomplete tracking data (see Problems). That is one practitioner's generalized account. No store owner has been interviewed.
 Now: a storefront, an admin, and a Commerce Copilot that recommends actions using only the store's own order, catalog and stock data, with the evidence shown and no autonomous changes (D01, D02, R01–R06). Store management itself must be clear enough that the owner sees cause and effect (D05).
+Also Now (D11): shoppers may create a customer account. Orders placed while signed in are attached to the account and listed under "My orders"; guest checkout stays. A customer never sees another customer's orders and never reaches the admin (R08–R10). This is added for the course certificate's two-role requirement, not from shopper evidence.
 **Gap and how Now handles it:** the practitioner's described gap is missing sessions, traffic and conversion data. The spec's approved Copilot tools cover only orders, line items and stock (spec §6). The owner therefore added fictional traffic and conversion data with a bounded Copilot tool to the demo (D07), which widens D01. It is P0 in a minimal form: sessions by source, the store funnel and per-product views, read by `getTrafficSummary` (D08). Copilot answers seven named questions and declines those needing data the demo lacks (D09). The demo shows the idea on fictional data only; a real tracking source is Later (Q04). Copilot keeps the primary question and names any data it does not have (D06). Problem and target users remain an untested hypothesis (A01, A02).
 Next: plan implementation and file the backlog, Copilot included (owner: product owner). Check which team-chosen merchant questions the approved tools can answer (A03). This tests answerability only, not usefulness to owners. Optionally collect concrete client cases (Collection plan).
 
@@ -26,7 +27,7 @@ Help small online-store owners go from their store's own data to a concrete, exp
 - Customer (pays): not relevant on the portfolio path (D04); deferred.
 - User (uses): owner of a small online store (chosen; medium and large stores later). `[DOCUMENT]` decisions/D05
 - User situation (hypothesis, not the chosen definition): an owner who has analytics data but does not know which changes to make. This rests on one practitioner's account; see Problems and A01.
-- Secondary user: the store's shopper, who browses and checks out. `[PRODUCT]` `.ai/specs/2026-10-13-commerceos-mvp.md` §2 primary demo story
+- Secondary user: the store's shopper, who browses and checks out as a guest or with an optional customer account that lists their own orders. `[PRODUCT]` `.ai/specs/2026-10-13-commerceos-mvp.md` §2, §3; `[DOCUMENT]` decisions/D11
 - Stakeholders: course and portfolio reviewers, who judge engineering quality and the demo. `[DOCUMENT]` decisions/D04
 - Decider for scope decisions: product owner (project author).
 
@@ -56,7 +57,7 @@ Deferred: the pack holds a benchmark plan only (`2026-10-14-miro-board-competito
 
 ## Scope
 
-- **Now:** the P0 of the MVP spec, which includes the minimal fictional traffic and conversion data and its one bounded Copilot tool (D07, D08): storefront, admin with real metrics and CRUD, orders, stock, and Copilot's one workflow of a performance summary plus 3 prioritized recommendations with evidence (D01). Store management is built to make cause and effect clear to the owner (D05). Rules R01–R06 apply.
+- **Now:** the P0 of the MVP spec, which includes the minimal fictional traffic and conversion data and its one bounded Copilot tool (D07, D08): storefront, admin with real metrics and CRUD, orders, stock, and Copilot's one workflow of a performance summary plus 3 prioritized recommendations with evidence (D01). Store management is built to make cause and effect clear to the owner (D05). Customer accounts with "My orders" beside guest checkout (D11). Rules R01–R10 apply.
 - **Later:** a real traffic or conversion tracking source (Q04); P1 items, including AI-drafted product descriptions (spec §3 P1; named by the owner in D05). Also medium and large stores (D05), and a real-product path with merchant interviews (D04).
 - **Not doing:** see Non-goals.
 
@@ -70,6 +71,9 @@ Deferred: the pack holds a benchmark plan only (`2026-10-14-miro-board-competito
 | Top products | Ranked by paid order line items over a stated date range | spec §6 | admin, Copilot |
 | Low stock | Published product at or below a configurable threshold | spec §6 | admin, Copilot |
 | Recommendation | Copilot output: title, priority, observation, evidence, reasoning, suggested action, limitations | spec §6 | admin |
+| Customer account | A shopper's self-registered account (role `customer`); separate from the owner account | D11 | customer |
+| Account order | An order placed while signed in as a customer, attached to that account by the server; opened only with that customer's session | D11 | customer (own only), admin |
+| Guest order | An order placed without an account; reachable only through its secret reference | spec §3 | shopper with the reference, admin |
 
 ## Key flows
 
@@ -83,6 +87,13 @@ Deferred: the pack holds a benchmark plan only (`2026-10-14-miro-board-competito
   6. The owner saves, dismisses or completes each one.
 
   `[PRODUCT]` `.ai/specs/2026-10-13-commerceos-mvp.md` §2
+- Customer account flow (D11), decided steps:
+  1. A shopper registers or signs in, or continues as a guest.
+  2. Checks out; a signed-in order is attached to the account by the server.
+  3. Opens "My orders" and sees only their own orders, read-only.
+  4. Opening another customer's order, or the admin, shows "not found" or the sign-in page, never the data.
+
+  `[DOCUMENT]` decisions/D11
 
 ## Business rules
 
@@ -95,6 +106,9 @@ Deferred: the pack holds a benchmark plan only (`2026-10-14-miro-board-competito
 | R05 | Metric definitions are documented in code and UI and used consistently; no causal claims from correlations | admin, Copilot | `[PRODUCT]` spec §6 | active | unknown | superseding row approved by product owner | product owner | none |
 | R07 | Demo and seed data are clearly presented as demo data, never as real customer or store data | admin, Copilot, demo | `[PRODUCT]` spec §9, §12 rule 6; decisions/D07 | active | unknown | superseding row approved by product owner | product owner | none |
 | R06 | When the LLM is unavailable, the UI shows an explicit fallback or deterministic insights, never a fabricated answer | Copilot | `[PRODUCT]` spec §3 | active | unknown | superseding row approved by product owner | product owner | none |
+| R08 | A customer sees and reaches only orders attached to their own account; ownership is decided on the server from the session on every page, action and API, including the public order and demo payment pages; another customer's order answers "not found", never revealing that it exists | customer accounts, orders | `[DOCUMENT]` decisions/D11 | active | trigger: change of D11 | superseding row approved by product owner | product owner | none |
+| R09 | Roles are separate: a customer session never grants admin access and an owner session is not a customer session; customer accounts cannot become owners through any request | auth, admin | `[DOCUMENT]` decisions/D11; admin-auth spec Q2/Q4 | active | trigger: change of D11 | superseding row approved by product owner | product owner | none |
+| R10 | Guest checkout remains available; an account is never required to buy, and the order owner is set by the server, never by submitted data | checkout | `[DOCUMENT]` decisions/D11 | active | trigger: change of D11 | superseding row approved by product owner | product owner | none |
 
 ## Non-goals
 
@@ -105,6 +119,7 @@ Deferred: the pack holds a benchmark plan only (`2026-10-14-miro-board-competito
 | N03 | Integration with Shopify or other external commerce platforms | 5-week scope | product owner | active | trigger: change of D01 | superseding row approved by product owner | `[DOCUMENT]` decisions/D01 | none |
 | N04 | Autonomous AI actions on store data | trust and testability (D02) | product owner | active | trigger: change of D02 | superseding row approved by product owner | `[DOCUMENT]` decisions/D02 | none |
 | N05 | A custom analytics warehouse or event-streaming platform | excluded by the MVP spec. Separately, the spec §6 tool list includes no traffic or conversion source; D07 adds a fictional one for the demo, but no real tracking | product owner | active | trigger: change of D01 | superseding row approved by product owner | `[PRODUCT]` spec §3 out of scope, §6 tools | none |
+| N06 | Customer self-service beyond reading own orders: order cancellation or returns, profile and address book, password reset or email verification by email, social login, attaching past guest orders to an account, account deletion | keeps D11 to the certificate's isolation proof; no email service exists; claiming orders by an unverified email would leak other people's orders | product owner | active | trigger: change of D11 | superseding row approved by product owner | `[DOCUMENT]` decisions/D11 | none |
 
 ## Decisions
 
@@ -120,6 +135,7 @@ Deferred: the pack holds a benchmark plan only (`2026-10-14-miro-board-competito
 | D09 | 2026-10-15 | Copilot answers the four spec questions plus traffic sources, funnel drop-off and views-without-sales; declines margin, ad spend/ROAS, demographics, competitors, forecasts, per-source conversion and causal claims | traffic questions are answerable once D08 is P0 | product owner | active | trigger: a new data source (Q04) or P1 item | superseding row approved by product owner | `[DOCUMENT]` decisions/D09 | none |
 | D05 | 2026-10-14 | Primary user is a small-store owner (medium and large later); store management is part of the value, not plumbing | the owner rejected treating the admin as data plumbing; cause and effect must be clear to the owner | product owner | active | trigger: leaving the portfolio path | superseding row approved by product owner | `[DOCUMENT]` decisions/D05 | none |
 | D10 | 2026-10-15 | The demo store sells gaming accessories (mice, keyboards, headsets, controllers, mousepads) instead of coffee | the product owner wants a gaming shop; switching before orders and Copilot data refer to the catalog is cheapest | product owner | active | trigger: the product owner picks another demo vertical | superseding row approved by product owner | `[DOCUMENT]` decisions/D10 | none |
+| D11 | 2026-10-24 | Customer accounts as a second role beside `owner`: self-registration on a separate auth instance, orders attached to the account, read-only "My orders"; an account order opens only with its owner's session; guest checkout stays | the course certificate requires two roles with per-user data isolation; a customer account gives a natural A↔B and role↔role test; spec §3 already named order history for a demo account | product owner | active | trigger: leaving the portfolio path or dropping the certificate | superseding row approved by product owner | `[DOCUMENT]` decisions/D11 | none |
 
 ## Riskiest assumptions
 
@@ -149,7 +165,7 @@ None. No synthetic walkthrough has been run.
 
 ## Definition of Ready addendum (own)
 
-Problems and Target group have one supporting source: a practitioner account that is not independent and describes no single case. It supports that the author has seen this pattern, not how common or costly it is. The owner explicitly accepted building on that untested basis for the portfolio path (D04). That acceptance makes the whole P0 scope ready for implementation planning, including the Copilot week (Q05 and Q01 answered by D08 and D09, spec updated on 2026-10-15). It does not validate the merchant problem, and no market-facing claim may rely on it. All decisions Now depends on are active (D01–D09). The traffic and conversion gap the practitioner describes is addressed only on fictional demo data (D07, D08, A02).
+Problems and Target group have one supporting source: a practitioner account that is not independent and describes no single case. It supports that the author has seen this pattern, not how common or costly it is. The owner explicitly accepted building on that untested basis for the portfolio path (D04). That acceptance makes the whole P0 scope ready for implementation planning, including the Copilot week (Q05 and Q01 answered by D08 and D09, spec updated on 2026-10-15). It does not validate the merchant problem, and no market-facing claim may rely on it. All decisions Now depends on are active (D01–D09). The traffic and conversion gap the practitioner describes is addressed only on fictional demo data (D07, D08, A02). Customer accounts (D11) rest on a course requirement, not on shopper research; no claim about shopper demand may rely on them.
 
 ## Collection plan
 
