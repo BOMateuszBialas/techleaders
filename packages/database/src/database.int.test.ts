@@ -9,6 +9,32 @@ import "./testing/provided-context";
 
 const testDatabaseUrl = inject("databaseUrl");
 
+const ORDERS_CUSTOMER_MIGRATION = "Migration20261024193652_orders_customer";
+
+/** A minimal pending order row; `customerId` null is a guest order. Returns the order id. */
+async function insertOrder(orm: MikroORM, customerId: string | null): Promise<string> {
+  const [row] = await orm.em.fork().execute<{ id: string }[]>(
+    `insert into orders (public_reference, idempotency_key, request_fingerprint, customer_name,
+      customer_email, shipping_line1, shipping_city, shipping_postal_code, shipping_country,
+      currency, subtotal_minor, total_minor, customer_id)
+      values (concat('CO-', substr(md5(random()::text), 1, 20)), gen_random_uuid(), 'fp',
+        'Test Buyer', 'buyer@db.test', 'Street 1', 'Warsaw', '00-001', 'PL', 'PLN', 100, 100, ?)
+      returning id`,
+    [customerId],
+  );
+  return row!.id;
+}
+
+async function insertCustomer(orm: MikroORM, email: string): Promise<string> {
+  const [row] = await orm.em
+    .fork()
+    .execute<{ id: string }[]>(
+      `insert into customer_users (name, email, email_verified) values ('Customer', ?, false) returning id`,
+      [email],
+    );
+  return row!.id;
+}
+
 /** Nothing listens here in the dev/CI setup, so connecting fails fast. */
 const UNUSED_PORT = 5999;
 
@@ -203,8 +229,16 @@ describe("database (PostgreSQL)", () => {
     const ownersBefore = await owners();
     expect(await existing()).toEqual(tables);
 
-    // A foreign key into customer_users (Phase 2's orders.customer_id, simulated here) blocks the
-    // rollback: no `cascade` may drop it silently (rollback plan, D-d).
+    // Phase 1 rolls back only after Phase 2 (its `orders.customer_id` foreign key). While that
+    // key exists, the customer_auth `down` fails instead of dropping it.
+    await expect(
+      orm.migrator.down({ migrations: ["Migration20261024181620_customer_auth"] }),
+    ).rejects.toThrow();
+    expect(await existing()).toEqual(tables);
+    await orm.migrator.down({ migrations: [ORDERS_CUSTOMER_MIGRATION] });
+
+    // Any other foreign key into customer_users blocks the rollback too: no `cascade` may drop
+    // it silently (rollback plan, D-d).
     const em = orm.em.fork();
     const [customer] = await em.execute<{ id: string }[]>(
       `insert into customer_users (name, email, email_verified) values ('Customer', 'fk-probe@db.test', false) returning id`,
@@ -227,6 +261,93 @@ describe("database (PostgreSQL)", () => {
     expect(await existing()).toEqual(tables);
     const diff = await orm.schema.getUpdateSchemaSQL({ wrap: false });
     expect(diff.trim()).toBe("");
+  });
+
+  it("links an order to an existing customer only and never deletes a customer with orders (E07 Phase 2)", async () => {
+    const em = orm.em.fork();
+    await expect(insertOrder(orm, "00000000-0000-4000-8000-000000000000")).rejects.toThrow(
+      /orders_customer_id_foreign/,
+    );
+    const customerId = await insertCustomer(orm, "restrict@db.test");
+    const orderId = await insertOrder(orm, customerId);
+    // `on delete restrict`: the order never turns into a guest order (spec Data Model).
+    await expect(
+      em.execute(`delete from customer_users where id = ?`, [customerId]),
+    ).rejects.toThrow(/orders_customer_id_foreign/);
+    const [row] = await em.execute<{ customer_id: string | null }[]>(
+      `select customer_id from orders where id = ?`,
+      [orderId],
+    );
+    expect(row?.customer_id).toBe(customerId);
+    await em.execute(`delete from orders where id = ?`, [orderId]);
+    await em.execute(`delete from customer_users where id = ?`, [customerId]);
+  });
+
+  describe("orders_customer migration rollback (owner decision D-d)", () => {
+    const columnExists = async () => {
+      const rows = await orm.em
+        .fork()
+        .execute<{ found: boolean }[]>(
+          `select exists (select 1 from information_schema.columns where table_name = 'orders' and column_name = 'customer_id') as found`,
+        );
+      return rows[0]?.found;
+    };
+    const indexAndKey = async () =>
+      orm.em.fork().execute<{ name: string }[]>(
+        `select indexname as name from pg_indexes where indexname = 'orders_customer_id_created_at_index'
+            union all select conname from pg_constraint where conname = 'orders_customer_id_foreign'`,
+      );
+    const orderRows = async () =>
+      orm.em
+        .fork()
+        .execute<{ id: string; total_minor: number }[]>(
+          "select id, total_minor from orders order by id",
+        );
+
+    it("reverts and reapplies with guest-only orders, keeping the data intact", async () => {
+      await insertOrder(orm, null);
+      const before = await orderRows();
+      expect(before.length).toBeGreaterThan(0);
+
+      await orm.migrator.down({ migrations: [ORDERS_CUSTOMER_MIGRATION] });
+      expect(await columnExists()).toBe(false);
+      expect(await indexAndKey()).toEqual([]);
+      expect(await orderRows()).toEqual(before);
+
+      await orm.migrator.up();
+      expect(await columnExists()).toBe(true);
+      expect(await orderRows()).toEqual(before);
+      const diff = await orm.schema.getUpdateSchemaSQL({ wrap: false });
+      expect(diff.trim()).toBe("");
+    });
+
+    it("refuses to revert while an account order exists, and changes nothing", async () => {
+      const customerId = await insertCustomer(orm, "rollback@db.test");
+      const orderId = await insertOrder(orm, customerId);
+      const before = await orderRows();
+      const constraintsBefore = await indexAndKey();
+      expect(constraintsBefore).toHaveLength(2);
+
+      await expect(orm.migrator.down({ migrations: [ORDERS_CUSTOMER_MIGRATION] })).rejects.toThrow(
+        /orders_customer down refused: account orders exist; roll forward instead/,
+      );
+
+      expect(await columnExists()).toBe(true);
+      expect(await indexAndKey()).toEqual(constraintsBefore);
+      expect(await orderRows()).toEqual(before);
+      const [row] = await orm.em
+        .fork()
+        .execute<{ customer_id: string | null }[]>(`select customer_id from orders where id = ?`, [
+          orderId,
+        ]);
+      expect(row?.customer_id).toBe(customerId);
+      const executed = await orm.migrator.getExecuted();
+      expect(executed.map((migration) => migration.name)).toContain(ORDERS_CUSTOMER_MIGRATION);
+
+      const em = orm.em.fork();
+      await em.execute(`delete from orders where id = ?`, [orderId]);
+      await em.execute(`delete from customer_users where id = ?`, [customerId]);
+    });
   });
 
   it("rejects negative stock at the database level", async () => {
