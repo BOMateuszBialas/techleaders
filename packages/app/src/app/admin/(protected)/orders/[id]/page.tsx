@@ -4,7 +4,11 @@ import { headers } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { DemoBadge, OrderStatusBadge } from "@/components/admin/orders/order-badges";
+import {
+  DemoBadge,
+  OrderOriginBadge,
+  OrderStatusBadge,
+} from "@/components/admin/orders/order-badges";
 import {
   DELETED_PRODUCT_LABEL,
   DEMO_ORDER_NOTE,
@@ -71,6 +75,7 @@ async function OrderDetails({ params }: Pick<OrderPageProps, "params">) {
         <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Order status">
           <OrderStatusBadge status={order.status} />
           {order.isDemo ? <DemoBadge /> : null}
+          <OrderOriginBadge placedWithAccount={order.placedWithAccount} />
         </div>
         <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
           <dt className="text-muted-foreground">Placed</dt>

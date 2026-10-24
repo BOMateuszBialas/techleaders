@@ -84,6 +84,8 @@ describe("admin orders (E04-S01)", () => {
     const list = await browser().text(ORDERS_TABLE);
     expect(list).toContain("Reference");
     expect(list).toContain("Paid");
+    // A shopper without an account placed it (E07 A18).
+    expect(list).toContain("Guest order");
     expect(list).toMatch(/198,00\s*zł/);
     // A date and time sit in the row.
     expect(list).toMatch(/\d{1,2}:\d{2}/);
@@ -102,6 +104,8 @@ describe("admin orders (E04-S01)", () => {
     expect(main).toContain("90-001 Łódź");
     expect(main).toContain("Demo payment (no money charged)");
     expect(main).not.toContain("Seeded demo order");
+    expect(main).toContain("Guest order");
+    expect(main).not.toContain("Account order");
     // A paid order cannot be cancelled, only refunded (A4).
     expect(main).not.toContain("Cancel order");
     expect(main).toContain("Mark as refunded (record only)");

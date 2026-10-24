@@ -11,6 +11,7 @@ import {
   isCustomerSignedIn,
   requireCustomer,
   requireCustomerPage,
+  toOrderViewer,
 } from "./require-customer";
 
 const requestHeaders = new Headers({ cookie: "commerceos-customer.session_token=abc" });
@@ -93,6 +94,16 @@ describe("getCurrentCustomerId (spec A24)", () => {
       error: { name: "Error", code: "57P01" },
     });
     expect(JSON.stringify(vi.mocked(logger.error).mock.calls)).not.toContain("secret-token");
+  });
+});
+
+describe("toOrderViewer (public order and payment paths, spec A2 and A24)", () => {
+  it("is the customer for a customer session, and a guest for no session and for an error", () => {
+    expect(toOrderViewer({ status: "customer", customerId: "c-1", email: "a@x.test" })).toEqual({
+      customerId: "c-1",
+    });
+    expect(toOrderViewer({ status: "none" })).toEqual({ customerId: null });
+    expect(toOrderViewer({ status: "error" })).toEqual({ customerId: null });
   });
 });
 

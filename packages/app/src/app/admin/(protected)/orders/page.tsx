@@ -3,7 +3,11 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { Suspense } from "react";
-import { DemoBadge, OrderStatusBadge } from "@/components/admin/orders/order-badges";
+import {
+  DemoBadge,
+  OrderOriginBadge,
+  OrderStatusBadge,
+} from "@/components/admin/orders/order-badges";
 import {
   EMPTY_ORDERS_MESSAGE,
   EMPTY_ORDERS_PAGE_MESSAGE,
@@ -82,7 +86,7 @@ async function OrderList({ searchParams }: Pick<PageProps<"/admin/orders">, "sea
           {rows.map((order) => (
             <TableRow key={order.id}>
               <TableCell>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <Link
                     href={orderPath(order.id)}
                     className="font-mono font-medium underline-offset-4 hover:underline"
@@ -90,6 +94,7 @@ async function OrderList({ searchParams }: Pick<PageProps<"/admin/orders">, "sea
                     {order.reference}
                   </Link>
                   {order.isDemo ? <DemoBadge /> : null}
+                  <OrderOriginBadge placedWithAccount={order.placedWithAccount} />
                 </div>
               </TableCell>
               <TableCell>
