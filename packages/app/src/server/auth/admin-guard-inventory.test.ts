@@ -228,6 +228,9 @@ describe("admin guard inventory", () => {
         "app/api/customer-auth/[...all]/route.ts",
         "server/customer-auth/require-customer.ts",
         "app/(storefront)/orders/load-order-page.ts",
+        "app/(storefront)/account/orders/[id]/page.tsx",
+        "app/api/account/orders/route.ts",
+        "app/api/account/orders/[id]/route.ts",
       ]),
     );
     expect(findUnguarded(files)).toEqual([]);

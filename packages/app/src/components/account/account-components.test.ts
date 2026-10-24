@@ -1,10 +1,14 @@
+import { money, type CustomerOrderDto, type CustomerOrderList } from "@commerceos/core";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { ACCOUNT_COPY } from "./account-copy";
+import AccountOrderNotFoundPage from "@/app/(storefront)/account/orders/[id]/not-found";
+import OrderNotFound from "@/app/(storefront)/orders/[reference]/not-found";
+import { ACCOUNT_COPY, accountOrderPath } from "./account-copy";
+import { AccountOrderDetailView } from "./account-order-detail-view";
+import { AccountOrderHint, AccountOrderNotFound } from "./account-order-not-found";
 import { AccountHeaderLink } from "./account-header-link";
 import { AccountOrdersView } from "./account-orders-view";
-import { CheckoutAccountNote } from "./checkout-account-note";
 import { CustomerAuthCard, CustomerAuthCardSkeleton } from "./customer-auth-card";
 
 const action = async () => {};
@@ -78,21 +82,6 @@ describe("CustomerAuthCardSkeleton", () => {
   });
 });
 
-describe("AccountOrdersView", () => {
-  it("shows the signed-in email, a sign-out button and the empty state", () => {
-    const html = render(
-      createElement(AccountOrdersView, { email: "a@shop.example", signOutAction: action }),
-    );
-    expect(html).toContain("Signed in as <span>a@shop.example</span>");
-    expect(html).toMatch(/<form[^>]*>.*<button[^>]*type="submit"[^>]*>Sign out<\/button>/);
-    expect(html).toContain("You have no orders yet.");
-    expect(html).toContain(
-      '<p role="note">Orders are not saved to your account yet: an order placed now is a guest order',
-    );
-    expect(html).toMatch(/href="\/products"[^>]*>Browse the catalog</);
-  });
-});
-
 describe("AccountHeaderLink", () => {
   it("offers sign-in to a signed-out shopper", () => {
     const html = render(
@@ -128,18 +117,136 @@ describe("AccountHeaderLink", () => {
   });
 });
 
-describe("CheckoutAccountNote", () => {
-  it("links a signed-out shopper to sign-in with the fixed checkout return code", () => {
-    const html = render(createElement(CheckoutAccountNote, { signedIn: false }));
-    expect(html).toMatch(
-      /href="\/account\/sign-in\?from=checkout"[^>]*>Sign in for order history</,
+describe("AccountOrdersView (E07 A13, S03)", () => {
+  const order = (id: string, reference: string) => ({
+    id,
+    reference,
+    createdAt: new Date("2026-10-24T10:00:00.000Z"),
+    status: "paid" as const,
+    total: money(24900, "PLN"),
+  });
+  const view = (list: CustomerOrderList | null) =>
+    render(
+      createElement(AccountOrdersView, { email: "a@shop.example", signOutAction: action, list }),
     );
-    expect(html).toContain("or continue below as a guest.");
+
+  it("shows the signed-in email, a sign-out button and the empty state", () => {
+    const html = view({ orders: [], capped: false });
+    expect(html).toContain("Signed in as <span>a@shop.example</span>");
+    expect(html).toMatch(/<form[^>]*>.*<button[^>]*type="submit"[^>]*>Sign out<\/button>/);
+    expect(html).toContain("You have no orders yet.");
+    expect(html).toMatch(/href="\/products"[^>]*>Browse the catalog</);
+    expect(html).not.toContain("<table");
+    expect(html).not.toContain("not saved to your account");
   });
 
-  it("tells a signed-in customer plainly that this order is still a guest order (Phase 1)", () => {
-    const html = render(createElement(CheckoutAccountNote, { signedIn: true }));
-    expect(html).toBe(`<p role="note">${ACCOUNT_COPY.ordersNotSavedYet}</p>`);
-    expect(html).not.toContain("Sign in for order history");
+  it("lists the orders with reference, date, status and total, each linking to its detail", () => {
+    const id = "d0000000-0000-4000-8000-000000000001";
+    const html = view({ orders: [order(id, "CO-AAAAA-BBBBB-CCCCC-DDDDD")], capped: false });
+    expect(html).toMatch(/<caption[^>]*>Your orders, newest first<\/caption>/);
+    expect(html).toMatch(
+      new RegExp(`<a href="/account/orders/${id}">CO-AAAAA-BBBBB-CCCCC-DDDDD</a>`),
+    );
+    expect(html).toContain('<time dateTime="2026-10-24T10:00:00.000Z">24 Oct 2026, 12:00</time>');
+    expect(html).toContain("Paid");
+    expect(html).toMatch(/249,00\s*zł/);
+    expect(html).not.toContain("Showing your 50 most recent orders.");
+  });
+
+  it("says when only the newest 50 are shown, and shows a generic error", () => {
+    expect(view({ orders: [order("x", "CO-X")], capped: true })).toContain(
+      '<p role="note">Showing your 50 most recent orders.</p>',
+    );
+    const error = view(null);
+    expect(error).toContain(
+      '<p role="alert">Your orders are unavailable right now. Try again.</p>',
+    );
+    expect(error).not.toContain("You have no orders yet.");
+  });
+});
+
+describe("AccountOrderDetailView (E07 A5, S03)", () => {
+  const base: CustomerOrderDto = {
+    id: "d0000000-0000-4000-8000-000000000001",
+    reference: "CO-AAAAA-BBBBB-CCCCC-DDDDD",
+    createdAt: new Date("2026-10-24T10:00:00.000Z"),
+    status: "pending_payment",
+    total: money(24900, "PLN"),
+    items: [
+      {
+        name: "Vortex Wireless Mouse",
+        unitPrice: money(24900, "PLN"),
+        quantity: 1,
+        lineTotal: money(24900, "PLN"),
+      },
+    ],
+    subtotal: money(24900, "PLN"),
+    shipping: money(0, "PLN"),
+    paidAt: null,
+    paymentProvider: null,
+    contact: { name: "Ada Lovelace", email: "ada@example.test" },
+    shippingAddress: {
+      line1: "ul. Marszałkowska 1",
+      line2: null,
+      city: "Warszawa",
+      postalCode: "00-950",
+      country: "PL",
+    },
+  };
+
+  it("shows a pending order read only, with its items, address and a link to pay", () => {
+    const html = render(createElement(AccountOrderDetailView, { order: base }));
+    expect(html).toContain("<h1>Order details</h1>");
+    expect(html).toContain("CO-AAAAA-BBBBB-CCCCC-DDDDD");
+    expect(html).toContain("Awaiting payment");
+    expect(html).toContain("Vortex Wireless Mouse");
+    expect(html).toContain("Ada Lovelace");
+    expect(html).toContain("ul. Marszałkowska 1");
+    expect(html).toContain("00-950 Warszawa, PL");
+    expect(html).toMatch(/href="\/checkout\/pay\/CO-AAAAA-BBBBB-CCCCC-DDDDD"/);
+    expect(html).toMatch(/href="\/account\/orders"[^>]*>Back to My orders</);
+    expect(html).not.toContain("<button");
+    expect(html).not.toContain("Paid with");
+  });
+
+  it("shows how a paid order was paid and its second address line, without a pay link", () => {
+    const html = render(
+      createElement(AccountOrderDetailView, {
+        order: {
+          ...base,
+          status: "paid",
+          paidAt: new Date("2026-10-24T10:05:00.000Z"),
+          paymentProvider: "demo",
+          shippingAddress: { ...base.shippingAddress, line2: "m. 4" },
+        },
+      }),
+    );
+    expect(html).toContain("Paid with: Demo payment (no money charged)");
+    expect(html).toContain("m. 4");
+    expect(html).not.toContain("/checkout/pay/");
+  });
+});
+
+describe("account not-found and the reference hint (E07 A11, A2)", () => {
+  it("answers an unknown or foreign order id with one generic page", () => {
+    for (const page of [AccountOrderNotFound, AccountOrderNotFoundPage]) {
+      const html = render(createElement(page));
+      expect(html).toContain("<h1>Order not found</h1>");
+      expect(html).toMatch(/href="\/account\/orders"/);
+    }
+  });
+
+  it("adds the unconditional account hint to the reference not-found page", () => {
+    expect(render(createElement(OrderNotFound))).toContain(
+      "<p>Orders placed with an account open only while you are signed in to it.</p>",
+    );
+    expect(render(createElement(AccountOrderHint))).toContain("signed in to it.");
+  });
+
+  it("builds account order paths from the uuid only", () => {
+    expect(accountOrderPath("d0000000-0000-4000-8000-000000000001")).toBe(
+      "/account/orders/d0000000-0000-4000-8000-000000000001",
+    );
+    expect(accountOrderPath("a/b")).toBe("/account/orders/a%2Fb");
   });
 });

@@ -194,6 +194,8 @@ describe("composition root", () => {
       "placeOrderUseCase",
       "getOrderByReferenceUseCase",
       "confirmDemoPaymentUseCase",
+      "listCustomerOrdersUseCase",
+      "getCustomerOrderUseCase",
     ] as const) {
       expect(first.cradle[key] === second.cradle[key]).toBe(false);
     }

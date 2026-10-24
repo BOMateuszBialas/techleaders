@@ -1,3 +1,5 @@
+import { STORE_TIME_ZONE } from "@/components/admin/products/stock-copy";
+
 /** Customer account copy (E07 spec, UI/UX). English UI, like the rest of the store (G8). */
 export const ACCOUNT_COPY = {
   signInTitle: "Sign in to your account",
@@ -12,13 +14,37 @@ export const ACCOUNT_COPY = {
   signIn: "Sign in",
   myOrders: "My orders",
   checkoutSignIn: "Sign in for order history",
-  checkoutSignInHint: "or continue below as a guest.",
-  /**
-   * Phase 1 limitation, stated where it matters (principle 6): orders do not attach to accounts
-   * until the next release, and an order placed now never will (spec A3). Removed in Phase 2b.
-   */
-  ordersNotSavedYet:
-    "Orders are not saved to your account yet: an order placed now is a guest order, reachable with its order reference, and will not appear here later.",
+  /** Checkout modes (spec A24): what the page shows is what the order becomes. */
+  buyingAs: "Buying as",
+  buyingAsGuest: "Buying as a guest.",
+  accountOrderNote: "This order will appear under My orders.",
+  sessionLost:
+    "We could not confirm your sign-in, so you are checking out as a guest. Sign in to attach this order to your account.",
+  ordersTableCaption: "Your orders, newest first",
+  ordersCapped: "Showing your 50 most recent orders.",
+  ordersUnavailable: "Your orders are unavailable right now. Try again.",
+  orderDetailsHeading: "Order details",
+  orderNotFound: "Order not found",
+  orderNotFoundHint: "This order does not exist or is not in your account.",
+  backToOrders: "Back to My orders",
+  /** Shown on every reference not-found page (spec Architecture): it reveals nothing. */
+  accountOrderHint: "Orders placed with an account open only while you are signed in to it.",
 } as const;
 
 export const CUSTOMER_SIGN_IN_FROM_CHECKOUT = "/account/sign-in?from=checkout";
+
+export const ACCOUNT_ORDERS_PATH = "/account/orders";
+
+/** `/account/orders/<id>`: the order's uuid, never its public reference (spec A11). */
+export function accountOrderPath(id: string): string {
+  return `${ACCOUNT_ORDERS_PATH}/${encodeURIComponent(id)}`;
+}
+
+/** An order date for the account pages, in the store's time zone (English UI, G8). */
+export function formatAccountDate(date: Date): string {
+  return new Intl.DateTimeFormat("en-GB", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: STORE_TIME_ZONE,
+  }).format(date);
+}
