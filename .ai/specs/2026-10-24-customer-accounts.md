@@ -1,6 +1,6 @@
 # Customer accounts and "My orders" (E07)
 
-- Backlog: epic E07, stories E07-S01…S06 (planned in `.ai/specs/backlog.md`; issues are filed by `om-backlog` after the D11 brief update merges)
+- Backlog: epic E07 #91; stories E07-S01 #92, E07-S02 #93, E07-S03 #94, E07-S04 #95, E07-S05 #96, E07-S06 #97 (filed by `om-backlog` on 2026-10-24, recorded in `.ai/specs/backlog.md`). Refs #91
 - Status: **draft**, 2026-10-24. Design decisions P1–P5 answered by the product owner (2026-10-24, recorded in D11). A6 and A9 are defaults that need the product owner's confirmation (⚠). Waiting for: the cross-model review (section "Recenzja innym modelem"), then the Phase 0 spike. Not ready for implementation before both
 - Design authority: `.ai/specs/product-brief.md` (D11, R08–R10, N06; also D04, D05, R04, R07), `.ai/specs/research/decisions/D11-customer-accounts.md`, `.ai/specs/implemented/2026-10-15-admin-authentication.md` (Better Auth setup, spike method, G4/G9), `.ai/specs/implemented/2026-10-15-cart-and-demo-checkout.md` (A7 idempotency, A8 bearer reference, A15 lookup limit), AGENTS.md
 
