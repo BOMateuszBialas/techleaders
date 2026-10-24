@@ -63,11 +63,13 @@ Refs #91.
 
 ## Progress
 
+PR: #102
+
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles.
 
 ### Phase 1: Order ownership rules
 
-- [ ] 1.1 Orders customer schema and migration
-- [ ] 1.2 Core ownership rules
-- [ ] 1.3 Repository customer id and admin flag
-- [ ] 1.4 Presentation viewer, inventory rule and admin label
+- [x] 1.1 Orders customer schema and migration — 58865be
+- [x] 1.2 Core ownership rules — cca2c95
+- [x] 1.3 Repository customer id and admin flag — 50490bc
+- [x] 1.4 Presentation viewer, inventory rule and admin label — 054b63f
