@@ -1,0 +1,28 @@
+# D11 — Customer accounts as a second role beside `owner`
+
+- Date, owner: 2026-10-24, product owner (project author).
+- Context and the options weighed: the course's gold certificate requires sign-in with at least two roles that have different permissions. Nobody may see another user's data, and an authorization test must show that user A cannot reach user B's data or perform another role's operation. Today the only role is `owner`, and shoppers check out as guests. Options:
+  - (a) a second admin-side role (for example `staff` with reduced permissions);
+  - (b) a customer account (`customer`) in the storefront: orders attached to the account and a "My orders" page;
+  - (c) no second role, giving up the certificate requirement.
+- Decision and why: (b). A customer account gives a natural data-isolation case between two users of the same role (customer A and customer B) and between roles (customer and owner). Option (a) shows only a split of permissions, with no data owned by a particular user, and has no support in the brief (one owner, D05). The MVP spec §3 already named order history "for the current demo account". The motivation is the course requirement, not shopper evidence: the brief holds no shopper observation.
+- Scope:
+  - a `customer` role beside `owner`; self-registration and sign-in with email and password (Better Auth `~1.7.10`);
+  - **guest checkout stays** unchanged;
+  - an order placed by a signed-in customer is attached to their account on the server, from the session, never from submitted data;
+  - a read-only "My orders" page (list and detail);
+  - a customer never sees another customer's order (page, action, API), never reaches the admin, and their session is not an owner session, nor the other way round.
+- Owner answers to the design questions (2026-10-24):
+  - P1: customers get a **separate Better Auth instance** (tables `customer_*`, their own `basePath` and cookie prefix, an explicit `customer` role). The owner instance keeps `disableSignUp: true` and its `role` default of `owner`, so enabling sign-up there could create an owner from a form. Implementation starts with a spike that proves two instances work in one process.
+  - P2: an order attached to an account opens through `/orders/[reference]` and the demo payment page **only with that customer's session**; otherwise the answer is "not found" (404). Guest orders are unchanged (the reference stays a bearer secret).
+  - P3: past guest orders are **not** attached to an account by email. Emails are not verified, so anyone could register someone else's address and read their orders.
+  - P4: no password reset and no email verification (no email service exists; a fake flow would break product principle 6). The README states the limitation.
+  - P5: a customer has **read-only** access to their own orders. Cancelling restocks and is one of the three `stock_quantity` writers (AGENTS.md); a second actor for that transition is not needed for the isolation proof.
+- Consequences, and what would make us revisit it:
+  - New customer-account tables and a migration; `orders` gets a nullable `customer_id` with a foreign key and an index. This is a schema and auth change (`risk-high`).
+  - New business rules R08–R10 and a new non-goal N06 in the brief. P0 and the MVP spec §14 criteria keep priority; D11 changes none of them.
+  - Metrics, Copilot and stock writers are unchanged: a customer mutates nothing (the three `stock_quantity` writers in AGENTS.md stay), and account data never reaches the Copilot tools.
+  - Authorization tests: integration (queries scoped by `customer_id`) and e2e (two accounts A↔B, and role↔role). The guard inventory (`admin-guard-inventory.test.ts`) also covers the account area.
+  - The E07 spec is reviewed by another model (ChatGPT or Gemini, by hand), and the review trail stays in the spec.
+  - Revisit when the project leaves the portfolio path (D04) or the product owner drops the certificate.
+- Status: active
