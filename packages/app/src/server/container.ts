@@ -26,6 +26,7 @@ import {
   GetCatalogProductUseCase,
   GetDashboardUseCase,
   GetLowStockProductsUseCase,
+  GetCustomerOrderUseCase,
   GetOrderByReferenceUseCase,
   GetOrderSummaryUseCase,
   GetCategoryUseCase,
@@ -39,6 +40,7 @@ import {
   ListCatalogCategoriesUseCase,
   ListCatalogProductsUseCase,
   ListCategoriesUseCase,
+  ListCustomerOrdersUseCase,
   ListCopilotRecommendationsUseCase,
   ListFeaturedProductsUseCase,
   ListProductsUseCase,
@@ -164,6 +166,8 @@ export type Cradle = {
   placeOrderUseCase: PlaceOrderUseCase;
   getOrderByReferenceUseCase: GetOrderByReferenceUseCase;
   confirmDemoPaymentUseCase: ConfirmDemoPaymentUseCase;
+  listCustomerOrdersUseCase: ListCustomerOrdersUseCase;
+  getCustomerOrderUseCase: GetCustomerOrderUseCase;
   orderAdminRepository: OrderAdminPort;
   listAdminOrdersUseCase: ListAdminOrdersUseCase;
   getAdminOrderUseCase: GetAdminOrderUseCase;
@@ -258,6 +262,8 @@ function buildContainer(): AwilixContainer<Cradle> {
     placeOrderUseCase: asClass(PlaceOrderUseCase).scoped(),
     getOrderByReferenceUseCase: asClass(GetOrderByReferenceUseCase).scoped(),
     confirmDemoPaymentUseCase: asClass(ConfirmDemoPaymentUseCase).scoped(),
+    listCustomerOrdersUseCase: asClass(ListCustomerOrdersUseCase).scoped(),
+    getCustomerOrderUseCase: asClass(GetCustomerOrderUseCase).scoped(),
     // Admin orders (orders spec, Phase 1): the status change and its cancel restock run in one
     // transaction on the request's EntityManager.
     orderAdminRepository: asClass(DatabaseOrderAdminRepository).scoped(),

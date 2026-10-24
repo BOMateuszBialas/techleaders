@@ -55,7 +55,9 @@ The demo follows the [primary demo story](.ai/specs/2026-10-13-commerceos-mvp.md
 8. **Recommendation actions.** On a recommendation, click **Save**. It appears under **Your recommendations** below the answer. Click **Mark completed** there. Dismissed and completed are final, every change is recorded with its time, and none of them changes store data.
 9. **AI product descriptions (optional, with the key).** Open **Products**, then **Vortex Wireless Mouse**, and click **Draft with AI** under Description. The draft appears in its own panel and uses only the name, category, price and description in the form; click **Replace description with this draft**, edit it if you like, and click **Save changes**. Without a key the button is disabled and says why.
 
-10. **CSV product import.** On **Products**, click **Import CSV**, download the template, and check it with **Check file**. The preview lists every row with its line number and what will happen (create, skip because the slug or SKU is already used, or the errors to fix); **Import 2 products** creates them as one transaction. Check the same file again: every row is now skipped, because an import never changes an existing product.
+10. **Customer account (optional).** In the storefront header click **Sign in**, then **Create an account** (any email; this is a demo store). Add a product to the cart and open **Checkout**: it says **Buying as <your email>** and prefills the email. Place the order and pay. **My orders** lists it, and its detail is read only. Open the order's `/orders/<reference>` URL in a private window: it answers "No order found", because an account order opens only with its customer's session. In the admin the order is marked **Account order**.
+
+11. **CSV product import.** On **Products**, click **Import CSV**, download the template, and check it with **Check file**. The preview lists every row with its line number and what will happen (create, skip because the slug or SKU is already used, or the errors to fix); **Import 2 products** creates them as one transaction. Check the same file again: every row is now skipped, because an import never changes an existing product.
 
 To start the demo again from a clean store, see [Demo data](#known-limitations) (re-seeding regenerates the demo orders and traffic; `docker compose down -v` resets everything).
 
@@ -69,7 +71,7 @@ To start the demo again from a clean store, see [Demo data](#known-limitations) 
 | Demo orders | About 150 seeded `DEMO-` orders with `[DEMO]` customers give the metrics and the Copilot a history. | Not real purchases; they never changed stock. |
 | AI answers | Optional Google Gemini **free tier** through `@google/genai`. `gemini-3-flash-preview` is a preview model id and can be retired (update `LLM_MODEL`). Free-tier quotas change often, and Google may use free-tier prompts to improve its products. The Copilot sends only aggregates of a fictional store. | No automated test calls a real provider; the eval set runs against a scripted model. `npm run eval -- --live` runs a bounded subset against the real model, on request only and never in CI. |
 | AI descriptions | Optional drafts from the same Gemini free tier, sent only the product's name, category, price and description; shown only when every number, feature, platform, brand and claim also appears in those fields. | Never saved or published by the AI: the owner copies a draft into the form and saves it. The check is lexical, so paraphrases and adjectives are left to the owner's review. |
-| Accounts | One owner account, email and password, revocable DB sessions. | No sign-up, no password-reset email, no customer accounts (guest checkout). |
+| Accounts | One owner account and optional customer accounts, each with email and password and revocable DB sessions. The two roles use separate auth instances. An order placed while signed in appears under **My orders** and opens only for its customer. | No owner sign-up, no password reset, no email verification. Guest checkout stays, and earlier guest orders are never attached to an account. |
 
 The full list, area by area, is in [Known limitations](#known-limitations). This is a portfolio MVP, not a production-ready store.
 
@@ -301,9 +303,13 @@ Fictional demo traffic (decision D08) has its own definitions in the same file (
   - Without `AUTH_TRUSTED_IP_HEADER`, the sign-in rate limit is shared by all clients, so anyone flooding the form can block sign-in for everyone. **Set it in any public deployment**, behind a proxy that overwrites that header.
   - Protected admin pages answer HTTP 200 with a static shell (sidebar, headings, no store data), and the redirect to `/admin/sign-in` streams in. This follows from Next 16 cache components, where session reads sit inside `<Suspense>`. Never put sensitive data in an admin page's static shell.
   - Sessions end after 8 h of inactivity.
-- **Customer accounts (E07, in progress):**
+- **Customer accounts (E07):**
   - Shoppers can register, sign in and sign out (`/account/sign-up`, `/account/sign-in`) on a second, separate Better Auth instance. A customer session never opens the admin, and the owner session is not a customer session.
-  - **Orders are not attached to accounts yet.** "My orders" is empty, and an order placed while signed in is a guest order that will never appear there (checkout and "My orders" say so). Phase 2 attaches new orders to accounts.
+  - Checkout shows which mode the order will follow: **Buying as <email>** (attached to the account) or **Buying as a guest**. If the sign-in cannot be confirmed when the order is submitted, nothing is placed: the form switches to guest mode and says so.
+  - "My orders" (`/account/orders`) and `GET /api/account/orders[/<id>]` show only the customer's own orders, read only (no cancel or edit), newest 50. Another customer's order id, an unknown one and a malformed one all answer the same "not found".
+  - An order placed with an account opens on `/orders/<reference>` and on the payment page only with its customer's session. A shared reference shows "No order found". Guest orders keep working by reference.
+  - Orders placed as a guest before signing up, or while signed out, are never attached to an account (emails are not verified).
+  - The e2e suite creates customers A and B once per run over HTTP with random passwords and reuses their session cookies. No customer is seeded and no credentials are committed.
   - There is no password reset and no email verification (there is no email service).
   - Sign-up reveals whether an email is registered. The form shows one generic refusal message, but the raw `/api/customer-auth/sign-up/email` endpoint answers 422 for a taken email and 200 for a new one (and answers faster for a taken one). This is an accepted risk; the rate limit bounds the probing.
   - Without `AUTH_TRUSTED_IP_HEADER`, customer sign-in and customer sign-up each share one rate-limit bucket (20 per minute) across all clients, so anyone flooding them can block them for everyone (never the owner's sign-in, which has its own bucket). **Set it in any public deployment.**

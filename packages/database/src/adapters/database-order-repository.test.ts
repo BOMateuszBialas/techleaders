@@ -228,3 +228,75 @@ describe("DatabaseOrderRepository reads and markPaid", () => {
     expect(await repository.markPaid("order-1", payment)).toBe("not_found");
   });
 });
+
+describe("DatabaseOrderRepository customer reads (E07 A12, A14)", () => {
+  const CUSTOMER = "c0000000-0000-4000-8000-00000000000a";
+  const contactRow = {
+    customerName: "Ada",
+    customerEmail: "ada@example.test",
+    shippingLine1: "ul. 1",
+    shippingLine2: null,
+    shippingCity: "Warszawa",
+    shippingPostalCode: "00-950",
+    shippingCountry: "PL",
+  };
+
+  it("lists only the customer's orders, newest first, up to the limit", async () => {
+    const { find, repository } = setup();
+    find.mockResolvedValueOnce([{ ...orderRow, customer: { id: CUSTOMER } }] as never);
+    expect(await repository.listForCustomer(CUSTOMER, 51)).toEqual([
+      {
+        id: "order-1",
+        reference: "CO-AAAAA-AAAAA-AAAAA-AAAAA",
+        status: "paid",
+        currency: "PLN",
+        totalMinor: 100,
+        createdAt,
+      },
+    ]);
+    expect(find.mock.calls[0]?.slice(1)).toEqual([
+      { customer: CUSTOMER },
+      { orderBy: { createdAt: "desc", id: "desc" }, limit: 51 },
+    ]);
+  });
+
+  it("reads one order only together with its customer, with the contact snapshot", async () => {
+    const { findOne, find, repository } = setup();
+    findOne.mockResolvedValueOnce({
+      ...orderRow,
+      ...contactRow,
+      customer: { id: CUSTOMER },
+    } as never);
+    find.mockResolvedValueOnce([] as never);
+    expect(await repository.findForCustomer(CUSTOMER, "order-1")).toMatchObject({
+      id: "order-1",
+      customerId: CUSTOMER,
+      customer: contactRow,
+      items: [],
+    });
+    expect(findOne.mock.calls[0]?.[1]).toEqual({ id: "order-1", customer: CUSTOMER });
+
+    findOne.mockResolvedValueOnce({ ...orderRow, ...contactRow, shippingLine2: "m. 4" } as never);
+    find.mockResolvedValueOnce([] as never);
+    expect((await repository.findForCustomer(CUSTOMER, "order-1"))?.customer.shippingLine2).toBe(
+      "m. 4",
+    );
+
+    findOne.mockResolvedValueOnce(null);
+    expect(await repository.findForCustomer(CUSTOMER, "order-2")).toBeNull();
+  });
+
+  it("sanitizes a driver failure, which could carry personal data", async () => {
+    const { find, findOne, repository } = setup();
+    const driver = () =>
+      Object.assign(new Error("select … 'ada@example.test'"), { name: "DriverException" });
+    find.mockRejectedValueOnce(driver());
+    await expect(repository.listForCustomer(CUSTOMER, 51)).rejects.toThrow(
+      /^Customer order list failed: DriverException$/,
+    );
+    findOne.mockRejectedValueOnce(driver());
+    await expect(repository.findForCustomer(CUSTOMER, "order-1")).rejects.toThrow(
+      /^Customer order read failed: DriverException$/,
+    );
+  });
+});

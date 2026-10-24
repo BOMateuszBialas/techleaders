@@ -3,8 +3,10 @@ import {
   NotFoundError,
   ORDER_NOT_FOUND_MESSAGE,
   OrderNotPayableError,
+  STALE_CHECKOUT_FORM_MESSAGE,
 } from "@commerceos/core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { CHECKOUT_SESSION_LOST } from "@/components/checkout/checkout-mode";
 import { IDLE_ACTION_STATE } from "@/lib/action-state";
 import type * as RequireCustomer from "../customer-auth/require-customer";
 import { readCartLines, writeCartLines } from "../cart/cart-cookie";
@@ -21,6 +23,7 @@ const stored = [{ productId: VORTEX_ID, quantity: 1 }];
 const CUSTOMER_A = "c0000000-0000-4000-8000-00000000000a";
 const CUSTOMER_B = "c0000000-0000-4000-8000-00000000000b";
 const getCurrentCustomerId = vi.fn();
+const SESSION_A = { status: "customer", customerId: CUSTOMER_A, email: "a@x.test" } as const;
 
 vi.mock("../customer-auth/require-customer", async (importOriginal) => ({
   ...(await importOriginal<typeof RequireCustomer>()),
@@ -68,6 +71,8 @@ beforeEach(() => {
 
 describe("placeOrder (public, guest checkout)", () => {
   it("places the order from the cookie's lines, clears the cart and goes to the payment page", async () => {
+    // A customer session exists, but the page showed guest mode: the order stays a guest order.
+    getCurrentCustomerId.mockResolvedValue(SESSION_A);
     placeOrderUseCase.execute.mockResolvedValue({
       orderId: "order-1",
       reference: REFERENCE,
@@ -77,13 +82,19 @@ describe("placeOrder (public, guest checkout)", () => {
     await expect(
       placeOrder(
         IDLE_ACTION_STATE,
-        form({ customerName: "Ada", price: "1", lines: "x", customerId: CUSTOMER_B }),
+        form({
+          customerName: "Ada",
+          price: "1",
+          lines: "x",
+          customerId: CUSTOMER_B,
+          checkoutAs: "guest",
+        }),
       ),
     ).rejects.toThrow(`NEXT_REDIRECT /checkout/pay/${REFERENCE}`);
 
     const call = placeOrderUseCase.execute.mock.calls[0]?.[0];
     expect(call.lines).toBe(stored);
-    // Phase 2a: a guest order, even with a customer session; never a posted customer id.
+    // checkoutAs=guest: a guest order without reading the session; never a posted customer id.
     expect(call.customerId).toBeNull();
     expect(call.request).not.toHaveProperty("customerId");
     expect(getCurrentCustomerId).not.toHaveBeenCalled();
@@ -102,7 +113,9 @@ describe("placeOrder (public, guest checkout)", () => {
       reference: REFERENCE,
       replayed: true,
     });
-    await expect(placeOrder(IDLE_ACTION_STATE, form({}))).rejects.toThrow("NEXT_REDIRECT");
+    await expect(placeOrder(IDLE_ACTION_STATE, form({ checkoutAs: "guest" }))).rejects.toThrow(
+      "NEXT_REDIRECT",
+    );
     expect(logger.info).toHaveBeenCalledWith("order.place.replayed", { id: "order-1" });
   });
 
@@ -110,7 +123,10 @@ describe("placeOrder (public, guest checkout)", () => {
     placeOrderUseCase.execute.mockRejectedValue(
       new InsufficientStockError(["Pulse Ultralight Mouse"]),
     );
-    const state = await placeOrder(IDLE_ACTION_STATE, form({ customerName: "Ada" }));
+    const state = await placeOrder(
+      IDLE_ACTION_STATE,
+      form({ customerName: "Ada", checkoutAs: "guest" }),
+    );
     expect(state).toMatchObject({
       status: "error",
       message: "Sorry, Pulse Ultralight Mouse just sold out. Review your cart and try again.",
@@ -119,6 +135,66 @@ describe("placeOrder (public, guest checkout)", () => {
     expect(writeCartLines).not.toHaveBeenCalled();
     expect(refresh).toHaveBeenCalledOnce();
   });
+});
+
+describe("placeOrder checkout modes (E07 A24)", () => {
+  const placed = { orderId: "order-1", reference: REFERENCE, replayed: false };
+
+  it("attaches an account checkout to the session's customer, never to a posted id", async () => {
+    getCurrentCustomerId.mockResolvedValue(SESSION_A);
+    placeOrderUseCase.execute.mockResolvedValue(placed);
+    await expect(
+      placeOrder(
+        IDLE_ACTION_STATE,
+        form({ checkoutAs: "account", customerId: CUSTOMER_B, customerEmail: "typed@x.test" }),
+      ),
+    ).rejects.toThrow(`NEXT_REDIRECT /checkout/pay/${REFERENCE}`);
+    const call = placeOrderUseCase.execute.mock.calls[0]?.[0];
+    expect(call.customerId).toBe(CUSTOMER_A);
+    // The typed email is only the order's contact snapshot (A16).
+    expect(call.request.customerEmail).toBe("typed@x.test");
+    expect(getCurrentCustomerId).toHaveBeenCalledOnce();
+  });
+
+  it.each([
+    ["no session", { status: "none" }],
+    ["a session-read failure", { status: "error" }],
+  ] as const)(
+    "stops an account checkout with %s before the use case, in guest mode",
+    async (_label, session) => {
+      getCurrentCustomerId.mockResolvedValue(session);
+      vi.spyOn(logger, "warn").mockImplementation(() => {});
+      const state = await placeOrder(
+        IDLE_ACTION_STATE,
+        form({ checkoutAs: "account", customerName: "Ada" }),
+      );
+      expect(state).toEqual({
+        status: "error",
+        code: CHECKOUT_SESSION_LOST,
+        message:
+          "We could not confirm your sign-in, so you are checking out as a guest. Sign in to attach this order to your account.",
+        values: expect.objectContaining({ customerName: "Ada" }),
+      });
+      // No order, no stock change: the request scope is never even created.
+      expect(createRequestScope).not.toHaveBeenCalled();
+      expect(placeOrderUseCase.execute).not.toHaveBeenCalled();
+      expect(writeCartLines).not.toHaveBeenCalled();
+      expect(logger.warn).toHaveBeenCalledWith(expect.any(String), {
+        event: "order.place.session_lost",
+        outcome: session.status,
+      });
+    },
+  );
+
+  it.each([[{}], [{ checkoutAs: "" }], [{ checkoutAs: "owner" }]])(
+    "refuses a missing or unknown mode as a stale form (%o), never a silent default",
+    async (fields) => {
+      const state = await placeOrder(IDLE_ACTION_STATE, form({ customerName: "Ada", ...fields }));
+      expect(state).toMatchObject({ status: "error", message: STALE_CHECKOUT_FORM_MESSAGE });
+      expect(placeOrderUseCase.execute).not.toHaveBeenCalled();
+      expect(getCurrentCustomerId).not.toHaveBeenCalled();
+    },
+  );
 });
 
 describe("confirmDemoPayment", () => {

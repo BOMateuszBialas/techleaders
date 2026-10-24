@@ -36,6 +36,8 @@ import { describe, expect, it } from "vitest";
  * - every file that resolves `getOrderByReferenceUseCase` or `confirmDemoPaymentUseCase` (the
  *   public reference paths) must call `toOrderViewer(` from `require-customer.ts`, so the viewer
  *   comes from the session (E07 spec A2, A14), except the container that registers them
+ * - `listCustomerOrdersUseCase` and `getCustomerOrderUseCase` are used only inside the account
+ *   area (`app/(storefront)/account/`, `app/api/account/`), whose pages and routes run the guard
  *
  * The inventory proves that a guard is imported or named, not that it runs on every path: each
  * entry point also has behaviour tests (no session, wrong role, session-read failure).
@@ -155,6 +157,14 @@ const RULES: Rule[] = [
     forbids: [/\bgetAuth\(/],
     what: "call getAuth",
   },
+  {
+    // A customer's orders are read only in the account area, where every page and route runs its
+    // guard (the rules above); a reader elsewhere could take the customer id from a URL.
+    name: "files outside the account area",
+    matches: (path) => !isAccountArea(path) && path !== "server/container.ts",
+    forbids: [/\b(listCustomerOrdersUseCase|getCustomerOrderUseCase)\b/],
+    what: "read a customer's orders",
+  },
 ];
 
 function violates(rule: Rule, code: string): boolean {
@@ -228,6 +238,9 @@ describe("admin guard inventory", () => {
         "app/api/customer-auth/[...all]/route.ts",
         "server/customer-auth/require-customer.ts",
         "app/(storefront)/orders/load-order-page.ts",
+        "app/(storefront)/account/orders/[id]/page.tsx",
+        "app/api/account/orders/route.ts",
+        "app/api/account/orders/[id]/route.ts",
       ]),
     );
     expect(findUnguarded(files)).toEqual([]);
@@ -315,6 +328,25 @@ describe("admin guard inventory", () => {
     expect(named).toEqual(expected);
     // No other kind of export can add an endpoint unseen.
     expect(code.match(/^export\s/gm)).toHaveLength(expected.length);
+  });
+
+  it("keeps customer order reads inside the guarded account area (E07 A14)", () => {
+    expect(
+      findUnguarded({
+        "app/(storefront)/orders/mine.ts":
+          "cradle.listCustomerOrdersUseCase.execute({ customerId })",
+        "app/admin/(protected)/orders/peek.ts":
+          "await requireAdminPage();\ncradle.getCustomerOrderUseCase.execute(x)",
+        "app/(storefront)/account/orders/load-account-orders.ts":
+          "cradle.listCustomerOrdersUseCase.execute({ customerId })",
+        "app/api/account/orders/route.ts":
+          "customerApiHandler(...);\ncradle.getCustomerOrderUseCase.execute(x)",
+        "server/container.ts": "listCustomerOrdersUseCase: asClass(X)",
+      }),
+    ).toEqual([
+      "app/(storefront)/orders/mine.ts (files outside the account area must not read a customer's orders)",
+      "app/admin/(protected)/orders/peek.ts (files outside the account area must not read a customer's orders)",
+    ]);
   });
 
   it("requires the session viewer on every public reference read (E07 A2)", () => {

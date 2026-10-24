@@ -39,7 +39,7 @@ Last filed: 2026-10-24
 
 Not filed (non-goals): N01–N05, quoted in #13; N06 (D11).
 
-E07 filed on 2026-10-24 by `om-backlog`: epic #91, stories #92–#97. Spec: `.ai/specs/2026-10-24-customer-accounts.md` (PR #89).
+E07 filed on 2026-10-24 by `om-backlog`: epic #91, stories #92–#97. Spec: `.ai/specs/implemented/2026-10-24-customer-accounts.md` (PR #89; implemented in #100, #102, #103).
 
 ### Where work starts
 

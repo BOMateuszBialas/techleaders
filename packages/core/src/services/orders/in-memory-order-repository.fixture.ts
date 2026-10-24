@@ -1,19 +1,25 @@
 import { InsufficientStockError, type ReservedLine } from "../../domain/orders/order";
 import { ConflictError } from "../../errors/app-error";
 import type {
+  CustomerOrderRecord,
+  CustomerOrderSummaryRecord,
   MarkPaidResult,
   OrderRecord,
   OrderRepositoryPort,
   PlaceOrderCommand,
 } from "../../ports/order-repository.port";
 import type { CatalogProductRecord } from "../../ports/catalog-read.port";
+import type { CustomerDetails } from "../../validators/orders/checkout.schema";
 
 /**
  * An in-memory `OrderRepositoryPort` that follows the database adapter's rules: conditional
  * stock decrements in product-id order, all-or-nothing, a unique idempotency key.
  */
 export class InMemoryOrderRepository implements OrderRepositoryPort {
+  /** Orders keyed by their idempotency key, which doubles as the order id (a uuid). */
   readonly orders: OrderRecord[] = [];
+  /** The contact and address snapshot of each order, by order id. */
+  readonly details = new Map<string, CustomerDetails>();
   readonly stock: Map<string, number>;
   placeCalls = 0;
   /** Set to make the next `placeOrder` fail after the checks (e.g. a lost race). */
@@ -33,7 +39,7 @@ export class InMemoryOrderRepository implements OrderRepositoryPort {
       this.failNextPlacement = undefined;
       throw error;
     }
-    if (this.orders.some((order) => order.id === `order-${command.idempotencyKey}`)) {
+    if (this.orders.some((order) => order.id === command.idempotencyKey)) {
       throw new ConflictError("This checkout form was already submitted.");
     }
     const sorted = [...command.lines].sort((a, b) => a.productId.localeCompare(b.productId));
@@ -61,7 +67,7 @@ export class InMemoryOrderRepository implements OrderRepositoryPort {
       this.stock.set(line.productId, (this.stock.get(line.productId) ?? 0) - line.quantity);
     }
     const order: OrderRecord = {
-      id: `order-${command.idempotencyKey}`,
+      id: command.idempotencyKey,
       reference: command.newReference(),
       requestFingerprint: command.requestFingerprint,
       customerId: command.customerId,
@@ -83,11 +89,35 @@ export class InMemoryOrderRepository implements OrderRepositoryPort {
       })),
     };
     this.orders.push(order);
+    this.details.set(order.id, command.customer);
     return order;
   }
 
   async findByIdempotencyKey(idempotencyKey: string): Promise<OrderRecord | null> {
-    return this.orders.find((order) => order.id === `order-${idempotencyKey}`) ?? null;
+    return this.orders.find((order) => order.id === idempotencyKey) ?? null;
+  }
+
+  async listForCustomer(customerId: string, limit: number): Promise<CustomerOrderSummaryRecord[]> {
+    return this.orders
+      .filter((order) => order.customerId === customerId)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime() || b.id.localeCompare(a.id))
+      .slice(0, limit)
+      .map(({ id, reference, status, currency, totalMinor, createdAt }) => ({
+        id,
+        reference,
+        status,
+        currency,
+        totalMinor,
+        createdAt,
+      }));
+  }
+
+  async findForCustomer(customerId: string, orderId: string): Promise<CustomerOrderRecord | null> {
+    const order = this.orders.find(
+      (candidate) => candidate.id === orderId && candidate.customerId === customerId,
+    );
+    const customer = order ? this.details.get(order.id) : undefined;
+    return order && customer ? { ...order, customer } : null;
   }
 
   async findByReference(reference: string): Promise<OrderRecord | null> {

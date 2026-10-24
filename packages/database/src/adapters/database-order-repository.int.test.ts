@@ -591,6 +591,61 @@ describe("DatabaseOrderRepository (PostgreSQL)", () => {
       );
       expect(row).toEqual({ status: "pending_payment", paid: false });
     });
+
+    // The repository-level isolation test of E07 S04 (spec step 11): two customers with two
+    // orders each, plus a guest order.
+    it("lists and reads only the customer's own orders; a foreign and an unknown id look the same", async () => {
+      const placed: Record<"a" | "b" | "guest", string[]> = { a: [], b: [], guest: [] };
+      for (const [owner, customerId] of [
+        ["a", customers.a],
+        ["b", customers.b],
+        ["a", customers.a],
+        ["guest", null],
+        ["b", customers.b],
+      ] as const) {
+        const lines = [line(VORTEX, 1)];
+        const { orderId } = await placeOrderUseCase().execute({
+          customerId,
+          lines,
+          request: checkout(lines, 24900),
+        });
+        placed[owner].push(orderId);
+        // Distinct, increasing timestamps, so "newest first" never depends on a tie-break.
+        await query(
+          "update orders set created_at = now() + make_interval(mins => ?) where id = ?",
+          [Object.values(placed).flat().length, orderId],
+        );
+      }
+
+      const listA = await repository().listForCustomer(customers.a, 50);
+      expect(listA.map((order) => order.id)).toEqual([...placed.a].reverse());
+      expect(listA[0]).toEqual({
+        id: placed.a[1],
+        reference: expect.stringMatching(/^CO-/),
+        status: "pending_payment",
+        currency: "PLN",
+        totalMinor: 24900,
+        createdAt: expect.any(Date),
+      });
+      expect((await repository().listForCustomer(customers.b, 1)).map((o) => o.id)).toEqual([
+        placed.b[1],
+      ]);
+      const everyListed = [...listA, ...(await repository().listForCustomer(customers.b, 50))].map(
+        (order) => order.id,
+      );
+      expect(everyListed).not.toContain(placed.guest[0]);
+
+      const own = await repository().findForCustomer(customers.a, placed.a[0] ?? "");
+      expect(own).toMatchObject({
+        id: placed.a[0],
+        customerId: customers.a,
+        customer: { customerName: "Ada Lovelace", customerEmail: "ada@example.test" },
+        items: [{ name: "Vortex Wireless Mouse", quantity: 1 }],
+      });
+      expect(await repository().findForCustomer(customers.a, placed.b[0] ?? "")).toBeNull();
+      expect(await repository().findForCustomer(customers.a, placed.guest[0] ?? "")).toBeNull();
+      expect(await repository().findForCustomer(customers.a, randomUUID())).toBeNull();
+    });
   });
 
   describe("payment", () => {

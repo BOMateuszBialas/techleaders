@@ -57,6 +57,27 @@ export type PlaceOrderCommand = {
 
 export type MarkPaidResult = "paid" | "already_paid" | "not_payable" | "not_found";
 
+/** One row of a customer's "My orders" list (E07 spec A13). */
+export type CustomerOrderSummaryRecord = {
+  id: string;
+  reference: string;
+  status: OrderStatus;
+  currency: CurrencyCode;
+  totalMinor: number;
+  createdAt: Date;
+};
+
+/**
+ * One of the signed-in customer's own orders (E07 spec A12): the shopper-facing record plus the
+ * contact and address snapshot taken at checkout, which belongs to this customer.
+ */
+export type CustomerOrderRecord = OrderRecord & {
+  customer: Omit<CustomerDetails, "shippingCountry"> & {
+    /** ISO 3166-1 alpha-2 code as stored ("PL" only today, cart spec G6). */
+    shippingCountry: string;
+  };
+};
+
 /** Order persistence, implemented by the database package. */
 export interface OrderRepositoryPort {
   /**
@@ -74,4 +95,14 @@ export interface OrderRepositoryPort {
     orderId: string,
     payment: { provider: PaymentProvider; reference: string },
   ): Promise<MarkPaidResult>;
+  /**
+   * The customer's own orders, newest first (`created_at desc, id desc`), at most `limit`.
+   * Filtered in SQL by `customer_id = :customerId` (E07 spec A14): no other order is ever read.
+   */
+  listForCustomer(customerId: string, limit: number): Promise<CustomerOrderSummaryRecord[]>;
+  /**
+   * The order with this id only when it belongs to `customerId` (`where id = :orderId and
+   * customer_id = :customerId`); a foreign and a missing order are the same `null` (A14).
+   */
+  findForCustomer(customerId: string, orderId: string): Promise<CustomerOrderRecord | null>;
 }

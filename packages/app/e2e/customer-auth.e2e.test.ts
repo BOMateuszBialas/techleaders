@@ -29,7 +29,7 @@ describe("customer accounts (E07-S01)", () => {
     await browser().waitForText("You have no orders yet.");
 
     const main = await browser().text("main");
-    expect(main).toContain("Orders are not saved to your account yet");
+    expect(main).not.toContain("Orders are not saved to your account yet");
     expect(main).toContain("My orders");
     expect(main).toContain(`Signed in as ${email}`);
     const { refs } = await browser().snapshot();
@@ -91,7 +91,7 @@ describe("customer accounts (E07-S01)", () => {
     await browser().clickRole("button", "Add to cart");
     await browser().waitForText("Added to cart.");
     await browser().open("/checkout");
-    await browser().waitForText("Place order");
+    await browser().waitForText("Buying as a guest.");
     await browser().clickRole("link", "Sign in for order history");
     await browser().waitForUrl("**/account/sign-in?from=checkout");
     await browser().waitForText("Sign in to your account");
@@ -101,10 +101,14 @@ describe("customer accounts (E07-S01)", () => {
     await browser().clickRole("button", "Sign in");
     await browser().waitForUrl("**/checkout");
     await browser().waitForText("Place order");
-    // The cart survives signing in (A20), and a signed-in customer no longer sees the link.
-    expect(await browser().text("main")).toContain("Vortex Wireless Mouse");
-    expect(await browser().text("main")).not.toContain("Sign in for order history");
-    // Phase 1 says plainly that this order will still be a guest order (principle 6, A3).
-    expect(await browser().text("main")).toContain("Orders are not saved to your account yet");
+    // The cart survives signing in (A20); checkout now shows the account mode (A24) and wait
+    // for that streamed line, not only the button.
+    await browser().waitForText(`Buying as ${email}`);
+    const main = await browser().text("main");
+    expect(main).toContain("Vortex Wireless Mouse");
+    expect(main).toContain("This order will appear under My orders.");
+    expect(main).not.toContain("Sign in for order history");
+    expect(main).not.toContain("Orders are not saved to your account yet");
+    expect(await browser().value("#checkout-customerEmail")).toBe(email);
   });
 });
