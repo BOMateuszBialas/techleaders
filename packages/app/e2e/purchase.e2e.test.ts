@@ -112,10 +112,13 @@ describe("storefront purchase with the demo payment (E02-S03)", () => {
 
     await browser().open("/account/orders");
     await browser().waitForText(reference);
-    const list = await browser().text("main");
-    // Its row reads reference, date, status and total.
-    const start = list.indexOf(reference);
-    const row = list.slice(start, start + 120);
+    // Its own table row reads reference, date, status and total.
+    const row = String(
+      await browser().evaluate(
+        `[...document.querySelectorAll("main tbody tr")].find((tr) => tr.textContent.includes(${JSON.stringify(reference)}))?.textContent ?? ""`,
+      ),
+    );
+    expect(row).toContain(reference);
     expect(row).toContain("Paid");
     expect(row).toMatch(/349,00\s*zł/);
   });

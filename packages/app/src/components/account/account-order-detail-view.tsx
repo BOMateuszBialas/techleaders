@@ -44,7 +44,7 @@ export function AccountOrderDetailView({ order }: { order: CustomerOrderDto }) {
         <p className="wrap-anywhere">{order.contact.email}</p>
         <p className="wrap-anywhere">{address.line1}</p>
         {address.line2 ? <p className="wrap-anywhere">{address.line2}</p> : null}
-        <p>
+        <p className="wrap-anywhere">
           {address.postalCode} {address.city}, {address.country}
         </p>
       </section>

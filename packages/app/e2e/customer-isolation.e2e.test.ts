@@ -98,16 +98,21 @@ describe("customer A never reaches customer B's orders (E07-S04)", () => {
       expect(main, id).not.toContain(order("b").reference);
       expect(main, id).not.toContain(order("b").product);
     }
-    // Over HTTP the three answers share one status, and none carries B's data.
+    // Over HTTP (the not-found streams after the shell, so the status is the shell's): all three
+    // responses share one status, carry the not-found text and nothing of B's order. A's own
+    // order, by contrast, renders its reference (its HTML still carries the not-found boundary
+    // in the RSC payload, so only the reference tells the two apart).
     const statuses = new Set<number>();
     for (const id of [order("b").id, randomUUID(), "not-a-uuid"]) {
       const response = await api(`/account/orders/${id}`, "a");
       statuses.add(response.status);
       const html = await response.text();
+      expect(html, id).toContain("Order not found");
       expect(html, id).not.toContain(order("b").reference);
-      expect(html, id).toMatch(/<meta name="robots" content="noindex/);
     }
     expect(statuses.size).toBe(1);
+    const own = await (await api(`/account/orders/${order("a").id}`, "a")).text();
+    expect(own).toContain(order("a").reference);
   });
 
   it("API: A's request for B's order is the same 404 body as a random and a malformed id", async () => {

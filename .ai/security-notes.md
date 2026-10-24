@@ -134,7 +134,7 @@ Spec `.ai/specs/implemented/2026-10-24-customer-accounts.md` (Phases 1 and 2). T
   - An order placed while signed in carries `orders.customer_id`. It is set once, from the session, never from a form field or the URL.
   - Account reads filter `where customer_id = :customerId` in SQL.
   - Reads by public reference (`/orders/<ref>`, `/checkout/pay/<ref>`, `confirmDemoPayment`) take a required viewer from the session. An account order read without its customer's session is answered exactly like an unknown reference, and this check runs before any status branch.
-  - A malformed, an unknown and a foreign id give the same 404 page and the same API body.
+  - A malformed, an unknown and a foreign id give the same "Order not found" page and the same API 404 body. The page's not-found streams after the shell, so its HTTP status is the same for all three and reveals nothing either.
   - The guard inventory fails when a file resolves a reference use case without calling `toOrderViewer(`.
   - The A↔B e2e (`customer-isolation.e2e.test.ts`) proves all of this on a page, the API, the public paths, the payment action, and after a cache warm-up.
 - **Replayed checkout forms (A15).** The idempotency fingerprint includes the placing principal, and replay compares the stored `customer_id`. A form replayed by another customer or by a guest gets `form_reused` and nothing of the original order.

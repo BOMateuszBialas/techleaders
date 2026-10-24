@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, inject, it } from "vitest";
 import { z } from "zod";
 import { ARTIFACTS_DIR, useBrowser } from "./support/browser-test";
 import { useCustomerSession } from "./support/sign-in";
@@ -56,7 +56,19 @@ describe("storefront at 390 px", () => {
   it("keeps the signed-in customer header within the viewport", async () => {
     await useCustomerSession(browser(), "a");
     await browser().open("/account/orders");
-    await browser().waitForText("You have no orders yet.");
+    // Customer A may already have orders from other suites (E07 Phase 2b): wait for the
+    // streamed account block, not for the empty state.
+    await browser().waitForText(`Signed in as ${inject("customerAEmail")}`);
+    // The orders table, when there is one, keeps every column in view (lesson 2026-10-19).
+    const tableOverflow = await browser().evaluate(
+      "[...document.querySelectorAll('[data-slot=table-container]')].map((el) => el.scrollWidth - el.clientWidth)",
+    );
+    expect(
+      z
+        .array(z.number())
+        .parse(tableOverflow)
+        .every((overflow) => overflow <= 0),
+    ).toBe(true);
     const measured = z
       .object({ scrollWidth: z.number(), innerWidth: z.number(), signOutRight: z.number() })
       .parse(

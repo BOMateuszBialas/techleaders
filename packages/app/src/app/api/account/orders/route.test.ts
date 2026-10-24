@@ -85,11 +85,16 @@ describe("GET /api/account/orders and /api/account/orders/<id> (E07 A12)", () =>
     });
   });
 
-  it("answers 500 generic when the session read fails", async () => {
+  it("answers 500 generic on both routes when the session read fails (A24)", async () => {
     vi.spyOn(logger, "error").mockImplementation(() => {});
     getSession.mockRejectedValue(new Error("db down"));
-    const response = await listOrders(request("/api/account/orders"));
-    expect(response.status).toBe(500);
-    expect(await response.text()).not.toContain("db down");
+    for (const response of [
+      await listOrders(request("/api/account/orders")),
+      await getOrder(request(`/api/account/orders/${ORDER}`), context(ORDER)),
+    ]) {
+      expect(response.status).toBe(500);
+      expect(await response.text()).not.toContain("db down");
+    }
+    expect(createRequestScope).not.toHaveBeenCalled();
   });
 });

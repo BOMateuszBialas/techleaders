@@ -36,7 +36,7 @@ async function AccountOrderDetail({ params }: Pick<AccountOrderPageProps, "param
   if (result.kind === "error") {
     return (
       <p role="alert" className="text-sm text-destructive">
-        {ACCOUNT_COPY.ordersUnavailable}
+        {ACCOUNT_COPY.orderUnavailable}
       </p>
     );
   }

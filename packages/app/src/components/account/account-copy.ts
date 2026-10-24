@@ -23,6 +23,7 @@ export const ACCOUNT_COPY = {
   ordersTableCaption: "Your orders, newest first",
   ordersCapped: "Showing your 50 most recent orders.",
   ordersUnavailable: "Your orders are unavailable right now. Try again.",
+  orderUnavailable: "This order is unavailable right now. Try again.",
   orderDetailsHeading: "Order details",
   orderNotFound: "Order not found",
   orderNotFoundHint: "This order does not exist or is not in your account.",
