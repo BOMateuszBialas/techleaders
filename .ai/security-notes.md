@@ -110,7 +110,7 @@ Effect, read before enabling: every PR here is opened by the same account (`BOMa
 
 ## 10. Customer accounts (E07, application security)
 
-Spec `.ai/specs/2026-10-24-customer-accounts.md` (Phase 1). These notes record the accepted risks, with the measured evidence (spike `6027bd0`).
+Spec `.ai/specs/implemented/2026-10-24-customer-accounts.md` (Phases 1 and 2). These notes record the accepted risks, with the measured evidence (spike `6027bd0`).
 
 - **Public sign-up.** A second Better Auth instance owns customers. It has its own tables (`customer_*`), its own path (`/api/customer-auth`), its own cookie (`commerceos-customer.session_token`) and its own secret (`CUSTOMER_AUTH_SECRET`, required and distinct in production).
   - The route answers only `POST /sign-up/email`, `POST /sign-in/email`, `POST /sign-out` and `GET /get-session`, and 404s anything else before the instance is built. `disabledPaths` is a second layer. Nothing can change a customer's name, image, email or role after sign-up.
@@ -130,3 +130,13 @@ Spec `.ai/specs/2026-10-24-customer-accounts.md` (Phase 1). These notes record t
 - **Separate secret (owner decision D-a).** A leaked or rotated secret of one role never affects the other. Tokens do not cross cookie names in either direction, with shared or separate secrets alike (integration tests).
 - **Sign-out on a database failure** (library behaviour, same for the owner). Better Auth logs the failed session delete and still clears the cookie, so the session row survives until it expires (8 h of inactivity) while the user believes they signed out.
 - **No password reset and no email verification** (N06, A4).
+- **Order ownership (Phase 2, A2, A14).**
+  - An order placed while signed in carries `orders.customer_id`. It is set once, from the session, never from a form field or the URL.
+  - Account reads filter `where customer_id = :customerId` in SQL.
+  - Reads by public reference (`/orders/<ref>`, `/checkout/pay/<ref>`, `confirmDemoPayment`) take a required viewer from the session. An account order read without its customer's session is answered exactly like an unknown reference, and this check runs before any status branch.
+  - A malformed, an unknown and a foreign id give the same 404 page and the same API body.
+  - The guard inventory fails when a file resolves a reference use case without calling `toOrderViewer(`.
+  - The A↔B e2e (`customer-isolation.e2e.test.ts`) proves all of this on a page, the API, the public paths, the payment action, and after a cache warm-up.
+- **Replayed checkout forms (A15).** The idempotency fingerprint includes the placing principal, and replay compares the stored `customer_id`. A form replayed by another customer or by a guest gets `form_reused` and nothing of the original order.
+- **Session-read failure at checkout (A24, owner decision D-c).** On checkout, a failed session read is never treated as "no session". An account checkout stops before the order is placed and switches the form to guest mode with a banner. The public order pages treat a failed read as a guest viewer, so account orders stay hidden until the read recovers.
+- **Rollback (owner decision D-d).** The `down` of the `orders_customer` migration locks `orders` and refuses while any account order exists, because dropping the column would reopen account orders by reference. Fixes go forward only.

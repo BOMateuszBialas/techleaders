@@ -41,6 +41,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 | Validation | **Zod 4** (env, request input, AI output) |
 | Tests / quality | Vitest 5 (`unit`, `integration`, `e2e` projects) with v8 coverage, Testcontainers (PostgreSQL), agent-browser (e2e), ESLint 9 (`eslint-config-next`), Prettier 3, GitHub Actions CI |
 | Admin auth | **Better Auth `~1.7.10`**: email + password, DB-backed revocable sessions, one `owner` role (spec `.ai/specs/implemented/2026-10-15-admin-authentication.md`) |
+| Customer auth | A **second Better Auth instance** (same version) for the `customer` role: its own `customer_*` tables, `/api/customer-auth` (four allowed endpoints), cookie `commerceos-customer.session_token`, secret `CUSTOMER_AUTH_SECRET`; public sign-up, read-only "My orders" (spec `.ai/specs/implemented/2026-10-24-customer-accounts.md`) |
 | LLM provider | **Google Gemini API, free tier** (`@google/genai`, model from `LLM_MODEL`), optional: only `GeminiLlmProvider` in `packages/ai/src/adapters/` imports the SDK (Copilot spec A1–A4) |
 | Not chosen yet | Stripe. A separate decision; do not add it silently |
 
@@ -98,6 +99,13 @@ Do not add libraries without a stated reason. TS 7 and ESLint 10 were deliberate
   - Admin forms are a hook-free **view** (rendered in every state by unit tests) plus a thin `"use client"` wrapper that only calls `useActionState` (`src/components/admin/categories/`).
   - `admin-guard-inventory.test.ts` fails when one of them skips the guard.
   - Never call Better Auth (`getAuth()`) or read the session cookie directly.
+- **Two roles, two guards.** The owner and the customer are separate identities with separate instances, and neither guard is ever used for the other's area. **Every account entry point goes through `packages/app/src/server/customer-auth/require-customer.ts`.**
+  - Pages under `src/app/(storefront)/account/` (except sign-in and sign-up) call `requireCustomerPage()` inside `<Suspense>`. Routes under `src/app/api/account/` use `customerApiHandler`.
+  - The customer id always comes from the session (`requireCustomer*`, `getCurrentCustomerId()`), never from a URL, form or body. Account reads filter by it in SQL. A malformed, unknown or foreign id is the same "not found" (404), never 403 or 400.
+  - Reads by public order reference (`getOrderByReferenceUseCase`, `confirmDemoPaymentUseCase`) pass `toOrderViewer(await getCurrentCustomerId())`. An account order is "not found" without its customer's session.
+  - Checkout follows the mode it showed (`checkoutAs`, spec A24): a session-read failure never silently places a guest order.
+  - The guard inventory enforces all of this and forbids crossing: admin code never imports `require-customer`, account code never imports `require-admin`, and `getCustomerAuth()` / `getAuth()` stay inside their own modules.
+  - Never call `getCustomerAuth()` outside `server/customer-auth/` and its route.
 - Never trust client-submitted prices, totals, payment status or stock. Never store card data.
 - Never return stack traces, raw provider or DB errors, or secrets to users. Log with context through `logger` (`packages/app/src/server/logger.ts`, redacts sensitive keys and URL credentials); never call `console.*` directly in server code.
 - Server-only modules start with `import "server-only"`.
@@ -161,6 +169,7 @@ Before starting a task, read the files listed for the area it touches.
 | Entities, migrations, seeds | `packages/database/src/`, Database conventions above | `defineEntity` in `entities/<concept>/<name>.entity.ts`; register in `entities/index.ts`; migration plus integration test with every schema change |
 | Dependency wiring | `packages/app/src/server/container.ts` | Deliberate lifetimes; strict mode; scoped EM |
 | Admin auth, sessions, the owner account | `packages/app/src/server/auth/`, `.ai/specs/implemented/2026-10-15-admin-authentication.md` | Guard every admin entry point with `require-admin.ts`. Sign-in goes through Better Auth's HTTP handler (its router applies the rate limit and origin check; `auth.api.*` does not). Owner via `npm run admin:create` |
+| Customer accounts, My orders, order ownership | `packages/app/src/server/customer-auth/`, `packages/core/src/domain/orders/order-access.ts`, `.ai/specs/implemented/2026-10-24-customer-accounts.md`, `.ai/security-notes.md` §10 | Guard every account entry point with `require-customer.ts`; the customer id comes only from the session; foreign = unknown = "not found"; the A↔B e2e (`customer-isolation.e2e.test.ts`) must stay green |
 | Env variables | `packages/app/src/server/env.ts`, `.env.example` | Add to the Zod schema and `.env.example` together; read via `getEnv()` |
 | Pages, layouts, routing (UI) | `packages/app/src/app/`, `node_modules/next/dist/docs/` | Server Components by default; `cacheComponents` is on, so wrap request-time data in `<Suspense>` and call `connection()`; use Next.js 16 APIs |
 | UI components, styles | `packages/app/components.json`, `packages/app/src/components/ui/`, `packages/app/src/app/globals.css` | Add components with `npx shadcn@latest add <name>` (run in `packages/app`); Tailwind utilities; accessible states |

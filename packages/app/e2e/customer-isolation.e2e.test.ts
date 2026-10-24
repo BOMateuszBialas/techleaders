@@ -98,6 +98,16 @@ describe("customer A never reaches customer B's orders (E07-S04)", () => {
       expect(main, id).not.toContain(order("b").reference);
       expect(main, id).not.toContain(order("b").product);
     }
+    // Over HTTP the three answers share one status, and none carries B's data.
+    const statuses = new Set<number>();
+    for (const id of [order("b").id, randomUUID(), "not-a-uuid"]) {
+      const response = await api(`/account/orders/${id}`, "a");
+      statuses.add(response.status);
+      const html = await response.text();
+      expect(html, id).not.toContain(order("b").reference);
+      expect(html, id).toMatch(/<meta name="robots" content="noindex/);
+    }
+    expect(statuses.size).toBe(1);
   });
 
   it("API: A's request for B's order is the same 404 body as a random and a malformed id", async () => {
