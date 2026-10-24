@@ -47,6 +47,9 @@ function storybookProject(theme: "light" | "dark") {
         headless: true,
         provider: playwright(),
         instances: [{ browser: "chromium" as const }],
+        // Desktop width, so the density tokens apply (below 48rem every control is 44 px tall);
+        // narrow-screen stories set their own width.
+        viewport: { width: 1280, height: 800 },
       },
     },
   };

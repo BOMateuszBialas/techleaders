@@ -1,0 +1,104 @@
+import { ArgTypes, Canvas, Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import * as LabelStories from "./label.stories";
+import { Label } from "../../src/components/ui/label";
+import { Input } from "../../src/components/ui/input";
+import { DoDont } from "./blocks/do-dont";
+
+<Meta of={LabelStories} />
+
+# Label
+
+## 1. What it is for
+
+A label names a form control, so everyone knows what to type, and a click on it focuses the control.
+
+## 2. When to use
+
+Every input, textarea and (from batch 2) select, checkbox and radio. In forms, use it through `FieldLabel`, which also marks optional fields.
+
+## 3. When not to use
+
+| Instead of a label…             | Use                       | Why                                             |
+| ------------------------------- | ------------------------- | ----------------------------------------------- |
+| A title over a group of fields  | Field legend (`FieldSet`) | A group is named by its legend (HTML, WAI-ARIA) |
+| Explaining the format or a rule | Field description         | The label stays short                           |
+| A heading of a page or card     | `type-h1` … `type-h3`     | A label belongs to one control                  |
+
+## 4. Anatomy
+
+1. Text: 14/20 px, 500, `--foreground`, in both densities (owner decision Q3).
+2. Optional suffix: "(optional)" in `--muted-foreground` (`FieldLabel optional`, owner decision Q2).
+
+## 5. Variants
+
+No variants.
+
+## 6. States
+
+| State                                    | What changes                                                                          | Source      |
+| ---------------------------------------- | ------------------------------------------------------------------------------------- | ----------- |
+| Disabled                                 | `--muted-foreground` when its control (`peer`) or field (`data-disabled`) is disabled | P5, rule 14 |
+| Error                                    | no change: the error is the Field error and the red outline (B1.23)                   | rule 5      |
+| Hover, focus, pressed, loading, selected | not applicable: the control has them                                                  | –           |
+
+<Canvas of={LabelStories.Disabled} />
+
+## 7. Behavior and accessibility
+
+- `htmlFor` points at the control's `id`; that is the control's accessible name (WCAG 1.3.1, 4.1.2).
+- A click on the label focuses the control and toggles a checkbox: a larger target.
+- Always visible: the placeholder is not a label (audit decision 5).
+
+<Canvas of={LabelStories.Playground} />
+
+## 8. Content
+
+- A noun, sentence case, no colon: "Postal code", "Stock quantity".
+- Up to about 4 words; the explanation goes to the hint.
+- Units in brackets: "Price (PLN)".
+
+## 9. Responsive
+
+The label wraps on a narrow screen and its lines do not overlap (20 px line height).
+
+<Canvas of={LabelStories.LongLabelNarrow} />
+
+## 10. API
+
+<ArgTypes of={LabelStories} />
+
+Every other native `<label>` prop works.
+
+## 11. Code
+
+```tsx
+import { Label } from "@/components/ui/label";
+
+<Label htmlFor="product-price">Price (PLN)</Label>;
+```
+
+## 12. Do and don't
+
+<Unstyled>
+  <DoDont
+    good={
+      <div className="flex w-full flex-col gap-related">
+        <Label htmlFor="dd-sku">SKU</Label>
+        <Input id="dd-sku" />
+      </div>
+    }
+    goodNote="A short noun linked to its field."
+    bad={
+      <div className="flex w-full flex-col gap-related">
+        <Label htmlFor="dd-sku-2">Please enter the SKU of the product here:</Label>
+        <Input id="dd-sku-2" />
+      </div>
+    }
+    badNote="A sentence with a colon is noise; the rule goes to the hint."
+  />
+</Unstyled>
+
+## 13. Related
+
+- **Field**: `FieldLabel` is this label inside a field.
+- **Input**, **Textarea**: the controls it names.

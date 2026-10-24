@@ -18,6 +18,13 @@ Keep entries short; put longer write-ups in `.ai/lessons/YYYY-MM-DD-slug.md` and
   - The logger redacts any context key that matches `/session/i` (also `sessionStatus`). Log a session outcome under a neutral key such as `outcome`.
   - When a phase split would ship use cases with no consumer yet, move them to the phase that uses them and record it, as Phase 1 did with `toOrderViewer`.
 
+- **2026-10-24 — Design system primitives: Tailwind v4 focus outline, Base UI disabled, Storybook test viewport and docs ids**:
+  - In Tailwind v4 `outline-none` sets `--tw-outline-style: none`, and `outline-2` reuses that variable, so `outline-none focus-visible:outline-2` draws nothing. Add `focus-visible:outline-solid` (a story asserts the computed `outlineStyle`).
+  - Base UI `Button` with `focusableWhenDisabled` sets `aria-disabled` and `data-disabled` but no `disabled` attribute, so `disabled:` utilities never apply. Style disabled buttons with `data-disabled:` (it is set in both cases).
+  - The Vitest browser mode viewport defaults to 414 × 896, which is below the `48rem` phone breakpoint: every control token resolves to 44 px. `vitest.storybook.config.mts` sets 1280 × 800 so density stories measure the desktop heights; a story can set `globals: { density: "admin" }` to test the admin scope.
+  - A docs page from `Button.mdx` with `<Meta of={…} />` gets the id `primitives-button--button`, not `…--docs`. The first `test:storybook` run after adding new imports can fail every story with "Failed to fetch dynamically imported module" while Vite optimizes dependencies; rerun before debugging.
+  - Frozen hover and focus previews: `.storybook/preview.css` imports `globals.css` and redefines the `hover`, `focus-visible` and `active` variants to also match `[data-preview-state~=…]`, so the state matrix shows the exact component declarations without touching app CSS.
+
 - **2026-10-24 — E07 Phase 1 surprises: Next answers 308 before a route allowlist; a form fallback must not drop request-time fields; a returned mock is a Vitest teardown**:
   - Next.js 16 normalises a trailing slash or a doubled slash (`/api/customer-auth/update-user/`, `//update-user`) with a **308 to the canonical path** before the route handler runs, so a method-and-path allowlist never sees those variants; the redirect target is judged like any other request. Test path variants over real HTTP (e2e), not only in the route's unit test.
   - A `<Suspense>` fallback that renders the same form as the streamed content, but without a request-time hidden field (`from=checkout` from `searchParams`), can be filled and submitted before the stream lands; agent-browser did exactly that. Make the fallback a placeholder, and have e2e wait for text only the streamed form shows.

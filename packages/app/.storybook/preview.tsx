@@ -1,6 +1,6 @@
 import type { Decorator, Preview } from "@storybook/nextjs-vite";
 import { fontVariables } from "@/app/fonts";
-import "../src/app/globals.css";
+import "./preview.css";
 
 /**
  * The default theme of this run. `vitest.storybook.config.mts` defines it per project, so the same
@@ -75,6 +75,7 @@ const preview: Preview = {
             "Themes",
           ],
           "Primitives",
+          ["Button", "Text link", "Input", "Textarea", "Label", "Field"],
           "Product",
           "Patterns",
         ],
