@@ -64,6 +64,7 @@ export class InMemoryOrderRepository implements OrderRepositoryPort {
       id: `order-${command.idempotencyKey}`,
       reference: command.newReference(),
       requestFingerprint: command.requestFingerprint,
+      customerId: command.customerId,
       status: "pending_payment",
       currency: draft.currency,
       subtotalMinor: draft.subtotalMinor,

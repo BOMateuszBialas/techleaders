@@ -11,6 +11,11 @@ export type AdminOrderListRecord = {
   /** Units across all lines. */
   itemCount: number;
   createdAt: Date;
+  /**
+   * Placed while signed in to a customer account (E07 spec A18). Only this flag: no customer id,
+   * account email, session or token ever reaches the admin.
+   */
+  placedWithAccount: boolean;
 };
 
 /** An order line as stored: name, SKU and price are snapshots taken at placement. */
@@ -50,6 +55,8 @@ export type AdminOrderRecord = {
   paidAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
+  /** Placed while signed in to a customer account (E07 spec A18); no account data. */
+  placedWithAccount: boolean;
   items: AdminOrderItemRecord[];
 };
 

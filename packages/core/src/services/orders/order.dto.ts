@@ -1,5 +1,6 @@
 import { money, type Money } from "../../domain/money";
 import type { OrderStatus, PaymentProvider } from "../../domain/orders/order";
+import { canViewOrder, type OrderViewer } from "../../domain/orders/order-access";
 import { normalizeOrderReference } from "../../domain/orders/order-reference";
 import { NotFoundError } from "../../errors/app-error";
 import type { OrderRecord, OrderRepositoryPort } from "../../ports/order-repository.port";
@@ -43,15 +44,19 @@ export function toOrderView(order: OrderRecord): OrderView {
 }
 
 /**
- * The order with this reference. A malformed reference is "not found" without a query, and
- * so is an unknown one: both give the same answer (spec Edge Cases, "Guessed / malformed").
+ * The order with this reference, as `viewer` may see it. A malformed reference is "not found"
+ * without a query, and so is an unknown one: both give the same answer (cart spec Edge Cases,
+ * "Guessed / malformed"). An account order read by anyone but its own customer is the same "not
+ * found" (E07 spec A2, A14): the check runs right after the lookup, before a caller can branch on
+ * the order's status, so a foreign viewer learns nothing about it.
  */
 export async function findOrderByReference(
   orders: OrderRepositoryPort,
   input: string,
+  viewer: OrderViewer,
 ): Promise<OrderRecord> {
   const reference = normalizeOrderReference(input);
   const order = reference ? await orders.findByReference(reference) : null;
-  if (!order) throw new NotFoundError(ORDER_NOT_FOUND_MESSAGE);
+  if (!order || !canViewOrder(order, viewer)) throw new NotFoundError(ORDER_NOT_FOUND_MESSAGE);
   return order;
 }

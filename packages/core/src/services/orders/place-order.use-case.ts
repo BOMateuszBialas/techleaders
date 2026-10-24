@@ -1,5 +1,6 @@
 import type { CartLine } from "../../domain/cart/cart";
 import { OrderConflictError, buildOrderDraft, cartFingerprint } from "../../domain/orders/order";
+import { orderPrincipal } from "../../domain/orders/order-access";
 import { generateOrderReference, type RandomBytes } from "../../domain/orders/order-reference";
 import { ValidationError } from "../../errors/app-error";
 import type { CatalogReadPort } from "../../ports/catalog-read.port";
@@ -30,8 +31,12 @@ export type PlaceOrderResult = { orderId: string; reference: string; replayed: b
  * 3. Idempotency (A7), checked before the cart: a known key returns its order when the request fingerprint (cart plus
  *    customer fields, hashed) matches, otherwise `form_reused`. The same lookup runs after a
  *    failed placement, so a double submit that lost the race for the last unit still gets the
- *    order the first submit placed.
- * 4. The repository's transaction decrements stock and inserts the order (pending payment).
+ *    order the first submit placed. Across principals (E07 spec A15) the fingerprint also holds
+ *    the placing principal (`customer:<id>` or `guest`), and the known order is returned only when
+ *    its stored `customerId` is the placer's; either mismatch is `form_reused`, whose message
+ *    carries no field of the original order.
+ * 4. The repository's transaction decrements stock and inserts the order (pending payment),
+ *    attached to `customerId` (taken by the caller from the session only; null for a guest).
  */
 export class PlaceOrderUseCase {
   constructor(
@@ -46,15 +51,22 @@ export class PlaceOrderUseCase {
   async execute(input: {
     lines: readonly CartLine[];
     request: CheckoutRequest;
+    /** The session's customer, or null for a guest; never read from `request` (A14). */
+    customerId: string | null;
   }): Promise<PlaceOrderResult> {
     const form = parseInput(checkoutSchema, input.request);
     const { idempotencyKey, expectedTotalMinor, cartFingerprint: shown, ...customer } = form;
+    const { customerId } = input;
 
     // A known form first: its repeat must return the order even when the first submit already
-    // cleared the cart (a second tab). The fingerprint needs only what the form carries.
-    const requestFingerprint = await this.deps.sha256Hex(JSON.stringify({ cart: shown, customer }));
+    // cleared the cart (a second tab). The fingerprint needs only what the form carries, plus
+    // the placing principal (A15).
+    const requestFingerprint = await this.deps.sha256Hex(
+      JSON.stringify({ cart: shown, customer, principal: orderPrincipal(customerId) }),
+    );
+    const placer: Placer = { requestFingerprint, customerId };
     const known = await this.deps.orderRepository.findByIdempotencyKey(idempotencyKey);
-    if (known) return replay(known, requestFingerprint);
+    if (known) return replay(known, placer);
 
     if (input.lines.length === 0) throw new ValidationError(EMPTY_CART_MESSAGE);
     const { cart } = await loadPricedCart(this.deps.catalogRepository, input.lines);
@@ -69,6 +81,7 @@ export class PlaceOrderUseCase {
         idempotencyKey,
         requestFingerprint,
         customer,
+        customerId,
         lines: cart.storedLines,
         newReference: () => generateOrderReference(this.deps.randomBytes),
         buildDraft: (reserved) => buildOrderDraft(reserved, expectedTotalMinor),
@@ -77,14 +90,25 @@ export class PlaceOrderUseCase {
     } catch (error) {
       // After the rollback: did an identical submit win the race (same key)?
       const winner = await this.deps.orderRepository.findByIdempotencyKey(idempotencyKey);
-      if (winner) return replay(winner, requestFingerprint);
+      if (winner) return replay(winner, placer);
       throw error;
     }
   }
 }
 
-function replay(order: OrderRecord, requestFingerprint: string): PlaceOrderResult {
-  if (order.requestFingerprint !== requestFingerprint) {
+/** Who is submitting the form: its fingerprint and the session's customer (null for a guest). */
+type Placer = { requestFingerprint: string; customerId: string | null };
+
+/**
+ * The known order for a repeated form, only for the same request and the same principal (A7,
+ * A15). The stored `customerId` is compared too, so the rule holds even if the fingerprint
+ * inputs ever change. The conflict carries no field of the original order.
+ */
+function replay(order: OrderRecord, placer: Placer): PlaceOrderResult {
+  if (
+    order.requestFingerprint !== placer.requestFingerprint ||
+    order.customerId !== placer.customerId
+  ) {
     throw new OrderConflictError("form_reused", FORM_REUSED_MESSAGE);
   }
   return { orderId: order.id, reference: order.reference, replayed: true };

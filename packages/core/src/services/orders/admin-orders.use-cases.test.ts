@@ -42,6 +42,7 @@ function record(overrides: Partial<AdminOrderRecord> = {}): AdminOrderRecord {
     paidAt: null,
     createdAt,
     updatedAt: createdAt,
+    placedWithAccount: false,
     items: [
       {
         id: "i-1",
@@ -93,11 +94,16 @@ describe("ListAdminOrdersUseCase", () => {
     totalMinor: 24900,
     itemCount: 2,
     createdAt,
+    placedWithAccount: false,
   });
 
-  it("asks for one page of 25 and labels each row, marking demo orders", async () => {
+  it("asks for one page of 25 and labels each row, marking demo and account orders", async () => {
     const listOrders = vi.fn(async () => ({
-      rows: [row("CO-7K3MQ-9XZ2A-H4TPC-W8R1N", "processing"), row("DEMO-0001", "shipped")],
+      rows: [
+        row("CO-7K3MQ-9XZ2A-H4TPC-W8R1N", "processing"),
+        row("DEMO-0001", "shipped"),
+        { ...row("CO-AAAAA-BBBBB-CCCCC-DDDDD"), placedWithAccount: true },
+      ],
       total: 51,
     }));
     const result = await new ListAdminOrdersUseCase({
@@ -119,8 +125,10 @@ describe("ListAdminOrdersUseCase", () => {
           total: { amountMinor: 24900, currency: "PLN" },
           itemCount: 2,
           isDemo: false,
+          placedWithAccount: false,
         },
         expect.objectContaining({ reference: "DEMO-0001", statusLabel: "Shipped", isDemo: true }),
+        expect.objectContaining({ isDemo: false, placedWithAccount: true }),
       ],
     });
   });
@@ -144,6 +152,7 @@ describe("GetAdminOrderUseCase", () => {
       id: ORDER_ID,
       statusLabel: "Awaiting payment",
       isDemo: false,
+      placedWithAccount: false,
       subtotal: { amountMinor: 54700, currency: "PLN" },
       shipping: { amountMinor: 0, currency: "PLN" },
       total: { amountMinor: 54700, currency: "PLN" },
@@ -172,6 +181,19 @@ describe("GetAdminOrderUseCase", () => {
       lineTotal: { amountMinor: 49800, currency: "PLN" },
     });
     expect(port.findOrderById).toHaveBeenCalledWith(ORDER_ID);
+  });
+
+  it("reports an account order to the owner as a flag only, without account data (E07 A18)", async () => {
+    const port = fakePort({
+      findOrderById: vi.fn(async () => record({ placedWithAccount: true })),
+    });
+    const view = await new GetAdminOrderUseCase({ orderAdminRepository: port }).execute({
+      id: ORDER_ID,
+    });
+    expect(view.placedWithAccount).toBe(true);
+    expect(
+      Object.keys(view).filter((key) => /customerId|account|session|token/i.test(key)),
+    ).toEqual(["placedWithAccount"]);
   });
 
   it("describes a paid demo order's payment and its record-only refund", async () => {

@@ -22,6 +22,8 @@ export type AdminOrderListRow = {
   itemCount: number;
   /** A seeded `DEMO-` order (A13): the list shows a "Demo" badge. */
   isDemo: boolean;
+  /** "Account order" or "Guest order" (E07 spec A18). */
+  placedWithAccount: boolean;
 };
 
 export type AdminOrderList = {
@@ -63,6 +65,8 @@ export type AdminOrderView = {
   status: OrderStatus;
   statusLabel: string;
   isDemo: boolean;
+  /** "Account order" or "Guest order" (E07 spec A18); no customer id or account email. */
+  placedWithAccount: boolean;
   createdAt: Date;
   paidAt: Date | null;
   updatedAt: Date;
@@ -95,6 +99,7 @@ export function toAdminOrderListRow(record: AdminOrderListRecord): AdminOrderLis
     total: money(record.totalMinor, record.currency),
     itemCount: record.itemCount,
     isDemo: isDemoOrderReference(record.reference),
+    placedWithAccount: record.placedWithAccount,
   };
 }
 
@@ -106,6 +111,7 @@ export function toAdminOrderView(order: AdminOrderRecord): AdminOrderView {
     status: order.status,
     statusLabel: ORDER_STATUS_LABELS[order.status],
     isDemo: isDemoOrderReference(order.reference),
+    placedWithAccount: order.placedWithAccount,
     createdAt: order.createdAt,
     paidAt: order.paidAt,
     updatedAt: order.updatedAt,
