@@ -4,6 +4,9 @@ import { logger } from "./logger";
 
 // No real Better Auth instance: it would start a background schema check.
 vi.mock("./auth/create-auth", () => ({ createAuth: vi.fn(() => ({ stub: "auth" })) }));
+vi.mock("./customer-auth/create-customer-auth", () => ({
+  createCustomerAuth: vi.fn(() => ({ stub: "customer-auth" })),
+}));
 
 process.env.DATABASE_URL ??= "postgresql://postgres:postgres@localhost:5432/commerceos";
 process.env.BETTER_AUTH_SECRET ??= "unit-test-secret-unit-test-secret-1234";
@@ -108,6 +111,7 @@ describe("composition root in a production build (#57)", () => {
   it("shares one container between evaluations of container.ts, one per server layer", async () => {
     vi.stubEnv("NODE_ENV", "production");
     vi.stubEnv("APP_URL", "https://shop.example");
+    vi.stubEnv("CUSTOMER_AUTH_SECRET", "customer-unit-test-secret-customer-1234");
     try {
       // Route handlers and pages evaluate their own copy of the module in a production build.
       vi.resetModules();

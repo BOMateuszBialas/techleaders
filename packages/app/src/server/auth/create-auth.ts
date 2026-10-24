@@ -87,30 +87,21 @@ export function summarizeAuthError(value: unknown): AuthErrorSummary | undefined
 }
 
 /** Maps Better Auth table and column names to the project's snake_case schema. */
-function snakeCase(fields: readonly string[]): Record<string, string> {
+export function snakeCase(fields: readonly string[]): Record<string, string> {
   return Object.fromEntries(
     fields.map((field) => [field, field.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`)]),
   );
 }
 
 /**
- * Better Auth configuration (spec "Better Auth configuration" and "Spike results").
- * Kept separate from `createAuth` so it can be asserted without a database.
+ * Model and column names of one Better Auth instance's tables (`<prefix>_users`, `_sessions`,
+ * `_accounts`, `_verifications`, `_rate_limits`). Shared by the owner (`admin`) and the
+ * customer (`customer`) instances, whose tables differ only in the prefix (E07 spec A1).
  */
-export function createAuthOptions({ pool, env, log }: AuthDeps) {
-  const trustedIpHeader = env.AUTH_TRUSTED_IP_HEADER;
+export function authModels(prefix: "admin" | "customer") {
   return {
-    database: pool,
-    baseURL: env.APP_URL,
-    trustedOrigins: [env.APP_URL],
-    secret: env.BETTER_AUTH_SECRET,
-    emailAndPassword: { enabled: true, disableSignUp: true, minPasswordLength: 8 },
     session: {
-      expiresIn: SESSION_EXPIRES_IN_SECONDS,
-      updateAge: SESSION_UPDATE_AGE_SECONDS,
-      // Off, so a deleted session is rejected on the very next request (AC4).
-      cookieCache: { enabled: false },
-      modelName: "admin_sessions",
+      modelName: `${prefix}_sessions`,
       fields: snakeCase([
         "expiresAt",
         "token",
@@ -122,15 +113,11 @@ export function createAuthOptions({ pool, env, log }: AuthDeps) {
       ]),
     },
     user: {
-      modelName: "admin_users",
+      modelName: `${prefix}_users`,
       fields: snakeCase(["name", "email", "emailVerified", "image", "createdAt", "updatedAt"]),
-      additionalFields: {
-        // Never settable from a request (Q4).
-        role: { type: "string", input: false, defaultValue: "owner", required: true },
-      },
     },
     account: {
-      modelName: "admin_accounts",
+      modelName: `${prefix}_accounts`,
       fields: snakeCase([
         "accountId",
         "providerId",
@@ -147,20 +134,76 @@ export function createAuthOptions({ pool, env, log }: AuthDeps) {
       ]),
     },
     verification: {
-      modelName: "admin_verifications",
+      modelName: `${prefix}_verifications`,
       fields: snakeCase(["identifier", "value", "expiresAt", "createdAt", "updatedAt"]),
     },
     rateLimit: {
+      modelName: `${prefix}_rate_limits`,
+      fields: snakeCase(["key", "count", "lastRequest"]),
+    },
+  };
+}
+
+/**
+ * One limit for an auth path: per trusted client IP, or one shared bucket without that header.
+ * The same `SIGN_IN_LIMIT` numbers apply to the owner sign-in and to customer sign-in and sign-up
+ * (E07 spec A10), each path in its own bucket.
+ */
+export function authPathLimit(trustedIpHeader: string | undefined) {
+  return {
+    window: SIGN_IN_LIMIT.window,
+    max: trustedIpHeader ? SIGN_IN_LIMIT.perIp : SIGN_IN_LIMIT.shared,
+  };
+}
+
+/**
+ * Better Auth's `logger` option for an instance: level `warn` (the library logs a duplicate
+ * sign-up's email at `info`), and the message plus a summary of the first error argument. The
+ * other arguments may carry request data; without the error, "Failed to get session" cannot be
+ * diagnosed.
+ */
+export function authLogger(log: AuthLog, tag: string) {
+  return {
+    level: "warn" as const,
+    log: (level: AuthLogLevel, message: string, ...args: unknown[]) =>
+      log(level, `[${tag}] ${message}`, args.map((arg) => summarizeAuthError(arg)).find(Boolean)),
+  };
+}
+
+/**
+ * Better Auth configuration (spec "Better Auth configuration" and "Spike results").
+ * Kept separate from `createAuth` so it can be asserted without a database.
+ */
+export function createAuthOptions({ pool, env, log }: AuthDeps) {
+  const trustedIpHeader = env.AUTH_TRUSTED_IP_HEADER;
+  const models = authModels("admin");
+  return {
+    database: pool,
+    baseURL: env.APP_URL,
+    trustedOrigins: [env.APP_URL],
+    secret: env.BETTER_AUTH_SECRET,
+    emailAndPassword: { enabled: true, disableSignUp: true, minPasswordLength: 8 },
+    session: {
+      expiresIn: SESSION_EXPIRES_IN_SECONDS,
+      updateAge: SESSION_UPDATE_AGE_SECONDS,
+      // Off, so a deleted session is rejected on the very next request (AC4).
+      cookieCache: { enabled: false },
+      ...models.session,
+    },
+    user: {
+      ...models.user,
+      additionalFields: {
+        // Never settable from a request (Q4).
+        role: { type: "string", input: false, defaultValue: "owner", required: true },
+      },
+    },
+    account: models.account,
+    verification: models.verification,
+    rateLimit: {
       enabled: true,
       storage: "database",
-      modelName: "admin_rate_limits",
-      fields: snakeCase(["key", "count", "lastRequest"]),
-      customRules: {
-        [SIGN_IN_PATH]: {
-          window: SIGN_IN_LIMIT.window,
-          max: trustedIpHeader ? SIGN_IN_LIMIT.perIp : SIGN_IN_LIMIT.shared,
-        },
-      },
+      ...models.rateLimit,
+      customRules: { [SIGN_IN_PATH]: authPathLimit(trustedIpHeader) },
     },
     advanced: {
       // Explicit: Better Auth silently skips the origin (CSRF) check when NODE_ENV=test.
@@ -169,17 +212,7 @@ export function createAuthOptions({ pool, env, log }: AuthDeps) {
       // Never the library default (x-forwarded-for): without a proxy a client can forge it.
       ipAddress: { ipAddressHeaders: trustedIpHeader ? [trustedIpHeader] : [] },
     },
-    logger: {
-      level: "warn",
-      // The message plus a summary of the first error argument: the other arguments may
-      // carry request data. Without the error, "Failed to get session" cannot be diagnosed.
-      log: (level: AuthLogLevel, message: string, ...args: unknown[]) =>
-        log(
-          level,
-          `[better-auth] ${message}`,
-          args.map((arg) => summarizeAuthError(arg)).find(Boolean),
-        ),
-    },
+    logger: authLogger(log, "better-auth"),
     // Must stay last: lets server actions set the session cookie.
     plugins: [nextCookies()],
   } satisfies BetterAuthOptions;

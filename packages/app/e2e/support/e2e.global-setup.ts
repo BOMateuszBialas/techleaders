@@ -10,10 +10,13 @@ import type { TestProject } from "vitest/node";
 import "@commerceos/database/testing";
 import { assertAgentBrowserInstalled, resolveAgentBrowserBin } from "./agent-browser";
 import "./provided-context";
-import { signInOverHttp } from "./sign-in";
+import { signInOverHttp, signUpCustomerOverHttp } from "./sign-in";
 
 /** The owner every admin e2e test signs in as (spec G9); the password is new on every run. */
 export const E2E_OWNER_EMAIL = "owner@e2e.test";
+/** Customers A and B of the role-separation and isolation tests (E07 step 8), new every run. */
+export const E2E_CUSTOMER_A_EMAIL = "customer-a@e2e.test";
+export const E2E_CUSTOMER_B_EMAIL = "customer-b@e2e.test";
 
 const run = promisify(execFile);
 
@@ -47,6 +50,8 @@ export default async function setup(project: TestProject): Promise<() => Promise
     await seedE2eCatalog(postgres.url);
     // Fresh per run: nothing secret is committed.
     const authSecret = randomBytes(32).toString("base64");
+    // The customer instance signs with its own secret; production requires it (E07 A6).
+    const customerAuthSecret = randomBytes(32).toString("base64");
     const ownerPassword = randomBytes(18).toString("base64url");
     await runDatabaseCli(postgres.url, "packages/app/src/server/auth/cli/create-owner.ts", {
       BETTER_AUTH_SECRET: authSecret,
@@ -56,7 +61,7 @@ export default async function setup(project: TestProject): Promise<() => Promise
 
     const port = await findFreePort();
     const baseUrl = `http://127.0.0.1:${port}`;
-    server = startApp({ port, databaseUrl: postgres.url, authSecret });
+    server = startApp({ port, databaseUrl: postgres.url, authSecret, customerAuthSecret });
     await waitUntilHealthy(baseUrl, server);
 
     project.provide("databaseUrl", postgres.url);
@@ -67,6 +72,20 @@ export default async function setup(project: TestProject): Promise<() => Promise
       "ownerSessionCookie",
       await signInOverHttp(baseUrl, E2E_OWNER_EMAIL, ownerPassword),
     );
+    // Created once over HTTP with random passwords (admin-auth G9), so suites spend no sign-up
+    // from the customer instance's shared limit of 20 per minute (E07 spec, Risks).
+    for (const [key, email] of [
+      ["A", E2E_CUSTOMER_A_EMAIL],
+      ["B", E2E_CUSTOMER_B_EMAIL],
+    ] as const) {
+      const password = randomBytes(18).toString("base64url");
+      project.provide(`customer${key}Email`, email);
+      project.provide(`customer${key}Password`, password);
+      project.provide(
+        `customer${key}SessionCookie`,
+        await signUpCustomerOverHttp(baseUrl, email, password),
+      );
+    }
   } catch (error) {
     server?.kill();
     await postgres.stop();
@@ -95,6 +114,7 @@ function startApp(options: {
   port: number;
   databaseUrl: string;
   authSecret: string;
+  customerAuthSecret: string;
 }): ChildProcess {
   const server = spawn(process.execPath, [nextBin, "start", appDir, "-p", String(options.port)], {
     cwd: repoRoot,
@@ -105,6 +125,7 @@ function startApp(options: {
       DATABASE_URL: options.databaseUrl,
       APP_URL: `http://127.0.0.1:${options.port}`,
       BETTER_AUTH_SECRET: options.authSecret,
+      CUSTOMER_AUTH_SECRET: options.customerAuthSecret,
       // Never call a real LLM from e2e: blank values beat the developer's shell and root .env
       // (an empty string counts as unset), so the Copilot answers with rule-based insights.
       LLM_PROVIDER: "",

@@ -28,6 +28,50 @@ export async function useOwnerSession(browser: BrowserSession): Promise<void> {
   await browser.setCookieHeader(inject("ownerSessionCookie"));
 }
 
+/**
+ * Gives the browser customer A's or B's session from the global setup (E07 step 8), without a
+ * new sign-in. It sets only the customer cookie; call `clearCookies()` first for a browser that
+ * must hold no other session.
+ */
+export async function useCustomerSession(browser: BrowserSession, customer: "a" | "b") {
+  await browser.setCookieHeader(
+    inject(customer === "a" ? "customerASessionCookie" : "customerBSessionCookie"),
+  );
+}
+
+/** Signs a customer in through the real form on `/account/sign-in`. */
+export async function signInAsCustomer(browser: BrowserSession, email: string, password: string) {
+  await browser.open("/account/sign-in");
+  // The form streams in at request time (it carries `from`): wait for it, not the placeholder.
+  await browser.waitForText("Sign in to your account");
+  await browser.fillLabel("Email", email);
+  await browser.fillLabel("Password", password);
+  await browser.clickRole("button", "Sign in");
+}
+
+/** Registers a customer over HTTP (no browser) and returns the `Cookie` header it sets. */
+export async function signUpCustomerOverHttp(
+  baseUrl: string,
+  email: string,
+  password: string,
+): Promise<string> {
+  const response = await fetch(`${baseUrl}/api/customer-auth/sign-up/email`, {
+    method: "POST",
+    headers: { "content-type": "application/json", origin: baseUrl },
+    body: JSON.stringify({ email, password, name: "Customer" }),
+  });
+  if (!response.ok) throw new Error(`Customer sign-up failed with ${response.status}`);
+  return cookieHeaderOf(response);
+}
+
+/** The `Cookie` header a browser would send back after this response. */
+function cookieHeaderOf(response: Response): string {
+  return response.headers
+    .getSetCookie()
+    .map((cookie) => cookie.split(";")[0])
+    .join("; ");
+}
+
 /** Posts the sign-in form's JSON to Better Auth and returns the `Cookie` header it sets. */
 export async function signInOverHttp(
   baseUrl: string,
@@ -40,8 +84,5 @@ export async function signInOverHttp(
     body: JSON.stringify({ email, password }),
   });
   if (!response.ok) throw new Error(`Owner sign-in failed with ${response.status}`);
-  return response.headers
-    .getSetCookie()
-    .map((cookie) => cookie.split(";")[0])
-    .join("; ");
+  return cookieHeaderOf(response);
 }

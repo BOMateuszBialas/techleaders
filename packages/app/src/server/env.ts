@@ -30,6 +30,14 @@ const envSchema = z.object({
   /** Signs and encrypts Better Auth cookies and tokens. Generate with `openssl rand -base64 32`. */
   BETTER_AUTH_SECRET: z.string().min(32, "must be at least 32 characters"),
   /**
+   * Signs the customer Better Auth instance (E07 spec A6). Optional in development and test,
+   * where the customer instance falls back to `BETTER_AUTH_SECRET`; required in production and
+   * different from `BETTER_AUTH_SECRET` (checked in `parseEnv`).
+   */
+  CUSTOMER_AUTH_SECRET: blankAsUnset(
+    z.string().min(32, "must be at least 32 characters").optional(),
+  ),
+  /**
    * Header that carries the client IP, set only behind a proxy that overwrites it
    * (e.g. `x-real-ip`). Unset: sign-in is rate-limited globally, never by a forgeable header.
    */
@@ -58,6 +66,15 @@ export function parseEnv(source: Record<string, string | undefined>): Env {
   // APP_URL is the trusted origin: a silent localhost default must never reach production.
   if (source.NODE_ENV === "production" && !source.APP_URL) {
     problems.push("  - APP_URL: is required in production");
+  }
+  // One role's leaked or rotated secret must never affect the other role (spec A6, D-a).
+  if (
+    source.NODE_ENV === "production" &&
+    (!source.CUSTOMER_AUTH_SECRET || source.CUSTOMER_AUTH_SECRET === source.BETTER_AUTH_SECRET)
+  ) {
+    problems.push(
+      "  - CUSTOMER_AUTH_SECRET: is required in production and must differ from BETTER_AUTH_SECRET",
+    );
   }
   if (result.success && result.data.LLM_PROVIDER) {
     for (const name of ["LLM_API_KEY", "LLM_MODEL"] as const) {

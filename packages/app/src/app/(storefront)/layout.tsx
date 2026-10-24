@@ -2,18 +2,21 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { cartItemCount } from "@commerceos/core";
+import { AccountHeaderLink } from "@/components/account/account-header-link";
 import { CartLink } from "@/components/cart/cart-link";
 import { FooterCategoryLinks, SiteFooter } from "@/components/storefront/site-footer";
 import { HeaderMenu } from "@/components/storefront/header-menu";
 import { HeaderSearch } from "@/components/storefront/header-search";
 import { DEMO_NOTICE, STORE_NAME } from "@/components/storefront/storefront-copy";
 import { readCartLines } from "@/server/cart/cart-cookie";
+import { signOutCustomer } from "@/server/customer-auth/customer-auth.action";
+import { isCustomerSignedIn } from "@/server/customer-auth/require-customer";
 import { loadStorefrontCategories } from "./load-storefront-categories";
 
 /**
  * Storefront shell shared by the home page, the listing and product pages: demo banner (R07),
- * header search box, menu (spec G13), the cart link with its count (cart spec G9) and footer
- * (G14). The shell itself prerenders; the category links and the cart count are read at request
+ * header search box, menu (spec G13), the cart link with its count (cart spec G9), the customer
+ * account link (E07 spec A21) and footer (G14). The shell itself prerenders; the category links and the cart count are read at request
  * time inside `<Suspense>`. Without categories (still loading, or the catalog is unavailable)
  * the menus keep their static links.
  */
@@ -37,6 +40,9 @@ export default function StorefrontLayout({ children }: LayoutProps<"/">) {
             </Suspense>
             <Suspense fallback={<CartLink itemCount={null} />}>
               <LoadedCartLink />
+            </Suspense>
+            <Suspense fallback={null}>
+              <LoadedAccountLink />
             </Suspense>
           </div>
         </div>
@@ -67,6 +73,16 @@ async function LoadedHeaderMenu() {
  */
 async function LoadedCartLink() {
   return <CartLink itemCount={cartItemCount(await readCartLines({ logInvalid: false }))} />;
+}
+
+/**
+ * "Sign in" or "My orders" + "Sign out" (A21), read per request from the customer session and
+ * never cached (A23). A session-read failure shows "Sign in" (A24): the header never breaks.
+ */
+async function LoadedAccountLink() {
+  return (
+    <AccountHeaderLink signedIn={await isCustomerSignedIn()} signOutAction={signOutCustomer} />
+  );
 }
 
 async function LoadedFooterCategoryLinks() {

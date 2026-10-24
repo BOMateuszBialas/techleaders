@@ -125,6 +125,110 @@ describe("database (PostgreSQL)", () => {
     expect([Number(counts?.sessions), Number(counts?.accounts)]).toEqual([0, 0]);
   });
 
+  it("creates the customer auth tables with the customer-only role check (E07 A1)", async () => {
+    const em = orm.em.fork();
+    const [user] = await em.execute<{ id: string; role: string }[]>(
+      `insert into customer_users (name, email, email_verified) values ('Customer', 'customer@db.test', false) returning id, role`,
+    );
+    expect(user?.role).toBe("customer");
+    for (const role of ["owner", "admin", ""]) {
+      await expect(
+        em.execute(
+          `insert into customer_users (name, email, email_verified, role) values ('Customer', ?, false, ?)`,
+          [`${role || "blank"}@db.test`, role],
+        ),
+      ).rejects.toThrow(/customer_users_role_check/);
+    }
+    await expect(
+      em.execute(`update customer_users set role = 'owner' where id = ?`, [user!.id]),
+    ).rejects.toThrow(/customer_users_role_check/);
+    await expect(
+      em.execute(
+        `insert into customer_users (name, email, email_verified) values ('Customer', 'customer@db.test', false)`,
+      ),
+    ).rejects.toThrow(/customer_users_email_unique/);
+  });
+
+  it("keeps customer and admin identities apart and cascades a customer's sessions and accounts", async () => {
+    const em = orm.em.fork();
+    // The same email may be an owner and a customer: different identities in different tables (A19).
+    await em.execute(
+      `insert into admin_users (name, email, email_verified) values ('Store owner', 'both@db.test', true)`,
+    );
+    const [user] = await em.execute<{ id: string }[]>(
+      `insert into customer_users (name, email, email_verified) values ('Customer', 'both@db.test', false) returning id`,
+    );
+    const userId = user!.id;
+    // A customer id never satisfies the admin tables' foreign keys.
+    await expect(
+      em.execute(
+        `insert into admin_sessions (user_id, token, expires_at) values (?, 'tok-cross', now() + interval '1 hour')`,
+        [userId],
+      ),
+    ).rejects.toThrow(/admin_sessions_user_id_foreign/);
+    await em.execute(
+      `insert into customer_sessions (user_id, token, expires_at) values (?, 'tok-customer', now() + interval '1 hour')`,
+      [userId],
+    );
+    await em.execute(
+      `insert into customer_accounts (user_id, account_id, provider_id, password) values (?, ?, 'credential', 'hash')`,
+      [userId, userId],
+    );
+    await em.execute(`delete from customer_users where id = ?`, [userId]);
+    const [counts] = await em.execute<{ sessions: string; accounts: string }[]>(
+      `select (select count(*) from customer_sessions where user_id = ?) as sessions, (select count(*) from customer_accounts where user_id = ?) as accounts`,
+      [userId, userId],
+    );
+    expect([Number(counts?.sessions), Number(counts?.accounts)]).toEqual([0, 0]);
+  });
+
+  // Additive migration (BACKWARD_COMPATIBILITY §5): `down` drops only the five customer tables and
+  // leaves the owner's tables intact; `up` reapplies it without drift.
+  it("reverts and reapplies the customer auth migration without touching other tables", async () => {
+    const tables = ["users", "sessions", "accounts", "verifications", "rate_limits"].map(
+      (name) => `customer_${name}`,
+    );
+    const existing = async () => {
+      const found: string[] = [];
+      for (const table of tables) {
+        const [row] = await orm.em
+          .fork()
+          .execute<{ name: string | null }[]>("select to_regclass(?)::text as name", [table]);
+        if (row?.name) found.push(row.name);
+      }
+      return found;
+    };
+    const owners = async () =>
+      orm.em.fork().execute<{ email: string }[]>("select email from admin_users order by email");
+    const ownersBefore = await owners();
+    expect(await existing()).toEqual(tables);
+
+    // A foreign key into customer_users (Phase 2's orders.customer_id, simulated here) blocks the
+    // rollback: no `cascade` may drop it silently (rollback plan, D-d).
+    const em = orm.em.fork();
+    const [customer] = await em.execute<{ id: string }[]>(
+      `insert into customer_users (name, email, email_verified) values ('Customer', 'fk-probe@db.test', false) returning id`,
+    );
+    await em.execute(
+      `create table fk_probe (customer_id uuid not null references customer_users (id) on delete restrict)`,
+    );
+    await em.execute(`insert into fk_probe (customer_id) values (?)`, [customer!.id]);
+    await expect(
+      orm.migrator.down({ migrations: ["Migration20261024181620_customer_auth"] }),
+    ).rejects.toThrow();
+    expect(await existing()).toEqual(tables);
+    await em.execute(`drop table fk_probe`);
+
+    await orm.migrator.down({ migrations: ["Migration20261024181620_customer_auth"] });
+    expect(await existing()).toEqual([]);
+    expect(await owners()).toEqual(ownersBefore);
+
+    await orm.migrator.up();
+    expect(await existing()).toEqual(tables);
+    const diff = await orm.schema.getUpdateSchemaSQL({ wrap: false });
+    expect(diff.trim()).toBe("");
+  });
+
   it("rejects negative stock at the database level", async () => {
     const em = orm.em.fork();
     em.create(ProductSchema, {

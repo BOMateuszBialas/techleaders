@@ -5,6 +5,11 @@ import { AdminUserSchema } from "./auth/admin-user.entity";
 import { AdminVerificationSchema } from "./auth/admin-verification.entity";
 import { CategorySchema } from "./categories/category.entity";
 import { CopilotRecommendationSchema } from "./copilot/copilot-recommendation.entity";
+import { CustomerAccountSchema } from "./customers/customer-account.entity";
+import { CustomerRateLimitSchema } from "./customers/customer-rate-limit.entity";
+import { CustomerSessionSchema } from "./customers/customer-session.entity";
+import { CustomerUserSchema } from "./customers/customer-user.entity";
+import { CustomerVerificationSchema } from "./customers/customer-verification.entity";
 import { StockAdjustmentSchema } from "./inventory/stock-adjustment.entity";
 import { OrderItemSchema } from "./orders/order-item.entity";
 import { OrderSchema } from "./orders/order.entity";
@@ -20,6 +25,11 @@ export * from "./auth/admin-user.entity";
 export * from "./auth/admin-verification.entity";
 export * from "./categories/category.entity";
 export * from "./copilot/copilot-recommendation.entity";
+export * from "./customers/customer-account.entity";
+export * from "./customers/customer-rate-limit.entity";
+export * from "./customers/customer-session.entity";
+export * from "./customers/customer-user.entity";
+export * from "./customers/customer-verification.entity";
 export * from "./inventory/stock-adjustment.entity";
 export * from "./orders/order-item.entity";
 export * from "./orders/order.entity";
@@ -44,4 +54,9 @@ export const entities = [
   AdminAccountSchema,
   AdminVerificationSchema,
   AdminRateLimitSchema,
+  CustomerUserSchema,
+  CustomerSessionSchema,
+  CustomerAccountSchema,
+  CustomerVerificationSchema,
+  CustomerRateLimitSchema,
 ];
