@@ -175,6 +175,9 @@ describe("owner and customer sessions never cross (E07 step 5)", () => {
       password: PASSWORD,
     });
     expect(ownerSignIn.status).toBe(200);
+    // Leave the buckets empty so later tests do not depend on this one's order.
+    await pool.query("delete from customer_rate_limits");
+    await pool.query("delete from admin_rate_limits");
   });
 
   it("no cookie is neither role", async () => {
