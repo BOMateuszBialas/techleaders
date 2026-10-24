@@ -6,6 +6,7 @@ import {
 } from "@commerceos/core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { IDLE_ACTION_STATE } from "@/lib/action-state";
+import type * as RequireCustomer from "../customer-auth/require-customer";
 import { readCartLines, writeCartLines } from "../cart/cart-cookie";
 import { createRequestScope } from "../container";
 import { logger } from "../logger";
@@ -22,7 +23,7 @@ const CUSTOMER_B = "c0000000-0000-4000-8000-00000000000b";
 const getCurrentCustomerId = vi.fn();
 
 vi.mock("../customer-auth/require-customer", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("../customer-auth/require-customer")>()),
+  ...(await importOriginal<typeof RequireCustomer>()),
   getCurrentCustomerId: () => getCurrentCustomerId(),
 }));
 

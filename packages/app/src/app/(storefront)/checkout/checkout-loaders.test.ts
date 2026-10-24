@@ -1,5 +1,6 @@
 import { NotFoundError, priceCart } from "@commerceos/core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type * as RequireCustomer from "@/server/customer-auth/require-customer";
 
 const getCart = vi.fn();
 const getOrder = vi.fn();
@@ -22,7 +23,7 @@ vi.mock("@/server/cart/cart-cookie", () => ({ readCartLines: () => readCartLines
 vi.mock("next/headers", () => ({ headers: async () => new Headers() }));
 const getCurrentCustomerId = vi.fn();
 vi.mock("@/server/customer-auth/require-customer", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/server/customer-auth/require-customer")>()),
+  ...(await importOriginal<typeof RequireCustomer>()),
   getCurrentCustomerId: () => getCurrentCustomerId(),
 }));
 const CUSTOMER_A = "c0000000-0000-4000-8000-00000000000a";
