@@ -3,16 +3,24 @@
 import {
   CHECKOUT_FORM_FIELDS,
   ConflictError,
+  STALE_CHECKOUT_FORM_MESSAGE,
   ValidationError,
   normalizeOrderReference,
 } from "@commerceos/core";
 import { headers } from "next/headers";
+import { ACCOUNT_COPY } from "@/components/account/account-copy";
+import {
+  CHECKOUT_AS_FIELD,
+  CHECKOUT_SESSION_LOST,
+  parseCheckoutAs,
+} from "@/components/checkout/checkout-mode";
 import type { ActionState } from "@/lib/action-state";
 import { readCartLines, writeCartLines } from "../cart/cart-cookie";
 import { readFormValue, readFormValues } from "../catalog/form-data";
 import { getCurrentCustomerId, toOrderViewer } from "../customer-auth/require-customer";
 import { getEnv } from "../env";
 import { runAction } from "../http/run-action";
+import { logger } from "../logger";
 import { TOO_MANY_LOOKUPS_MESSAGE, consumeOrderLookup } from "./order-lookup-limit";
 import { REFERENCE_FORMAT_MESSAGE, orderPaths } from "./order-paths";
 
@@ -24,19 +32,44 @@ import { REFERENCE_FORMAT_MESSAGE, orderPaths } from "./order-paths";
  * Places the order (cart spec, API Contracts `placeOrder`): validates the form, re-prices the
  * cookie's lines, decrements stock in one transaction, clears the cart and goes to the demo
  * payment page. On a failure the checkout re-renders with fresh prices (G3) next to the message.
+ *
+ * The order follows the mode the page showed (E07 spec A24), carried in `checkoutAs`:
+ * - `guest`: a guest order, without reading the session (even if one exists now);
+ * - `account`: the session is read now; a confirmed customer places an account order with the
+ *   session's id (never a form field, A14, A16). No session, or a session-read failure, stops
+ *   **before** the use case (no order, no stock change) and returns the guest-mode state, so the
+ *   shopper sees the change and submits again as a guest or signs in first;
+ * - anything else (missing, unknown): the form was not rendered by this app, a validation error.
  */
 export async function placeOrder(_previous: ActionState, formData: FormData): Promise<ActionState> {
   const values = readFormValues(formData, CHECKOUT_FORM_FIELDS);
+  const checkoutAs = parseCheckoutAs(readFormValue(formData, CHECKOUT_AS_FIELD));
+  let customerId: string | null = null;
+  if (checkoutAs === "account") {
+    const session = await getCurrentCustomerId();
+    if (session.status !== "customer") {
+      logger.warn("Account checkout without a confirmed customer session", {
+        event: "order.place.session_lost",
+        outcome: session.status,
+      });
+      return {
+        status: "error",
+        code: CHECKOUT_SESSION_LOST,
+        message: ACCOUNT_COPY.sessionLost,
+        values,
+      };
+    }
+    customerId = session.customerId;
+  }
   return runAction(
     "orders.place",
     values,
     async ({ placeOrderUseCase }) => {
+      if (checkoutAs === null) throw new ValidationError(STALE_CHECKOUT_FORM_MESSAGE);
       const result = await placeOrderUseCase.execute({
         lines: await readCartLines(),
         request: values,
-        // Guest orders only until E07 Phase 2b adds the checkout modes (`checkoutAs`, A24); the
-        // customer id will come from the session then, never from the form.
-        customerId: null,
+        customerId,
       });
       await writeCartLines([]);
       return {

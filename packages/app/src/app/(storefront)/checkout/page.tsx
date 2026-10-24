@@ -4,7 +4,6 @@ import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { money } from "@commerceos/core";
-import { CheckoutAccountNote } from "@/components/account/checkout-account-note";
 import { CartChanges } from "@/components/cart/cart-changes";
 import {
   CHECKOUT_HEADING,
@@ -12,22 +11,24 @@ import {
   REVIEW_CART_LINK,
 } from "@/components/checkout/checkout-copy";
 import { CheckoutForm } from "@/components/checkout/checkout-form";
+import { checkoutModeFor } from "@/components/checkout/checkout-mode";
 import { OrderSummary } from "@/components/checkout/order-summary";
 import { acceptCartChanges } from "@/server/cart/cart.action";
-import { isCustomerSignedIn } from "@/server/customer-auth/require-customer";
+import { getCurrentCustomerId } from "@/server/customer-auth/require-customer";
 import { placeOrder } from "@/server/orders/order.action";
 import { loadCheckoutPage } from "./load-checkout-page";
 
 export const metadata: Metadata = { title: "Checkout", robots: { index: false } };
 
-/** Guest checkout (cart spec, Phase 2): server prices, then the demo payment step. */
+/**
+ * Checkout (cart spec, Phase 2): server prices, then the demo payment step. The form shows the
+ * mode the order will follow (E07 spec A24): "Buying as <email>" for a confirmed customer
+ * session, otherwise guest mode; the session is read per request inside `<Suspense>` (A23).
+ */
 export default function CheckoutPage() {
   return (
     <>
       <h1 className="text-3xl font-semibold tracking-tight">{CHECKOUT_HEADING}</h1>
-      <Suspense fallback={null}>
-        <LoadedCheckoutAccountNote />
-      </Suspense>
       <Suspense
         fallback={
           <div aria-label="Loading checkout" className="h-64 animate-pulse rounded bg-muted" />
@@ -37,11 +38,6 @@ export default function CheckoutPage() {
       </Suspense>
     </>
   );
-}
-
-/** "Sign in for order history" for a signed-out shopper (E07 spec A16), read per request (A23). */
-async function LoadedCheckoutAccountNote() {
-  return <CheckoutAccountNote signedIn={await isCustomerSignedIn()} />;
 }
 
 async function CheckoutContents() {
@@ -69,6 +65,8 @@ async function CheckoutContents() {
     );
   }
 
+  // What the page shows is what the order becomes: placeOrder reads the session again (A24).
+  const mode = checkoutModeFor(await getCurrentCustomerId());
   return (
     <div className="grid gap-8 md:grid-cols-[1fr_22rem]">
       <CheckoutForm
@@ -76,6 +74,7 @@ async function CheckoutContents() {
         idempotencyKey={idempotencyKey}
         cartFingerprint={cartFingerprint}
         expectedTotalMinor={cart.subtotal.amountMinor}
+        mode={mode}
       />
       <OrderSummary
         items={cart.lines}

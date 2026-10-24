@@ -9,6 +9,7 @@ import { CartChanges } from "../cart/cart-changes";
 import { DEMO_PAYMENT_BANNER, orderStatusLabel } from "./checkout-copy";
 import { CheckoutForm } from "./checkout-form";
 import { CheckoutFormView } from "./checkout-form-view";
+import { CHECKOUT_SESSION_LOST, type CheckoutMode } from "./checkout-mode";
 import { OrderDetails } from "./order-details";
 import { LookupForm, PayForm } from "./order-forms";
 import {
@@ -54,7 +55,9 @@ const paid: OrderView = {
   paymentProvider: "demo",
 };
 
-function renderCheckout(state: ActionState, pending = false) {
+const GUEST: CheckoutMode = { kind: "guest", sessionError: false };
+
+function renderCheckout(state: ActionState, pending = false, mode: CheckoutMode = GUEST) {
   return renderToStaticMarkup(
     createElement(CheckoutFormView, {
       action,
@@ -63,6 +66,7 @@ function renderCheckout(state: ActionState, pending = false) {
       idempotencyKey: KEY,
       cartFingerprint: "a:1",
       expectedTotalMinor: 49800,
+      mode,
     }),
   );
 }
@@ -149,9 +153,74 @@ describe("CheckoutFormView", () => {
         idempotencyKey: KEY,
         cartFingerprint: "a:1",
         expectedTotalMinor: 1,
+        mode: GUEST,
       }),
     );
     expect(html).toContain(">Place order<");
+  });
+});
+
+describe("CheckoutFormView modes (E07 A24, A16)", () => {
+  const ACCOUNT: CheckoutMode = { kind: "account", email: "a@shop.example" };
+  const modeLine = (html: string) => /data-testid="checkout-mode">(.*?)<\/div>/.exec(html)?.[1];
+
+  it("shows the account mode, carries checkoutAs=account and prefills the editable email", () => {
+    const html = renderCheckout(IDLE_ACTION_STATE, false, ACCOUNT);
+    expect(html).toContain('name="checkoutAs" value="account"');
+    expect(modeLine(html)).toContain("Buying as <span");
+    expect(modeLine(html)).toContain("a@shop.example");
+    expect(html).toContain("This order will appear under My orders.");
+    expect(html).toMatch(/name="customerEmail"[^>]*value="a@shop.example"/);
+    expect(html).not.toMatch(/name="customerEmail"[^>]*readOnly/i);
+    expect(html).not.toContain("Buying as a guest");
+  });
+
+  it("keeps a typed email over the prefill after an error", () => {
+    const html = renderCheckout(
+      { status: "error", message: "Sold out.", values: { customerEmail: "other@x.test" } },
+      false,
+      ACCOUNT,
+    );
+    expect(html).toMatch(/name="customerEmail"[^>]*value="other@x.test"/);
+    expect(html).toContain('name="checkoutAs" value="account"');
+  });
+
+  it("shows the guest mode with the sign-in link and no prefill", () => {
+    const html = renderCheckout(IDLE_ACTION_STATE);
+    expect(html).toContain('name="checkoutAs" value="guest"');
+    expect(modeLine(html)).toMatch(
+      /Buying as a guest\. <a[^>]*href="\/account\/sign-in\?from=checkout"[^>]*>Sign in for order history<\/a>/,
+    );
+    expect(modeLine(html)).not.toContain('role="alert"');
+    expect(html).toMatch(/name="customerEmail"[^>]*value=""/);
+  });
+
+  it("adds the banner when the page could not confirm the sign-in", () => {
+    const html = renderCheckout(IDLE_ACTION_STATE, false, { kind: "guest", sessionError: true });
+    expect(modeLine(html)).toContain(
+      '<p role="alert" class="text-destructive">We could not confirm your sign-in, so you are checking out as a guest.',
+    );
+    expect(html).toContain('name="checkoutAs" value="guest"');
+  });
+
+  it("switches an account page to guest mode after the session was lost on submit", () => {
+    const html = renderCheckout(
+      {
+        status: "error",
+        code: CHECKOUT_SESSION_LOST,
+        message: "We could not confirm your sign-in, so you are checking out as a guest. Sign in…",
+        values: { customerEmail: "a@shop.example", customerName: "Ada" },
+      },
+      false,
+      ACCOUNT,
+    );
+    expect(html).toContain('name="checkoutAs" value="guest"');
+    expect(modeLine(html)).toContain("Buying as a guest.");
+    expect(modeLine(html)).toContain('role="alert"');
+    // One alert only (the banner), no "Review your cart" link, the typed values kept.
+    expect(html.match(/role="alert"/g)).toHaveLength(1);
+    expect(html).not.toContain('href="/cart"');
+    expect(html).toContain('value="Ada"');
   });
 });
 

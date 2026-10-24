@@ -15,6 +15,11 @@ export type ActionState = {
   fieldErrors?: FieldErrors;
   /** The submitted values, returned on error so the form shows what the owner typed. */
   values?: FormValues;
+  /**
+   * A fixed outcome code a form may branch on beyond the message, e.g. checkout's
+   * `checkout_session_lost` (E07 spec A24). Never free text or data from the request.
+   */
+  code?: string;
 };
 
 /** The signature `useActionState` expects from a form action (admin or shopper). */
