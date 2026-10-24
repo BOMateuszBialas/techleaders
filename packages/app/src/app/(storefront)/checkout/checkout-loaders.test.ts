@@ -104,6 +104,7 @@ describe("loadOrderPage", () => {
       data: { kind: "limited" },
     });
     expect(getOrder).not.toHaveBeenCalled();
+    expect(getCurrentCustomerId).not.toHaveBeenCalled();
 
     getOrder.mockRejectedValueOnce(new NotFoundError());
     expect(await loadOrderPage("/orders/[reference]", "nope")).toEqual({ kind: "not-found" });

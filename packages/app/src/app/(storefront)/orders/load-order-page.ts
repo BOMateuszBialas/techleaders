@@ -20,11 +20,13 @@ export async function loadOrderPage(
   reference: string,
 ): Promise<LoadResult<OrderPageData>> {
   const requestHeaders = await headers();
-  const viewer = toOrderViewer(await getCurrentCustomerId());
   return loadWithRequestScope({ page }, async (cradle): Promise<OrderPageData> => {
     if (!(await consumeOrderLookup(cradle.rateLimiter, cradle.env, requestHeaders))) {
       return { kind: "limited" };
     }
+    // After the limit: a limited request costs no session read. getCurrentCustomerId never
+    // throws; a session-read failure is a guest viewer (A24).
+    const viewer = toOrderViewer(await getCurrentCustomerId());
     return {
       kind: "order",
       order: await cradle.getOrderByReferenceUseCase.execute({ reference, viewer }),

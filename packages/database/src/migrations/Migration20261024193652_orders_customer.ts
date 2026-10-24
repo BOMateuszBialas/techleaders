@@ -21,6 +21,9 @@ export class Migration20261024193652_orders_customer extends Migration {
   }
 
   override down(): void | Promise<void> {
+    // Locked first (the migration runs in one transaction), so no account order can be committed
+    // between the check and the drop.
+    this.addSql(`lock table "orders" in share row exclusive mode;`);
     this.addSql(`do $$ begin if exists (select 1 from "orders" where "customer_id" is not null) then raise exception 'orders_customer down refused: account orders exist; roll forward instead'; end if; end $$;`);
     this.addSql(`alter table "orders" drop constraint "orders_customer_id_foreign";`);
 

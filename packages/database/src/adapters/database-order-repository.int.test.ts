@@ -526,8 +526,8 @@ describe("DatabaseOrderRepository (PostgreSQL)", () => {
         .execute({ customerId: randomUUID(), lines, request: checkout(lines, 24900) })
         .catch((caught: unknown) => caught);
       expect(error).toBeInstanceOf(Error);
-      expect((error as Error).message).toMatch(/^Order placement failed: /);
-      expect((error as Error).message).not.toContain("ada@example.test");
+      expect(error).toMatchObject({ message: expect.stringMatching(/^Order placement failed: /) });
+      expect(error).not.toMatchObject({ message: expect.stringContaining("ada@example.test") });
       expect(await stockOf(VORTEX)).toBe(10);
       expect(await orderCount()).toBe(0);
     });
@@ -546,7 +546,7 @@ describe("DatabaseOrderRepository (PostgreSQL)", () => {
           .execute({ customerId, lines, request })
           .catch((caught: unknown) => caught);
         expect(isOrderConflict(error, "form_reused")).toBe(true);
-        expect((error as Error).message).toBe(FORM_REUSED_MESSAGE);
+        expect(error).toMatchObject({ message: FORM_REUSED_MESSAGE });
         const serialized = JSON.stringify(error, Object.getOwnPropertyNames(error));
         expect(serialized).not.toContain(original.reference);
         expect(serialized).not.toContain(original.orderId);
@@ -582,7 +582,7 @@ describe("DatabaseOrderRepository (PostgreSQL)", () => {
         ]) {
           const error = await attempt().catch((caught: unknown) => caught);
           expect(isNotFoundError(error)).toBe(true);
-          expect((error as Error).message).toBe(ORDER_NOT_FOUND_MESSAGE);
+          expect(error).toMatchObject({ message: ORDER_NOT_FOUND_MESSAGE });
         }
       }
       const [row] = await query<{ status: string; paid: boolean }>(

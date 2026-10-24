@@ -302,7 +302,8 @@ describe("PlaceOrderUseCase across principals (E07 A15)", () => {
 
   it("refuses another principal on the post-failure lookup too", async () => {
     const original = await placeOrder().execute({ customerId: CUSTOMER_A, lines, request: form() });
-    // The fast-path lookup misses (a concurrent submit), the placement then hits the key.
+    // The fast-path lookup misses (a concurrent submit); the placement then fails because A's
+    // order took the last Pulse unit, and the post-failure lookup finds A's order.
     vi.spyOn(orders, "findByIdempotencyKey").mockResolvedValueOnce(null);
     const error = await rejection(
       placeOrder().execute({ customerId: CUSTOMER_B, lines, request: form() }),

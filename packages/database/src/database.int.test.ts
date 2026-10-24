@@ -233,7 +233,7 @@ describe("database (PostgreSQL)", () => {
     // key exists, the customer_auth `down` fails instead of dropping it.
     await expect(
       orm.migrator.down({ migrations: ["Migration20261024181620_customer_auth"] }),
-    ).rejects.toThrow();
+    ).rejects.toThrow(/other objects depend on it/);
     expect(await existing()).toEqual(tables);
     await orm.migrator.down({ migrations: [ORDERS_CUSTOMER_MIGRATION] });
 
@@ -249,7 +249,7 @@ describe("database (PostgreSQL)", () => {
     await em.execute(`insert into fk_probe (customer_id) values (?)`, [customer!.id]);
     await expect(
       orm.migrator.down({ migrations: ["Migration20261024181620_customer_auth"] }),
-    ).rejects.toThrow();
+    ).rejects.toThrow(/other objects depend on it/);
     expect(await existing()).toEqual(tables);
     await em.execute(`drop table fk_probe`);
 
