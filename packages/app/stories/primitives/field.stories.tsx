@@ -124,6 +124,8 @@ export const Group: Story = {
   ),
   play: async ({ canvas }) => {
     await expect(canvas.getByRole("group", { name: "Shipping address" })).toBeInTheDocument();
+    // The legend uses the h3 style (18 px in the store).
+    await expect(getComputedStyle(canvas.getByText("Shipping address")).fontSize).toBe("18px");
     // Store density: 16 px between fields.
     await expect(gapBetweenFirstFields(canvas.getAllByRole("textbox"))).toBe(16);
   },
