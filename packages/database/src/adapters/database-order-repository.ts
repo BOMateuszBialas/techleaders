@@ -2,6 +2,8 @@ import {
   ConflictError,
   InsufficientStockError,
   type CurrencyCode,
+  type CustomerOrderRecord,
+  type CustomerOrderSummaryRecord,
   type MarkPaidResult,
   type OrderRecord,
   type OrderRepositoryPort,
@@ -114,6 +116,45 @@ export class DatabaseOrderRepository implements OrderRepositoryPort {
     payment: { provider: PaymentProvider; reference: string },
   ): Promise<MarkPaidResult> {
     return withSanitizedErrors("Order payment", () => this.markPaidNow(orderId, payment));
+  }
+
+  async listForCustomer(customerId: string, limit: number): Promise<CustomerOrderSummaryRecord[]> {
+    return withSanitizedErrors("Customer order list", async () => {
+      const orders = await this.deps.em.find(
+        OrderSchema,
+        { customer: customerId },
+        { orderBy: { createdAt: "desc", id: "desc" }, limit },
+      );
+      return orders.map((order) => ({
+        id: order.id,
+        reference: order.publicReference,
+        status: order.status,
+        currency: order.currency,
+        totalMinor: order.totalMinor,
+        createdAt: order.createdAt,
+      }));
+    });
+  }
+
+  async findForCustomer(customerId: string, orderId: string): Promise<CustomerOrderRecord | null> {
+    // Personal data (contact and address): any driver error is sanitized (lesson 2026-10-16).
+    return withSanitizedErrors("Customer order read", async () => {
+      const order = await this.deps.em.findOne(OrderSchema, { id: orderId, customer: customerId });
+      const record = await this.load(order);
+      if (!order || !record) return null;
+      return {
+        ...record,
+        customer: {
+          customerName: order.customerName,
+          customerEmail: order.customerEmail,
+          shippingLine1: order.shippingLine1,
+          shippingLine2: order.shippingLine2 ?? null,
+          shippingCity: order.shippingCity,
+          shippingPostalCode: order.shippingPostalCode,
+          shippingCountry: order.shippingCountry,
+        },
+      };
+    });
   }
 
   private async markPaidNow(
