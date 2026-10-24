@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { money } from "@commerceos/core";
+import { CheckoutAccountNote } from "@/components/account/checkout-account-note";
 import { CartChanges } from "@/components/cart/cart-changes";
 import {
   CHECKOUT_HEADING,
@@ -13,6 +14,7 @@ import {
 import { CheckoutForm } from "@/components/checkout/checkout-form";
 import { OrderSummary } from "@/components/checkout/order-summary";
 import { acceptCartChanges } from "@/server/cart/cart.action";
+import { getCurrentCustomerId } from "@/server/customer-auth/require-customer";
 import { placeOrder } from "@/server/orders/order.action";
 import { loadCheckoutPage } from "./load-checkout-page";
 
@@ -23,6 +25,9 @@ export default function CheckoutPage() {
   return (
     <>
       <h1 className="text-3xl font-semibold tracking-tight">{CHECKOUT_HEADING}</h1>
+      <Suspense fallback={null}>
+        <LoadedCheckoutAccountNote />
+      </Suspense>
       <Suspense
         fallback={
           <div aria-label="Loading checkout" className="h-64 animate-pulse rounded bg-muted" />
@@ -32,6 +37,12 @@ export default function CheckoutPage() {
       </Suspense>
     </>
   );
+}
+
+/** "Sign in for order history" for a signed-out shopper (E07 spec A16), read per request (A23). */
+async function LoadedCheckoutAccountNote() {
+  const result = await getCurrentCustomerId();
+  return <CheckoutAccountNote signedIn={result.status === "customer"} />;
 }
 
 async function CheckoutContents() {

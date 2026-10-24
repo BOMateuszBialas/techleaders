@@ -20,11 +20,30 @@ import { describe, expect, it } from "vitest";
  *   a file goes through the guard is checked by that file's unit tests (one per export,
  *   invoked without a session).
  *
+ * The account area (E07 spec, Architecture) mirrors these rules with its own guard
+ * (`server/customer-auth/require-customer.ts`):
+ *
+ * - every page, layout or default file under `app/(storefront)/account/`, except the sign-in
+ *   and sign-up pages, must call `requireCustomerPage(`
+ * - every route handler under `app/api/account/` must use `customerApiHandler(`
+ * - the customer sign-up, sign-in and sign-out actions are a documented exception, like the
+ *   owner's (they create or end the session)
+ * - no crossing: admin entry points never import `require-customer`, account entry points never
+ *   import `require-admin`
+ * - `getCustomerAuth(` is called only in `server/customer-auth/` and the customer auth route;
+ *   `getAuth(` only in `server/auth/` and the owner auth route (plus their definitions in
+ *   `server/container.ts`)
+ *
+ * The inventory proves that a guard is imported or named, not that it runs on every path: each
+ * entry point also has behaviour tests (no session, wrong role, session-read failure).
+ *
  * Comments are stripped first, so a guard that only appears in a comment does not count.
  */
 const srcDir = fileURLToPath(new URL("../../", import.meta.url));
 
 const SIGN_IN_ACTIONS = "server/auth/auth.action.ts";
+/** Customer sign-up, sign-in and sign-out (E07): they create or end the customer session. */
+const CUSTOMER_AUTH_ACTIONS = "server/customer-auth/customer-auth.action.ts";
 /** Public storefront actions: they change only the caller's own cart cookie (cart spec A12). */
 const SHOPPER_ACTIONS = ["server/cart/cart.action.ts", "server/orders/order.action.ts"];
 const SOURCE = /\.(ts|tsx|js|jsx|mts|mjs)$/;
@@ -33,9 +52,26 @@ const TEST = /\.test\.[a-z]+$/;
 type Rule = {
   name: string;
   matches: (path: string, code: string) => boolean;
-  /** Any one of these calls counts as the guard. */
-  guards: string[];
-};
+} & (
+  | {
+      /** Any one of these calls counts as the guard. */
+      guards: string[];
+    }
+  | {
+      /** None of these may appear in a matching file. */
+      forbids: RegExp[];
+      /** How the failure reads: "<rule name> must not <what>". */
+      what: string;
+    }
+);
+
+const USE_SERVER = /^\s*["']use server["']/m;
+const isAdminArea = (path: string) => /^app\/(admin|api\/admin)\//.test(path);
+const isAccountArea = (path: string) => /^app\/(\(storefront\)\/account|api\/account)\//.test(path);
+const isAdminAction = (code: string) =>
+  USE_SERVER.test(code) && /\b(requireAdmin|runAdminAction)\(/.test(code);
+const REQUIRE_CUSTOMER_IMPORT = /from\s+["'][^"']*require-customer["']/;
+const REQUIRE_ADMIN_IMPORT = /from\s+["'][^"']*require-admin["']/;
 
 const RULES: Rule[] = [
   {
@@ -55,6 +91,7 @@ const RULES: Rule[] = [
     matches: (path, code) =>
       /^\s*["']use server["']/m.test(code) &&
       path !== SIGN_IN_ACTIONS &&
+      path !== CUSTOMER_AUTH_ACTIONS &&
       !SHOPPER_ACTIONS.includes(path),
     guards: ["requireAdmin(", "runAdminAction("],
   },
@@ -63,7 +100,61 @@ const RULES: Rule[] = [
     matches: (path) => SHOPPER_ACTIONS.includes(path),
     guards: ["runAction("],
   },
+  {
+    name: "account pages and layouts",
+    matches: (path) =>
+      /^app\/\(storefront\)\/account\/.*(page|layout|default)\.(tsx|jsx|ts|js)$/.test(path) &&
+      !/^app\/\(storefront\)\/account\/sign-(in|up)\//.test(path),
+    guards: ["requireCustomerPage("],
+  },
+  {
+    name: "account API routes",
+    matches: (path) => /^app\/api\/account\/.*route\.(ts|js)$/.test(path),
+    guards: ["customerApiHandler("],
+  },
+  {
+    name: "admin entry points",
+    matches: (path, code) => isAdminArea(path) || isAdminAction(code),
+    forbids: [REQUIRE_CUSTOMER_IMPORT],
+    what: "import require-customer",
+  },
+  {
+    name: "account entry points",
+    matches: (path) => isAccountArea(path),
+    forbids: [REQUIRE_ADMIN_IMPORT],
+    what: "import require-admin",
+  },
+  {
+    name: "files outside the customer auth module",
+    matches: (path) =>
+      !path.startsWith("server/customer-auth/") &&
+      !path.startsWith("app/api/customer-auth/") &&
+      path !== "server/container.ts",
+    forbids: [/\bgetCustomerAuth\(/],
+    what: "call getCustomerAuth",
+  },
+  {
+    name: "files outside the owner auth module",
+    matches: (path) =>
+      !path.startsWith("server/auth/") &&
+      !path.startsWith("app/api/auth/") &&
+      path !== "server/container.ts",
+    forbids: [/\bgetAuth\(/],
+    what: "call getAuth",
+  },
 ];
+
+function violates(rule: Rule, code: string): boolean {
+  return "guards" in rule
+    ? !rule.guards.some((guard) => code.includes(guard))
+    : rule.forbids.some((pattern) => pattern.test(code));
+}
+
+function describeViolation(rule: Rule): string {
+  return "guards" in rule
+    ? `${rule.name} must call ${rule.guards.map((guard) => guard.slice(0, -1)).join(" or ")}`
+    : `${rule.name} must not ${rule.what}`;
+}
 
 /** Removes block and line comments (good enough for a guard-presence check). */
 function stripComments(source: string): string {
@@ -74,11 +165,8 @@ function stripComments(source: string): string {
 function findUnguarded(files: Record<string, string>): string[] {
   return Object.entries(files).flatMap(([path, source]) => {
     const code = stripComments(source);
-    return RULES.filter(
-      (rule) => rule.matches(path, code) && !rule.guards.some((guard) => code.includes(guard)),
-    ).map(
-      (rule) =>
-        `${path} (${rule.name} must call ${rule.guards.map((guard) => guard.slice(0, -1)).join(" or ")})`,
+    return RULES.filter((rule) => rule.matches(path, code) && violates(rule, code)).map(
+      (rule) => `${path} (${describeViolation(rule)})`,
     );
   });
 }
@@ -118,6 +206,14 @@ describe("admin guard inventory", () => {
         "server/copilot/recommendation.action.ts",
         SIGN_IN_ACTIONS,
         ...SHOPPER_ACTIONS,
+        CUSTOMER_AUTH_ACTIONS,
+        "app/(storefront)/account/page.tsx",
+        "app/(storefront)/account/orders/page.tsx",
+        "app/(storefront)/account/sign-in/page.tsx",
+        "app/(storefront)/account/sign-up/page.tsx",
+        "app/api/auth/[...all]/route.ts",
+        "app/api/customer-auth/[...all]/route.ts",
+        "server/customer-auth/require-customer.ts",
       ]),
     );
     expect(findUnguarded(files)).toEqual([]);
@@ -153,6 +249,67 @@ describe("admin guard inventory", () => {
       "server/catalog/commented.action.ts (server actions must call requireAdmin or runAdminAction)",
       "server/cart/cart.action.ts (shopper actions must call runAction)",
       "server/cart/other.action.ts (server actions must call requireAdmin or runAdminAction)",
+    ]);
+  });
+
+  it("flags each kind of unguarded account entry point (E07)", () => {
+    expect(
+      findUnguarded({
+        "app/(storefront)/account/orders/page.tsx": "export default function Page() {}",
+        "app/(storefront)/account/layout.tsx": "export default function L() {}",
+        "app/(storefront)/account/@modal/default.tsx": "export default function D() {}",
+        "app/(storefront)/account/fake/page.tsx":
+          "// await requireCustomerPage();\nexport default 1",
+        "app/(storefront)/account/ok/page.tsx": "await requireCustomerPage();",
+        "app/(storefront)/account/sign-in/page.tsx": "public sign-in page",
+        "app/(storefront)/account/sign-up/page.tsx": "public sign-up page",
+        "app/api/account/orders/route.ts": "export const GET = apiHandler(...)",
+        "app/api/account/orders/[id]/route.ts": "export const GET = customerApiHandler(...)",
+        "server/customer-auth/customer-auth.action.ts": '"use server";',
+        "server/customer-auth/other.action.ts": '"use server";\nexport async function x() {}',
+      }),
+    ).toEqual([
+      "app/(storefront)/account/orders/page.tsx (account pages and layouts must call requireCustomerPage)",
+      "app/(storefront)/account/layout.tsx (account pages and layouts must call requireCustomerPage)",
+      "app/(storefront)/account/@modal/default.tsx (account pages and layouts must call requireCustomerPage)",
+      "app/(storefront)/account/fake/page.tsx (account pages and layouts must call requireCustomerPage)",
+      "app/api/account/orders/route.ts (account API routes must call customerApiHandler)",
+      "server/customer-auth/other.action.ts (server actions must call requireAdmin or runAdminAction)",
+    ]);
+  });
+
+  it("forbids crossing the owner and customer guards and auth instances (E07)", () => {
+    const importCustomer =
+      'import { getCurrentCustomer } from "@/server/customer-auth/require-customer";';
+    const importAdmin = 'import { getCurrentAdmin } from "@/server/auth/require-admin";';
+    expect(
+      findUnguarded({
+        "app/admin/(protected)/page.tsx": `await requireAdminPage();\n${importCustomer}`,
+        "app/api/admin/me/route.ts": `adminApiHandler(...);\n${importCustomer}`,
+        "server/catalog/x.action.ts": `"use server";\nrunAdminAction();\n${importCustomer}`,
+        "app/(storefront)/account/orders/page.tsx": `await requireCustomerPage();\n${importAdmin}`,
+        "app/api/account/orders/route.ts": `customerApiHandler(...);\n${importAdmin}`,
+        "app/(storefront)/account/sign-in/page.tsx": importAdmin,
+        "app/(storefront)/layout.tsx": "const auth = getCustomerAuth();",
+        "server/orders/order.action.ts": '"use server";\nrunAction();\ngetAuth();',
+        // Allowed: each module calls its own instance, the storefront may read the customer guard.
+        "server/customer-auth/customer-sign-in.ts": "getCustomerAuth().handler",
+        "app/api/customer-auth/[...all]/route.ts": "getCustomerAuth()",
+        "server/auth/sign-in.ts": "getAuth().handler",
+        "app/api/auth/[...all]/route.ts": "getAuth()",
+        "server/container.ts": "export function getAuth() {}\nexport function getCustomerAuth() {}",
+        "app/(storefront)/checkout/page.tsx": importCustomer,
+        "app/admin/sign-in/page.tsx": `${importAdmin}\n// ${importCustomer}`,
+      }),
+    ).toEqual([
+      "app/admin/(protected)/page.tsx (admin entry points must not import require-customer)",
+      "app/api/admin/me/route.ts (admin entry points must not import require-customer)",
+      "server/catalog/x.action.ts (admin entry points must not import require-customer)",
+      "app/(storefront)/account/orders/page.tsx (account entry points must not import require-admin)",
+      "app/api/account/orders/route.ts (account entry points must not import require-admin)",
+      "app/(storefront)/account/sign-in/page.tsx (account entry points must not import require-admin)",
+      "app/(storefront)/layout.tsx (files outside the customer auth module must not call getCustomerAuth)",
+      "server/orders/order.action.ts (files outside the owner auth module must not call getAuth)",
     ]);
   });
 });
