@@ -3,7 +3,7 @@
 ## .ai/specs/product-brief.md
 
 Backlog source: .ai/specs/product-brief.md
-Last filed: 2026-10-15
+Last filed: 2026-10-24
 
 | Id          | Issue | Title                                                                                       | Epic | Depends on                   | Adopted |
 | ----------- | ----- | ------------------------------------------------------------------------------------------- | ---- | ---------------------------- | ------- |
@@ -29,8 +29,17 @@ Last filed: 2026-10-15
 | E05-S02     | #26   | A store owner saves, dismisses or completes a recommendation, and the action is recorded    | #12  | E05-S01 (#25)                | no      |
 | E05-S03     | #27   | A store owner sees an explicit fallback when the AI provider is unavailable                 | #12  | E05-S01 (#25)                | no      |
 | E05-S04     | #28   | Copilot answers traffic, funnel and views-without-sales questions from fictional demo data  | #12  | E05-S01 (#25), E04-S03 (#24) | no      |
+| E07         | #91   | Customer accounts (D11)                                                                     | —    | E02-S02 (#17), E03-S01 (#19) | no      |
+| E07-S01     | #92   | A customer registers, signs in and signs out                                                | #91  | —                            | no      |
+| E07-S02     | #93   | A signed-in customer's order is attached to their account; guest checkout is unchanged      | #91  | E07-S01 (#92)                | no      |
+| E07-S03     | #94   | A customer sees the list and detail of "My orders"                                          | #91  | E07-S02 (#93)                | no      |
+| E07-S04     | #95   | Data isolation: customer A never sees customer B's order                                    | #91  | E07-S03 (#94)                | no      |
+| E07-S05     | #96   | Role separation: a customer never reaches the admin; an owner session is not a customer one | #91  | E07-S01 (#92)                | no      |
+| E07-S06     | #97   | Documentation and certificate evidence for customer accounts                                | #91  | E07-S04 (#95), E07-S05 (#96) | no      |
 
-Not filed (non-goals): N01–N05, quoted in #13.
+Not filed (non-goals): N01–N05, quoted in #13; N06 (D11).
+
+E07 filed on 2026-10-24 by `om-backlog`: epic #91, stories #92–#97. Spec: `.ai/specs/2026-10-24-customer-accounts.md` (PR #89).
 
 ### Where work starts
 
