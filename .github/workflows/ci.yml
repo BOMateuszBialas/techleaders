@@ -121,3 +121,12 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm run build-storybook
       - run: npm run test:storybook:themes
+      # The built Storybook, so a reviewer can open the design system without a local install.
+      - name: Upload the built Storybook
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: storybook-static
+          path: packages/app/storybook-static/
+          if-no-files-found: ignore
+          retention-days: 7
