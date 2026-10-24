@@ -10,7 +10,7 @@
 |---|---|---|
 | 0. Inwentaryzacja i plan | **zakończony** 2026-10-24 | ten plik, spec |
 | 1. Fundamenty | **zmergowany** (PR #99); pełna bramka zielona | log `.ai/runs/2026-10-24-design-system-stage-1.md` |
-| 2. Komponenty bazowe | **w toku:** partia 1, lista różnic względem bazy czeka na akceptację (gałąź `design/stage-2-batch-1`) | sekcja „Etap 2, partia 1” niżej; log `.ai/runs/2026-10-24-design-system-stage-2-batch-1.md` |
+| 2. Komponenty bazowe | **w toku:** partia 1 zaimplementowana na gałęzi `design/stage-2-batch-1` (PR do review właściciela); partie 2–4 nie rozpoczęte | sekcja „Etap 2, partia 1” niżej; log `.ai/runs/2026-10-24-design-system-stage-2-batch-1.md` |
 | 3. Komponenty produktu, wzorce, ekrany | przeniesiony do lekcji 08 (retrofit) | osobny spec |
 | 4. Strony, które uczą + `docs/design-system.md` | nie rozpoczęty | – |
 | 5. Sprawdzenie i raport | nie rozpoczęty | – |
@@ -249,6 +249,15 @@ Stories partii (szacunek): Button 10, Text link 6, Input 7, Textarea 5, Label 3,
 - **Q4 (retrofit, potrzebne do dokumentacji `action`):** „Add to cart” w karcie produktu na liście: czerwony `action` (wtedy na liście jest wiele czerwonych przycisków, wbrew zasadzie 2 „najwyżej jeden na widocznym obszarze”) czy neutralny `outline` w rozmiarze `sm`, a czerwień tylko na stronie produktu, w koszyku, checkoutcie i płatności? Rekomendacja: neutralny w karcie.
 - **Q5 (B1.1, B1.6):** potwierdzasz, że partia 1 nie zmienia miejsc użycia (także 4 CTA zakupu zostają grafitowe do retrofitu, a przycisk w trakcie wysyłki będzie chwilę szary)? Rekomendacja: tak.
 
+### Decyzje właściciela (2026-10-24)
+
+- **Q1 tak:** nowy token `--secondary-hover` (`--raw-gray-200` jasny, `--raw-gray-700` ciemny).
+- **Q2 tak:** tylko dopisek „(optional)” przy polach opcjonalnych, bez gwiazdki przy wymaganych.
+- **Q3:** etykieta w adminie 14 px.
+- **Q4:** „Add to cart” w karcie produktu neutralny (`outline`, `sm`); czerwony `action` tylko na stronie produktu, w koszyku, checkoutcie i płatności (zastosowanie w retroficie).
+- **Q5 tak:** partia 1 nie zmienia miejsc użycia.
+- **B1.1–B1.28:** przyjęte domyślnie zgodnie z rekomendacjami (w tym B1.17 usunięcie `xs` i `icon-xs`, B1.27 opis wykluczenia coverage, B1.28 job `storybook` w tym PR); właściciel może je cofnąć w review PR.
+
 ## Następny krok
 
-Akceptacja listy B1.1–B1.28 i odpowiedzi na Q1–Q5. Potem implementacja partii 1 w `design/stage-2-batch-1`: komponenty, stories z 13 sekcjami, job `storybook` w CI, pełna bramka, zrzuty 320 / 768 / 1440 px w obu motywach, PR.
+Review PR partii 1 przez właściciela (Storybook: Primitives, macierze stanów, oba motywy i gęstości). Po merge'u: partia 2 (Select, Checkbox, Radio group, Badge, Alert, Card), zaczynając od listy różnic względem bazy.
