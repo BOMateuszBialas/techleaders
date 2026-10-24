@@ -1,4 +1,5 @@
 export * from "./domain/auth/admin";
+export * from "./domain/customers/customer-role";
 export * from "./domain/cart/cart";
 export * from "./domain/copilot/copilot-intent";
 export * from "./domain/copilot/copilot-recommendation";
