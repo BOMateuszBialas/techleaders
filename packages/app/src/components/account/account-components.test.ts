@@ -5,7 +5,7 @@ import { ACCOUNT_COPY } from "./account-copy";
 import { AccountHeaderLink } from "./account-header-link";
 import { AccountOrdersView } from "./account-orders-view";
 import { CheckoutAccountNote } from "./checkout-account-note";
-import { CustomerAuthCard } from "./customer-auth-card";
+import { CustomerAuthCard, CustomerAuthCardSkeleton } from "./customer-auth-card";
 
 const action = async () => {};
 const render = (element: Parameters<typeof renderToStaticMarkup>[0]) =>
@@ -71,6 +71,13 @@ describe("CustomerAuthCard", () => {
   });
 });
 
+describe("CustomerAuthCardSkeleton", () => {
+  it("is a placeholder without any form, so no form without from=checkout can be submitted", () => {
+    const html = render(createElement(CustomerAuthCardSkeleton));
+    expect(html).toBe('<div aria-label="Loading"></div>');
+  });
+});
+
 describe("AccountOrdersView", () => {
   it("shows the signed-in email, a sign-out button and the empty state", () => {
     const html = render(
@@ -89,7 +96,7 @@ describe("AccountHeaderLink", () => {
       createElement(AccountHeaderLink, { signedIn: false, signOutAction: action }),
     );
     expect(html).toMatch(
-      /href="\/account\/sign-in"><svg[^>]*>(<path[^>]*><\/path>)*<\/svg> Sign in</,
+      /<a href="\/account\/sign-in"><svg[^>]*>(<path[^>]*><\/path>)*<\/svg><span>Sign in<\/span><\/a>/,
     );
     expect(html).not.toContain("My orders");
     expect(html).not.toContain("<form");
@@ -100,10 +107,21 @@ describe("AccountHeaderLink", () => {
       createElement(AccountHeaderLink, { signedIn: true, signOutAction: action }),
     );
     expect(html).toMatch(
-      /href="\/account\/orders"><svg[^>]*>(<path[^>]*><\/path>)*<\/svg> My orders</,
+      /<a href="\/account\/orders"><svg[^>]*>(<path[^>]*><\/path>)*<\/svg><span>My orders<\/span><\/a>/,
     );
-    expect(html).toMatch(/<form[^>]*><button type="submit"[^>]*>Sign out<\/button><\/form>/);
+    expect(html).toMatch(
+      /<form[^>]*><button type="submit"><svg[^>]*>(<path[^>]*><\/path>)*<\/svg><span>Sign out<\/span><\/button><\/form>/,
+    );
     expect(html).not.toContain('href="/account/sign-in"');
+  });
+
+  it("keeps the labels for screen readers while a phone shows only the icons", () => {
+    const html = renderToStaticMarkup(
+      createElement(AccountHeaderLink, { signedIn: true, signOutAction: action }),
+    );
+    expect(html.match(/<span class="sr-only sm:not-sr-only sm:whitespace-nowrap">/g)).toHaveLength(
+      2,
+    );
   });
 });
 

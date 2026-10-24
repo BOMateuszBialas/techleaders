@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { CustomerAuthCard } from "@/components/account/customer-auth-card";
+import {
+  CustomerAuthCard,
+  CustomerAuthCardSkeleton,
+} from "@/components/account/customer-auth-card";
 import { signUpCustomer } from "@/server/customer-auth/customer-auth.action";
 import {
   customerReturnPath,
@@ -13,22 +16,14 @@ import { getCurrentCustomerId } from "@/server/customer-auth/require-customer";
 export const metadata: Metadata = { title: "Create an account", robots: { index: false } };
 
 /**
- * Customer sign-up (E07 spec, UI/UX): email and password only (A7). The card first renders
- * statically; the error and the `from=checkout` code come from the request inside `<Suspense>`.
+ * Customer sign-up (E07 spec, UI/UX): email and password only (A7). The form renders inside
+ * `<Suspense>` with the request's error and `from=checkout` code; the fallback is a placeholder,
+ * never a form without `from`.
  * A signed-in customer is sent on to "My orders" (or back to checkout).
  */
 export default function CustomerSignUpPage({ searchParams }: PageProps<"/account/sign-up">) {
   return (
-    <Suspense
-      fallback={
-        <CustomerAuthCard
-          mode="sign-up"
-          action={signUpCustomer}
-          error={null}
-          fromCheckout={false}
-        />
-      }
-    >
+    <Suspense fallback={<CustomerAuthCardSkeleton />}>
       <LoadedSignUp searchParams={searchParams} />
     </Suspense>
   );

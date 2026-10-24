@@ -36,6 +36,19 @@ const MODES = {
 } as const;
 
 /**
+ * What the auth pages show while the request-time card streams in: a placeholder, not a form,
+ * so nobody can submit a form that lacks the request's `from=checkout` code.
+ */
+export function CustomerAuthCardSkeleton() {
+  return (
+    <div
+      aria-label="Loading"
+      className="mx-auto h-96 w-full max-w-sm animate-pulse rounded-xl bg-muted"
+    />
+  );
+}
+
+/**
  * Customer sign-in or sign-up card (E07 spec, UI/UX): email and password only (A7), a generic
  * `role="alert"` error, links between the two pages and "Continue as a guest". A plain form
  * posting to a server action, so it works without client JavaScript; errors come back as fixed

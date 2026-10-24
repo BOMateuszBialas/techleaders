@@ -1,4 +1,4 @@
-import { IconUser } from "@tabler/icons-react";
+import { IconLogout, IconUser } from "@tabler/icons-react";
 import Link from "next/link";
 import { ACCOUNT_COPY } from "./account-copy";
 
@@ -8,8 +8,10 @@ export type AccountHeaderLinkProps = {
   signOutAction: () => void | Promise<void>;
 };
 
-const LINK_CLASS =
-  "inline-flex items-center gap-1.5 rounded-md border px-3 py-1 text-sm whitespace-nowrap hover:bg-muted focus-visible:bg-muted";
+const CONTROL_CLASS =
+  "inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-sm whitespace-nowrap hover:bg-muted focus-visible:bg-muted sm:px-3";
+/** On a phone only the icon shows (the header row must fit 390 px); the name stays for readers. */
+const LABEL_CLASS = "sr-only sm:not-sr-only sm:whitespace-nowrap";
 
 /**
  * The storefront header's account entry (spec A21): "Sign in" for a signed-out shopper (also
@@ -19,22 +21,22 @@ const LINK_CLASS =
 export function AccountHeaderLink({ signedIn, signOutAction }: AccountHeaderLinkProps) {
   if (!signedIn) {
     return (
-      <Link href="/account/sign-in" className={LINK_CLASS}>
-        <IconUser aria-hidden="true" className="size-4" /> {ACCOUNT_COPY.signIn}
+      <Link href="/account/sign-in" className={CONTROL_CLASS}>
+        <IconUser aria-hidden="true" className="size-4" />
+        <span className={LABEL_CLASS}>{ACCOUNT_COPY.signIn}</span>
       </Link>
     );
   }
   return (
     <div className="flex items-center gap-2">
-      <Link href="/account/orders" className={LINK_CLASS}>
-        <IconUser aria-hidden="true" className="size-4" /> {ACCOUNT_COPY.myOrders}
+      <Link href="/account/orders" className={CONTROL_CLASS}>
+        <IconUser aria-hidden="true" className="size-4" />
+        <span className={LABEL_CLASS}>{ACCOUNT_COPY.myOrders}</span>
       </Link>
       <form action={signOutAction}>
-        <button
-          type="submit"
-          className="text-sm whitespace-nowrap text-muted-foreground underline-offset-4 hover:underline"
-        >
-          {ACCOUNT_COPY.signOut}
+        <button type="submit" className={CONTROL_CLASS}>
+          <IconLogout aria-hidden="true" className="size-4" />
+          <span className={LABEL_CLASS}>{ACCOUNT_COPY.signOut}</span>
         </button>
       </form>
     </div>

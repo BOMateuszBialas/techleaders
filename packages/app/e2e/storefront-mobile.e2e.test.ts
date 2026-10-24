@@ -1,6 +1,7 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { z } from "zod";
 import { ARTIFACTS_DIR, useBrowser } from "./support/browser-test";
+import { useCustomerSession } from "./support/sign-in";
 
 /** Each storefront page with text from its streamed content: widths are measured once it has rendered. */
 const PAGES = [
@@ -10,6 +11,8 @@ const PAGES = [
   { path: "/products/vortex-wireless-mouse", loaded: "Add to cart" },
   { path: "/cart", loaded: "Your cart" },
   { path: "/orders/lookup", loaded: "Find your order" },
+  { path: "/account/sign-in", loaded: "Sign in to your account" },
+  { path: "/account/sign-up", loaded: "Already have an account?" },
 ];
 
 /**
@@ -47,5 +50,22 @@ describe("storefront at 390 px", () => {
     await browser().waitForText("Vortex Wireless Mouse");
     // QA evidence; the folder is git-ignored and CI uploads it only on failure.
     await browser().screenshot(`${ARTIFACTS_DIR}/storefront-home-390.png`);
+  });
+
+  // E07 A21: the signed-in header adds "My orders" and "Sign out"; both stay in view on a phone.
+  it("keeps the signed-in customer header within the viewport", async () => {
+    await useCustomerSession(browser(), "a");
+    await browser().open("/account/orders");
+    await browser().waitForText("You have no orders yet.");
+    const measured = z
+      .object({ scrollWidth: z.number(), innerWidth: z.number(), signOutRight: z.number() })
+      .parse(
+        await browser().evaluate(
+          "({ scrollWidth: document.documentElement.scrollWidth, innerWidth: window.innerWidth, signOutRight: [...document.querySelectorAll('header button')].find((b) => b.textContent.includes('Sign out')).getBoundingClientRect().right })",
+        ),
+      );
+    expect(measured.scrollWidth).toBe(measured.innerWidth);
+    expect(measured.signOutRight).toBeLessThanOrEqual(measured.innerWidth);
+    expect((await layout()).cartRight).toBeLessThanOrEqual(measured.innerWidth);
   });
 });

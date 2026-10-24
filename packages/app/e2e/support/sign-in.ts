@@ -42,6 +42,8 @@ export async function useCustomerSession(browser: BrowserSession, customer: "a" 
 /** Signs a customer in through the real form on `/account/sign-in`. */
 export async function signInAsCustomer(browser: BrowserSession, email: string, password: string) {
   await browser.open("/account/sign-in");
+  // The form streams in at request time (it carries `from`): wait for it, not the placeholder.
+  await browser.waitForText("Sign in to your account");
   await browser.fillLabel("Email", email);
   await browser.fillLabel("Password", password);
   await browser.clickRole("button", "Sign in");
