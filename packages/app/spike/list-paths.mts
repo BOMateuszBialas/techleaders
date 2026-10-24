@@ -1,0 +1,10 @@
+import { betterAuth } from "better-auth";
+import { nextCookies } from "better-auth/next-js";
+import pg from "pg";
+const pool = new pg.Pool({ connectionString: "postgres://x:y@127.0.0.1:1/none" });
+pool.on("error", () => {});
+const auth = betterAuth({ database: pool, baseURL: "http://localhost:3000", basePath: "/api/customer-auth", secret: "s".repeat(32), emailAndPassword: { enabled: true }, plugins: [nextCookies()], logger: { disabled: true } });
+const rows = Object.entries(auth.api).map(([k, e]: [string, any]) => `${k}\t${e.path}\t${JSON.stringify(e.options?.method)}\t${e.options?.metadata?.SERVER_ONLY ? "SERVER_ONLY" : ""}`);
+console.log(rows.join("\n"));
+await pool.end().catch(() => {});
+process.exit(0);

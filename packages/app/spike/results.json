@@ -1,0 +1,458 @@
+{
+  "g.toBeCreated": [
+    "customer_users",
+    "customer_sessions",
+    "customer_accounts",
+    "customer_verifications",
+    "customer_rate_limits"
+  ],
+  "g.toBeAdded": [],
+  "a.schemaLogs": [],
+  "b.signUp": {
+    "status": 200,
+    "setCookie": [
+      "commerceos-customer.session_token=fHcSk627NoJWi8cr01YwuG4tSxx8kt2Z.z5%2FbJHT0B0Degv2V6CwgLFJnPV7IRJo19EJK7kG9ieU%3D; Max-Age=28800; Path=/; HttpOnly; SameSite=Lax"
+    ],
+    "body": {
+      "token": "fHcSk627NoJWi8cr01YwuG4tSxx8kt2Z",
+      "user": {
+        "name": "Customer",
+        "email": "alice@e07-spike.test",
+        "emailVerified": false,
+        "image": null,
+        "createdAt": "2026-10-24T14:28:47.696Z",
+        "updatedAt": "2026-10-24T14:28:47.696Z",
+        "role": "customer",
+        "id": "b4f401a6-db2b-4a3c-922e-fd3dad523c01"
+      }
+    }
+  },
+  "b.signUpWithRoleOwner": {
+    "status": 200,
+    "body": "{\"token\":\"MMUGVfUot6r8dJVgvmsTmLfHvCldEJ9t\",\"user\":{\"name\":\"Customer\",\"email\":\"mallory@e07-spike.test\",\"emailVerified\":false,\"image\":null,\"createdAt\":\"2026-10-24T14:28:47.762Z\",\"updatedAt\":\"2026-10-24T14:28:47.762Z\",\"role\":\"customer\",\"id\":\"78e2bbd9-60fc-4319-bdb8-1ad783e5c018\"}}",
+    "row": {
+      "id": "78e2bbd9-60fc-4319-bdb8-1ad783e5c018",
+      "role": "customer",
+      "name": "Customer",
+      "image": null
+    }
+  },
+  "b.signUpWithNameAndImage": {
+    "status": 200,
+    "row": {
+      "id": "842ccdc4-83b5-4299-aa36-fcf6522d92bf",
+      "role": "customer",
+      "name": "Customer",
+      "image": null
+    }
+  },
+  "b.directInsertOwner": "23514 customer_users_role_check",
+  "c": {
+    "ownerCookieOnCustomer": null,
+    "customerCookieOnOwner": null,
+    "ownerTokenUnderCustomerName": null,
+    "customerTokenUnderOwnerName": null,
+    "ownerTokenUnderCustomerNameSharedSecret": null,
+    "bothCookies": {
+      "customer": "alice@e07-spike.test",
+      "owner": "owner@e07-spike.test"
+    }
+  },
+  "c.ownerTokenResignedWithCustomerSecret": null,
+  "c.controlCustomerTokenResigned": "alice@e07-spike.test",
+  "revocation": {
+    "viaApi": null,
+    "httpStatus": 200,
+    "httpBody": "null"
+  },
+  "e.shared": {
+    "signInStatuses": [
+      401,
+      401,
+      401,
+      401,
+      401,
+      401,
+      401,
+      401,
+      401,
+      401,
+      401,
+      401,
+      401,
+      401,
+      401,
+      401,
+      401,
+      401,
+      401,
+      401,
+      429
+    ],
+    "signUpStatuses": [
+      400,
+      400,
+      400,
+      400,
+      400,
+      400,
+      400,
+      400,
+      400,
+      400,
+      400,
+      400,
+      400,
+      400,
+      400,
+      400,
+      400,
+      400,
+      400,
+      400,
+      429
+    ],
+    "ownerSignInAfterFlood": 200,
+    "customerRateLimitRows": [
+      {
+        "key": "127.0.0.1|/sign-in/email",
+        "count": 20
+      },
+      {
+        "key": "127.0.0.1|/sign-up/email",
+        "count": 20
+      }
+    ],
+    "adminRateLimitRows": [
+      {
+        "key": "127.0.0.1|/sign-in/email",
+        "count": 1
+      }
+    ]
+  },
+  "e.trustedHeader": {
+    "perIp": [
+      401,
+      401,
+      401,
+      401,
+      401,
+      429
+    ],
+    "otherIp": 401,
+    "signUpPerIp": [
+      400,
+      400,
+      400,
+      400,
+      400,
+      429
+    ]
+  },
+  "f": {
+    "existing": {
+      "status": 422,
+      "body": "{\"message\":\"User already exists. Use another email.\",\"code\":\"USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL\"}"
+    },
+    "fresh": {
+      "status": 200,
+      "body": "{\"token\":\"Wkplo4tocsd3M1dUjUvtTGfhT7wNZJqx\",\"user\":{\"name\":\"Customer\",\"email\":\"fresh7@e07-spike.test\",\"emailVerified\":false,\"image\":null,\"createdAt\":\"2026-10-24T14:28:50.207Z\",\"updatedAt\":\"2026-10-24T14:28:50.207Z\",\"role\":\"customer\",\"id\":\"<uuid>\"}}"
+    },
+    "medianMs": {
+      "existing": 5.538000000000011,
+      "fresh": 63.785699999999906
+    },
+    "samplesMs": {
+      "existing": [
+        4.958999999999833,
+        5.56439999999975,
+        4.857500000000073,
+        5.152400000000398,
+        5.5612999999998465,
+        5.735900000000129,
+        5.353500000000167,
+        5.538000000000011
+      ],
+      "fresh": [
+        66.36509999999998,
+        63.95190000000002,
+        60.14669999999978,
+        62.48309999999992,
+        63.54940000000033,
+        65.88450000000012,
+        63.30899999999974,
+        63.785699999999906
+      ]
+    }
+  },
+  "h.allPaths": [
+    "/sign-in/social",
+    "/callback/:id",
+    "/get-session",
+    "/sign-out",
+    "/sign-up/email",
+    "/sign-in/email",
+    "/reset-password",
+    "/verify-password",
+    "/verify-email",
+    "/send-verification-email",
+    "/change-email",
+    "/change-password",
+    "/update-session",
+    "/update-user",
+    "/delete-user",
+    "/request-password-reset",
+    "/reset-password/:token",
+    "/list-sessions",
+    "/revoke-session",
+    "/revoke-sessions",
+    "/revoke-other-sessions",
+    "/link-social",
+    "/list-accounts",
+    "/delete-user/callback",
+    "/unlink-account",
+    "/refresh-token",
+    "/get-access-token",
+    "/account-info",
+    "/ok",
+    "/error"
+  ],
+  "h.unlisted": [],
+  "h.disabledStatuses": {
+    "GET /sign-in/social": 404,
+    "POST /sign-in/social": 404,
+    "GET /reset-password": 404,
+    "POST /reset-password": 404,
+    "GET /verify-password": 404,
+    "POST /verify-password": 404,
+    "GET /verify-email": 404,
+    "POST /verify-email": 404,
+    "GET /send-verification-email": 404,
+    "POST /send-verification-email": 404,
+    "GET /change-email": 404,
+    "POST /change-email": 404,
+    "GET /change-password": 404,
+    "POST /change-password": 404,
+    "GET /update-session": 404,
+    "POST /update-session": 404,
+    "GET /update-user": 404,
+    "POST /update-user": 404,
+    "GET /delete-user": 404,
+    "POST /delete-user": 404,
+    "GET /request-password-reset": 404,
+    "POST /request-password-reset": 404,
+    "GET /list-sessions": 404,
+    "POST /list-sessions": 404,
+    "GET /revoke-session": 404,
+    "POST /revoke-session": 404,
+    "GET /revoke-sessions": 404,
+    "POST /revoke-sessions": 404,
+    "GET /revoke-other-sessions": 404,
+    "POST /revoke-other-sessions": 404,
+    "GET /link-social": 404,
+    "POST /link-social": 404,
+    "GET /list-accounts": 404,
+    "POST /list-accounts": 404,
+    "GET /delete-user/callback": 404,
+    "POST /delete-user/callback": 404,
+    "GET /unlink-account": 404,
+    "POST /unlink-account": 404,
+    "GET /refresh-token": 404,
+    "POST /refresh-token": 404,
+    "GET /get-access-token": 404,
+    "POST /get-access-token": 404,
+    "GET /account-info": 404,
+    "POST /account-info": 404,
+    "GET /ok": 404,
+    "POST /ok": 404,
+    "GET /error": 404,
+    "POST /error": 404
+  },
+  "h.bypassVariants": {
+    "/update-user/": 404,
+    "/update-user//": 404,
+    "/UPDATE-USER": 404,
+    "//update-user": 404,
+    "/%75pdate-user": 404,
+    "/update-user?x=1": 404,
+    "/./update-user": 404,
+    "/x/../update-user": 404,
+    "/update-user%2F": 404,
+    "/update-user;x": 404,
+    "/change-email/": 404,
+    "/list-sessions/": 404
+  },
+  "h.parameterised": {
+    "parameterised": [
+      "/callback/:id",
+      "/reset-password/:token"
+    ],
+    "paramStatuses": {
+      "GET /callback/google": {
+        "status": 302,
+        "location": "http://localhost:3000/api/customer-auth/error?error=state_not_found"
+      },
+      "POST /callback/google": {
+        "status": 302,
+        "location": "http://localhost:3000/api/customer-auth/callback/google?"
+      },
+      "GET /reset-password/abc": {
+        "status": 400,
+        "location": null
+      }
+    }
+  },
+  "h.enabled": {
+    "getSession": 200
+  },
+  "h.rowAfter": {
+    "row": {
+      "id": "b4f401a6-db2b-4a3c-922e-fd3dad523c01",
+      "role": "customer",
+      "name": "Customer",
+      "image": null
+    },
+    "email": {
+      "email": "alice@e07-spike.test"
+    }
+  },
+  "origin": {
+    "signIn": 403,
+    "signUp": 403
+  },
+  "j": {
+    "customer_accounts": {
+      "status": 500,
+      "body": "",
+      "setCookie": [],
+      "orphanUserRows": 0
+    },
+    "customer_sessions": {
+      "status": 500,
+      "body": "",
+      "setCookie": [],
+      "orphanUserRows": 0
+    }
+  },
+  "concurrency": {
+    "a": "alice@e07-spike.test",
+    "b": "bob@e07-spike.test"
+  },
+  "d.ownerSignOut": {
+    "status": 200,
+    "setCookieNames": [
+      "better-auth.session_token",
+      "better-auth.session_data",
+      "better-auth.dont_remember"
+    ],
+    "after": {
+      "owner": null,
+      "customer": "alice@e07-spike.test"
+    }
+  },
+  "logs.customer": [
+    "customer warn [better-auth:customer] Invalid password",
+    "customer warn [better-auth:customer] Invalid password",
+    "customer warn [better-auth:customer] Invalid password",
+    "customer warn [better-auth:customer] Invalid password",
+    "customer warn [better-auth:customer] Invalid password",
+    "customer warn [better-auth:customer] Invalid password",
+    "customer warn [better-auth:customer] Invalid password",
+    "customer warn [better-auth:customer] Invalid password",
+    "customer warn [better-auth:customer] Invalid password",
+    "customer warn [better-auth:customer] Invalid password",
+    "customer warn [better-auth:customer] Invalid password",
+    "customer warn [better-auth:customer] Invalid password",
+    "customer warn [better-auth:customer] Invalid password",
+    "customer warn [better-auth:customer] Invalid password",
+    "customer warn [better-auth:customer] Invalid password",
+    "customer warn [better-auth:customer] Invalid password",
+    "customer warn [better-auth:customer] Invalid password",
+    "customer warn [better-auth:customer] Invalid password",
+    "customer warn [better-auth:customer] Invalid password",
+    "customer warn [better-auth:customer] Invalid password",
+    "customer warn [better-auth:customer] Password is too short",
+    "customer warn [better-auth:customer] Password is too short",
+    "customer warn [better-auth:customer] Password is too short",
+    "customer warn [better-auth:customer] Password is too short",
+    "customer warn [better-auth:customer] Password is too short",
+    "customer warn [better-auth:customer] Password is too short",
+    "customer warn [better-auth:customer] Password is too short",
+    "customer warn [better-auth:customer] Password is too short",
+    "customer warn [better-auth:customer] Password is too short",
+    "customer warn [better-auth:customer] Password is too short",
+    "customer warn [better-auth:customer] Password is too short",
+    "customer warn [better-auth:customer] Password is too short",
+    "customer warn [better-auth:customer] Password is too short",
+    "customer warn [better-auth:customer] Password is too short",
+    "customer warn [better-auth:customer] Password is too short",
+    "customer warn [better-auth:customer] Password is too short",
+    "customer warn [better-auth:customer] Password is too short",
+    "customer warn [better-auth:customer] Password is too short",
+    "customer warn [better-auth:customer] Password is too short",
+    "customer warn [better-auth:customer] Password is too short",
+    "customer error [better-auth:customer] State not found",
+    "customer error [better-auth:customer] Invalid origin: https://evil.example",
+    "customer error [better-auth:customer] Invalid origin: https://evil.example",
+    "customer error [better-auth:customer] error",
+    "customer error [better-auth:customer] error"
+  ],
+  "logs": [
+    "customer warn [better-auth:customer] Invalid password",
+    "customer warn [better-auth:customer] Invalid password",
+    "customer warn [better-auth:customer] Invalid password",
+    "customer warn [better-auth:customer] Invalid password",
+    "customer warn [better-auth:customer] Invalid password",
+    "customer warn [better-auth:customer] Invalid password",
+    "customer warn [better-auth:customer] Invalid password",
+    "customer warn [better-auth:customer] Invalid password",
+    "customer warn [better-auth:customer] Invalid password",
+    "customer warn [better-auth:customer] Invalid password",
+    "customer warn [better-auth:customer] Invalid password",
+    "customer warn [better-auth:customer] Invalid password",
+    "customer warn [better-auth:customer] Invalid password",
+    "customer warn [better-auth:customer] Invalid password",
+    "customer warn [better-auth:customer] Invalid password",
+    "customer warn [better-auth:customer] Invalid password",
+    "customer warn [better-auth:customer] Invalid password",
+    "customer warn [better-auth:customer] Invalid password",
+    "customer warn [better-auth:customer] Invalid password",
+    "customer warn [better-auth:customer] Invalid password",
+    "customer warn [better-auth:customer] Password is too short",
+    "customer warn [better-auth:customer] Password is too short",
+    "customer warn [better-auth:customer] Password is too short",
+    "customer warn [better-auth:customer] Password is too short",
+    "customer warn [better-auth:customer] Password is too short",
+    "customer warn [better-auth:customer] Password is too short",
+    "customer warn [better-auth:customer] Password is too short",
+    "customer warn [better-auth:customer] Password is too short",
+    "customer warn [better-auth:customer] Password is too short",
+    "customer warn [better-auth:customer] Password is too short",
+    "customer warn [better-auth:customer] Password is too short",
+    "customer warn [better-auth:customer] Password is too short",
+    "customer warn [better-auth:customer] Password is too short",
+    "customer warn [better-auth:customer] Password is too short",
+    "customer warn [better-auth:customer] Password is too short",
+    "customer warn [better-auth:customer] Password is too short",
+    "customer warn [better-auth:customer] Password is too short",
+    "customer warn [better-auth:customer] Password is too short",
+    "customer warn [better-auth:customer] Password is too short",
+    "customer warn [better-auth:customer] Password is too short",
+    "proxied warn [better-auth:customer] Invalid password",
+    "proxied warn [better-auth:customer] Invalid password",
+    "proxied warn [better-auth:customer] Invalid password",
+    "proxied warn [better-auth:customer] Invalid password",
+    "proxied warn [better-auth:customer] Invalid password",
+    "proxied warn [better-auth:customer] Invalid password",
+    "proxied warn [better-auth:customer] Password is too short",
+    "proxied warn [better-auth:customer] Password is too short",
+    "proxied warn [better-auth:customer] Password is too short",
+    "proxied warn [better-auth:customer] Password is too short",
+    "proxied warn [better-auth:customer] Password is too short",
+    "customer error [better-auth:customer] State not found",
+    "customer error [better-auth:customer] Invalid origin: https://evil.example",
+    "customer error [better-auth:customer] Invalid origin: https://evil.example",
+    "customer error [better-auth:customer] error",
+    "customer error [better-auth:customer] error"
+  ]
+}

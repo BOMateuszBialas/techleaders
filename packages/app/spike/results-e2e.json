@@ -1,0 +1,98 @@
+{
+  "h": {
+    "POST /update-user": 404,
+    "POST /change-email": 404,
+    "GET /list-sessions": 404,
+    "POST /revoke-sessions": 404,
+    "GET /callback/google": 404,
+    "POST /callback/google": 404,
+    "GET /reset-password/abc": 404,
+    "GET /ok": 404,
+    "GET /sign-in/email": 404,
+    "GET /sign-out": 404,
+    "POST /get-session": 404,
+    "POST /update-user/": 404,
+    "POST /UPDATE-USER": 404,
+    "POST //update-user": 404,
+    "POST /%75pdate-user": 404,
+    "GET /get-session": 200
+  },
+  "d.both": {
+    "status": 303,
+    "location": "/spike-e07?customer=200&owner=200",
+    "setCookie": [
+      "commerceos-customer.session_token=<value>; Path=/; Expires=Sat, 24 Oct 2026 22:28:18 GMT; Max-Age=28800; HttpOnly; SameSite=lax",
+      "better-auth.session_token=<value>; Path=/; Expires=Sat, 24 Oct 2026 22:28:18 GMT; Max-Age=28800; HttpOnly; SameSite=lax"
+    ],
+    "sessions": {
+      "customer": "a@e07-spike.test",
+      "owner": "owner@e2e.test"
+    }
+  },
+  "d.renew": {
+    "status": 303,
+    "setCookie": [
+      "better-auth.session_token=<value>; Path=/; Expires=Sat, 24 Oct 2026 22:28:18 GMT; Max-Age=28800; HttpOnly; SameSite=lax",
+      "commerceos-customer.session_token=<value>; Path=/; Expires=Sat, 24 Oct 2026 22:28:18 GMT; Max-Age=28800; HttpOnly; SameSite=lax"
+    ],
+    "ownerSecondsLeftAfter": "28800",
+    "sessions": {
+      "customer": "a@e07-spike.test",
+      "owner": "owner@e2e.test"
+    }
+  },
+  "d.signOut": {
+    "status": 303,
+    "setCookie": [
+      "commerceos-customer.session_token=<value>; Path=/; Max-Age=0; HttpOnly; SameSite=lax",
+      "commerceos-customer.session_data=<value>; Path=/; Max-Age=0; HttpOnly; SameSite=lax",
+      "commerceos-customer.dont_remember=<value>; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+    ],
+    "after": {
+      "customer": null,
+      "owner": "owner@e2e.test"
+    },
+    "oldCookiesAfter": {
+      "customer": null,
+      "owner": "owner@e2e.test"
+    }
+  },
+  "i": {
+    "requests": 64,
+    "leaks": 0,
+    "lastRound": [
+      "html /spike-e07 A: page: customer=a@e07-spike.test owner=none",
+      "rsc /spike-e07 A: page: customer=a@e07-spike.test owner=none",
+      "html /spike-e07 B: page: customer=b@e07-spike.test owner=none",
+      "rsc /spike-e07 B: page: customer=b@e07-spike.test owner=none",
+      "html /spike-e07 none: page: customer=none owner=none\\",
+      "rsc /spike-e07 none: page: customer=none owner=none",
+      "html /spike-e07 owner: page: customer=none owner=owner@e2e.test",
+      "rsc /spike-e07 owner: page: customer=none owner=owner@e2e.test",
+      "html /spike-e07/other A: other: customer=a@e07-spike.test owner=none",
+      "rsc /spike-e07/other A: other: customer=a@e07-spike.test owner=none",
+      "html /spike-e07/other B: other: customer=b@e07-spike.test owner=none",
+      "rsc /spike-e07/other B: other: customer=b@e07-spike.test owner=none",
+      "html /spike-e07/other none: other: customer=none owner=none\\",
+      "rsc /spike-e07/other none: other: customer=none owner=none",
+      "html /spike-e07/other owner: other: customer=none owner=owner@e2e.test",
+      "rsc /spike-e07/other owner: other: customer=none owner=owner@e2e.test"
+    ],
+    "prefetchWithCookieA": {
+      "status": 404,
+      "containsAEmail": false,
+      "containsBEmail": false
+    }
+  },
+  "browser": {
+    "steps": {
+      "1 A signed in": "layout: customer=a@e07-spike.test owner=none\n\nE07 spike\n\npage: customer=a@e07-spike.test owner=none\n\nOther page\nCustomer sign in\nCustomer sign in and renew owner\nBoth sign in\nCustomer sign out | layout: customer=a@e07-spike.test owner=none",
+      "2 A other (client nav)": "layout: customer=a@e07-spike.test owner=none\n\nE07 spike other\n\nother: customer=a@e07-spike.test owner=none\n\nSpike home | layout: customer=a@e07-spike.test owner=none",
+      "3 A signed out": "layout: customer=none owner=none\n\nE07 spike\n\npage: customer=none owner=none\n\nOther page\nCustomer sign in\nCustomer sign in and renew owner\nBoth sign in\nCustomer sign out | layout: customer=none owner=none",
+      "4 B signed in": "layout: customer=b@e07-spike.test owner=none\n\nE07 spike\n\npage: customer=b@e07-spike.test owner=none\n\nOther page\nCustomer sign in\nCustomer sign in and renew owner\nBoth sign in\nCustomer sign out | layout: customer=b@e07-spike.test owner=none",
+      "5 B other (client nav)": "layout: customer=b@e07-spike.test owner=none\n\nE07 spike other\n\nother: customer=b@e07-spike.test owner=none\n\nSpike home | layout: customer=b@e07-spike.test owner=none",
+      "6 B back button": "layout: customer=b@e07-spike.test owner=none\n\nE07 spike\n\npage: customer=b@e07-spike.test owner=none\n\nOther page\nCustomer sign in\nCustomer sign in and renew owner\nBoth sign in\nCustomer sign out | layout: customer=b@e07-spike.test owner=none"
+    },
+    "aEmailInFinalDom": false
+  }
+}

@@ -29,6 +29,8 @@ const envSchema = z.object({
     .transform((value) => value === "true"),
   /** Signs and encrypts Better Auth cookies and tokens. Generate with `openssl rand -base64 32`. */
   BETTER_AUTH_SECRET: z.string().min(32, "must be at least 32 characters"),
+  /** SPIKE (E07 A6): signs the customer instance; falls back to BETTER_AUTH_SECRET. */
+  CUSTOMER_AUTH_SECRET: blankAsUnset(z.string().min(32, "must be at least 32 characters").optional()),
   /**
    * Header that carries the client IP, set only behind a proxy that overwrites it
    * (e.g. `x-real-ip`). Unset: sign-in is rate-limited globally, never by a forgeable header.

@@ -101,6 +101,7 @@ import {
   type AuthLogLevel,
 } from "./auth/create-auth";
 import { createAuthPool } from "./auth/create-auth-pool";
+import { createCustomerAuth, type CustomerAuth } from "./customer-auth/create-customer-auth";
 import { getEnv, type Env } from "./env";
 import { logger } from "./logger";
 import { randomBytes, sha256Hex } from "./orders/order-crypto";
@@ -189,6 +190,7 @@ export type Cradle = {
   draftProductDescriptionUseCase: DraftProductDescriptionUseCase;
   authPool: Pool;
   auth: Auth;
+  customerAuth: CustomerAuth;
 };
 
 function buildContainer(): AwilixContainer<Cradle> {
@@ -300,6 +302,9 @@ function buildContainer(): AwilixContainer<Cradle> {
     auth: asFunction(({ authPool }: Pick<Cradle, "authPool">) =>
       createAuth({ pool: authPool, env, log: logAuthMessage }),
     ).singleton(),
+    customerAuth: asFunction(({ authPool }: Pick<Cradle, "authPool">) =>
+      createCustomerAuth({ pool: authPool, env, log: logAuthMessage }),
+    ).singleton(),
   });
 
   return container;
@@ -406,6 +411,11 @@ export function createRequestScope(): AwilixContainer<Cradle> {
  */
 export function getAuth(): Auth {
   return getRootContainer().cradle.auth;
+}
+
+/** SPIKE (E07): the customer Better Auth singleton, request time only. */
+export function getCustomerAuth(): CustomerAuth {
+  return getRootContainer().cradle.customerAuth;
 }
 
 /**

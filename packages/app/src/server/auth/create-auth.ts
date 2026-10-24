@@ -87,7 +87,7 @@ export function summarizeAuthError(value: unknown): AuthErrorSummary | undefined
 }
 
 /** Maps Better Auth table and column names to the project's snake_case schema. */
-function snakeCase(fields: readonly string[]): Record<string, string> {
+export function snakeCase(fields: readonly string[]): Record<string, string> {
   return Object.fromEntries(
     fields.map((field) => [field, field.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`)]),
   );
