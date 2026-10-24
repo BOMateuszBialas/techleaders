@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { signOut } from "@/server/auth/auth.action";
 import { requireAdminPage } from "@/server/auth/require-admin";
@@ -12,7 +13,7 @@ import { requireAdminPage } from "@/server/auth/require-admin";
  */
 export default function AdminLayout({ children }: LayoutProps<"/admin">) {
   return (
-    <div className="flex flex-1 flex-col md:flex-row">
+    <div data-density="admin" className="flex flex-1 flex-col md:flex-row">
       <aside className="flex flex-col border-b bg-muted/40 md:w-56 md:border-r md:border-b-0">
         <div className="flex h-14 items-center px-4 font-semibold tracking-tight">
           CommerceOS Admin
@@ -53,7 +54,8 @@ export default function AdminLayout({ children }: LayoutProps<"/admin">) {
             View storefront
           </Link>
         </nav>
-        <div className="mt-auto border-t p-4 text-sm">
+        <div className="mt-auto flex flex-col gap-4 border-t p-4 text-sm">
+          <ThemeToggle />
           <Suspense fallback={<p className="text-muted-foreground">Checking session…</p>}>
             <AdminSessionBadge />
           </Suspense>

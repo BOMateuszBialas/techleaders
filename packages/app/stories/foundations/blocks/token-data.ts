@@ -1,0 +1,310 @@
+/**
+ * Documentation data for the Foundations pages (Storybook only, not exported by the app; prompt
+ * rule 5). Token values are never copied here: the blocks read the real CSS variables from
+ * globals.css. Sources: .ai/design/tokeny.md (sections in brackets), references R01–R04, A01.
+ */
+
+export type ColorRole = { token: string; use: string; avoid: string; source: string };
+
+export const COLOR_GROUPS: ReadonlyArray<{ title: string; roles: readonly ColorRole[] }> = [
+  {
+    title: "Surfaces and text",
+    roles: [
+      {
+        token: "background",
+        use: "Page background in the store and the admin content",
+        avoid: "Store header and footer (frame), admin sidebar",
+        source: "R02.1",
+      },
+      {
+        token: "foreground",
+        use: "Main text, headings and every price",
+        avoid: "Text on the dark frame",
+        source: "R03.1, A01",
+      },
+      {
+        token: "card",
+        use: "Admin cards, cart summary, form panels",
+        avoid: "The product card in the catalog",
+        source: "R02.2, R04.1",
+      },
+      {
+        token: "popover",
+        use: "Menus, popovers, dialogs, the mobile menu",
+        avoid: "Cards in the page flow",
+        source: "Theme decision",
+      },
+      {
+        token: "surface-product",
+        use: "Product card and its image tile (one surface)",
+        avoid: "Page background, admin cards, form fields",
+        source: "R01.3",
+      },
+      {
+        token: "muted",
+        use: "Table header, skeleton, empty-state background",
+        avoid: "Background of running text",
+        source: "R04.1",
+      },
+      {
+        token: "muted-foreground",
+        use: "Descriptions, captions, placeholders, metadata",
+        avoid: "Text needed to act, prices, errors",
+        source: "Audit (4.35:1 fixed)",
+      },
+    ],
+  },
+  {
+    title: "Actions",
+    roles: [
+      {
+        token: "action",
+        use: "Purchase actions only: Add to cart, Checkout, Place order, Pay (demo)",
+        avoid: "Prices, discounts, text, section backgrounds, the admin, the dark frame, errors",
+        source: "R03.1, K1",
+      },
+      {
+        token: "action-hover",
+        use: "Hover and pressed state of a purchase action",
+        avoid: "Anything else",
+        source: "R03.1, P7",
+      },
+      {
+        token: "primary",
+        use: "Main admin button; main neutral store button outside buying",
+        avoid: "Purchase actions in the store",
+        source: "R04.2, K7",
+      },
+      {
+        token: "primary-hover",
+        use: "Hover of the main button (a color, not opacity)",
+        avoid: "Anything else",
+        source: "P7",
+      },
+      {
+        token: "secondary",
+        use: "Secondary buttons, neutral status badge",
+        avoid: "The main action",
+        source: "R03, R04.1",
+      },
+      {
+        token: "accent",
+        use: "Hover of ghost and outline buttons, selected row, active filter",
+        avoid: "Brand color (it is not a brand accent)",
+        source: "shadcn, R04.1",
+      },
+      {
+        token: "link",
+        use: "Links in text and resource names in admin tables, underlined in text",
+        avoid: "Buttons, frame navigation, headings",
+        source: "P1, R04.2",
+      },
+    ],
+  },
+  {
+    title: "Lines and focus",
+    roles: [
+      {
+        token: "border",
+        use: "Decorative separators, card and table outlines",
+        avoid: "The only edge of a field, checkbox or outline button (rule 12)",
+        source: "R04.1",
+      },
+      {
+        token: "input",
+        use: "Outline of fields, selects, checkboxes, radios, outline buttons",
+        avoid: "Decorative separators (too heavy)",
+        source: "Audit decision 4, WCAG 1.4.11",
+      },
+      {
+        token: "ring",
+        use: "Focus ring on light surfaces: 2 px, offset 2 px",
+        avoid: "The frame and the sidebar (they use their own ring)",
+        source: "Owner decision 2, WCAG 2.4.7",
+      },
+    ],
+  },
+  {
+    title: "Meaning",
+    roles: [
+      {
+        token: "destructive",
+        use: "Error text, invalid field outline, delete action in the admin (text or outline)",
+        avoid: "A filled button in the store (looks like the purchase action)",
+        source: "Owner decision 1, R04.2",
+      },
+      {
+        token: "destructive-surface",
+        use: "Error alert background, Cancelled badge",
+        avoid: "Large section backgrounds",
+        source: "R04.2",
+      },
+      {
+        token: "success",
+        use: "“Added to cart.”, form success, Paid and Published badges",
+        avoid: "Calls to action, decoration",
+        source: "Audit decision 4, R04.2",
+      },
+      {
+        token: "success-surface",
+        use: "Success badge and alert background",
+        avoid: "Decoration",
+        source: "Audit decision 4",
+      },
+      {
+        token: "warning",
+        use: "Slug and AI-draft warnings, Pending payment and Low stock badges",
+        avoid: "Demo data (use demo)",
+        source: "Audit decision 4",
+      },
+      {
+        token: "warning-surface",
+        use: "Warning badge and alert background",
+        avoid: "Demo data",
+        source: "Audit decision 4",
+      },
+      {
+        token: "warning-border",
+        use: "Outline of a warning alert",
+        avoid: "Text",
+        source: "Audit",
+      },
+      {
+        token: "demo",
+        use: "Demo store bar, DEMO badge, demo payment note",
+        avoid: "Warnings, decoration",
+        source: "P3, AGENTS.md principle 6",
+      },
+      {
+        token: "demo-surface",
+        use: "Background of every demo marker",
+        avoid: "Warnings",
+        source: "P3",
+      },
+    ],
+  },
+  {
+    title: "Store frame and admin sidebar",
+    roles: [
+      {
+        token: "frame",
+        use: "Store header and footer",
+        avoid: "Listing, product, cart and checkout (they stay light)",
+        source: "R02.1, R03",
+      },
+      {
+        token: "frame-foreground",
+        use: "Logo, navigation and footer links on the frame",
+        avoid: "Light surfaces",
+        source: "R02.1",
+      },
+      {
+        token: "frame-muted-foreground",
+        use: "Secondary footer text, search placeholder",
+        avoid: "The only label of a field",
+        source: "R02",
+      },
+      {
+        token: "frame-accent",
+        use: "Logo mark, active category line: marks only, never text on it",
+        avoid: "Button background with white text (3.26:1)",
+        source: "R03.1, K7",
+      },
+      { token: "sidebar", use: "Admin side menu", avoid: "Admin content", source: "R04.1" },
+      { token: "sidebar-foreground", use: "Menu items", avoid: "Light surfaces", source: "R04.1" },
+      {
+        token: "sidebar-accent",
+        use: "Active and hovered menu item",
+        avoid: "Content",
+        source: "R04.1",
+      },
+      {
+        token: "sidebar-primary",
+        use: "Active-item marker (3 px line) and logo mark",
+        avoid: "Buttons, text",
+        source: "R04.2, K7",
+      },
+    ],
+  },
+];
+
+/** [foreground token, background token, kind, where] — T: text 4.5:1, U: UI 3:1, X: forbidden. */
+export type ContrastPair = readonly [string, string, "T" | "U" | "X", string];
+
+/** The 62 pairs of tokeny.md §2, measured live by the contrast block. */
+export const CONTRAST_PAIRS: readonly ContrastPair[] = [
+  ["foreground", "background", "T", "Main text"],
+  ["foreground", "card", "T", "Text and price in a card"],
+  ["foreground", "surface-product", "T", "Name and price on a product card"],
+  ["foreground", "muted", "T", "Table header text"],
+  ["foreground", "popover", "T", "Menu, popover"],
+  ["muted-foreground", "background", "T", "Description, caption, placeholder"],
+  ["muted-foreground", "card", "T", "Caption in a card"],
+  ["muted-foreground", "surface-product", "T", "“No image”, caption on a product card"],
+  ["muted-foreground", "muted", "T", "Caption in a table header, skeleton"],
+  ["muted-foreground", "accent", "T", "Caption in a hovered row"],
+  ["muted-foreground", "popover", "T", "Description in a menu"],
+  ["primary-foreground", "primary", "T", "Main admin button"],
+  ["primary-foreground", "primary-hover", "T", "Main admin button, hover"],
+  ["secondary-foreground", "secondary", "T", "Secondary button"],
+  ["accent-foreground", "accent", "T", "Ghost or outline button, hover"],
+  ["action-foreground", "action", "T", "Purchase action"],
+  ["action-foreground", "action-hover", "T", "Purchase action, hover"],
+  ["destructive", "background", "T", "Error text"],
+  ["destructive", "card", "T", "Error in a card"],
+  ["destructive", "destructive-surface", "T", "Cancelled badge, error alert"],
+  ["link", "background", "T", "Link in text"],
+  ["link", "card", "T", "Link in a card or table"],
+  ["link", "muted", "T", "Link on muted"],
+  ["success", "background", "T", "“Added to cart.”, form success"],
+  ["success", "card", "T", "Success in a card"],
+  ["success", "success-surface", "T", "Paid and Published badges"],
+  ["warning", "background", "T", "Warning (slug, AI draft)"],
+  ["warning", "card", "T", "Warning in a card"],
+  ["warning", "warning-surface", "T", "Pending payment badge, warning alert"],
+  ["demo", "demo-surface", "T", "Demo bar, DEMO badge, demo note"],
+  ["demo", "background", "T", "DEMO text without a background"],
+  ["frame-foreground", "frame", "T", "Store header and footer"],
+  ["frame-muted-foreground", "frame", "T", "Secondary footer text, search placeholder"],
+  ["sidebar-foreground", "sidebar", "T", "Admin side menu"],
+  ["sidebar-muted-foreground", "sidebar", "T", "Group labels in the menu"],
+  ["sidebar-accent-foreground", "sidebar-accent", "T", "Active menu item"],
+  ["sidebar-foreground", "sidebar-accent", "T", "Hovered menu item"],
+  ["input", "background", "U", "Field, checkbox and select outline (audit: 1.26)"],
+  ["input", "card", "U", "Field outline in a card"],
+  ["input", "muted", "U", "Field outline on muted"],
+  ["ring", "background", "U", "Focus ring (audit: 1.54)"],
+  ["ring", "card", "U", "Focus in a card"],
+  ["ring", "surface-product", "U", "Focus on a product card"],
+  ["ring", "muted", "U", "Focus on muted"],
+  ["action", "background", "U", "Purchase action edge against the page"],
+  ["action", "surface-product", "U", "Purchase action on a product card"],
+  ["action", "card", "U", "Purchase action in the cart summary"],
+  ["primary", "background", "U", "Main admin button edge"],
+  ["destructive", "background", "U", "Invalid field outline"],
+  ["frame-input", "frame", "U", "Search outline in the dark header"],
+  ["frame-ring", "frame", "U", "Focus in the header and footer"],
+  ["frame-accent", "frame", "U", "Brand mark in the header"],
+  ["sidebar-primary", "sidebar", "U", "Red active-item marker"],
+  ["sidebar-primary", "sidebar-accent", "U", "Marker on the active item"],
+  ["sidebar-ring", "sidebar", "U", "Focus in the side menu"],
+  ["warning-border", "warning-surface", "U", "Warning alert outline"],
+  ["border", "background", "U", "Card outline, separator (decorative, rule 12)"],
+  ["border", "surface-product", "U", "Separator on a product card (decorative, rule 12)"],
+  ["ring", "action", "X", "Focus without offset on a purchase action: offset is mandatory"],
+  ["ring", "primary", "X", "Focus without offset on the main button: offset is mandatory"],
+  ["action", "frame", "X", "Action red directly on the dark frame: not allowed (rule 3)"],
+  ["action-foreground", "frame-accent", "X", "White text on the frame red: not allowed (rule 3)"],
+];
+
+/** Realistic examples from the seeded gaming store (decision D10); no invented ratings. */
+export const SAMPLE = {
+  product: "Vortex Wireless Mouse",
+  productLong: "Aurora Full-Size Keyboard with hot-swappable switches and per-key lighting",
+  priceMinor: 24900,
+  sku: "DEMO-MOU-001",
+  category: "Mice",
+  pageTitle: "Keyboards",
+  section: "Order summary",
+  metric: "Revenue (paid orders)",
+} as const;

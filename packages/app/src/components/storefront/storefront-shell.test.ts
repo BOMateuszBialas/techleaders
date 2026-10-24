@@ -31,7 +31,8 @@ describe("HeaderMenu", () => {
     expect(html.match(/>Shop all</g)).toHaveLength(2);
     expect(html.match(/href="\/products\?category=mice"/g)).toHaveLength(2);
     expect(html.match(/href="\/products\?category=keyboards"/g)).toHaveLength(2);
-    expect(html).toMatch(/<details[^>]*><summary[^>]*><span aria-hidden="true">☰<\/span> Menu/);
+    expect(html).toMatch(/<details[^>]*><summary[^>]*><svg[^>]*tabler-icon-menu-2[^>]*>/);
+    expect(html).toMatch(/<\/svg> Menu<\/summary>/);
     expect(html).not.toContain("/admin");
   });
 

@@ -1,0 +1,28 @@
+import { Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import * as ShapeStories from "./shape-and-depth.stories";
+import { ShapeAndDepth } from "./blocks/foundation-blocks";
+
+<Meta of={ShapeStories} />
+
+# Shape and depth
+
+Moderate shape (K4): 8 px for controls, 12 px for cards, 4 px for badges. Surfaces are separated by background or a border, not by shadow (A01).
+
+| Token and class   | Value                                     | Use for                                          | Never for                       |
+| ----------------- | ----------------------------------------- | ------------------------------------------------ | ------------------------------- |
+| `rounded-control` | 8 px                                      | Button, field, select, category filter, dropdown | Cards                           |
+| `rounded-card`    | 12 px                                     | Card, panel, dialog, product tile                | Buttons                         |
+| `rounded-badge`   | 4 px                                      | Status badge, photo label                        | Buttons, filters                |
+| `rounded-full`    | pill                                      | The cart count only                              | Buttons, filters, badges        |
+| `shadow-card`     | none                                      | Cards have no shadow                             | Any card                        |
+| `shadow-overlay`  | one soft shadow plus a `--border` outline | Menu, popover, dialog, mobile menu               | Cards, buttons, calls to action |
+
+| Rule                                                                                                          | Source                        |
+| ------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| The product card is one surface: the image goes edge to edge on `--surface-product`, no inner frame           | Audit (card in a card), R01.3 |
+| No gradients in backgrounds, banners or buttons                                                               | A01                           |
+| In the dark theme an overlay keeps its border and a lighter `--popover`, because the shadow almost disappears | Theme decision, P14           |
+
+<Unstyled>
+  <ShapeAndDepth />
+</Unstyled>

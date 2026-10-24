@@ -9,3 +9,4 @@ packages/app/next-env.d.ts
 .ai
 skills-lock.json
 *.md
+storybook-static

@@ -1,4 +1,4 @@
-import { ShoppingCart } from "lucide-react";
+import { IconShoppingCart } from "@tabler/icons-react";
 import Link from "next/link";
 import { cartLinkLabel } from "./cart-copy";
 
@@ -13,7 +13,7 @@ export function CartLink({ itemCount }: { itemCount: number | null }) {
       aria-label={itemCount === null ? "Cart" : cartLinkLabel(itemCount)}
       className="inline-flex items-center gap-1.5 rounded-md border px-3 py-1 text-sm hover:bg-muted focus-visible:bg-muted"
     >
-      <ShoppingCart aria-hidden="true" className="size-4" /> Cart
+      <IconShoppingCart aria-hidden="true" className="size-4" /> Cart
       {itemCount === null ? null : (
         <span
           data-testid="cart-count"
