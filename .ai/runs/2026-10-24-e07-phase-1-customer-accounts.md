@@ -64,10 +64,10 @@ PR: #100
 
 ### Phase 1: Customer accounts and role separation
 
-- [ ] 1.1 Core customer roles
-- [ ] 1.2 Customer auth schema and migration
-- [ ] 1.3 Customer auth factory, env and wiring
-- [ ] 1.4 Cross-role integration tests
-- [ ] 1.5 Customer guard module and guard inventory
-- [ ] 1.6 Customer actions, pages, header and checkout link
-- [ ] 1.7 Role-separation e2e
+- [x] 1.1 Core customer roles — ac99b7a
+- [x] 1.2 Customer auth schema and migration — ed404c8
+- [x] 1.3 Customer auth factory, env and wiring — 9bbf015
+- [x] 1.4 Cross-role integration tests — 34b0851
+- [x] 1.5 Customer guard module and guard inventory — ca964d9
+- [x] 1.6 Customer actions, pages, header and checkout link — e9e67a8
+- [x] 1.7 Role-separation e2e — acbbb03
