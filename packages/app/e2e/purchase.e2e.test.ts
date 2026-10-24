@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, inject, it } from "vitest";
 import { useBrowser } from "./support/browser-test";
+import { useCustomerSession } from "./support/sign-in";
 
 const REFERENCE = /CO-[0-9A-HJKMNP-TV-Z]{5}(-[0-9A-HJKMNP-TV-Z]{5}){3}/;
 const CARD_FIELDS =
@@ -99,6 +100,24 @@ describe("storefront purchase with the demo payment (E02-S03)", () => {
     await browser().fillLabel("Order reference", "12345");
     await browser().clickRole("button", "Find order");
     await browser().waitForText("Enter a reference like CO-XXXXX-XXXXX-XXXXX-XXXXX.");
+  });
+
+  it("attaches a signed-in purchase to the account and shows it Paid under My orders (E07 step 14)", async () => {
+    await useCustomerSession(browser(), "b");
+    const reference = await purchase();
+    await browser().clickRole("button", "Confirm demo payment (no charge)");
+    await browser().waitForText("Thank you — demo payment received");
+    // The customer still sees the order page by reference: it is their own account order.
+    expect(await browser().text("main")).toContain(reference);
+
+    await browser().open("/account/orders");
+    await browser().waitForText(reference);
+    const list = await browser().text("main");
+    // Its row reads reference, date, status and total.
+    const start = list.indexOf(reference);
+    const row = list.slice(start, start + 120);
+    expect(row).toContain("Paid");
+    expect(row).toMatch(/349,00\s*zł/);
   });
 
   it("marks order pages noindex and no-referrer", async () => {

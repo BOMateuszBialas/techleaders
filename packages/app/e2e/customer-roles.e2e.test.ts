@@ -89,6 +89,13 @@ describe("customer and owner roles (E07-S05)", () => {
       headers: { cookie: ownerCookie },
     });
     expect(await customerSession.json()).toBeNull();
+
+    // The account API (Phase 2b) is closed to the owner session too (step 8).
+    for (const path of ["/api/account/orders", `/api/account/orders/${randomUUID()}`]) {
+      const response = await fetch(`${baseUrl}${path}`, { headers: { cookie: ownerCookie } });
+      expect(response.status, path).toBe(401);
+      expect(await response.json()).toMatchObject({ ok: false, error: { code: "UNAUTHORIZED" } });
+    }
   });
 
   it("with both sessions in one browser, each area sees only its own role (A19)", async () => {
