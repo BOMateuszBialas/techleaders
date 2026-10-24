@@ -81,10 +81,9 @@ type ThemeDocument = Pick<Document, "addEventListener" | "removeEventListener"> 
 };
 type ThemeWindow = {
   localStorage: StorageLike;
-  matchMedia(query: string): Pick<
-    MediaQueryList,
-    "matches" | "addEventListener" | "removeEventListener"
-  >;
+  matchMedia(
+    query: string,
+  ): Pick<MediaQueryList, "matches" | "addEventListener" | "removeEventListener">;
 };
 
 /**
