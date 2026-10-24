@@ -29,8 +29,17 @@ Last filed: 2026-10-15
 | E05-S02     | #26   | A store owner saves, dismisses or completes a recommendation, and the action is recorded    | #12  | E05-S01 (#25)                | no      |
 | E05-S03     | #27   | A store owner sees an explicit fallback when the AI provider is unavailable                 | #12  | E05-S01 (#25)                | no      |
 | E05-S04     | #28   | Copilot answers traffic, funnel and views-without-sales questions from fictional demo data  | #12  | E05-S01 (#25), E04-S03 (#24) | no      |
+| E07         | —     | Customer accounts (D11)                                                                     | —    | E02-S02 (#17), E03-S01 (#19) | no      |
+| E07-S01     | —     | A customer registers, signs in and signs out                                                | E07  | —                            | no      |
+| E07-S02     | —     | A signed-in customer's order is attached to their account; guest checkout is unchanged      | E07  | E07-S01                      | no      |
+| E07-S03     | —     | A customer sees the list and detail of "My orders"                                          | E07  | E07-S02                      | no      |
+| E07-S04     | —     | Data isolation: customer A never sees customer B's order                                    | E07  | E07-S03                      | no      |
+| E07-S05     | —     | Role separation: a customer never reaches the admin; an owner session is not a customer one | E07  | E07-S01                      | no      |
+| E07-S06     | —     | Documentation and certificate evidence for customer accounts                                | E07  | E07-S04, E07-S05             | no      |
 
-Not filed (non-goals): N01–N05, quoted in #13.
+Not filed (non-goals): N01–N05, quoted in #13; N06 (D11).
+
+E07 rows are planned, not filed (2026-10-24): `om-backlog` files them after the D11 brief update merges and replaces each `—` with the issue number. Spec: `.ai/specs/2026-10-24-customer-accounts.md`.
 
 ### Where work starts
 
