@@ -147,6 +147,7 @@ describe("demo store seed (PostgreSQL)", () => {
       randomBytes: (length) => new Uint8Array(randomBytes(length)),
       sha256Hex: async (text) => createHash("sha256").update(text).digest("hex"),
     }).execute({
+      customerId: null,
       lines,
       request: {
         idempotencyKey: randomUUID(),

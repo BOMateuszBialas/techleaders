@@ -32,6 +32,8 @@ function toRecord(order: Order, items: readonly OrderItem[]): AdminOrderRecord {
     paidAt: order.paidAt ?? null,
     createdAt: order.createdAt,
     updatedAt: order.updatedAt,
+    // Only whether an account placed it (E07 A18): never the customer id or account data.
+    placedWithAccount: order.customer != null,
     items: items.map((item) => ({
       id: item.id,
       productId: item.product?.id ?? null,
@@ -82,6 +84,7 @@ export class DatabaseOrderAdminRepository implements OrderAdminPort {
         totalMinor: order.totalMinor,
         itemCount: units.get(order.id) ?? 0,
         createdAt: order.createdAt,
+        placedWithAccount: order.customer != null,
       }));
       return { rows, total };
     });

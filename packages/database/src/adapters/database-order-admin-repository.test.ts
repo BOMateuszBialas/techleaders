@@ -85,7 +85,14 @@ describe("DatabaseOrderAdminRepository.listOrders", () => {
     const { findAndCount, execute, repository } = setup();
     findAndCount.mockResolvedValueOnce([
       [
-        { ...orderRow, id: "o-2", publicReference: "CO-B", status: "paid", totalMinor: 900 },
+        {
+          ...orderRow,
+          id: "o-2",
+          publicReference: "CO-B",
+          status: "paid",
+          totalMinor: 900,
+          customer: { id: "c-1" },
+        },
         { ...orderRow, id: "o-1", publicReference: "DEMO-0001" },
       ],
       27,
@@ -105,6 +112,7 @@ describe("DatabaseOrderAdminRepository.listOrders", () => {
           totalMinor: 900,
           itemCount: 3,
           createdAt,
+          placedWithAccount: true,
         },
         {
           id: "o-1",
@@ -114,6 +122,7 @@ describe("DatabaseOrderAdminRepository.listOrders", () => {
           totalMinor: 150,
           itemCount: 0,
           createdAt,
+          placedWithAccount: false,
         },
       ],
     });
@@ -170,6 +179,7 @@ describe("DatabaseOrderAdminRepository.findOrderById", () => {
       paidAt: null,
       createdAt,
       updatedAt,
+      placedWithAccount: false,
       items: [
         {
           id: "item-1",
@@ -204,9 +214,11 @@ describe("DatabaseOrderAdminRepository.findOrderById", () => {
       paymentProvider: "demo",
       paymentReference: `DEMO-PAY-${ORDER_ID}`,
       paidAt: updatedAt,
+      customer: { id: "c-1" },
     } as never);
     find.mockResolvedValueOnce([] as never);
     expect(await repository.findOrderById(ORDER_ID)).toMatchObject({
+      placedWithAccount: true,
       shippingLine2: "m. 4",
       paymentProvider: "demo",
       paymentReference: `DEMO-PAY-${ORDER_ID}`,

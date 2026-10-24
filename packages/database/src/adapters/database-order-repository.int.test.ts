@@ -2,9 +2,14 @@ import { randomBytes, randomUUID, createHash } from "node:crypto";
 import { afterAll, beforeAll, beforeEach, describe, expect, inject, it } from "vitest";
 import {
   ConfirmDemoPaymentUseCase,
+  FORM_REUSED_MESSAGE,
+  GUEST_ORDER_VIEWER,
+  GetOrderByReferenceUseCase,
+  ORDER_NOT_FOUND_MESSAGE,
   PlaceOrderUseCase,
   cartFingerprint,
   hasAppErrorCode,
+  isNotFoundError,
   isOrderConflict,
   type CartLine,
   type CheckoutRequest,
@@ -112,6 +117,7 @@ describe("DatabaseOrderRepository (PostgreSQL)", () => {
   it("(a) places an order with name and price snapshots and decrements stock", async () => {
     const lines = [line(VORTEX, 2), line(PULSE, 1)];
     const { reference } = await placeOrderUseCase().execute({
+      customerId: null,
       lines,
       request: checkout(lines, 2 * 24900 + 18900),
     });
@@ -159,8 +165,8 @@ describe("DatabaseOrderRepository (PostgreSQL)", () => {
   it("(b) stock 1, two concurrent checkouts: exactly one order (#17 AC2)", async () => {
     const lines = [line(PULSE, 1)];
     const results = await Promise.allSettled([
-      placeOrderUseCase().execute({ lines, request: checkout(lines, 18900) }),
-      placeOrderUseCase().execute({ lines, request: checkout(lines, 18900) }),
+      placeOrderUseCase().execute({ customerId: null, lines, request: checkout(lines, 18900) }),
+      placeOrderUseCase().execute({ customerId: null, lines, request: checkout(lines, 18900) }),
     ]);
 
     expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(1);
@@ -182,6 +188,7 @@ describe("DatabaseOrderRepository (PostgreSQL)", () => {
       repository().placeOrder({
         idempotencyKey: randomUUID(),
         requestFingerprint: "x",
+        customerId: null,
         customer: {
           customerName: "Ada",
           customerEmail: "ada@example.test",
@@ -225,7 +232,7 @@ describe("DatabaseOrderRepository (PostgreSQL)", () => {
   it("(c) a multi-line order with one short line writes nothing", async () => {
     const lines = [line(VORTEX, 3), line(PULSE, 2)];
     const error = await placeOrderUseCase()
-      .execute({ lines, request: checkout(lines, 3 * 24900 + 2 * 18900) })
+      .execute({ customerId: null, lines, request: checkout(lines, 3 * 24900 + 2 * 18900) })
       .catch((caught: unknown) => caught);
 
     // The cart re-check lowers Pulse to the stock first, so the fingerprint no longer matches.
@@ -236,6 +243,7 @@ describe("DatabaseOrderRepository (PostgreSQL)", () => {
       .placeOrder({
         idempotencyKey: randomUUID(),
         requestFingerprint: "x",
+        customerId: null,
         customer: {
           customerName: "Ada",
           customerEmail: "ada@example.test",
@@ -269,8 +277,8 @@ describe("DatabaseOrderRepository (PostgreSQL)", () => {
       const price = slug === VORTEX ? 24900 : 18900;
       const request = checkout(lines, price);
       const [first, second] = await Promise.all([
-        placeOrderUseCase().execute({ lines, request }),
-        placeOrderUseCase().execute({ lines, request }),
+        placeOrderUseCase().execute({ customerId: null, lines, request }),
+        placeOrderUseCase().execute({ customerId: null, lines, request }),
       ]);
       expect(first.reference).toBe(second.reference);
       expect([first.replayed, second.replayed].sort()).toEqual([false, true]);
@@ -285,7 +293,7 @@ describe("DatabaseOrderRepository (PostgreSQL)", () => {
     await setProduct(VORTEX, { stock: 10, price: 25900 });
 
     const error = await placeOrderUseCase()
-      .execute({ lines, request })
+      .execute({ customerId: null, lines, request })
       .catch((caught: unknown) => caught);
     expect(isOrderConflict(error, "price_changed")).toBe(true);
     expect(await stockOf(VORTEX)).toBe(10);
@@ -298,6 +306,7 @@ describe("DatabaseOrderRepository (PostgreSQL)", () => {
       .placeOrder({
         idempotencyKey: randomUUID(),
         requestFingerprint: "x",
+        customerId: null,
         customer: {
           customerName: "Ada",
           customerEmail: "ada@example.test",
@@ -320,12 +329,17 @@ describe("DatabaseOrderRepository (PostgreSQL)", () => {
 
   it("re-runs the transaction once on a reference collision, and maps a duplicate key", async () => {
     const lines = [line(VORTEX, 1)];
-    const first = await placeOrderUseCase().execute({ lines, request: checkout(lines, 24900) });
+    const first = await placeOrderUseCase().execute({
+      customerId: null,
+      lines,
+      request: checkout(lines, 24900),
+    });
     const references = [first.reference, "CO-00000-00000-00000-00003"];
     const key = randomUUID();
     const command = {
       idempotencyKey: key,
       requestFingerprint: "x",
+      customerId: null,
       customer: {
         customerName: "Ada",
         customerEmail: "ada@example.test",
@@ -371,6 +385,7 @@ describe("DatabaseOrderRepository (PostgreSQL)", () => {
       .placeOrder({
         idempotencyKey: randomUUID(),
         requestFingerprint: "x",
+        customerId: null,
         customer: {
           customerName: "Ada Lovelace",
           customerEmail: "ada@example.test",
@@ -412,6 +427,7 @@ describe("DatabaseOrderRepository (PostgreSQL)", () => {
   it("enforces the order check constraints", async () => {
     const lines = [line(VORTEX, 1)];
     const { reference } = await placeOrderUseCase().execute({
+      customerId: null,
       lines,
       request: checkout(lines, 24900),
     });
@@ -440,6 +456,7 @@ describe("DatabaseOrderRepository (PostgreSQL)", () => {
     const [temp] = await query<{ id: string }>("select id from products where slug = 'int-temp'");
     const lines = [{ productId: temp?.id ?? "", quantity: 1 }];
     const { reference } = await placeOrderUseCase().execute({
+      customerId: null,
       lines,
       request: checkout(lines, 1000),
     });
@@ -461,6 +478,121 @@ describe("DatabaseOrderRepository (PostgreSQL)", () => {
     expect(items[0]?.count).toBe(0);
   });
 
+  describe("ownership across customers (E07 Phase 2a)", () => {
+    const customers: Record<"a" | "b", string> = { a: "", b: "" };
+
+    beforeAll(async () => {
+      for (const key of ["a", "b"] as const) {
+        const [row] = await query<{ id: string }>(
+          `insert into customer_users (name, email, email_verified) values ('Customer', ?, false)
+            on conflict (email) do update set name = excluded.name returning id`,
+          [`order-owner-${key}@db.test`],
+        );
+        customers[key] = row?.id ?? "";
+      }
+    });
+
+    async function customerIdOf(reference: string): Promise<string | null | undefined> {
+      const rows = await query<{ customer_id: string | null }>(
+        "select customer_id from orders where public_reference = ?",
+        [reference],
+      );
+      return rows[0]?.customer_id;
+    }
+
+    it("stores the placing customer in the order's transaction and reads it back", async () => {
+      const lines = [line(VORTEX, 1)];
+      const { reference } = await placeOrderUseCase().execute({
+        customerId: customers.a,
+        lines,
+        request: checkout(lines, 24900),
+      });
+      expect(await customerIdOf(reference)).toBe(customers.a);
+      expect((await repository().findByReference(reference))?.customerId).toBe(customers.a);
+      expect(await stockOf(VORTEX)).toBe(9);
+
+      const guest = await placeOrderUseCase().execute({
+        customerId: null,
+        lines,
+        request: checkout(lines, 24900),
+      });
+      expect(await customerIdOf(guest.reference)).toBeNull();
+      expect((await repository().findByReference(guest.reference))?.customerId).toBeNull();
+    });
+
+    it("rolls the stock back when the customer does not exist (generic, sanitized error)", async () => {
+      const lines = [line(VORTEX, 1)];
+      const error = await placeOrderUseCase()
+        .execute({ customerId: randomUUID(), lines, request: checkout(lines, 24900) })
+        .catch((caught: unknown) => caught);
+      expect(error).toBeInstanceOf(Error);
+      expect((error as Error).message).toMatch(/^Order placement failed: /);
+      expect((error as Error).message).not.toContain("ada@example.test");
+      expect(await stockOf(VORTEX)).toBe(10);
+      expect(await orderCount()).toBe(0);
+    });
+
+    it("never returns A's order to a form replayed by B or a guest (A15)", async () => {
+      const lines = [line(VORTEX, 1)];
+      const request = checkout(lines, 24900);
+      const original = await placeOrderUseCase().execute({
+        customerId: customers.a,
+        lines,
+        request,
+      });
+
+      for (const customerId of [customers.b, null]) {
+        const error = await placeOrderUseCase()
+          .execute({ customerId, lines, request })
+          .catch((caught: unknown) => caught);
+        expect(isOrderConflict(error, "form_reused")).toBe(true);
+        expect((error as Error).message).toBe(FORM_REUSED_MESSAGE);
+        const serialized = JSON.stringify(error, Object.getOwnPropertyNames(error));
+        expect(serialized).not.toContain(original.reference);
+        expect(serialized).not.toContain(original.orderId);
+      }
+      expect(await orderCount()).toBe(1);
+      expect(await stockOf(VORTEX)).toBe(9);
+      expect(await customerIdOf(original.reference)).toBe(customers.a);
+    });
+
+    it("opens A's order by reference only for A, and B cannot pay it", async () => {
+      const lines = [line(VORTEX, 1)];
+      const { reference } = await placeOrderUseCase().execute({
+        customerId: customers.a,
+        lines,
+        request: checkout(lines, 24900),
+      });
+      const get = () => new GetOrderByReferenceUseCase({ orderRepository: repository() });
+      const gateway: PaymentGateway = {
+        provider: "demo",
+        isLive: false,
+        authorize: async ({ idempotencyKey }) => ({ providerReference: `PAY-${idempotencyKey}` }),
+      };
+      const confirm = () =>
+        new ConfirmDemoPaymentUseCase({ orderRepository: repository(), paymentGateway: gateway });
+
+      expect(await get().execute({ reference, viewer: { customerId: customers.a } })).toMatchObject(
+        { reference, status: "pending_payment" },
+      );
+      for (const viewer of [{ customerId: customers.b }, GUEST_ORDER_VIEWER]) {
+        for (const attempt of [
+          () => get().execute({ reference, viewer }),
+          () => confirm().execute({ reference, viewer }),
+        ]) {
+          const error = await attempt().catch((caught: unknown) => caught);
+          expect(isNotFoundError(error)).toBe(true);
+          expect((error as Error).message).toBe(ORDER_NOT_FOUND_MESSAGE);
+        }
+      }
+      const [row] = await query<{ status: string; paid: boolean }>(
+        "select status, paid_at is not null as paid from orders where public_reference = ?",
+        [reference],
+      );
+      expect(row).toEqual({ status: "pending_payment", paid: false });
+    });
+  });
+
   describe("payment", () => {
     const gateway: PaymentGateway = {
       provider: "demo",
@@ -475,13 +607,14 @@ describe("DatabaseOrderRepository (PostgreSQL)", () => {
     it("two concurrent confirmations: one paid_at, one DEMO-PAY-<order id> reference", async () => {
       const lines = [line(VORTEX, 1)];
       const { reference } = await placeOrderUseCase().execute({
+        customerId: null,
         lines,
         request: checkout(lines, 24900),
       });
 
       const outcomes = await Promise.all([
-        confirm().execute({ reference }),
-        confirm().execute({ reference }),
+        confirm().execute({ reference, viewer: GUEST_ORDER_VIEWER }),
+        confirm().execute({ reference, viewer: GUEST_ORDER_VIEWER }),
       ]);
       expect(outcomes.map((outcome) => outcome.outcome).sort()).toEqual(["already_paid", "paid"]);
 
@@ -491,7 +624,7 @@ describe("DatabaseOrderRepository (PostgreSQL)", () => {
         [reference],
       );
       expect(row).toMatchObject({ status: "paid", paid: true, ref: `DEMO-PAY-${row?.id}` });
-      expect(await confirm().execute({ reference })).toEqual({
+      expect(await confirm().execute({ reference, viewer: GUEST_ORDER_VIEWER })).toEqual({
         orderId: row?.id,
         reference,
         outcome: "already_paid",
@@ -501,6 +634,7 @@ describe("DatabaseOrderRepository (PostgreSQL)", () => {
     it("refuses to pay a cancelled order and reports an unknown one", async () => {
       const lines = [line(VORTEX, 1)];
       const { reference } = await placeOrderUseCase().execute({
+        customerId: null,
         lines,
         request: checkout(lines, 24900),
       });
