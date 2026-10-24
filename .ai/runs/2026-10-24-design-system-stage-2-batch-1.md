@@ -16,10 +16,36 @@ Krok 1 partii 1 według promptu Storybooka: lista różnic kształtu, gęstości
 5. Ryzyko testów: e2e `storefront-mobile` i `admin-dashboard-range` mierzą szerokość przy 390 px; unit nie sprawdzają klas przycisków i pól; `category-components.test.ts` porównuje HTML z `form-feedback.tsx` (bez zmian).
 6. Lista B1.1–B1.28 i pytania Q1–Q5 w POSTEP.
 
-## Wynik
+## Decyzje właściciela
 
-Lista różnic czeka na akceptację. Rekomendacja: job `storybook` w CI wchodzi w PR partii 1 (B1.28).
+Q1–Q5 zgodnie z rekomendacjami (Q4: „Add to cart” w karcie produktu neutralny). B1.1–B1.28 przyjęte domyślnie; w PR wypisane jako „accepted by default, revert on request”.
+
+## Implementacja
+
+1. Token `--secondary-hover` (Q1): `globals.css`, `tokeny.md` (wiersz i para 14a), `kontrast/tokens.mjs`, `token-data.ts`; `verify-css.mjs`: 59 par w obu motywach, 14,35 / 12,59 : 1.
+2. Tokeny komponentowe w `globals.css`: `--control-px`, `--control-icon-size`, `--field-text-size` / `-leading` (telefon w adminie 16 px), `--label-size` / `-leading`.
+3. `ui/button.tsx`, `input.tsx`, `textarea.tsx`, `label.tsx` przepisane według B1.2–B1.21; nowe `ui/field.tsx` (z rejestru shadcn `base-nova`, przycięty; napisany ręcznie z `npx shadcn view field`, bo `add` nadpisałby `label.tsx` i dodał `separator`) i `ui/text-link.tsx`.
+4. Powód wykluczenia `components/ui/**` w `vitest.config.mts` (B1.27).
+5. Storybook: `.storybook/preview.css` (zamrożone stany przez `data-preview-state`), viewport testów 1280 × 800, kolejność menu; `stories/primitives/`: 6 stron MDX po 13 sekcji, 37 stories (`play` w 28), bloki `StateGrid`, `Narrow`, `DoDont`.
+6. CI: job `storybook`, bramka w `.ai/agentic.config.json` i AGENTS.md „Validation” (B1.28).
+
+## Wynik bramki
+
+| Krok | Wynik |
+|---|---|
+| `npm run lint`, `format:check`, `typecheck` | ok |
+| `npm run test:hooks` | ok, 334/334 (9 znanych luk) |
+| `npm run test:coverage` | ok, 166 plików, 1903 testy, 100% |
+| `npm run build` | ok |
+| `npm run test:integration` | ok, 19 plików, 171 testów |
+| `npm run test:e2e` | ok, 22 pliki, 112 testów |
+| `npm run build-storybook` | ok; 6 stron dokumentacji: 13 nagłówków sekcji, tabele renderowane (sprawdzone w zbudowanym Storybooku) |
+| `npm run test:storybook:themes` | ok, 92/92 (46 stories × 2 motywy) |
+| `npm run check:tokens` | kod 1, 28 znanych wartości (było 35); pliki partii czyste |
+
+Szerokości: e2e `storefront-mobile`, `admin-mobile` i `admin-dashboard-range` przy 390 px zielone. Lokalnie (bez commita) te same testy przy 320 px: sklep i zakres dat ok; jedyna porażka to tabela dowodów Copilota (30 px przewijania wewnątrz tabeli), która **na `main` też nie przechodzi** (tam dodatkowo cała strona `/admin/copilot` ma 329 px), więc to nie regresja partii.
 
 ## Do zrobienia
 
-- Decyzje właściciela (B1.1–B1.28, Q1–Q5), potem implementacja, bramka, zrzuty i PR.
+- Retrofit (lekcja 08): `action` na 4 CTA zakupu, `outline sm` w karcie produktu (Q4), `TextLink` w ok. 45 miejscach, `Field` w 10 formularzach, `aria-busy` na przyciskach w trakcie wysyłki.
+- Tabela dowodów Copilota przy 320 px (istniejący problem).
