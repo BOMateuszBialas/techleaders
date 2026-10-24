@@ -28,7 +28,13 @@
     "db:migration:create": "npm run migration:create -w @commerceos/database",
     "db:seed": "npm run seed -w @commerceos/database",
     "admin:create": "npm run admin:create -w @commerceos/app --",
-    "eval": "tsx packages/ai/src/evals/cli/eval.ts"
+    "eval": "tsx packages/ai/src/evals/cli/eval.ts",
+    "storybook": "npm run storybook -w @commerceos/app",
+    "build-storybook": "npm run build-storybook -w @commerceos/app",
+    "test:storybook": "npm run test:storybook -w @commerceos/app",
+    "test:storybook:dark": "npm run test:storybook:dark -w @commerceos/app",
+    "test:storybook:themes": "npm run test:storybook:themes -w @commerceos/app",
+    "check:tokens": "npm run check:tokens -w @commerceos/app"
   },
   "devDependencies": {
     "@testcontainers/postgresql": "^12.2.1",
