@@ -46,7 +46,19 @@ exists with an honestly empty "My orders"; every role-separation test passes. Cl
 - e2e rate-limit budget for customer sign-ups (setup creates A and B once over HTTP).
 - Schema migration (additive, `down` drops only the five new tables).
 
+## Decisions and deviations
+
+- `toOrderViewer` and the inventory rule "files calling getOrderByReferenceUseCase/confirmDemoPaymentUseCase import require-customer" (listed under spec steps 6 and 12) move to Phase 2a: `OrderViewer` is defined by core `order-access.ts` (step 10), and no reference path takes a viewer yet. Shipping them now would be unused code.
+- No `/api/account/orders` in Phase 1 (A12 is Phase 2), so step 8's "owner session → GET /api/account/orders 401" is proven instead by `/api/customer-auth/get-session` returning null for the owner cookie (e2e) and `customerApiHandler` 401 unit tests.
+- `customer_users.role` also gets a DB default `customer` (as `admin_users` has `owner`); the spec said the default lives in the instance config. Harmless superset, mirrors the owner table.
+- Shared helpers instead of copies: `authModels`/`authPathLimit`/`authLogger` in `create-auth.ts`, `postToAuthHandler`/`copySetCookies` in `auth-handler-request.ts` (owner sign-in refactored onto them, behaviour unchanged, existing tests pass).
+- Header labels are icon-only below `sm` (accessible names kept) so the 390 px header still fits; the storefront-mobile e2e covers the signed-in header.
+- Next.js answers a trailing or doubled slash with a 308 to the canonical path before the route allowlist runs; the e2e asserts that (lesson 2026-10-24).
+- README env table and BACKWARD_COMPATIBILITY §4 gained `CUSTOMER_AUTH_SECRET` now (production start requires it), ahead of the rest of Phase 3 docs.
+
 ## Progress
+
+PR: #100
 
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles.
 
