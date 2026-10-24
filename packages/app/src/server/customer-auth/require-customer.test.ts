@@ -8,6 +8,7 @@ import {
   customerApiHandler,
   getCurrentCustomer,
   getCurrentCustomerId,
+  isCustomerSignedIn,
   requireCustomer,
   requireCustomerPage,
 } from "./require-customer";
@@ -92,6 +93,26 @@ describe("getCurrentCustomerId (spec A24)", () => {
       error: { name: "Error", code: "57P01" },
     });
     expect(JSON.stringify(vi.mocked(logger.error).mock.calls)).not.toContain("secret-token");
+  });
+});
+
+describe("isCustomerSignedIn (header, checkout note, sign-in and sign-up pages)", () => {
+  it("is true only for a customer session", async () => {
+    getSession.mockResolvedValueOnce(customerSession);
+    await expect(isCustomerSignedIn()).resolves.toBe(true);
+    getSession.mockResolvedValueOnce(null);
+    await expect(isCustomerSignedIn()).resolves.toBe(false);
+    getSession.mockResolvedValueOnce(ownerShaped);
+    await expect(isCustomerSignedIn()).resolves.toBe(false);
+  });
+
+  it("treats a session-read failure as signed out and never throws, so the page still renders (A24)", async () => {
+    getSession.mockRejectedValueOnce(new Error("connection refused"));
+    await expect(isCustomerSignedIn()).resolves.toBe(false);
+    expect(logger.error).toHaveBeenCalledWith(
+      "Customer session read failed",
+      expect.objectContaining({ event: "customer_auth.session_error" }),
+    );
   });
 });
 

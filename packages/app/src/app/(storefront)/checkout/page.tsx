@@ -14,7 +14,7 @@ import {
 import { CheckoutForm } from "@/components/checkout/checkout-form";
 import { OrderSummary } from "@/components/checkout/order-summary";
 import { acceptCartChanges } from "@/server/cart/cart.action";
-import { getCurrentCustomerId } from "@/server/customer-auth/require-customer";
+import { isCustomerSignedIn } from "@/server/customer-auth/require-customer";
 import { placeOrder } from "@/server/orders/order.action";
 import { loadCheckoutPage } from "./load-checkout-page";
 
@@ -41,8 +41,7 @@ export default function CheckoutPage() {
 
 /** "Sign in for order history" for a signed-out shopper (E07 spec A16), read per request (A23). */
 async function LoadedCheckoutAccountNote() {
-  const result = await getCurrentCustomerId();
-  return <CheckoutAccountNote signedIn={result.status === "customer"} />;
+  return <CheckoutAccountNote signedIn={await isCustomerSignedIn()} />;
 }
 
 async function CheckoutContents() {

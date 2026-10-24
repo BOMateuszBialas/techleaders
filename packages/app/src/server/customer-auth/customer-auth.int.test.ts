@@ -2,7 +2,7 @@ import { execFile } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import { afterAll, beforeAll, describe, expect, inject, it, vi } from "vitest";
-import { createAuth, OWNER_NAME, type Auth } from "../auth/create-auth";
+import { createAuth, OWNER_NAME, SIGN_IN_LIMIT, type Auth } from "../auth/create-auth";
 import { createAuthPool } from "../auth/create-auth-pool";
 import { getCurrentAdmin } from "../auth/require-admin";
 import { createCustomerAuth, type CustomerAuth } from "./create-customer-auth";
@@ -156,6 +156,25 @@ describe("owner and customer sessions never cross (E07 step 5)", () => {
     expect(seen.admin).toMatchObject({ email: OWNER_EMAIL, role: "owner" });
     expect(seen.customer).toMatchObject({ email: CUSTOMER_EMAIL, role: "customer" });
     expect(seen.admin?.id).not.toBe(seen.customer?.id);
+  });
+
+  it("a flood of customer sign-ins never locks the owner out (separate buckets, A10)", async () => {
+    await pool.query("delete from customer_rate_limits");
+    await pool.query("delete from admin_rate_limits");
+    const statuses: number[] = [];
+    for (let i = 0; i <= SIGN_IN_LIMIT.shared; i++) {
+      const response = await post(customer, "/api/customer-auth/sign-in/email", {
+        email: CUSTOMER_EMAIL,
+        password: "wrong-password-123",
+      });
+      statuses.push(response.status);
+    }
+    expect(statuses.at(-1)).toBe(429);
+    const ownerSignIn = await post(owner, "/api/auth/sign-in/email", {
+      email: OWNER_EMAIL,
+      password: PASSWORD,
+    });
+    expect(ownerSignIn.status).toBe(200);
   });
 
   it("no cookie is neither role", async () => {

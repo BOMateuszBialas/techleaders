@@ -31,6 +31,9 @@ export function AccountOrdersView({ email, signOutAction }: AccountOrdersViewPro
           {ACCOUNT_COPY.browseCatalog}
         </Link>
       </div>
+      <p role="note" className="text-sm text-muted-foreground">
+        {ACCOUNT_COPY.ordersNotSavedYet}
+      </p>
     </div>
   );
 }

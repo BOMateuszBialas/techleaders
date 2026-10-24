@@ -5,7 +5,8 @@ import { Migration } from '@mikro-orm/migrations';
  * Mirrors Better Auth 1.7.10's generated customer schema (spec "Spike results", item g) and adds
  * the role check the generated SQL lacks. Additive: no existing table changes and nothing points
  * at these tables yet, so `down` drops only them. Once Phase 2 adds `orders.customer_id`, its own
- * `down` must run first (the foreign key), and it refuses while account orders exist.
+ * `down` must run first: the drops below use no `cascade`, so that foreign key blocks them, and
+ * Phase 2's own `down` refuses while account orders exist.
  */
 export class Migration20261024181620_customer_auth extends Migration {
 
@@ -36,14 +37,16 @@ export class Migration20261024181620_customer_auth extends Migration {
   }
 
   override down(): void | Promise<void> {
+    // No `cascade`: once Phase 2 adds `orders.customer_id`, its foreign key must make this fail
+    // instead of being dropped silently (rollback plan, owner decision D-d).
     this.addSql(`alter table "customer_sessions" drop constraint "customer_sessions_user_id_foreign";`);
     this.addSql(`alter table "customer_accounts" drop constraint "customer_accounts_user_id_foreign";`);
 
-    this.addSql(`drop table if exists "customer_rate_limits" cascade;`);
-    this.addSql(`drop table if exists "customer_users" cascade;`);
-    this.addSql(`drop table if exists "customer_sessions" cascade;`);
-    this.addSql(`drop table if exists "customer_accounts" cascade;`);
-    this.addSql(`drop table if exists "customer_verifications" cascade;`);
+    this.addSql(`drop table if exists "customer_rate_limits";`);
+    this.addSql(`drop table if exists "customer_users";`);
+    this.addSql(`drop table if exists "customer_sessions";`);
+    this.addSql(`drop table if exists "customer_accounts";`);
+    this.addSql(`drop table if exists "customer_verifications";`);
   }
 
 }

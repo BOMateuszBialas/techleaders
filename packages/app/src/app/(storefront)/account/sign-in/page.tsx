@@ -11,7 +11,7 @@ import {
   customerSignInErrorMessage,
   isCheckoutReturn,
 } from "@/server/customer-auth/customer-auth-errors";
-import { getCurrentCustomerId } from "@/server/customer-auth/require-customer";
+import { isCustomerSignedIn } from "@/server/customer-auth/require-customer";
 
 export const metadata: Metadata = { title: "Sign in", robots: { index: false } };
 
@@ -31,7 +31,7 @@ export default function CustomerSignInPage({ searchParams }: PageProps<"/account
 async function LoadedSignIn({ searchParams }: Pick<PageProps<"/account/sign-in">, "searchParams">) {
   const { error, from } = await searchParams;
   // A session-read failure keeps the form (A24); the redirect runs outside any try block.
-  if ((await getCurrentCustomerId()).status === "customer") redirect(customerReturnPath(from));
+  if (await isCustomerSignedIn()) redirect(customerReturnPath(from));
   return (
     <CustomerAuthCard
       mode="sign-in"

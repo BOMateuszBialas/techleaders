@@ -77,13 +77,14 @@ const RULES: Rule[] = [
   {
     name: "admin pages and layouts",
     matches: (path) =>
-      /^app\/admin\/.*(page|layout|default)\.(tsx|jsx|ts|js)$/.test(path) &&
+      /^app\/admin\/.*(page|layout|default|template)\.(tsx|jsx|ts|js)$/.test(path) &&
       !path.startsWith("app/admin/sign-in/"),
     guards: ["requireAdminPage("],
   },
   {
     name: "admin API routes",
-    matches: (path) => /^app\/api\/admin\/.*route\.(ts|js)$/.test(path),
+    // Also a route handler placed beside the admin pages.
+    matches: (path) => /^app\/(api\/)?admin\/.*route\.(ts|js)$/.test(path),
     guards: ["adminApiHandler("],
   },
   {
@@ -103,13 +104,15 @@ const RULES: Rule[] = [
   {
     name: "account pages and layouts",
     matches: (path) =>
-      /^app\/\(storefront\)\/account\/.*(page|layout|default)\.(tsx|jsx|ts|js)$/.test(path) &&
-      !/^app\/\(storefront\)\/account\/sign-(in|up)\//.test(path),
+      /^app\/\(storefront\)\/account\/.*(page|layout|default|template)\.(tsx|jsx|ts|js)$/.test(
+        path,
+      ) && !/^app\/\(storefront\)\/account\/sign-(in|up)\//.test(path),
     guards: ["requireCustomerPage("],
   },
   {
     name: "account API routes",
-    matches: (path) => /^app\/api\/account\/.*route\.(ts|js)$/.test(path),
+    // Also a route handler placed beside the account pages.
+    matches: (path) => /^app\/(api\/account|\(storefront\)\/account)\/.*route\.(ts|js)$/.test(path),
     guards: ["customerApiHandler("],
   },
   {
@@ -267,6 +270,11 @@ describe("admin guard inventory", () => {
         "app/api/account/orders/[id]/route.ts": "export const GET = customerApiHandler(...)",
         "server/customer-auth/customer-auth.action.ts": '"use server";',
         "server/customer-auth/other.action.ts": '"use server";\nexport async function x() {}',
+        "app/(storefront)/account/template.tsx": "export default function T() {}",
+        "app/(storefront)/account/export/route.ts": "export async function GET() {}",
+        "app/(storefront)/account/error.tsx": '"use client";\nexport default function E() {}',
+        "app/admin/(protected)/template.tsx": "export default function T() {}",
+        "app/admin/(protected)/export/route.ts": "export async function GET() {}",
       }),
     ).toEqual([
       "app/(storefront)/account/orders/page.tsx (account pages and layouts must call requireCustomerPage)",
@@ -275,7 +283,27 @@ describe("admin guard inventory", () => {
       "app/(storefront)/account/fake/page.tsx (account pages and layouts must call requireCustomerPage)",
       "app/api/account/orders/route.ts (account API routes must call customerApiHandler)",
       "server/customer-auth/other.action.ts (server actions must call requireAdmin or runAdminAction)",
+      "app/(storefront)/account/template.tsx (account pages and layouts must call requireCustomerPage)",
+      "app/(storefront)/account/export/route.ts (account API routes must call customerApiHandler)",
+      "app/admin/(protected)/template.tsx (admin pages and layouts must call requireAdminPage)",
+      "app/admin/(protected)/export/route.ts (admin API routes must call adminApiHandler)",
     ]);
+  });
+
+  // The sign-in action files are exempt from the action guard because they create or end a
+  // session; pinning their exports means a new action added there (an order read, say) fails
+  // here instead of slipping through the exemption.
+  it.each([
+    [SIGN_IN_ACTIONS, ["signIn", "signOut"]],
+    [CUSTOMER_AUTH_ACTIONS, ["signUpCustomer", "signInCustomer", "signOutCustomer"]],
+  ])("exports only the session actions from %s", (path, expected) => {
+    const code = stripComments(readFileSync(join(srcDir, path), "utf8"));
+    const named = [...code.matchAll(/^export\s+(?:async\s+)?function\s+(\w+)/gm)].map(
+      (match) => match[1],
+    );
+    expect(named).toEqual(expected);
+    // No other kind of export can add an endpoint unseen.
+    expect(code.match(/^export\s/gm)).toHaveLength(expected.length);
   });
 
   it("forbids crossing the owner and customer guards and auth instances (E07)", () => {

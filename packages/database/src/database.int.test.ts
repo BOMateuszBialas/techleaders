@@ -203,6 +203,22 @@ describe("database (PostgreSQL)", () => {
     const ownersBefore = await owners();
     expect(await existing()).toEqual(tables);
 
+    // A foreign key into customer_users (Phase 2's orders.customer_id, simulated here) blocks the
+    // rollback: no `cascade` may drop it silently (rollback plan, D-d).
+    const em = orm.em.fork();
+    const [customer] = await em.execute<{ id: string }[]>(
+      `insert into customer_users (name, email, email_verified) values ('Customer', 'fk-probe@db.test', false) returning id`,
+    );
+    await em.execute(
+      `create table fk_probe (customer_id uuid not null references customer_users (id) on delete restrict)`,
+    );
+    await em.execute(`insert into fk_probe (customer_id) values (?)`, [customer!.id]);
+    await expect(
+      orm.migrator.down({ migrations: ["Migration20261024181620_customer_auth"] }),
+    ).rejects.toThrow();
+    expect(await existing()).toEqual(tables);
+    await em.execute(`drop table fk_probe`);
+
     await orm.migrator.down({ migrations: ["Migration20261024181620_customer_auth"] });
     expect(await existing()).toEqual([]);
     expect(await owners()).toEqual(ownersBefore);

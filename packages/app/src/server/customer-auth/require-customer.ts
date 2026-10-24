@@ -80,6 +80,15 @@ export async function requireCustomerPage(): Promise<CustomerPrincipal> {
   return (await getCurrentCustomer()) ?? redirect(CUSTOMER_SIGN_IN_PAGE);
 }
 
+/**
+ * Whether this request carries a customer session, for UI that only switches between "signed
+ * in" and "not signed in" (the storefront header, the checkout note, the sign-in and sign-up
+ * pages). A session-read failure counts as not signed in, so those surfaces still render (A24).
+ */
+export async function isCustomerSignedIn(): Promise<boolean> {
+  return (await getCurrentCustomerId()).status === "customer";
+}
+
 /** For route handlers and server actions: no customer → `UnauthorizedError` (401 via `apiHandler`). */
 export async function requireCustomer(): Promise<CustomerPrincipal> {
   const customer = await getCurrentCustomer();

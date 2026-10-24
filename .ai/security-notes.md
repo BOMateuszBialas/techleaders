@@ -107,3 +107,26 @@ In the om-auto-* pipeline (issues, PR comments and CSV content in, `gh` / `git p
 To turn it on: GitHub → repository **Settings** → **Rules** → **Rulesets** → **main protection** → under *Require a pull request before merging* tick **Require review from Code Owners** → **Save changes**.
 
 Effect, read before enabling: every PR here is opened by the same account (`BOMateuszBialas`, used by you and by the agents), and GitHub never lets an author approve their own PR. With you as the only code owner, every PR that touches those paths could then not be merged by anyone, you included, unless you add a bypass actor (for example *Repository admin*) and merge with "bypass rules". But the agents act with your admin token, so they could bypass too. Recommendation: enable it only if you accept merging those PRs yourself through the bypass, and preferably once agents use a separate, non-admin bot account or fine-grained token. Then the rule binds the agents and not you. Until then, the existing policy (risk-high PRs and specs are merged by the user, never self-merged by agents) is the control that actually holds.
+
+## 10. Customer accounts (E07, application security)
+
+Spec `.ai/specs/2026-10-24-customer-accounts.md` (Phase 1). These notes record the accepted risks, with the measured evidence (spike `6027bd0`).
+
+- **Public sign-up.** A second Better Auth instance owns customers. It has its own tables (`customer_*`), its own path (`/api/customer-auth`), its own cookie (`commerceos-customer.session_token`) and its own secret (`CUSTOMER_AUTH_SECRET`, required and distinct in production).
+  - The route answers only `POST /sign-up/email`, `POST /sign-in/email`, `POST /sign-out` and `GET /get-session`, and 404s anything else before the instance is built. `disabledPaths` is a second layer. Nothing can change a customer's name, image, email or role after sign-up.
+  - Next.js redirects a trailing or doubled slash with a 308 to the canonical path, which the allowlist then judges.
+  - The owner instance (sign-up disabled, `admin_*` tables) is unchanged.
+- **Sign-up enumeration (accepted, owner decision D-b).** The sign-up form gives one generic refusal and logs no cause. The raw endpoint, however, answers:
+  - an existing email: **422** `{"code":"USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL"}`, median about 5.5 ms;
+  - a new email: **200** with a session, median about 64 ms (password hashing).
+
+  Both the status and the timing tell a prober that an address is registered. There is no email verification, so this cannot be closed without an email service. The rate limit bounds the probing.
+- **Shared rate-limit bucket.** Without `AUTH_TRUSTED_IP_HEADER`:
+  - customer sign-in and customer sign-up each get one shared bucket of 20 per minute, so a single client can block them for everyone (a denial of service);
+  - refused attempts count too;
+  - the owner's sign-in keeps its own bucket, which an integration test proves.
+
+  `x-forwarded-for` is never trusted by default. Any public deployment must set the header behind a proxy that overwrites it.
+- **Separate secret (owner decision D-a).** A leaked or rotated secret of one role never affects the other. Tokens do not cross cookie names in either direction, with shared or separate secrets alike (integration tests).
+- **Sign-out on a database failure** (library behaviour, same for the owner). Better Auth logs the failed session delete and still clears the cookie, so the session row survives until it expires (8 h of inactivity) while the user believes they signed out.
+- **No password reset and no email verification** (N06, A4).

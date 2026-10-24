@@ -29,6 +29,7 @@ describe("customer accounts (E07-S01)", () => {
     await browser().waitForText("You have no orders yet.");
 
     const main = await browser().text("main");
+    expect(main).toContain("Orders are not saved to your account yet");
     expect(main).toContain("My orders");
     expect(main).toContain(`Signed in as ${email}`);
     const { refs } = await browser().snapshot();
@@ -103,5 +104,7 @@ describe("customer accounts (E07-S01)", () => {
     // The cart survives signing in (A20), and a signed-in customer no longer sees the link.
     expect(await browser().text("main")).toContain("Vortex Wireless Mouse");
     expect(await browser().text("main")).not.toContain("Sign in for order history");
+    // Phase 1 says plainly that this order will still be a guest order (principle 6, A3).
+    expect(await browser().text("main")).toContain("Orders are not saved to your account yet");
   });
 });

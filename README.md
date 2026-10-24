@@ -301,6 +301,13 @@ Fictional demo traffic (decision D08) has its own definitions in the same file (
   - Without `AUTH_TRUSTED_IP_HEADER`, the sign-in rate limit is shared by all clients, so anyone flooding the form can block sign-in for everyone. **Set it in any public deployment**, behind a proxy that overwrites that header.
   - Protected admin pages answer HTTP 200 with a static shell (sidebar, headings, no store data), and the redirect to `/admin/sign-in` streams in. This follows from Next 16 cache components, where session reads sit inside `<Suspense>`. Never put sensitive data in an admin page's static shell.
   - Sessions end after 8 h of inactivity.
+- **Customer accounts (E07, in progress):**
+  - Shoppers can register, sign in and sign out (`/account/sign-up`, `/account/sign-in`) on a second, separate Better Auth instance. A customer session never opens the admin, and the owner session is not a customer session.
+  - **Orders are not attached to accounts yet.** "My orders" is empty, and an order placed while signed in is a guest order that will never appear there (checkout and "My orders" say so). Phase 2 attaches new orders to accounts.
+  - There is no password reset and no email verification (there is no email service).
+  - Sign-up reveals whether an email is registered. The form shows one generic refusal message, but the raw `/api/customer-auth/sign-up/email` endpoint answers 422 for a taken email and 200 for a new one (and answers faster for a taken one). This is an accepted risk; the rate limit bounds the probing.
+  - Without `AUTH_TRUSTED_IP_HEADER`, customer sign-in and customer sign-up each share one rate-limit bucket (20 per minute) across all clients, so anyone flooding them can block them for everyone (never the owner's sign-in, which has its own bucket). **Set it in any public deployment.**
+  - Production needs `CUSTOMER_AUTH_SECRET`, different from `BETTER_AUTH_SECRET`; the app refuses to start without it.
 - **Storefront catalog:**
   - A listing shows at most 48 products (sorted by name) and says "Showing 48 of N" when more match. Larger catalogues need pagination, which is out of scope for the demo.
   - A draft or unknown product URL shows "Product not found" with HTTP 200 and a `noindex` robots tag, because the not-found UI streams after the page shell (Next 16 cache components).

@@ -150,12 +150,12 @@ describe("attemptCustomerSignUp (AC1, A7, A9)", () => {
     expect(cookieStore.set).not.toHaveBeenCalled();
   });
 
-  it("turns invalid input and every 4xx refusal into one refused outcome that logs no cause", async () => {
+  it("turns invalid input, a rejected body and a taken email into one refused outcome that logs no cause", async () => {
     await expect(attemptCustomerSignUp(form({ email: "a@b.co", password: "short" }))).resolves.toBe(
       "refused",
     );
     expect(handler).not.toHaveBeenCalled();
-    for (const status of [400, 403, 422]) {
+    for (const status of [400, 422]) {
       handler.mockResolvedValueOnce(
         new Response(JSON.stringify({ code: "USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL" }), { status }),
       );
@@ -179,6 +179,16 @@ describe("attemptCustomerSignUp (AC1, A7, A9)", () => {
     });
     handler.mockRejectedValueOnce(new Error("connect ECONNREFUSED"));
     await expect(attemptCustomerSignUp(valid())).resolves.toBe("unavailable");
+  });
+
+  it("reports a 403 origin refusal as unavailable with its status, not as a refusal", async () => {
+    handler.mockResolvedValueOnce(new Response("", { status: 403 }));
+    await expect(attemptCustomerSignUp(valid())).resolves.toBe("unavailable");
+    expect(logger.error).toHaveBeenCalledWith("Customer sign-up failed", {
+      event: "customer_auth.sign_up_error",
+      status: 403,
+    });
+    expect(logger.warn).not.toHaveBeenCalled();
   });
 });
 

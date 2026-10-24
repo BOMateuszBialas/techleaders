@@ -86,6 +86,9 @@ describe("AccountOrdersView", () => {
     expect(html).toContain("Signed in as <span>a@shop.example</span>");
     expect(html).toMatch(/<form[^>]*>.*<button[^>]*type="submit"[^>]*>Sign out<\/button>/);
     expect(html).toContain("You have no orders yet.");
+    expect(html).toContain(
+      '<p role="note">Orders are not saved to your account yet: an order placed now is a guest order',
+    );
     expect(html).toMatch(/href="\/products"[^>]*>Browse the catalog</);
   });
 });
@@ -134,7 +137,9 @@ describe("CheckoutAccountNote", () => {
     expect(html).toContain("or continue below as a guest.");
   });
 
-  it("renders nothing for a signed-in customer", () => {
-    expect(render(createElement(CheckoutAccountNote, { signedIn: true }))).toBe("");
+  it("tells a signed-in customer plainly that this order is still a guest order (Phase 1)", () => {
+    const html = render(createElement(CheckoutAccountNote, { signedIn: true }));
+    expect(html).toBe(`<p role="note">${ACCOUNT_COPY.ordersNotSavedYet}</p>`);
+    expect(html).not.toContain("Sign in for order history");
   });
 });

@@ -10,7 +10,7 @@ import { HeaderSearch } from "@/components/storefront/header-search";
 import { DEMO_NOTICE, STORE_NAME } from "@/components/storefront/storefront-copy";
 import { readCartLines } from "@/server/cart/cart-cookie";
 import { signOutCustomer } from "@/server/customer-auth/customer-auth.action";
-import { getCurrentCustomerId } from "@/server/customer-auth/require-customer";
+import { isCustomerSignedIn } from "@/server/customer-auth/require-customer";
 import { loadStorefrontCategories } from "./load-storefront-categories";
 
 /**
@@ -80,9 +80,8 @@ async function LoadedCartLink() {
  * never cached (A23). A session-read failure shows "Sign in" (A24): the header never breaks.
  */
 async function LoadedAccountLink() {
-  const result = await getCurrentCustomerId();
   return (
-    <AccountHeaderLink signedIn={result.status === "customer"} signOutAction={signOutCustomer} />
+    <AccountHeaderLink signedIn={await isCustomerSignedIn()} signOutAction={signOutCustomer} />
   );
 }
 

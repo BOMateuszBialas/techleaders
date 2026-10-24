@@ -144,7 +144,11 @@ export function authModels(prefix: "admin" | "customer") {
   };
 }
 
-/** One limit for an auth path: per trusted client IP, or one shared bucket without that header. */
+/**
+ * One limit for an auth path: per trusted client IP, or one shared bucket without that header.
+ * The same `SIGN_IN_LIMIT` numbers apply to the owner sign-in and to customer sign-in and sign-up
+ * (E07 spec A10), each path in its own bucket.
+ */
 export function authPathLimit(trustedIpHeader: string | undefined) {
   return {
     window: SIGN_IN_LIMIT.window,
