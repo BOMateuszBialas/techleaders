@@ -338,7 +338,7 @@ _Filled in after Phase 0._
 
 ## Recenzja innym modelem
 
-Reviewers: **Gemini** and **ChatGPT**, 2026-10-24, run manually by the product owner with the same prompt (`e07-cross-model-review-prompt.md` in the author's scratchpad: a staff-level security and architecture review of the pre-review spec text, no repository access). Each finding was checked against the spec text before a verdict; "already covered" points to the line of the pre-review version (commit `259b8bf`). The owner's binding decisions on the open points are **D-a** (separate customer secret), **D-b** (A9 enumeration accepted), **D-c** (session-read failure is not "no session") and **D-d** (Phase 2 `down` refuses with account orders).
+Reviewers: **Gemini** and **ChatGPT**, 2026-10-24, run manually by the product owner with the same prompt (`e07-cross-model-review-prompt.md` in the author's scratchpad: a staff-level security and architecture review of the pre-review spec text, no repository access). The reviewers' full replies are on file in [`research/reviews/2026-10-24-customer-accounts-cross-model.md`](research/reviews/2026-10-24-customer-accounts-cross-model.md). Each finding was checked against the spec text before a verdict; "already covered" points to the line of the pre-review version (commit `259b8bf`). The owner's binding decisions on the open points are **D-a** (separate customer secret), **D-b** (A9 enumeration accepted), **D-c** (session-read failure is not "no session") and **D-d** (Phase 2 `down` refuses with account orders).
 
 Totals: **18** rows (14 findings, with Gemini #3 split into two parts, plus 3 author questions): **12 accepted**, **5 accepted in part**, **1 rejected**.
 
