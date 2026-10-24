@@ -9,7 +9,7 @@
 | Etap | Stan | Gdzie |
 |---|---|---|
 | 0. Inwentaryzacja i plan | **zakończony** 2026-10-24 | ten plik, spec |
-| 1. Fundamenty | w toku na gałęzi `design/stage-1-foundations` (draft PR, czeka na merge PR designu i zatwierdzenie specu) | spec, „Plan implementacji etapu 1” |
+| 1. Fundamenty | **zrobiony** 2026-10-24 na gałęzi `design/stage-1-foundations` (draft PR, `do-not-merge` do merge'u PR designu i zatwierdzenia specu); pełna bramka zielona | log `.ai/runs/2026-10-24-design-system-stage-1.md` |
 | 2. Komponenty bazowe | nie rozpoczęty | partie niżej |
 | 3. Komponenty produktu, wzorce, ekrany | przeniesiony do lekcji 08 (retrofit) | osobny spec |
 | 4. Strony, które uczą + `docs/design-system.md` | nie rozpoczęty | – |
@@ -156,6 +156,15 @@ Przybliżona liczba stories: Foundations ok. 10 (bloki z testem a11y), Primitive
 
 Pytania 1–5 z sekcji 2 i decyzje ⚠D1–⚠D5 ze specu.
 
+## Wynik etapu 1 (do pokazania)
+
+- Tokeny w `globals.css` w 3 warstwach, oba motywy; `node .ai/design/kontrast/verify-css.mjs`: wartości zgodne z tokeny.md, 58 par niedekoracyjnych przechodzi w obu motywach.
+- Archivo (`wdth` + `wght`) przez `next/font`, przełącznik Light / Dark / System w stopce sklepu i menu admina, skrypt w `<head>` bez mignięcia.
+- Storybook 10.6.3: 7 stron Foundations (tabele MDX renderują się jako tabele, sprawdzone w zbudowanym Storybooku), 9 stories, testy a11y w obu motywach (18/18), test interakcji przełącznika.
+- `npm run check:tokens`: 35 znanych wartości w `src/` (11 z audytu, wewnętrzne klasy shadcn, szablony siatek `grid-cols-[…]`); `stories/` i `.storybook/` czyste.
+- Tabler zamiast lucide; ESLint blokuje `lucide-react`.
+- Świadomie bez zmian: rozmiary ikon w nagłówku (16 px jak dziś, reguła 20/24 px przy retroficie ramy), pierścień fokusu w komponentach `ui/*` (`ring-ring/50`, etap 2), `rounded-md` = 6,4 px przy nowym `--radius` (etap 2), 11 wartości z audytu (lekcja 08).
+
 ## Następny krok
 
-Etap 1 według „Plan implementacji etapu 1” w specu, na gałęzi `design/stage-1-foundations` (draft PR, `do-not-merge` do czasu merge'u PR designu i zatwierdzenia specu). Po etapie 1 stop i pokaz: Foundations w obu motywach, przełącznik, tabele MDX, wynik `check:tokens`, wynik testów Storybooka.
+Po merge'u PR designu i zatwierdzeniu specu (⚠D1–⚠D5): etap 2, partia 1 (Button, Text link, Input, Textarea, Label, Field). Najpierw lista różnic kształtu, gęstości i stanów względem bazy, z decyzją przy każdej.
