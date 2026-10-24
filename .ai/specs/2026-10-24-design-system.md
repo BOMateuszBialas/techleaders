@@ -1,7 +1,7 @@
 # Design system CommerceOS: tokeny w kodzie, motywy, Storybook i komponenty bazowe
 
 - Źródło: plan kursu, lekcja 06 (fazy 2–3 „PLAN-TYDZIEN-2.md”), prompt Storybooka z lekcji (`storybook-devmentor.txt`, kontekst DevMentora podmieniony na CommerceOS). Brak issue w trackerze; to rozszerzenie zakresu poza spec MVP, więc spec zatwierdza właściciel.
-- Status: **szkic do zatwierdzenia** (2026-10-24). Spec PR jest design-only; implementacja idzie osobnymi PR-ami (sekcja „Fazy”).
+- Status: **zatwierdzony** (2026-10-24): ⚠D1–⚠D5 przyjęte zgodnie z rekomendacjami. Etap 1 zmergowany (#99), etap 2 w toku (partia 1). Implementacja idzie osobnymi PR-ami (sekcja „Fazy”).
 - Wejście (zatwierdzone): `.ai/design/audyt.md` (5 decyzji, 11 wartości na sztywno), `.ai/design/referencje.md` (R01–R04, A01, K1–K7), `.ai/design/tokeny.md` (**zatwierdzone 2026-10-24**, rozstrzygnięcia w sekcji 8), skrypt kontrastu `node .ai/design/kontrast/run.mjs`, plan etapów `.ai/design/POSTEP.md`.
 - Autorytet projektowy: AGENTS.md („Product principles”, „Testing”, „Packages and boundaries”, „Agent rules”), `ENGINEERING_STANDARDS.md`, `BACKWARD_COMPATIBILITY.md` (zmiany konfiguracji i bramki).
 - **Warunek wejścia:** P0 i P1 działają (spełnione: #79, #81, #85, #86 zmergowane); tokeny zatwierdzone (spełnione).

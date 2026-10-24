@@ -1,0 +1,36 @@
+/*
+ * Storybook only: the app's stylesheet plus frozen state previews (lesson 06 prompt, stage 2).
+ * The state matrix shows hover, focus and pressed without a pointer: the same declarations as
+ * :hover, :focus-visible and :active, also bound to `data-preview-state` (documentation only, the
+ * app's CSS never sees this file). A story sets e.g. `data-preview-state="hover"` on a component.
+ */
+@import "../src/app/globals.css";
+
+@custom-variant hover {
+  @media (hover: hover) {
+    &:hover {
+      @slot;
+    }
+  }
+  &[data-preview-state~="hover"] {
+    @slot;
+  }
+}
+
+@custom-variant focus-visible {
+  &:focus-visible {
+    @slot;
+  }
+  &[data-preview-state~="focus"] {
+    @slot;
+  }
+}
+
+@custom-variant active {
+  &:active {
+    @slot;
+  }
+  &[data-preview-state~="active"] {
+    @slot;
+  }
+}

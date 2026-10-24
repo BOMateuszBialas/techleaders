@@ -35,6 +35,7 @@
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary-hover: var(--secondary-hover);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
@@ -189,6 +190,7 @@
   --action-hover: var(--raw-red-700); /* R03.1 + P7 */
   --action-foreground: var(--raw-gray-25); /* R03.1: text #fbfbfb on the red */
   --secondary: var(--raw-gray-150); /* R03, R04.1: secondary actions, neutral status badge */
+  --secondary-hover: var(--raw-gray-200); /* stage 2 Q1: hover of the secondary button (P7) */
   --secondary-foreground: var(--raw-gray-850);
   --accent: var(--raw-gray-150); /* hover of ghost/outline, selected row; not a brand accent */
   --accent-foreground: var(--raw-gray-850);
@@ -254,6 +256,7 @@
   --action-hover: var(--raw-red-600);
   --action-foreground: var(--raw-gray-25);
   --secondary: var(--raw-gray-800);
+  --secondary-hover: var(--raw-gray-700);
   --secondary-foreground: var(--raw-gray-50);
   --accent: var(--raw-gray-800);
   --accent-foreground: var(--raw-gray-50);
@@ -349,6 +352,13 @@
   --control-h-md: 2.75rem; /* 44 px: default */
   --control-h-lg: 3rem; /* 48 px: CTA on the product page and in the cart */
   --radius-badge: 0.25rem; /* P4: status badge and photo label */
+  /* Stage 2, batch 1 (POSTEP B1.7-B1.9, B1.21) */
+  --control-px: 1rem; /* B1.8: inline padding of md and lg buttons, 4 px grid */
+  --control-icon-size: 1.25rem; /* B1.9, tokeny §6: 20 px icons in the store */
+  --field-text-size: 1rem; /* B1.7: 16 px in fields (no iOS zoom), tokeny §3 */
+  --field-text-leading: 1.5rem;
+  --label-size: 0.875rem; /* B1.21, Q3: 14/20 px in both densities (store = small style) */
+  --label-leading: 1.25rem;
 }
 
 /* Admin density (P15, R04.3, K7): same tokens, smaller scale. Set by the admin layouts. */
@@ -356,6 +366,10 @@
   --control-h-sm: 1.75rem; /* 28 px: row actions in tables */
   --control-h-md: 2rem; /* 32 px (R04.3) */
   --control-h-lg: 2.25rem; /* 36 px */
+  --control-px: 0.75rem; /* B1.8: 12 px */
+  --control-icon-size: 1rem; /* B1.9, tokeny §6: 16 px icons in the admin */
+  --field-text-size: 0.875rem; /* B1.7: 14 px on desktop (tokeny §3) */
+  --field-text-leading: 1.25rem;
   --type-display-size: 1.5rem; /* metric values on the dashboard */
   --type-display-leading: 2rem;
   --type-display-weight: 600;
@@ -399,6 +413,8 @@
   [data-density="admin"] {
     --space-gutter: 1rem;
     --space-section: 1.5rem;
+    --field-text-size: 1rem; /* B1.7: 16 px in fields on a phone, admin too (no iOS zoom) */
+    --field-text-leading: 1.5rem;
   }
 }
 

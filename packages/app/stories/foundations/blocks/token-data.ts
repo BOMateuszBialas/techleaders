@@ -88,6 +88,12 @@ export const COLOR_GROUPS: ReadonlyArray<{ title: string; roles: readonly ColorR
         source: "R03, R04.1",
       },
       {
+        token: "secondary-hover",
+        use: "Hover of the secondary button (a color, not opacity)",
+        avoid: "Anything else",
+        source: "P7, stage 2 Q1",
+      },
+      {
         token: "accent",
         use: "Hover of ghost and outline buttons, selected row, active filter",
         avoid: "Brand color (it is not a brand accent)",
@@ -247,6 +253,7 @@ export const CONTRAST_PAIRS: readonly ContrastPair[] = [
   ["primary-foreground", "primary", "T", "Main admin button"],
   ["primary-foreground", "primary-hover", "T", "Main admin button, hover"],
   ["secondary-foreground", "secondary", "T", "Secondary button"],
+  ["secondary-foreground", "secondary-hover", "T", "Secondary button, hover"],
   ["accent-foreground", "accent", "T", "Ghost or outline button, hover"],
   ["action-foreground", "action", "T", "Purchase action"],
   ["action-foreground", "action-hover", "T", "Purchase action, hover"],

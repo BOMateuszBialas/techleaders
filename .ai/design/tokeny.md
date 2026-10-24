@@ -74,6 +74,7 @@ Wszystkie wartości mieszczą się w gamucie sRGB (sprawdzone skryptem). `--raw-
 | `--action-hover` | znaczeniowa (**nowy**) | `oklch(0.44 0.17 25)` `#9b0f1b` | `oklch(0.50 0.19 25)` `#b71824` | R03.1 + lekcja (stany osobnymi kolorami) | hover i stan wciśnięty CTA zakupowego | – |
 | `--action-foreground` | znaczeniowa (**nowy**) | `oklch(0.985 0.002 285)` `#fafafb` | `#fafafb` | R03.1 (tekst `#fbfbfb`) | tekst i ikona na `--action` | – |
 | `--secondary` / `--secondary-foreground` | znaczeniowa (istniejący) | `oklch(0.955 0.004 285)` `#f0f0f3` / `#18181b` | `oklch(0.25 0.006 285)` `#212124` / `#f5f5f7` | R03 (drugorzędny jasnoszary), R04.1 (2 drugorzędne akcje) | przyciski drugorzędne, neutralny badge statusu | akcja główna |
+| `--secondary-hover` | znaczeniowa (**nowy**, etap 2 Q1) | `oklch(0.93 0.004 285)` `#e7e7ea` | `oklch(0.30 0.006 285)` `#2d2d31` | P7 (stany kolorami); decyzja właściciela 2026-10-24 (Q1 partii 1) | hover przycisku drugorzędnego | – |
 | `--muted` | znaczeniowa (istniejący) | `oklch(0.965 0.004 285)` `#f3f3f6` | `oklch(0.25 0.006 285)` `#212124` | R04.1 (nagłówek tabeli `#f7f7f7`) | nagłówek tabeli, skeleton, tło stanu pustego | tło tekstu ciągłego |
 | `--muted-foreground` | znaczeniowa (istniejący) | `oklch(0.49 0.012 285)` `#5f6067` | `oklch(0.74 0.01 285)` `#aaaab1` | audyt (4,35 : 1 na `--muted`), R01 (drugorzędny 4,31 : 1 do poprawy) | opisy, podpisy, placeholder, metadane | tekst wymagany do działania, ceny, błędy |
 | `--accent` / `--accent-foreground` | znaczeniowa (istniejący) | `#f0f0f3` / `#18181b` | `#212124` / `#f5f5f7` | shadcn (hover ghost/outline, zaznaczony wiersz R04.1) | hover przycisku ghost/outline, zaznaczony wiersz, aktywny filtr | kolor marki (to nie jest akcent marki, mimo nazwy) |
@@ -161,6 +162,7 @@ Progi: tekst 4,5 : 1; duży tekst (≥ 24 px albo ≥ 18,66 px pogrubiony) i ele
 | 12 | `--primary-foreground` na `--primary` | tekst 4,5 | 16,98 : 1 | ok | 15,50 : 1 | ok | przycisk główny admina |
 | 13 | `--primary-foreground` na `--primary-hover` | tekst 4,5 | 13,14 : 1 | ok | 12,08 : 1 | ok | przycisk główny admina, hover |
 | 14 | `--secondary-foreground` na `--secondary` | tekst 4,5 | 15,57 : 1 | ok | 14,74 : 1 | ok | przycisk drugorzędny |
+| 14a | `--secondary-foreground` na `--secondary-hover` | tekst 4,5 | 14,35 : 1 | ok | 12,59 : 1 | ok | przycisk drugorzędny, hover (etap 2 Q1) |
 | 15 | `--accent-foreground` na `--accent` | tekst 4,5 | 15,57 : 1 | ok | 14,74 : 1 | ok | ghost/outline w hover |
 | 16 | `--action-foreground` na `--action` | tekst 4,5 | 6,35 : 1 | ok | 5,16 : 1 | ok | CTA zakupowe |
 | 17 | `--action-foreground` na `--action-hover` | tekst 4,5 | 8,12 : 1 | ok | 6,35 : 1 | ok | CTA zakupowe, hover |

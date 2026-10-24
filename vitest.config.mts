@@ -33,8 +33,11 @@ export default defineConfig({
         "**/*.fixture.ts",
         // Test infrastructure (Testcontainers helpers and global setups).
         "packages/database/src/testing/**",
-        // Generated code: migrations (reviewed SQL) and vendored shadcn/ui primitives.
+        // Generated code: migrations (reviewed SQL).
         "packages/database/src/migrations/**",
+        // Design-system primitives built on shadcn/ui, without logic (class composition only).
+        // Covered by the Storybook tests instead (interactions and a11y in both themes, CI job
+        // `storybook`; design system POSTEP B1.27).
         "packages/app/src/components/ui/**",
         // Re-export barrels and type-only modules (no runtime behaviour).
         "**/index.ts",
