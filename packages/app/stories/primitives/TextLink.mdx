@@ -1,0 +1,126 @@
+import { ArgTypes, Canvas, Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import * as TextLinkStories from "./text-link.stories";
+import { TextLink } from "../../src/components/ui/text-link";
+import { DoDont } from "./blocks/do-dont";
+
+<Meta of={TextLinkStories} />
+
+# Text link
+
+## 1. What it is for
+
+A text link takes the user to another page: back to the product list, to an order, to the next page of results.
+
+## 2. When to use
+
+| Situation in CommerceOS                                                     | Variant      |
+| --------------------------------------------------------------------------- | ------------ |
+| A link inside a sentence: "find your order", "Review your cart"             | `inline`     |
+| A link on its own line: "Back to products", "Continue shopping", pagination | `standalone` |
+| A resource name in an admin table: a product name, an order reference       | `resource`   |
+
+Color `--link` (P1, R04.2: in the admin, color is for links, status and errors).
+
+## 3. When not to use
+
+| Instead of a text link…                | Use                              | Why                                                  |
+| -------------------------------------- | -------------------------------- | ---------------------------------------------------- |
+| An action that changes data ("Remove") | `Button` (`ghost` or `link`)     | A button acts, a link navigates (HTML, WAI-ARIA)     |
+| The store header, footer or admin menu | the frame navigation (lesson 08) | `--link` is not for frame navigation (tokeny.md §1b) |
+| The main step of a flow ("Checkout")   | `buttonVariants()` on a link     | The main step must look like the main action (R02.2) |
+
+## 4. Anatomy
+
+1. Text: says where the link goes.
+2. Underline: always for `inline` and `standalone`; on hover and focus for `resource` (the table cell already marks it).
+3. Focus ring: 2 px `--ring` outline with a 2 px offset (tokeny.md §5).
+
+## 5. Variants
+
+<Canvas of={TextLinkStories.Variants} />
+
+| Variant      | Looks like                                         | Choose it when                             |
+| ------------ | -------------------------------------------------- | ------------------------------------------ |
+| `inline`     | `--link`, underlined                               | the link is part of a sentence             |
+| `standalone` | `--link`, underlined, at least 24 px tall          | the link stands alone ("Back to products") |
+| `resource`   | `--link`, 500 weight, underline on hover and focus | the link is the name of a row in a table   |
+
+The text size comes from the context (`type-body`, `type-small`); the link has no size prop.
+
+## 6. States
+
+<Canvas of={TextLinkStories.States} />
+
+| State                             | What changes                                                                | Source                     |
+| --------------------------------- | --------------------------------------------------------------------------- | -------------------------- |
+| Hover                             | `inline`, `standalone`: a 2 px underline; `resource`: the underline appears | B1.18 (proposal, accepted) |
+| Focus                             | 2 px outline in `--ring` with a 2 px offset                                 | tokeny.md §5               |
+| Visited                           | no change: the store has few repeat links                                   | B1.18                      |
+| Pressed, disabled, loading, error | not applicable: a link either goes somewhere or is not rendered             | –                          |
+
+## 7. Behavior and accessibility
+
+- Keyboard: Tab focuses, Enter follows the link (Space does not, as in every browser).
+- Role `link`, rendered by `next/link` (prefetch and client navigation).
+- Color is never the only signal: `inline` and `standalone` are always underlined (WCAG 1.4.1). `--link` on white is 6.71 : 1 (tokeny.md §2, pair 21).
+- Target: `standalone` is at least 24 px tall (WCAG 2.5.8, rule 16); links in a sentence are exempt.
+
+<Canvas of={TextLinkStories.Keyboard} />
+
+## 8. Content
+
+- Say where it goes: "Back to products", "Find your order". Not "Click here" or "More".
+- A link in a sentence is the words that describe the destination, not the whole sentence.
+- Up to about 5 words; long links wrap inside the sentence.
+
+## 9. Responsive
+
+- 320 px: links wrap with the sentence; standalone links stay on their own line.
+- 768 and 1440 px: no change.
+
+<Canvas of={TextLinkStories.LongTextNarrow} />
+
+## 10. API
+
+<ArgTypes of={TextLinkStories} />
+
+Every other prop goes to `next/link` (`prefetch`, `replace`, `scroll`). `textLinkVariants({ variant })` gives the classes for a link that is not a `next/link`.
+
+## 11. Code
+
+```tsx
+import { TextLink } from "@/components/ui/text-link";
+
+<TextLink href="/orders/lookup">find your order</TextLink>;
+```
+
+```tsx
+// Admin products table: the product name opens the product.
+<TextLink variant="resource" href={productPath(product.id)}>
+  {product.name}
+</TextLink>
+```
+
+## 12. Do and don't
+
+<Unstyled>
+  <DoDont
+    good={
+      <TextLink variant="standalone" href="/products">
+        Back to products
+      </TextLink>
+    }
+    goodNote="The text says where the link goes."
+    bad={
+      <TextLink variant="standalone" href="/products">
+        Click here
+      </TextLink>
+    }
+    badNote="“Click here” says nothing out of context, e.g. in a screen reader's link list."
+  />
+</Unstyled>
+
+## 13. Related
+
+- **Button**, variant `link`: looks the same, but performs an action.
+- Patterns (lesson 08): details view (back link), list with filters (pagination).

@@ -1,0 +1,155 @@
+import { ArgTypes, Canvas, Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import * as ButtonStories from "./button.stories";
+import { Button } from "../../src/components/ui/button";
+import { DoDont } from "./blocks/do-dont";
+
+<Meta of={ButtonStories} />
+
+# Button
+
+## 1. What it is for
+
+A button starts an action on this screen: adding a product to the cart, saving a form, changing an order status. Navigation to another page is a [Text link](?path=/docs/primitives-text-link--docs).
+
+## 2. When to use
+
+| Situation in CommerceOS                                                                    | Variant                       | Source              |
+| ------------------------------------------------------------------------------------------ | ----------------------------- | ------------------- |
+| A purchase step: "Add to cart", "Checkout", "Place order", "Confirm demo payment"          | `action` (red)                | R03.1, K1           |
+| The main action of an admin screen or a neutral store action: "Save product", "Find order" | `default` (primary, graphite) | R04.2, K7           |
+| A second action next to the main one: "Draft with AI", "Preview import"                    | `secondary` or `outline`      | R04.1               |
+| A quiet action inside a list row: "Remove" in the cart, "Undo"                             | `ghost` or `link`             | R04.1               |
+| An action that deletes or cancels: "Delete category", "Cancel order"                       | `destructive`                 | tokeny.md §7 rule 5 |
+
+## 3. When not to use
+
+| Instead of a button…                                   | Use                           | Why                                                        |
+| ------------------------------------------------------ | ----------------------------- | ---------------------------------------------------------- |
+| Going to another page ("Back to products", pagination) | Text link                     | A link navigates, a button acts (HTML, WAI-ARIA)           |
+| A red button in the admin                              | `default`                     | The admin has no `--action` (tokeny.md §7 rule 4)          |
+| A red button in the store header or footer             | a neutral button              | Red on the dark frame is 2.88 : 1 (tokeny.md §2, pair 61)  |
+| `action` on a product card in a list                   | `outline`, size `sm`          | At most one red button in view (rule 2; owner decision Q4) |
+| Showing an error                                       | Field error or a form message | An error is text and an icon, never a red button (rule 5)  |
+
+## 4. Anatomy
+
+1. Container: height from the density token, 8 px radius (`rounded-control`, K4).
+2. Label: a verb and an object, required unless the button is icon-only.
+3. Icon (optional): Tabler, 20 px in the store and 16 px in the admin (tokeny.md §6), before or after the label (`data-icon="inline-start|inline-end"`).
+4. Focus ring: 2 px `--ring` outline with a 2 px offset (tokeny.md §5).
+
+## 5. Variants
+
+<Canvas of={ButtonStories.Variants} />
+
+| Variant       | Looks like                                | Choose it when                                                    |
+| ------------- | ----------------------------------------- | ----------------------------------------------------------------- |
+| `default`     | graphite fill (`--primary`)               | the one main action of an admin screen, or a neutral store action |
+| `action`      | red fill (`--action`)                     | a purchase step; at most one in view, never in the admin          |
+| `secondary`   | light grey fill (`--secondary`)           | a supporting action next to the main one                          |
+| `outline`     | white with a `--input` outline (3.66 : 1) | an equal alternative, a button on a card, the cart's "Update"     |
+| `ghost`       | text only, grey on hover                  | a repeated row action where outlines would add noise              |
+| `destructive` | red text and outline on white             | deleting or cancelling; never a filled red                        |
+| `link`        | underlined `--link` text                  | an action that must read as a link in a sentence                  |
+
+Sizes: `sm`, `default`, `lg` and the square `icon-sm`, `icon`, `icon-lg`. Heights per density (tokeny.md §3):
+
+| Size      | Store | Admin (desktop) | Phone or touch, both |
+| --------- | ----- | --------------- | -------------------- |
+| `sm`      | 40 px | 28 px           | 44 px                |
+| `default` | 44 px | 32 px           | 44 px                |
+| `lg`      | 48 px | 36 px           | 48 px                |
+
+<Canvas of={ButtonStories.Sizes} />
+
+## 6. States
+
+<Canvas of={ButtonStories.States} />
+
+| State    | What changes                                                                                         | Source                   |
+| -------- | ---------------------------------------------------------------------------------------------------- | ------------------------ |
+| Hover    | a darker color (`--primary-hover`, `--action-hover`, `--secondary-hover`, `--accent`), never opacity | P7, rule 14              |
+| Focus    | 2 px outline in `--ring` with a 2 px offset, keyboard only (`:focus-visible`)                        | tokeny.md §5, WCAG 2.4.7 |
+| Pressed  | the hover color and a 1 px move down (no move with reduced motion)                                   | tokeny.md §5             |
+| Disabled | `--muted` fill, `--muted-foreground` text, not-allowed cursor                                        | P5, rule 14              |
+| Loading  | `aria-busy="true"`: keeps the variant's color, the label says what is happening ("Adding…")          | B1.6                     |
+| Error    | `aria-invalid`: `--destructive` outline (for future select triggers)                                 | rule 5                   |
+
+**How the user learns why a button is disabled:** a sentence next to it, linked with `aria-describedby`, and `focusableWhenDisabled` so a keyboard or screen reader user reaches the button and hears the reason. A disabled button without a reason is a bug (What to avoid).
+
+<Canvas of={ButtonStories.DisabledWithReason} />
+
+## 7. Behavior and accessibility
+
+- Keyboard: Tab focuses, Enter and Space press. A disabled button is skipped, unless it is `focusableWhenDisabled` (then it announces "dimmed" or "unavailable").
+- Role `button` (Base UI renders a native `<button>`). Inside a form, set `type="submit"` or `type="button"` on purpose.
+- Screen readers read the label; an icon-only button needs `aria-label` ("Search", "Open cart"), and its icon gets `aria-hidden`.
+- Target: at least 24 × 24 px everywhere (WCAG 2.5.8) and 44 px on a phone or touch screen (rule 16); the smallest button is 28 px tall in the admin on a desktop.
+- Loading: `aria-busy` tells assistive technology the button is working; announce the result with the form message (`role="status"` or `role="alert"`).
+
+<Canvas of={ButtonStories.Keyboard} />
+
+## 8. Content
+
+- A verb and an object, sentence case: "Add to cart", "Save product", "Delete category". Not "OK", "Submit" or "Click here" (Content page, K5).
+- Facts only: "Confirm demo payment (no charge)" says what happens (R03.3, principle 6).
+- Up to about 3 words; the longest label today is "Confirm demo payment (no charge)" (32 characters).
+- Labels do not wrap. When a translation is longer, the button takes the full width on a phone (`className="w-full"`), it never truncates.
+- No price on a red button: a price is never in the action color (rule 1, A01).
+
+## 9. Responsive
+
+- 320 px: buttons in a form stack and may take the full width; the label stays on one line.
+- 768 px: buttons sit in a row; below 48rem every control is at least 44 px tall.
+- 1440 px: the density heights apply (store 40/44/48, admin 28/32/36).
+
+<Canvas of={ButtonStories.LongLabelNarrow} />
+
+## 10. API
+
+<ArgTypes of={ButtonStories} />
+
+Every other prop goes to Base UI `Button` (`render`, `nativeButton`, events). `buttonVariants({ variant, size })` gives the same classes for a `next/link` that must look like a button ("Checkout" in the cart summary).
+
+## 11. Code
+
+```tsx
+import { Button } from "@/components/ui/button";
+
+<Button>Find order</Button>;
+```
+
+```tsx
+// Product page: one red purchase action, the loading state keeps its color.
+<Button type="submit" variant="action" size="lg" disabled={pending} aria-busy={pending}>
+  {pending ? "Adding…" : "Add to cart"}
+</Button>
+```
+
+## 12. Do and don't
+
+<Unstyled>
+  <DoDont
+    good={<Button variant="action">Add to cart</Button>}
+    goodNote="One red button for the purchase step."
+    bad={
+      <>
+        <Button variant="action">Add to cart</Button>
+        <Button variant="action">Save for later</Button>
+      </>
+    }
+    badNote="Two red buttons compete; red is only for buying (rule 2, A01)."
+  />
+  <DoDont
+    good={<Button variant="destructive">Delete category</Button>}
+    goodNote="A verb and the object it deletes."
+    bad={<Button variant="destructive">OK</Button>}
+    badNote="“OK” does not say what will be deleted."
+  />
+</Unstyled>
+
+## 13. Related
+
+- **Text link**: navigation; often confused with the `link` variant (that one is an action).
+- **Field**: the form a submit button belongs to; after a failed submit, focus goes to the first field with an error.
+- Patterns (lesson 08): form, delete confirmation ("Delete category", with a cancel that is easy to find).

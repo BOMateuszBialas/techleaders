@@ -1,0 +1,130 @@
+import { ArgTypes, Canvas, Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import * as InputStories from "./input.stories";
+import { Input } from "../../src/components/ui/input";
+import { Label } from "../../src/components/ui/label";
+import { DoDont } from "./blocks/do-dont";
+
+<Meta of={InputStories} />
+
+# Input
+
+## 1. What it is for
+
+A single-line field where the user types a short value: a name, an email, a postal code, a quantity, an order reference.
+
+## 2. When to use
+
+- Checkout: full name, email, address, city, postal code.
+- Order lookup: the order reference (in `font-mono`, P13).
+- Product page and cart: quantity (`type="number"`, `inputMode="numeric"`).
+- Admin: product name, price, SKU, stock quantity, dates of the dashboard range; the CSV file in the import (`type="file"`).
+- Search in the header and the catalog (`type="search"`).
+
+Always inside a [Field](?path=/docs/primitives-field--docs), with a visible label (audit decision 5).
+
+## 3. When not to use
+
+| Instead of an input…               | Use                             | Why                         |
+| ---------------------------------- | ------------------------------- | --------------------------- |
+| More than one line (a description) | Textarea                        | Line breaks and longer text |
+| A choice from a short fixed list   | Select or radio group (batch 2) | No typing errors            |
+| Yes or no ("Published")            | Checkbox (batch 2)              | One click, no free text     |
+
+## 4. Anatomy
+
+1. Container: `--input` outline (3.66 : 1, WCAG 1.4.11, rule 12), 8 px radius, height from the density token.
+2. Value: 16 px in the store and on every phone (no iOS zoom), 14 px in the admin on a desktop (tokeny.md §3).
+3. Placeholder (optional): `--muted-foreground`, an example of the format, never the label.
+4. Focus ring: 2 px `--ring` outline with a 2 px offset; the outline of the field turns `--ring` too.
+
+## 5. Variants
+
+No visual variants. The `type` attribute picks the keyboard and the browser behavior.
+
+<Canvas of={InputStories.Types} />
+
+## 6. States
+
+<Canvas of={InputStories.States} />
+
+| State                      | What changes                                                  | Source       |
+| -------------------------- | ------------------------------------------------------------- | ------------ |
+| Hover                      | nothing                                                       | B1.19        |
+| Focus                      | outline `--ring`, plus a 2 px ring with a 2 px offset         | tokeny.md §5 |
+| Error                      | outline `--destructive`; the message is in the Field error    | rule 5       |
+| Error + focus              | outline stays `--destructive`, the ring stays neutral         | tokeny.md §5 |
+| Disabled                   | `--muted` fill, `--muted-foreground` text, not-allowed cursor | P5, rule 14  |
+| Loading, selected, pressed | not applicable                                                | –            |
+
+**How the user learns why a field is disabled:** the Field hint says it ("The reference is set when the order is placed."). Prefer `readOnly` when the value must still be read and copied.
+
+## 7. Behavior and accessibility
+
+- Keyboard: Tab focuses; typing, arrows and the browser's own shortcuts work as native.
+- The label is a `<label for>` (Field label); hint and error are linked with `aria-describedby`; an error sets `aria-invalid`, which screen readers announce as "invalid entry".
+- Set `autoComplete` for personal data (`name`, `email`, `postal-code`; WCAG 1.3.5) and `inputMode` for numbers.
+- Target: 44 px tall in the store and on a phone, 32 px in the admin on a desktop (WCAG 2.5.8, rule 16).
+
+<Canvas of={InputStories.Typing} />
+
+## 8. Content
+
+- The label names the value ("Postal code"); the placeholder shows a format ("00-950"), never instructions the user needs after typing.
+- Set `maxLength` from the domain rule and say it in the hint when it matters.
+- Long values scroll inside the field; the page never scrolls sideways.
+
+## 9. Responsive
+
+- 320 px: fields take the full width; quantity keeps `w-24`.
+- 768 px and up: forms keep the prose width (`--measure-prose`) or a two-column grid.
+- Below 48rem every field is 44 px tall, admin too.
+
+<Canvas of={InputStories.LongValueNarrow} />
+<Canvas of={InputStories.AdminDensity} />
+
+## 10. API
+
+<ArgTypes of={InputStories} />
+
+Every other native `<input>` prop works (Base UI `Input`).
+
+## 11. Code
+
+```tsx
+import { Input } from "@/components/ui/input";
+
+<Input id="lookup-reference" name="reference" />;
+```
+
+```tsx
+// Checkout: postal code with an error from the server.
+<Input
+  id="shippingPostalCode"
+  name="shippingPostalCode"
+  autoComplete="postal-code"
+  aria-invalid={errors.length > 0}
+  aria-describedby={errors.length > 0 ? "shippingPostalCode-error" : undefined}
+/>
+```
+
+## 12. Do and don't
+
+<Unstyled>
+  <DoDont
+    good={
+      <div className="flex w-full flex-col gap-related">
+        <Label htmlFor="dd-postal">Postal code</Label>
+        <Input id="dd-postal" placeholder="00-950" />
+      </div>
+    }
+    goodNote="A visible label; the placeholder only shows the format."
+    bad={<Input aria-label="Postal code" placeholder="Postal code" />}
+    badNote="The placeholder as the only label disappears as soon as the user types."
+  />
+</Unstyled>
+
+## 13. Related
+
+- **Field**: label, hint and error around the input.
+- **Textarea**: the multi-line version with the same states.
+- Patterns (lesson 08): form, list with filters (search).

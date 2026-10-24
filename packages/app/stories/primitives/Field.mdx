@@ -1,0 +1,156 @@
+import { Canvas, Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import * as FieldStories from "./field.stories";
+import { Field, FieldError, FieldLabel } from "../../src/components/ui/field";
+import { Input } from "../../src/components/ui/input";
+import { DoDont } from "./blocks/do-dont";
+
+<Meta of={FieldStories} />
+
+# Field
+
+## 1. What it is for
+
+A field puts together everything one form value needs: a visible label, the control, a hint and an error, always in the same order and spacing, so forms read the same everywhere.
+
+## 2. When to use
+
+Every value in a form: checkout, order lookup, sign-in and sign-up, the product and category forms, the stock panel, the import. Today these are assembled by hand from `Label`, `<p>` and `FieldError` in `form-feedback.tsx`; they move to `Field` in the retrofit (lesson 08).
+
+## 3. When not to use
+
+| Instead of a field…                  | Use                                                  | Why                                   |
+| ------------------------------------ | ---------------------------------------------------- | ------------------------------------- |
+| A form-level result ("Order placed") | the form message (`role="status"` or `role="alert"`) | It is about the form, not one value   |
+| A search box in the header           | Input with a visible label or icon (frame retrofit)  | The header has its own layout (audit) |
+| Read-only data in a details view     | a description list                                   | Nothing to type                       |
+
+## 4. Anatomy
+
+1. `Field`: the wrapper, `--space-related` (8 px) between its parts.
+2. `FieldLabel`: always visible; `optional` adds "(optional)".
+3. The control: `Input`, `Textarea` (later `Select`, `Checkbox`).
+4. `FieldDescription` (optional): the hint, `type-small`, `--muted-foreground`.
+5. `FieldError` (optional): icon and text in `--destructive`; renders nothing without a message.
+6. `FieldGroup`: fields `--space-group-item` apart (16 px store, 12 px admin).
+7. `FieldSet` and `FieldLegend` (optional): a named group of fields ("Shipping address").
+
+Order: label, control, hint, error (B1.26).
+
+## 5. Variants
+
+`FieldLegend` has two: `legend` (`type-h3`, a group title) and `label` (looks like a field label, for a group that is one question). `Field` has no variants; the horizontal layout for checkboxes arrives in batch 2.
+
+<Canvas of={FieldStories.Group} />
+
+## 6. States
+
+| State                                    | What changes                                                                            | Source            |
+| ---------------------------------------- | --------------------------------------------------------------------------------------- | ----------------- |
+| Default                                  | label, control, hint                                                                    | audit decision 5  |
+| Error                                    | red outline on the control, icon and message under it; label and hint keep their colors | rule 5, B1.23     |
+| Disabled                                 | `data-disabled="true"` on `Field` greys the label; the hint says why                    | P5                |
+| Optional                                 | "(optional)" after the label; required fields are not marked                            | owner decision Q2 |
+| Hover, focus, pressed, loading, selected | on the control                                                                          | –                 |
+
+<Canvas of={FieldStories.WithError} />
+<Canvas of={FieldStories.Optional} />
+<Canvas of={FieldStories.Disabled} />
+
+## 7. Behavior and accessibility
+
+- The control has `id`; `FieldLabel htmlFor` names it; `aria-describedby` lists the hint and the error ids; an error sets `aria-invalid` (WCAG 1.3.1, 3.3.1).
+- The error is not a live region: after a submit the form shows one summary with `role="alert"`, and focus moves to the first field with an error (audit decision 5, tokeny.md §7 rule 13). Several alerts at once would be read over each other.
+- Values typed before a failed submit stay in the fields.
+- `Field` is a `role="group"`; `FieldSet` is a `<fieldset>` named by its `<legend>`.
+
+<Canvas of={FieldStories.Validation} />
+
+## 8. Content
+
+- Label: a noun ("Postal code"). Hint: the format or the rule ("For example 249.90 or 249,90."). Error: what happened and what to do ("Enter a postal code like 00-950."), never "Invalid value" (Content page, R03.3).
+- Several messages for one field are joined into one sentence list.
+- Long hints and errors wrap; the error icon stays on the first line.
+
+## 9. Responsive
+
+- 320 px: one column, full width.
+- 768 and 1440 px: the form keeps a readable width (`max-w-sm` to `--measure-prose`); a group may use two columns (city and postal code).
+
+<Canvas of={FieldStories.LongContentNarrow} />
+<Canvas of={FieldStories.AdminDensity} />
+
+## 10. API
+
+| Part               | Props                                                              | Default    |
+| ------------------ | ------------------------------------------------------------------ | ---------- |
+| `Field`            | `<div>` props; `data-disabled="true"` greys the label              | –          |
+| `FieldLabel`       | `<label>` props; `optional?: boolean` adds "(optional)"            | `false`    |
+| `FieldDescription` | `<p>` props; give it an `id` for `aria-describedby`                | –          |
+| `FieldError`       | `<p>` props; `children` = the message, nothing rendered when empty | –          |
+| `FieldGroup`       | `<div>` props                                                      | –          |
+| `FieldSet`         | `<fieldset>` props                                                 | –          |
+| `FieldLegend`      | `<legend>` props; `variant?: "legend" \| "label"`                  | `"legend"` |
+
+## 11. Code
+
+```tsx
+import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
+
+<Field>
+  <FieldLabel htmlFor="product-sku" optional>
+    SKU
+  </FieldLabel>
+  <Input id="product-sku" name="sku" aria-describedby="product-sku-hint" />
+  <FieldDescription id="product-sku-hint">
+    Saved in capitals, for example DEMO-MOU-001.
+  </FieldDescription>
+</Field>;
+```
+
+```tsx
+// Checkout field with a server error (fieldA11y builds aria-invalid and aria-describedby).
+<Field>
+  <FieldLabel htmlFor="shippingPostalCode">Postal code</FieldLabel>
+  <Input id="shippingPostalCode" name="shippingPostalCode" {...fieldA11y(errorId, errors)} />
+  <FieldError id={errorId}>{errors?.join(" ")}</FieldError>
+</Field>
+```
+
+## 12. Do and don't
+
+<Unstyled>
+  <DoDont
+    good={
+      <Field>
+        <FieldLabel htmlFor="dd-postal-ok">Postal code</FieldLabel>
+        <Input
+          id="dd-postal-ok"
+          aria-invalid
+          aria-describedby="dd-postal-ok-error"
+          defaultValue="0950"
+        />
+        <FieldError id="dd-postal-ok-error">Enter a postal code like 00-950.</FieldError>
+      </Field>
+    }
+    goodNote="The error says what to type, next to the field."
+    bad={
+      <Field>
+        <FieldLabel htmlFor="dd-postal-bad">Postal code</FieldLabel>
+        <Input
+          id="dd-postal-bad"
+          aria-invalid
+          aria-describedby="dd-postal-bad-error"
+          defaultValue="0950"
+        />
+        <FieldError id="dd-postal-bad-error">Invalid value.</FieldError>
+      </Field>
+    }
+    badNote="“Invalid value” does not say how to fix it."
+  />
+</Unstyled>
+
+## 13. Related
+
+- **Label**, **Input**, **Textarea**: the parts inside a field.
+- **Button**: the submit of the form.
+- Patterns (lesson 08): form (validation on blur and on submit, focus on the first error, double-submit lock).

@@ -1,0 +1,123 @@
+import { ArgTypes, Canvas, Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import * as TextareaStories from "./textarea.stories";
+import { Textarea } from "../../src/components/ui/textarea";
+import { Label } from "../../src/components/ui/label";
+import { DoDont } from "./blocks/do-dont";
+
+<Meta of={TextareaStories} />
+
+# Textarea
+
+## 1. What it is for
+
+A multi-line field for text longer than a line: a product or category description, a question to the Copilot.
+
+## 2. When to use
+
+- Admin: product description, category description.
+- Copilot: the merchant's question.
+
+Always inside a [Field](?path=/docs/primitives-field--docs) with a visible label.
+
+## 3. When not to use
+
+| Instead of a textarea…            | Use   | Why                                                                                                |
+| --------------------------------- | ----- | -------------------------------------------------------------------------------------------------- |
+| A short single value (name, city) | Input | Enter submits the form, no line breaks                                                             |
+| Formatted text (headings, lists)  | –     | Not in the product: descriptions are plain text, never rendered as HTML (AGENTS.md, Copilot rules) |
+
+## 4. Anatomy
+
+The same as Input (outline `--input`, 8 px radius, value text, optional placeholder, focus ring), plus:
+
+1. Minimum height of 96 px, about three lines in the store (B1.20).
+2. Growth with the content where `field-sizing: content` is supported; elsewhere the user resizes it vertically.
+
+## 5. Variants
+
+No visual variants.
+
+## 6. States
+
+<Canvas of={TextareaStories.States} />
+
+| State                      | What changes                                        | Source       |
+| -------------------------- | --------------------------------------------------- | ------------ |
+| Hover                      | nothing                                             | B1.19        |
+| Focus                      | outline `--ring` and a 2 px ring with a 2 px offset | tokeny.md §5 |
+| Error                      | outline `--destructive`, also in focus              | rule 5       |
+| Disabled                   | `--muted` fill, `--muted-foreground` text           | P5           |
+| Loading, selected, pressed | not applicable                                      | –            |
+
+**How the user learns why it is disabled:** from the Field hint next to it.
+
+## 7. Behavior and accessibility
+
+- Keyboard: Tab focuses; Enter adds a line (it never submits the form).
+- Label, hint and error as in Input (`<label for>`, `aria-describedby`, `aria-invalid`).
+- The minimum height (96 px) is above every target size rule.
+
+<Canvas of={TextareaStories.GrowsWithContent} />
+
+## 8. Content
+
+- The label names the content ("Description", "Question"); the hint says the limit and what happens to the text ("Nothing is saved until you click Save").
+- Set `maxLength` from the domain rule and repeat it in the hint.
+
+## 9. Responsive
+
+- 320 px: full width, text wraps; no sideways scroll.
+- 768 and 1440 px: the form's width (`--measure-prose` for prose).
+
+<Canvas of={TextareaStories.LongTextNarrow} />
+
+## 10. API
+
+<ArgTypes of={TextareaStories} />
+
+Every other native `<textarea>` prop works.
+
+## 11. Code
+
+```tsx
+import { Textarea } from "@/components/ui/textarea";
+
+<Textarea id="product-description" name="description" />;
+```
+
+```tsx
+// Copilot question with a limit in the hint.
+<Textarea
+  id="copilot-question"
+  name="question"
+  maxLength={500}
+  aria-describedby="copilot-question-hint"
+/>
+```
+
+## 12. Do and don't
+
+<Unstyled>
+  <DoDont
+    good={
+      <div className="flex w-full flex-col gap-related">
+        <Label htmlFor="dd-desc">Description</Label>
+        <Textarea id="dd-desc" defaultValue="[DEMO] Cloth mousepad, 900 × 400 mm." />
+      </div>
+    }
+    goodNote="Room for a few lines, so the merchant sees the text while writing."
+    bad={
+      <div className="flex w-full flex-col gap-related">
+        <Label htmlFor="dd-desc-small">Description</Label>
+        <Textarea id="dd-desc-small" className="min-h-0 field-sizing-fixed" rows={1} />
+      </div>
+    }
+    badNote="A one-line textarea hides what the user wrote; use an Input or keep the minimum height."
+  />
+</Unstyled>
+
+## 13. Related
+
+- **Input**: the single-line field with the same states.
+- **Field**: label, hint and error.
+- Patterns (lesson 08): form, AI answer with fallback (Copilot).
