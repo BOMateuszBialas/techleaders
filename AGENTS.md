@@ -187,6 +187,8 @@ npm run test:coverage      # unit tests, fails below 100% coverage
 npm run build
 npm run test:integration   # Testcontainers PostgreSQL (needs Docker)
 npm run test:e2e           # after `npm run build`; needs Docker and agent-browser
+npm run build-storybook    # design system Storybook (packages/app/stories/)
+npm run test:storybook:themes  # stories as tests in Chromium, a11y as errors, light and dark
 ```
 
 Process documents: `SDLC.md` (ticket flow and labels), `CODE_REVIEW.md` (review rules), `BACKWARD_COMPATIBILITY.md` (protected contracts), `.ai/agentic.config.json` (pipeline configuration).

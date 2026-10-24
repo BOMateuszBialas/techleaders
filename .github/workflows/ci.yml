@@ -105,3 +105,19 @@ jobs:
           path: packages/app/e2e/artifacts/
           if-no-files-found: ignore
           retention-days: 7
+
+  storybook:
+    name: Storybook (build + stories in both themes)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      # Chromium for the Vitest browser mode that runs every story (a11y as errors, play functions).
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build-storybook
+      - run: npm run test:storybook:themes
