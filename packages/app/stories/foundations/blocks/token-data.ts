@@ -298,6 +298,10 @@ export const CONTRAST_PAIRS: readonly ContrastPair[] = [
   ["warning-border", "warning-surface", "U", "Warning alert outline"],
   ["border", "background", "U", "Card outline, separator (decorative, rule 12)"],
   ["border", "surface-product", "U", "Separator on a product card (decorative, rule 12)"],
+  ["ring", "action", "X", "Focus without offset on a purchase action: offset is mandatory"],
+  ["ring", "primary", "X", "Focus without offset on the main button: offset is mandatory"],
+  ["action", "frame", "X", "Action red directly on the dark frame: not allowed (rule 3)"],
+  ["action-foreground", "frame-accent", "X", "White text on the frame red: not allowed (rule 3)"],
   ["foreground", "destructive-surface", "T", "Error alert description"],
   ["foreground", "success-surface", "T", "Success alert description"],
   ["foreground", "warning-surface", "T", "Warning alert description"],
@@ -307,10 +311,6 @@ export const CONTRAST_PAIRS: readonly ContrastPair[] = [
   ["link", "warning-surface", "T", "Link in a warning alert"],
   ["link", "demo-surface", "T", "Link in a demo alert"],
   ["primary", "card", "U", "Checked checkbox or radio in a card"],
-  ["ring", "action", "X", "Focus without offset on a purchase action: offset is mandatory"],
-  ["ring", "primary", "X", "Focus without offset on the main button: offset is mandatory"],
-  ["action", "frame", "X", "Action red directly on the dark frame: not allowed (rule 3)"],
-  ["action-foreground", "frame-accent", "X", "White text on the frame red: not allowed (rule 3)"],
 ];
 
 /** Realistic examples from the seeded gaming store (decision D10); no invented ratings. */
