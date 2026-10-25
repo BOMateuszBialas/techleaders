@@ -10,7 +10,7 @@
 |---|---|---|
 | 0. Inwentaryzacja i plan | **zakończony** 2026-10-24 | ten plik, spec |
 | 1. Fundamenty | **zmergowany** (PR #99); pełna bramka zielona | log `.ai/runs/2026-10-24-design-system-stage-1.md` |
-| 2. Komponenty bazowe | **w toku:** partia 1 zmergowana (PR #104); partia 2: lista różnic gotowa, czeka na decyzje właściciela (gałąź `design/stage-2-batch-2`); partie 3–4 nie rozpoczęte | sekcje „Etap 2, partia 1” i „Etap 2, partia 2” niżej; logi `.ai/runs/2026-10-24-design-system-stage-2-batch-1.md`, `.ai/runs/2026-10-24-design-system-stage-2-batch-2.md` |
+| 2. Komponenty bazowe | **w toku:** partia 1 zmergowana (PR #104); partia 2 zaimplementowana, PR do review właściciela (gałąź `design/stage-2-batch-2`); partie 3–4 nie rozpoczęte | sekcje „Etap 2, partia 1” i „Etap 2, partia 2” niżej; logi `.ai/runs/2026-10-24-design-system-stage-2-batch-1.md`, `.ai/runs/2026-10-24-design-system-stage-2-batch-2.md` |
 | 3. Komponenty produktu, wzorce, ekrany | przeniesiony do lekcji 08 (retrofit) | osobny spec |
 | 4. Strony, które uczą + `docs/design-system.md` | nie rozpoczęty | – |
 | 5. Sprawdzenie i raport | nie rozpoczęty | – |
@@ -260,7 +260,7 @@ Stories partii (szacunek): Button 10, Text link 6, Input 7, Textarea 5, Label 3,
 
 ## Etap 2, partia 2: różnice względem bazy (do akceptacji punkt po punkcie)
 
-Partia: Select, Checkbox, Radio group, Badge, Alert, Card. Baza: shadcn `base-nova` 4.21.4 na Base UI 1.9: `ui/badge.tsx` i `ui/card.tsx` w stanie po etapie 1 (partia 1 ich nie ruszała) oraz `npx shadcn view native-select select checkbox radio-group alert` (podgląd rejestru, bez instalacji). Każdy punkt ma jedną rekomendację i źródło; **P** = moja propozycja, bo materiały milczą. Nic z tej listy nie jest jeszcze w kodzie. Decyzje partii 1 obowiązują dalej i nie powtarzam ich przy każdym komponencie: wysokość kontrolek z tokenów (B1.2), promień 8 px (B1.3), fokus jako `outline` 2 px z offsetem 2 px (B1.4), stany kolorami zamiast przezroczystości (B1.5), bez `dark:` w komponentach (B1.11).
+Partia: Select, Checkbox, Radio group, Badge, Alert, Card. Baza: shadcn `base-nova` 4.21.4 na Base UI 1.9: `ui/badge.tsx` i `ui/card.tsx` w stanie po etapie 1 (partia 1 ich nie ruszała) oraz `npx shadcn view native-select select checkbox radio-group alert` (podgląd rejestru, bez instalacji). Każdy punkt ma jedną rekomendację i źródło; **P** = moja propozycja, bo materiały milczą. Stan: wszystkie punkty B2.1–B2.31 są w kodzie (PR partii 2). Decyzje partii 1 obowiązują dalej i nie powtarzam ich przy każdym komponencie: wysokość kontrolek z tokenów (B1.2), promień 8 px (B1.3), fokus jako `outline` 2 px z offsetem 2 px (B1.4), stany kolorami zamiast przezroczystości (B1.5), bez `dark:` w komponentach (B1.11).
 
 Kontrast nowych par policzyłem skryptem z `.ai/design/kontrast/` (`lib.mjs`, `tokens.mjs`) przed zapisaniem tej listy; wyniki są przy punktach. Pary trafią do `tokeny.md` §2 i `kontrast/tokens.mjs` razem z implementacją (zasada 19).
 
@@ -369,4 +369,4 @@ Usunięcia z bazy do Twojej zgody (zasada 12), przyjmowane razem z listą: rozmi
 
 ## Następny krok
 
-Implementacja partii 2 na gałęzi `design/stage-2-batch-2` (worktree `wt-ds-batch2`) i PR do review właściciela.
+Review i merge PR partii 2 przez właściciela (gałąź `design/stage-2-batch-2`); potem partia 3 etapu 2: lista różnic do akceptacji.

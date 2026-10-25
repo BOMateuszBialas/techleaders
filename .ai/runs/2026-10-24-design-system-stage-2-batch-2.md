@@ -22,10 +22,36 @@ Krok 1 partii 2 według promptu Storybooka: lista różnic kształtu, gęstości
 - Bez nowych zależności; plan CLI: `npx shadcn add native-select checkbox radio-group alert` (4 nowe pliki, nic nie nadpisuje), bez `add badge`, `add card`, `add select`, `add field`.
 - Wszystkie rekomendacje czekają na właściciela (prompt: stop po każdym kroku).
 
-## Wynik
+## Wynik kroku 1
 
-Commit lokalny z POSTEP i tym logiem. Bez zmian w kodzie, bez pusha i bez PR.
+Commit lokalny z POSTEP i tym logiem (lista różnic). Bez zmian w kodzie.
+
+## Decyzje właściciela (2026-10-24)
+
+Q1–Q5 zgodnie z rekomendacjami; B2.1–B2.31 przyjęte, w tym trzy usunięcia z bazy (Select `sm`, Badge `link`, `AlertAction`).
+
+## Implementacja (2026-10-24 – 2026-10-25)
+
+1. Tokeny: `--choice-offset` (sklep 0, admin 2 px) i `--grid-template-columns-card-header` w `globals.css`; wiersz w `tokeny.md` §1, `token-data.ts`.
+2. Pary kontrastu 63–71 w `tokeny.md` §2, `kontrast/tokens.mjs` i `kontrast/pairs.md` (tekst i link na 4 tłach `--*-surface`, `--primary` na `--card`); `verify-css.mjs`: 68 par w obu motywach, wszystkie niedekoracyjne przechodzą.
+3. Nowe `ui/native-select.tsx`, `checkbox.tsx`, `radio-group.tsx`, `alert.tsx`; przepisane `badge.tsx`, `card.tsx`; `field.tsx` z poziomą orientacją i `FieldContent`; `label.tsx` szarzeje przy `data-disabled` kontrolki Base UI.
+4. Storybook: 6 stron MDX po 13 sekcji, 38 nowych stories (`play` w 29) plus `Field` → `Horizontal`; kolejność menu w `preview.tsx`. Testy `play` z B2.31: Select (Tab, `selectOptions`, `FormData`), Checkbox (klik etykiety, Spacja, `FormData`, `required` w prawdziwym `<form>`), Radio (strzałki, jeden przystanek Tab, `FormData`, klik etykiety), Alert (rola tylko z propsa), Badge i Card (wymiary, a11y w obu motywach i gęstościach).
+5. Poprzedni agent przerwał pracę po commicie `b55f221`; ten przebieg zrobił audyt B2.1–B2.31 względem diffu (nic nie brakowało), bramkę, POSTEP i PR.
+
+## Wynik bramki (2026-10-25, lokalnie na Windows)
+
+| Krok | Wynik |
+|---|---|
+| `npm run lint`, `format:check`, `typecheck` | ok |
+| `npm run test:hooks` | ok, 334/334 (9 znanych luk) |
+| `npm run test:coverage` | ok, 171 plików, 1965 testów, 100% |
+| `npm run build` | ok |
+| `npm run test:integration`, `test:e2e` | **nie uruchomione lokalnie**: na tej maszynie nie ma Dockera (Testcontainers); sprawdza CI |
+| `npm run build-storybook` | ok |
+| `npm run test:storybook:themes` | ok, 170/170 (85 stories × 2 motywy) |
+| `npm run check:tokens` | kod 1, 25 znanych wartości poza plikami partii (było 28); pliki partii czyste |
 
 ## Do zrobienia
 
-- Po decyzjach: implementacja partii 2, pary kontrastu do `tokeny.md` §2 i `kontrast/tokens.mjs`, pełna bramka, PR.
+- Retrofit (lekcja 08): 3 natywne `<select>` → `NativeSelect`, 2 checkboxy → `Checkbox` (e2e `#product-featured`, `#confirm-cancelled` przejdą na etykietę lub rolę, B2.8), ok. 25 komunikatów → `Alert`, mapowanie statusów na warianty Badge (B2.17), `ghost` → `outline` i usunięcie `ghost`.
+- Partia 3 etapu 2.
