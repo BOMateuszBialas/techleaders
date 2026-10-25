@@ -4,21 +4,25 @@ import { cn } from "cn";
 /**
  * Table (design system stage 2, batch 3; B3.4–B3.10 in .ai/design/POSTEP.md). No `"use client"`:
  * a table has no state or events, so it renders on the server with its page (B3.4). Rows are 44 px
- * in the admin and 48 px in the store (`body` text + 12 px block padding, B3.5). Inline padding is
- * 12 px from 768 px and 8 px below, so tables keep every column in view at 390 px (lesson
- * 2026-10-19; `admin-mobile` and `storefront-mobile` e2e). The header sits on `--muted` with
- * `--foreground` 500 text. Digits are tabular on the whole table (B3.6); numeric columns set
- * `text-right` at the call site. Cells wrap long text, headers do not (B3.7). Rows have no hover,
- * selected or expanded styles (B3.8, owner decision): a row is not clickable, the resource name
- * inside it is a `TextLink`. Every table has a name: `TableCaption` (also `sr-only`) or
- * `aria-label` (B3.9). The scroll container stays for wide tables, without `tabIndex` (B3.10).
+ * in the admin and 48 px in the store (`body` text + 12 px block padding, B3.5). Below 768 px a
+ * table uses 14/20 text in both scopes (the admin body size) and 8 px inline padding, so every
+ * column stays in view at 390 px (lesson 2026-10-19; `admin-mobile` and `storefront-mobile` e2e:
+ * at 16 px "My orders" needs 345–366 px of 358). The header sits on `--muted` with `--foreground`
+ * 500 text. Digits are tabular on the whole table (B3.6); numeric columns set `text-right` at the
+ * call site. Cells wrap long text, headers do not (B3.7). Rows have no hover, selected or expanded
+ * styles (B3.8, owner decision): a row is not clickable, the resource name inside it is a
+ * `TextLink`. Every table has a name: `TableCaption` (also `sr-only`) or `aria-label` (B3.9). The
+ * scroll container stays for wide tables, without `tabIndex` (B3.10).
  */
 function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
     <div data-slot="table-container" className="relative w-full overflow-x-auto">
       <table
         data-slot="table"
-        className={cn("w-full caption-bottom type-body text-foreground tabular-nums", className)}
+        className={cn(
+          "w-full caption-bottom type-body text-foreground tabular-nums max-md:text-sm",
+          className,
+        )}
         {...props}
       />
     </div>
