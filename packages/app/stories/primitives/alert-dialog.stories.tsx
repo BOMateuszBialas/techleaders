@@ -272,7 +272,8 @@ export const StoreDensity: Story = {
     await expect(backdrop).not.toBeNull();
     if (backdrop) {
       await expect(getComputedStyle(backdrop).backdropFilter).toBe("none");
-      await expect(getComputedStyle(backdrop).backgroundColor).not.toBe("rgba(0, 0, 0, 0)");
+      // The --backdrop token is translucent (50% light, 60% dark): the computed color has an alpha.
+      await expect(getComputedStyle(backdrop).backgroundColor).toMatch(/\/ 0\.[56]\)$/);
     }
   },
 };

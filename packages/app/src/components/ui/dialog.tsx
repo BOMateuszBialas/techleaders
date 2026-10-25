@@ -26,7 +26,7 @@ const overlayViewportClassName = "fixed inset-0 z-50 flex items-center justify-c
 
 /** The popup surface shared by Dialog and Alert dialog (B4.4, B4.7, B4.9, B4.10). */
 const overlayPopupClassName =
-  "relative flex max-h-full w-full flex-col gap-group-item overflow-hidden rounded-card border border-border bg-popover p-panel type-body text-popover-foreground shadow-overlay outline-none transition-[opacity,scale] duration-(--duration-slow) ease-out data-ending-style:opacity-0 data-ending-style:duration-(--duration-base) data-ending-style:ease-in data-starting-style:opacity-0 motion-safe:data-ending-style:scale-95 motion-safe:data-starting-style:scale-95";
+  "relative flex max-h-full w-full flex-col gap-group-item overflow-hidden rounded-card border border-border bg-popover p-panel type-body text-popover-foreground shadow-overlay outline-none transition duration-(--duration-slow) ease-out data-ending-style:opacity-0 data-ending-style:duration-(--duration-base) data-ending-style:ease-in data-starting-style:opacity-0 motion-safe:data-ending-style:scale-95 motion-safe:data-starting-style:scale-95";
 
 const overlayHeaderClassName = "flex shrink-0 flex-col gap-1";
 

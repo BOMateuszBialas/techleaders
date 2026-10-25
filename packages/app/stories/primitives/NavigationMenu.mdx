@@ -1,0 +1,154 @@
+import { ArgTypes, Canvas, Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import * as NavigationMenuStories from "./navigation-menu.stories";
+import { DoDont } from "./blocks/do-dont";
+
+<Meta of={NavigationMenuStories} />
+
+# Navigation menu (megamenu)
+
+## 1. What it is for
+
+Getting from the store header to any category in one step: one "Shop" item opens a panel with "Shop all" and every category, each with its one-line description.
+
+## 2. When to use
+
+- The store header on screens from 768 px (owner change to Q1, B4.21–B4.32), once the header is retrofitted.
+- A top-level header item whose children are pages (categories). Every item in the panel is a link.
+
+On phones the same links sit in the [Disclosure](?path=/docs/primitives-disclosure--docs) "Menu" (batch 3), which works without JavaScript (spec G13).
+
+## 3. When not to use
+
+| Instead of a navigation menu…                 | Use                                        | Why                                                                             |
+| --------------------------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------- |
+| Actions on an object (edit, delete)           | buttons on the details page (R04.1)        | Navigation menus hold links; an action menu has role `menu` ("What is missing") |
+| Two or three top-level links without children | plain links (`navigationMenuTriggerStyle`) | Nothing to open                                                                 |
+| The phone header                              | Disclosure                                 | Works without JavaScript and pushes the content down                            |
+| Promotions, banners or product tiles          | the home page                              | A wall of promotions in the menu is anti-reference A01                          |
+| Filters on the listing                        | the catalog search form                    | Filters change the current page, not the place                                  |
+
+## 4. Anatomy
+
+1. Root: `<nav>` with a name ("Main").
+2. List and item: the top-level row.
+3. Trigger: a link to the catalog (`href`) that, with JavaScript, opens the panel instead; text and focus outline in the header's text color; a chevron that turns 180° when open.
+4. Panel: `--popover` surface, `--border` outline, the overlay shadow, 12 px radius, 16 px padding (`--space-group-item`), 8 px under the trigger, `z-50`, no backdrop.
+5. "Shop all": the first link, full width, with an arrow.
+6. Grid: categories in 2 columns, 3 from `lg`; each link is the name (`body`, 600) and the description (`small`, `--muted-foreground`).
+
+Removed from the base (B4.31): the indicator arrow, nested submenus and the sliding animation between items.
+
+## 5. Variants
+
+One panel layout. The trigger and plain top-level links share `navigationMenuTriggerStyle`. The header around it decides the colors: light header or dark frame.
+
+<Canvas of={NavigationMenuStories.Playground} />
+<Canvas of={NavigationMenuStories.OnDarkFrame} />
+
+## 6. States
+
+| State            | What changes                                                                                | Source    |
+| ---------------- | ------------------------------------------------------------------------------------------- | --------- |
+| Hover (trigger)  | underline; after 200 ms the panel opens                                                     | B4.24     |
+| Open             | chevron turned, underline, `aria-expanded="true"`; panel fades in (200 ms) and slides 8 px  | B4.27     |
+| Hover (link)     | the name is underlined; no background (1.00 : 1 in dark)                                    | B4.30     |
+| Current category | `aria-current="page"`, 2 px underline                                                       | B4.26     |
+| Focus            | 2 px outline with a 2 px offset: text color on the trigger, `--ring` in the panel (pair 78) | B1.4      |
+| Closing          | 120 ms fade                                                                                 | B4.27     |
+| Reduced motion   | no slide and no chevron turn; fades only                                                    | tokeny §5 |
+
+<Canvas of={NavigationMenuStories.CurrentCategory} />
+
+## 7. Behavior and accessibility
+
+- **Without JavaScript** the trigger is a plain link to `/products` (no button role, no expanded state in the server HTML), and the category links are in the page source, hidden. Nobody is stuck (spec G13).
+- With JavaScript the trigger becomes a button with `aria-expanded`: a click, Enter, Space or ArrowDown opens the panel; Ctrl, Cmd, Shift or middle click still open the catalog in a new tab.
+- Hover opens after a 200 ms intent delay and closes 300 ms after the pointer leaves. Base UI keeps a safe triangle from the trigger to the panel and ignores hover on touch. The panel can be hovered, closed with Escape and stays until the pointer or focus leaves (WCAG 1.4.13).
+- Tab moves from the trigger into the panel; Escape closes and returns focus to the trigger; moving focus out closes it.
+- Each link closes the panel when followed.
+
+<Canvas of={NavigationMenuStories.ClickOpensPanel} />
+<Canvas of={NavigationMenuStories.Keyboard} />
+<Canvas of={NavigationMenuStories.Hover} />
+
+## 8. Content
+
+- Trigger: one short word that names the place ("Shop"), never "Menu" or an icon alone.
+- Links: the category name as in the catalog; the description is the category's own one-liner from the data, with the `[DEMO]` marker kept (AGENTS.md principle 6).
+- No counts, prices or promotions in the panel.
+
+## 9. Responsive
+
+- Below 768 px: not shown; the header shows the Disclosure menu.
+- 768–1023 px: 2 columns. From 1024 px: 3 columns, at most 48 rem wide; the panel never leaves the window (16 px collision padding).
+- Long category names wrap inside their 240 px column.
+
+<Canvas of={NavigationMenuStories.ManyCategories} />
+
+## 10. API
+
+<ArgTypes of={NavigationMenuStories} />
+
+Parts: `NavigationMenu` (Base UI `Root` with the positioner, popup and viewport built in; `delay` 200, `closeDelay` 300, `align`), `NavigationMenuList`, `NavigationMenuItem`, `NavigationMenuTrigger` (**required `href`**), `NavigationMenuContent` (`keepMounted` by default), `NavigationMenuGrid`, `NavigationMenuLink` (`href`, `description`, `active`), `navigationMenuTriggerStyle`.
+
+## 11. Code
+
+```tsx
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuGrid,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
+
+<NavigationMenu aria-label="Main" className="hidden md:flex">
+  <NavigationMenuList>
+    <NavigationMenuItem>
+      <NavigationMenuTrigger href={productsHref()}>Shop</NavigationMenuTrigger>
+      <NavigationMenuContent>
+        <NavigationMenuLink href={productsHref()} className="w-full">
+          Shop all
+        </NavigationMenuLink>
+        <NavigationMenuGrid>
+          {categories.map((category) => (
+            <li key={category.slug}>
+              <NavigationMenuLink
+                href={productsHref(category.slug)}
+                description={category.description}
+                active={category.slug === currentSlug}
+              >
+                {category.name}
+              </NavigationMenuLink>
+            </li>
+          ))}
+        </NavigationMenuGrid>
+      </NavigationMenuContent>
+    </NavigationMenuItem>
+  </NavigationMenuList>
+</NavigationMenu>;
+```
+
+## 12. Do and don't
+
+<Unstyled>
+  <DoDont
+    good={
+      <span>Shop → Shop all, Mice, Keyboards, Headsets… each with one line of description.</span>
+    }
+    goodNote="Links only, the whole catalog one step from any page."
+    bad={
+      <span>Shop → a banner, “-30%” tiles and three featured products above the categories.</span>
+    }
+    badNote="Promotions bury the categories; the menu turns into the wall of promotions of A01."
+  />
+</Unstyled>
+
+## 13. Related
+
+- **Disclosure**: the phone menu.
+- **Text link**: links in content and the footer category list.
+- **Dialog**: never for navigation.
+- "What is missing": Menu (actions, role `menu`), nested submenus, a panel per category (when categories get children, Q8).
