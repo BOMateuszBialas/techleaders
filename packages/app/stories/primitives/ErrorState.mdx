@@ -1,0 +1,133 @@
+import { ArgTypes, Canvas, Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import * as ErrorStateStories from "./error-state.stories";
+import { ErrorState } from "../../src/components/ui/error-state";
+import { DoDont } from "./blocks/do-dont";
+
+<Meta of={ErrorStateStories} />
+
+# Error state
+
+## 1. What it is for
+
+Telling the user that a page or a section could not be loaded, what happened in plain words and what to do now, so a failure never looks like an empty or a broken page.
+
+## 2. When to use
+
+- A store or admin page whose data failed to load ("The catalog is temporarily unavailable").
+- The body of an `error.tsx` boundary, with "Try again" calling `reset`.
+- A section that failed while the rest of the page works (saved Copilot recommendations, a dashboard panel).
+
+About 12 page messages and 2 `error.tsx` files move to it in the retrofit (lesson 08).
+
+## 3. When not to use
+
+| Instead of an error state…              | Use                                   | Why                                              |
+| --------------------------------------- | ------------------------------------- | ------------------------------------------------ |
+| An error of one field                   | `FieldError`                          | The message belongs next to the value            |
+| A form that failed after submit         | Alert (`destructive`, `role="alert"`) | The form stays; the summary sits above it        |
+| A missing or foreign item ("not found") | Empty state                           | Must not reveal whether it exists (A8)           |
+| Copilot without an LLM                  | Alert `info` or `warning`             | Not an error: the rule-based insights still work |
+| A short confirmation                    | not available (toast)                 | An error that needs action is never a toast      |
+
+## 4. Anatomy
+
+A destructive Alert with fixed parts (owner decision Q4):
+
+1. Container: `--destructive-surface`, `--destructive` outline, 8 px radius, `role="alert"`.
+2. Icon: `IconAlertCircle`, hidden from screen readers.
+3. Title (required): what happened, 600 in `--destructive`.
+4. Description (required): what to do, `--foreground`.
+5. Action (optional): `Button` "Try again" or `TextLink` "Back to …".
+
+## 5. Variants
+
+No variants: always the destructive look. Density from the scope.
+
+<Canvas of={ErrorStateStories.Playground} />
+
+## 6. States
+
+Static. It disappears when the retry succeeds (the page re-renders without it). The action inside has its own states, including the Button `loading` state while it retries.
+
+## 7. Behavior and accessibility
+
+- Fixed `role="alert"`: the message is announced when it appears (WCAG 4.1.3). Focus does not move (B3.25).
+- The title is a `div`; pass the page's heading when it is the whole page: `title={<h1>…</h1>}`.
+- Icon plus words, never color alone (WCAG 1.4.1). The action is reached with Tab.
+
+<Canvas of={ErrorStateStories.WithRetry} />
+<Canvas of={ErrorStateStories.PageHeading} />
+
+## 8. Content
+
+- Title: what happened, as a fact, without blame ("Recommendations could not be loaded").
+- Description: what still works and what to do ("Your saved recommendations are safe. Try again.").
+- Never stack traces, raw provider or database errors, or codes (AGENTS.md "Security and validation").
+
+## 9. Responsive
+
+- 320 px: text wraps; the icon stays on the first line; the action wraps under the text.
+- Wide screens: the description keeps a readable line (`--measure-prose`).
+
+<Canvas of={ErrorStateStories.AdminNarrow} />
+
+## 10. API
+
+<ArgTypes of={ErrorStateStories} />
+
+| Prop          | Type        | Notes                                        |
+| ------------- | ----------- | -------------------------------------------- |
+| `title`       | `ReactNode` | required; may be a heading element           |
+| `description` | `ReactNode` | required; rendered in a paragraph            |
+| `action`      | `ReactNode` | optional; a Button or a TextLink             |
+| …             | `<div>`     | other div props, without `role` and children |
+
+## 11. Code
+
+```tsx
+"use client";
+import { Button } from "@/components/ui/button";
+import { ErrorState } from "@/components/ui/error-state";
+
+export default function Error({ reset }: { reset: () => void }) {
+  return (
+    <ErrorState
+      title={<h1>This page could not be loaded</h1>}
+      description="Your cart and orders are not affected. Try again."
+      action={
+        <Button variant="outline" onClick={reset}>
+          Try again
+        </Button>
+      }
+    />
+  );
+}
+```
+
+## 12. Do and don't
+
+<Unstyled>
+  <DoDont
+    good={
+      <ErrorState
+        title="The catalog is temporarily unavailable"
+        description="Try again in a moment."
+      />
+    }
+    goodNote="A fact and a next step."
+    bad={
+      <ErrorState
+        title="Error 500"
+        description="DriverException: connect ECONNREFUSED 127.0.0.1:5432"
+      />
+    }
+    badNote="A code and a raw database error: no help, and it leaks internals."
+  />
+</Unstyled>
+
+## 13. Related
+
+- **Alert**: the component it is built on; also form errors after submit.
+- **Field error**: the error of one value.
+- **Empty state**: not found, and nothing to show.
+- Patterns (lesson 08): page error boundary, AI answer with a fallback.

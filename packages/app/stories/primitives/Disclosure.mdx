@@ -1,0 +1,131 @@
+import { ArgTypes, Canvas, Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import * as DisclosureStories from "./disclosure.stories";
+import {
+  Disclosure,
+  DisclosureContent,
+  DisclosureTrigger,
+} from "../../src/components/ui/disclosure";
+import { DoDont } from "./blocks/do-dont";
+
+<Meta of={DisclosureStories} />
+
+# Disclosure
+
+## 1. What it is for
+
+Keeping extra content (definitions, details, a small menu) one click away, so the page shows what matters first and the rest stays available in place.
+
+## 2. When to use
+
+- Metric definitions under the Copilot answer.
+- The store menu on a phone (button-shaped trigger), which must work without JavaScript (spec G13).
+- Optional details a few users need: how something is calculated, more about demo data.
+
+## 3. When not to use
+
+| Instead of a disclosure…                         | Use                                          | Why                                            |
+| ------------------------------------------------ | -------------------------------------------- | ---------------------------------------------- |
+| Information needed for a decision (price, error) | show it                                      | Hidden facts are missed (B3.28)                |
+| Several sections where one opens at a time       | not available (accordion, "What is missing") | No screen needs it yet                         |
+| A menu that floats over the page                 | Popover or Menu (batch 4)                    | Position, overlay shadow and focus are its job |
+| Switching between views                          | Tabs                                         | Views are peers, not extra content             |
+
+## 4. Anatomy
+
+1. `Disclosure`: native `<details>`.
+2. `DisclosureTrigger`: native `<summary>` without the browser marker; at least 40 px / 28 px tall, `body` 500, the text then a chevron.
+3. Chevron: `IconChevronDown`, `--control-icon-size`, `--muted-foreground` (pairs 6–7), turns 180° when open in `--duration-base`.
+4. `DisclosureContent`: the content, `--space-related` under the trigger.
+
+## 5. Variants
+
+No variants. A button-shaped trigger adds `buttonVariants({ variant: "outline" })` and `hover:no-underline` through `className` (B3.27).
+
+<Canvas of={DisclosureStories.Playground} />
+<Canvas of={DisclosureStories.ButtonShaped} />
+
+## 6. States
+
+| State  | Look                                         |
+| ------ | -------------------------------------------- |
+| closed | text 500, chevron down                       |
+| hover  | text underlined (like `TextLink` `resource`) |
+| focus  | 2 px `--ring` outline with a 2 px offset     |
+| open   | chevron turned up; the content is shown      |
+
+No height animation (it would need JavaScript or `::details-content`). Reduced motion keeps only a short chevron turn.
+
+<Canvas of={DisclosureStories.States} />
+
+## 7. Behavior and accessibility
+
+- Native `<details>` / `<summary>` (owner decision Q5): the browser gives the button role, the expanded state, Tab, Enter and Space, and it works without JavaScript.
+- The chevron is `aria-hidden`; the trigger's text names it.
+- Several disclosures with the same `name` open one at a time (native exclusive group).
+- Find in page opens a closed disclosure that contains the match (Chromium).
+
+<Canvas of={DisclosureStories.Keyboard} />
+
+## 8. Content
+
+- Trigger: what is inside, as a noun or question ("How these metrics are calculated", "Menu").
+- Content: short; if it is long or always needed, it belongs on the page.
+
+## 9. Responsive
+
+- 320 px: the trigger text wraps; the chevron stays at the end.
+- The content takes the width of its column; text keeps a readable line.
+- The phone menu panel (position, overlay shadow, clipping at 320 px) is the frame retrofit or Popover, not Disclosure (B3.28).
+
+<Canvas of={DisclosureStories.AdminDensity} />
+
+## 10. API
+
+<ArgTypes of={DisclosureStories} />
+
+| Part                | Props                                         |
+| ------------------- | --------------------------------------------- |
+| `Disclosure`        | `<details>` props; `open`, `name`, `onToggle` |
+| `DisclosureTrigger` | `<summary>` props; children are the label     |
+| `DisclosureContent` | `<div>` props                                 |
+
+## 11. Code
+
+```tsx
+import { Disclosure, DisclosureContent, DisclosureTrigger } from "@/components/ui/disclosure";
+
+<Disclosure>
+  <DisclosureTrigger>How these metrics are calculated</DisclosureTrigger>
+  <DisclosureContent>
+    <MetricDefinitions />
+  </DisclosureContent>
+</Disclosure>;
+```
+
+## 12. Do and don't
+
+<Unstyled>
+  <DoDont
+    good={
+      <Disclosure>
+        <DisclosureTrigger>How revenue is calculated</DisclosureTrigger>
+        <DisclosureContent>The sum of paid orders in the period.</DisclosureContent>
+      </Disclosure>
+    }
+    goodNote="Optional detail, named by its content."
+    bad={
+      <Disclosure>
+        <DisclosureTrigger>More</DisclosureTrigger>
+        <DisclosureContent>Payment failed. Your card was not charged.</DisclosureContent>
+      </Disclosure>
+    }
+    badNote="An error hidden behind a vague label."
+  />
+</Unstyled>
+
+## 13. Related
+
+- **Tabs**: views of the same thing.
+- **Error state**, **Alert**: messages that must be seen.
+- Popover and Menu (batch 4): floating content.
+- Patterns (lesson 08): store header on a phone, AI answer with definitions.
