@@ -221,8 +221,13 @@ Progi: tekst 4,5 : 1; duży tekst (≥ 24 px albo ≥ 18,66 px pogrubiony) i ele
 | 69 | `--link` na `--warning-surface` | tekst 4,5 | 5,98 : 1 | ok | 6,84 : 1 | ok | link w alercie ostrzeżenia |
 | 70 | `--link` na `--demo-surface` | tekst 4,5 | 5,63 : 1 | ok | 6,84 : 1 | ok | link w alercie demo |
 | 71 | `--primary` na `--card` | UI 3 | 17,71 : 1 | ok | 14,35 : 1 | ok | zaznaczony checkbox / radio w karcie (B2.9) |
+| 72 | `--foreground` na `--background` (podkreślenie) | UI 3 | 19,13 : 1 | ok | 17,57 : 1 | ok | podkreślenie 2 px aktywnej zakładki (etap 2, partia 3, B3.12) |
+| 73 | `--foreground` na `--card` (podkreślenie) | UI 3 | 19,13 : 1 | ok | 16,27 : 1 | ok | podkreślenie aktywnej zakładki w karcie |
+| 74 | `--primary` na `--muted` | UI 3 | 15,99 : 1 | ok | 13,01 : 1 | ok | przycisk główny w pustym stanie (B3.21) |
 
 Pary 63–71 dodane w etapie 2, partia 2 (policzone skryptem przed zapisem). Policzone, ale celowo poza tabelą, bo to granice dekoracyjne albo kształt wspierany obrysem: tła `--*-surface` do `--background` 1,10–1,28 : 1 (dlatego alert ma obrys w kolorze znaczenia, B2.19), `--card` do `--background` w ciemnym motywie 1,08 : 1 (obrys karty jedyną granicą, B2.25), `--secondary` do `--surface-product` 1,02 : 1 (neutralny badge na karcie produktu, B2.17). Obrysy alertów to pary 20, 26, 30 i 56; znak w checkboxie to para 12.
+
+Pary 72–74 dodane w etapie 2, partia 3 (policzone skryptem przed zapisem). Policzone, ale celowo poza tabelą, bo dekoracyjne: `--border` do `--muted` 1,17 : 1 (dolna kreska nagłówka tabeli, B3.5), `--muted` do `--background` 1,10 / 1,19 : 1, do `--card` 1,10 / 1,10 : 1 i do `--surface-product` 1,00 / 1,10 : 1 (szkielet ładowania i tło pustego stanu, B3.16, B3.21; stan ładowania niesie tekst w `SkeletonGroup`). Kontrola: `--action` na `--muted` w ciemnym motywie 2,98 : 1, więc pusty stan nie ma czerwonego przycisku (B3.21). Tekst zakładek to pary 1–2 i 6–7, tekst nagłówka tabeli para 4, tekst i link w pustym stanie pary 4, 9 i 23.
 
 ### Oznaczone pary i poprawki
 

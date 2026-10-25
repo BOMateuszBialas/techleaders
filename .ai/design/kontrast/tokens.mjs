@@ -155,5 +155,8 @@ const pairs = [
   ["link", "warning-surface", "T", "link w alercie ostrzeżenia"],
   ["link", "demo-surface", "T", "link w alercie demo"],
   ["primary", "card", "U", "zaznaczony checkbox / radio w karcie"],
+  ["foreground", "background", "U", "podkreślenie aktywnej zakładki (etap 2, partia 3)"],
+  ["foreground", "card", "U", "podkreślenie aktywnej zakładki w karcie"],
+  ["primary", "muted", "U", "przycisk główny w pustym stanie"],
 ];
 export { raw, L, D, light, dark, pairs };
