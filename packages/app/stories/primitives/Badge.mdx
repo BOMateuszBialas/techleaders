@@ -1,0 +1,147 @@
+import { ArgTypes, Canvas, Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import * as BadgeStories from "./badge.stories";
+import { Badge } from "../../src/components/ui/badge";
+import { DoDont } from "./blocks/do-dont";
+
+<Meta of={BadgeStories} />
+
+# Badge
+
+## 1. What it is for
+
+Showing the status of one thing (an order, a product, a recommendation) in a word or two, so the user can scan a list and see what needs attention.
+
+## 2. When to use
+
+- Admin: order status and the DEMO mark in the order list and details; product availability and "Featured"; the outcome of each row in the CSV import preview; Copilot priority, recommendation status and the demo traffic tag; system status on the dashboard.
+- Store: availability on the product card and page ("In stock"); the order status on the demo payment and confirmation pages.
+- On a product photo: at most 1–2 badges (R03.4, rule 6).
+
+## 3. When not to use
+
+| Instead of a badge…                     | Use                                 | Why                                        |
+| --------------------------------------- | ----------------------------------- | ------------------------------------------ |
+| Something the user can click            | `TextLink` or Button                | A badge is not interactive (B2.15)         |
+| A message with a sentence and an action | Alert                               | A badge holds 1–3 words                    |
+| A count on the cart                     | the cart counter (frame, lesson 08) | The only pill shape (P4)                   |
+| Decoration or marketing ("Hot", "-20%") | nothing                             | A01: a stack of labels on a photo is noise |
+| A price                                 | plain text, `--foreground`          | Prices are never colored (rule 1)          |
+
+## 4. Anatomy
+
+1. Container: 4 px radius (`--radius-badge`, P4), 2 px from the text to the edge (1 px border + 1 px padding, the one exception to the 4 px grid), 8 px inline padding.
+2. Text: the `small` style, 500 (14/20 px store, 12/16 px admin); one line, never wraps.
+3. Icon (optional): 16 px Tabler icon before the text; the text stays.
+
+Height: 24 px in the store, 20 px in the admin.
+
+## 5. Variants
+
+<Canvas of={BadgeStories.Variants} />
+
+| Variant       | Colors (pair, light / dark)                                  | When                                                                 |
+| ------------- | ------------------------------------------------------------ | -------------------------------------------------------------------- |
+| `default`     | `--primary` fill (16.98 / 15.50 : 1)                         | the strongest neutral mark: "Featured"                               |
+| `secondary`   | `--secondary` fill (15.57 / 14.74 : 1)                       | a neutral, ongoing status: "Processing"                              |
+| `outline`     | `--border` outline, `--foreground` text                      | a finished or inactive status: "Shipped", "Refunded", "Out of stock" |
+| `success`     | `--success` on `--success-surface` (6.14 / 7.81 : 1)         | a good, settled state: "Paid", "Published", "In stock"               |
+| `warning`     | `--warning` on `--warning-surface` (5.96 / 8.31 : 1)         | needs attention soon: "Pending payment", "Low stock"                 |
+| `destructive` | `--destructive` on `--destructive-surface` (5.70 / 5.79 : 1) | failed or stopped: "Cancelled", an import error, a system "down"     |
+| `demo`        | `--demo` on `--demo-surface` (8.55 / 10.20 : 1)              | demo data, always (rule 11): DEMO orders, demo traffic               |
+| `ghost`       | text only                                                    | deprecated: the retrofit maps "Hidden" to `outline`                  |
+
+### How to choose: status → variant (applied to the screens in the retrofit, lesson 08)
+
+| Where         | Status → variant                                                                                                                  | Source                  |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
+| Orders        | pending_payment `warning`, paid `success`, processing `secondary`, shipped `outline`, cancelled `destructive`, refunded `outline` | P2 (approved)           |
+| Demo data     | DEMO order, demo traffic in Copilot → `demo`                                                                                      | rule 11, P3             |
+| Availability  | In stock `success`, Low stock `warning`, Out of stock `outline`, Hidden `outline`                                                 | tokeny.md §1b; proposal |
+| Product       | Featured `default`, Published `success`                                                                                           | tokeny.md §1b           |
+| CSV import    | create `success`, skip `outline`, error `destructive`                                                                             | proposal                |
+| Copilot       | priority high `warning` (not red: red means an error, rule 5), medium and low `secondary`                                         | proposal, rule 20       |
+| System status | up `success`, down `destructive`                                                                                                  | proposal                |
+
+<Canvas of={BadgeStories.OrderStatuses} />
+<Canvas of={BadgeStories.OnSurfaces} />
+
+## 6. States
+
+A badge has no interactive states: no hover, focus, pressed, disabled, loading, selected or error (B2.15). If a screen renders it as a link through `render`, it gets the standard focus outline, but use a `TextLink` instead.
+
+## 7. Behavior and accessibility
+
+- Plain text in a `<span>`: screen readers read the words, so the status is never color alone (WCAG 1.4.1, rule 10).
+- Text contrast is at least 5.70 : 1 in both themes (pairs 14, 20, 26, 29, 30).
+- Next to a name in a table, keep the badge after the name, so the row reads "CO-GWP9H, Paid".
+- Not a target; no minimum size applies.
+
+## 8. Content
+
+- 1–3 words in sentence case, the same word everywhere for the same status (`ORDER_STATUS_LABELS`).
+- Statuses say a fact the product has (R03.3): "Pending payment", not "Hurry".
+- Numbers only when they are the status ("3 left" is not used: shoppers never see exact stock).
+- Longer languages: badges stay one line; a row of badges wraps as a whole.
+
+## 9. Responsive
+
+- 320 px: a row of badges wraps between badges, never inside one.
+- 768 and 1440 px: no change.
+
+<Canvas of={BadgeStories.Narrow320} />
+<Canvas of={BadgeStories.AdminDensity} />
+
+## 10. API
+
+<ArgTypes of={BadgeStories} />
+
+`render` (Base UI `useRender`) changes the element; keep it a `<span>`.
+
+## 11. Code
+
+```tsx
+import { Badge } from "@/components/ui/badge";
+
+<Badge variant="success">Paid</Badge>;
+```
+
+```tsx
+// Order status (retrofit): one map from the status to the variant.
+const STATUS_VARIANTS = {
+  pending_payment: "warning",
+  paid: "success",
+  processing: "secondary",
+  shipped: "outline",
+  cancelled: "destructive",
+  refunded: "outline",
+} as const;
+
+<Badge variant={STATUS_VARIANTS[order.status]}>{ORDER_STATUS_LABELS[order.status]}</Badge>;
+```
+
+## 12. Do and don't
+
+<Unstyled>
+  <DoDont
+    good={
+      <>
+        <Badge variant="success">Paid</Badge>
+        <Badge variant="demo">Demo</Badge>
+      </>
+    }
+    goodNote="Each status has its own variant and its word; demo data is always marked as demo."
+    bad={
+      <>
+        <Badge variant="warning">Demo</Badge>
+        <Badge variant="destructive">High priority</Badge>
+      </>
+    }
+    badNote="Demo shown as a warning, and a priority in error red, blur what the colors mean."
+  />
+</Unstyled>
+
+## 13. Related
+
+- **Alert**: a message with a sentence and an action.
+- **Text link**: when the user should go somewhere.
+- Patterns (lesson 08): list with filters (status column), details view (status in the header).

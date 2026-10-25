@@ -1,0 +1,142 @@
+import { ArgTypes, Canvas, Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import * as AlertStories from "./alert.stories";
+import { Alert, AlertDescription, AlertTitle } from "../../src/components/ui/alert";
+import { DoDont } from "./blocks/do-dont";
+
+<Meta of={AlertStories} />
+
+# Alert
+
+## 1. What it is for
+
+Telling the user something about the whole page or form (it failed, it worked, check this, this is demo data) in a box they cannot miss, with what to do next.
+
+## 2. When to use
+
+- Errors of a page or a form: "The catalog is temporarily unavailable", a failed sign-in, Copilot unavailable (`role="alert"`).
+- A success after a form, when the page stays: "Category saved." (`role="status"`).
+- Warnings before saving: the changed slug, the AI description draft.
+- Demo notes: the demo payment note in checkout, the demo order note in the admin (no role, or `role="note"`).
+
+Screens today write these as `<p role="…">`; they move to Alert in the retrofit (lesson 08).
+
+## 3. When not to use
+
+| Instead of an alert…                       | Use                                       | Why                                           |
+| ------------------------------------------ | ----------------------------------------- | --------------------------------------------- |
+| An error of one field                      | `FieldError` under the field              | The message belongs next to the value (B1.23) |
+| A status of one item in a list             | Badge                                     | One word per row, not a box per row           |
+| A short confirmation that disappears       | not available (toast, "What is missing")  | An error that needs action is never a toast   |
+| The "Demo store" strip in the store header | the frame strip (frame retrofit)          | It belongs to the frame on every page         |
+| Help text that is always true              | a hint (`FieldDescription`) or plain text | An alert that never changes stops being read  |
+
+## 4. Anatomy
+
+1. Container: 8 px radius, 1 px outline in the variant color, the variant surface, padding 16 px store / 12 px admin, no shadow.
+2. Icon: built into the variant (`IconInfoCircle`, `IconCircleCheck`, `IconAlertTriangle`, `IconAlertCircle`, `IconFlask`), 20 / 16 px, on the first line, hidden from screen readers.
+3. Title (optional): `AlertTitle`, 600, in the variant color.
+4. Description: `AlertDescription`, `--foreground`, at most `--measure-prose`; may hold a Button or a `TextLink`.
+
+No close button (`AlertAction` removed, B2.23).
+
+## 5. Variants
+
+<Canvas of={AlertStories.Variants} />
+
+| Variant       | Surface and outline (outline on surface, light / dark)     | When                                         |
+| ------------- | ---------------------------------------------------------- | -------------------------------------------- |
+| `info`        | `--card`, `--border`                                       | neutral facts about the page                 |
+| `success`     | `--success-surface`, `--success` (6.14 / 7.81 : 1)         | a form worked and the page stays             |
+| `warning`     | `--warning-surface`, `--warning-border` (3.31 / 3.95 : 1)  | check before you continue                    |
+| `destructive` | `--destructive-surface`, `--destructive` (5.70 / 5.79 : 1) | an error: something failed                   |
+| `demo`        | `--demo-surface`, `--demo` (8.55 / 10.20 : 1)              | demo data, always (rule 11), never `warning` |
+
+Description text is `--foreground` on every surface (13.48–17.28 : 1, pairs 63–66); links in it are `--link` (5.63–7.18 : 1, pairs 67–70).
+
+## 6. States
+
+An alert is static: no hover, focus, pressed, disabled, loading or selected. Buttons and links inside have their own states. It appears and disappears with the condition it describes (the error is gone after a successful retry).
+
+## 7. Behavior and accessibility
+
+- **No default role** (owner decision Q4). The caller sets it:
+  - `role="alert"`: an error after an action or a failed load (announced at once);
+  - `role="status"`: a success (announced politely);
+  - no role or `role="note"`: a standing note (demo payment), not announced on every visit.
+- After a failed form submit, one alert summarizes and focus goes to the first field with an error (rule 13).
+- Icon plus words: never color alone (WCAG 1.4.1). Actions inside are reached with Tab in reading order.
+
+<Canvas of={AlertStories.NoDefaultRole} />
+<Canvas of={AlertStories.WithAction} />
+
+## 8. Content
+
+- Title: what happened, as a fact ("The catalog is temporarily unavailable"). Description: what to do ("Try again in a moment.") (R03.3, K5).
+- One idea per alert; at most 2–3 short sentences.
+- Never blame the user, never promise what the product does not do (no real shipping or payment, AGENTS.md rule 6).
+- Longer languages: text wraps inside the box.
+
+## 9. Responsive
+
+- 320 px: the text wraps; the icon stays on the first line.
+- 768 and 1440 px: the description keeps a readable line (`--measure-prose`).
+
+<Canvas of={AlertStories.LongTextNarrow} />
+<Canvas of={AlertStories.AdminDensity} />
+
+## 10. API
+
+<ArgTypes of={AlertStories} />
+
+| Part               | Props                                                     |
+| ------------------ | --------------------------------------------------------- |
+| `Alert`            | `<div>` props; `variant`; `role` from the caller          |
+| `AlertTitle`       | `<div>` props                                             |
+| `AlertDescription` | `<div>` props; may contain paragraphs, a Button or a link |
+
+## 11. Code
+
+```tsx
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+
+<Alert variant="success" role="status">
+  <AlertDescription>Category saved.</AlertDescription>
+</Alert>;
+```
+
+```tsx
+// Storefront page that failed to load the catalog.
+<Alert variant="destructive" role="alert">
+  <AlertTitle>{CATALOG_UNAVAILABLE_MESSAGE}</AlertTitle>
+  <AlertDescription>Try again in a moment.</AlertDescription>
+</Alert>
+```
+
+## 12. Do and don't
+
+<Unstyled>
+  <DoDont
+    good={
+      <Alert variant="destructive">
+        <AlertTitle>Copilot is temporarily unavailable</AlertTitle>
+        <AlertDescription>
+          The rule-based insights below still use your store data.
+        </AlertDescription>
+      </Alert>
+    }
+    goodNote="Says what happened and what still works."
+    bad={
+      <Alert variant="destructive">
+        <AlertDescription>Something went wrong.</AlertDescription>
+      </Alert>
+    }
+    badNote="Gives no fact and no next step."
+  />
+</Unstyled>
+
+## 13. Related
+
+- **Field error**: the error of one value.
+- **Badge**: the status of one item.
+- **Button**, **Text link**: the action inside an alert.
+- Patterns (lesson 08): form (summary after submit), AI answer with a fallback, empty and error states.
