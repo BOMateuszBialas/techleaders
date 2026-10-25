@@ -26,8 +26,33 @@ Krok 1 partii 3 według promptu Storybooka: lista różnic kształtu, gęstości
 
 Jeden commit lokalny z POSTEP i tym logiem (lista różnic). Bez zmian w kodzie, bez push i bez PR.
 
+## Decyzje właściciela (2026-10-25)
+
+Q1–Q6 zgodnie z rekomendacjami; B3.1–B3.30 przyjęte, w tym wszystkie usunięcia z bazy (Table: style `selected`, `expanded` i hover wiersza; Tabs: wariant `default` i orientacja pionowa; Empty: `EmptyMedia`). Bez `collapsible`, `accordion` i `spinner`.
+
+## Implementacja (2026-10-25)
+
+1. Decyzje w POSTEP (commit osobny).
+2. Pary kontrastu 72–74 (podkreślenie aktywnej zakładki na tle i w karcie, `--primary` na `--muted`) w `tokeny.md` §2, `kontrast/tokens.mjs`, `kontrast/pairs.md`; `run.mjs` i `verify-css.mjs`: wszystkie niedekoracyjne pary przechodzą w obu motywach.
+3. `npx shadcn@latest add tabs skeleton empty` w `packages/app` (shadcn 4.22.1): 3 nowe pliki, `package.json` i `package-lock.json` bez zmian. Pliki przepisane według B3.2 i decyzji; `error-state.tsx` i `disclosure.tsx` ręcznie; `table.tsx` bez `"use client"`.
+4. Storybook: 6 stron MDX po 13 sekcji, 32 stories (`play` w 28), menu w `preview.tsx`.
+5. Odstępstwa (szczegóły w POSTEP, „Implementacja”): Disclosure bez testu Enter i Spacji w `play` (niezaufane zdarzenia `user-event` nie wywołują akcji `<summary>`); domyślny promień szkieletu przez `[:where(&)]`, bo `cn` nie scala klas tokenów projektu (lekcja w `.ai/lessons.md`); wysokości wierszy w testach z 1 px linii.
+
+## Wynik bramki (2026-10-25, lokalnie na Windows)
+
+| Krok | Wynik |
+|---|---|
+| `npm run lint`, `format:check`, `typecheck` | ok |
+| `npm run test:hooks` | ok, 334/334 (9 znanych luk) |
+| `npm run test:coverage` | ok, 171 plików, 1965 testów, 100% |
+| `npm run build` | ok |
+| `npm run test:integration`, `test:e2e` | **nie uruchomione lokalnie**: brak Dockera (Testcontainers); sprawdza CI (w tym `admin-mobile` i `storefront-mobile` przy 390 px po zmianie tabeli) |
+| `npm run build-storybook` | ok |
+| `npm run test:storybook:themes` | ok, 234/234 (117 stories × 2 motywy) |
+| `npm run check:tokens` | kod 1, 25 znanych wartości poza plikami partii (bez zmian); pliki partii czyste |
+
 ## Do zrobienia
 
-- Decyzje właściciela: Q1–Q6, B3.1–B3.30 i usunięcia z bazy (Table: `selected`, `expanded`, hover wiersza; Tabs: `default`, orientacja pionowa; Empty: `EmptyMedia`).
-- Po decyzjach: implementacja partii 3, pary kontrastu do `tokeny.md` §2 i `kontrast/tokens.mjs`, stories i strony MDX, bramka, PR.
 - Retrofit (lekcja 08): zakładki „Featured” → `TabsNav`, fallbacki → `SkeletonGroup`, puste stany → `Empty`, komunikaty błędu strony → `ErrorState`, `error.tsx` w sklepie (audyt), `<details>` → `Disclosure`, nazwa tabeli kategorii, sprzątanie nadpisań `whitespace-normal` i `tabular-nums`.
+- Konfiguracja `createCn` (`cn/config`) z grupami tokenów projektu, żeby nadpisania klas tokenów w `className` działały (osobna zmiana).
+- Partia 4 etapu 2.
