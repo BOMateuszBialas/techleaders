@@ -29,6 +29,7 @@
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
+  --color-backdrop: var(--backdrop);
   --color-surface-product: var(--surface-product);
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
@@ -181,6 +182,9 @@
   --card-foreground: var(--raw-gray-900);
   --popover: var(--raw-gray-0); /* menus, popovers, dialogs */
   --popover-foreground: var(--raw-gray-900);
+  /* Stage 2 batch 4, Q4 (B4.5): dims the page under a dialog; the text graphite at 50%, no blur.
+     A white dialog is 3.58:1 to the dimmed page (verify-css.mjs). */
+  --backdrop: oklch(0.17 0.005 285 / 50%);
   --surface-product: var(--raw-gray-100); /* R01.3: product on a light card, no shadow */
   --muted: var(--raw-gray-100); /* R04.1: table header; skeleton; empty state */
   --muted-foreground: var(--raw-gray-600); /* captions and metadata; audit: 4.35:1 fixed */
@@ -248,6 +252,7 @@
   --card-foreground: var(--raw-gray-50);
   --popover: var(--raw-gray-800); /* overlays lighter than the page in dark */
   --popover-foreground: var(--raw-gray-50);
+  --backdrop: oklch(0 0 0 / 60%); /* B4.5: the page is dark already; the dialog keeps its outline */
   --surface-product: var(--raw-gray-850); /* tokeny.md §2: action on it 3.28:1 */
   --muted: var(--raw-gray-800);
   --muted-foreground: var(--raw-gray-400);
@@ -365,8 +370,12 @@
   --label-leading: 1.25rem;
 }
 
-/* Admin density (P15, R04.3, K7): same tokens, smaller scale. Set by the admin layouts. */
-[data-density="admin"] {
+/* Admin density (P15, R04.3, K7): same tokens, smaller scale. Set by the admin layouts.
+   `:root:has(…)` (B4.6) gives the whole admin document the same scale, so dialogs and other
+   overlays that Base UI portals into <body> (outside the admin layout's div) inherit it too.
+   The store and the admin never share a page. */
+[data-density="admin"],
+:root:has([data-density="admin"]) {
   --control-h-sm: 1.75rem; /* 28 px: row actions in tables */
   --control-h-md: 2rem; /* 32 px (R04.3) */
   --control-h-lg: 2.25rem; /* 36 px */
@@ -415,7 +424,8 @@
     --space-hero: 3rem;
   }
 
-  [data-density="admin"] {
+  [data-density="admin"],
+  :root:has([data-density="admin"]) {
     --space-gutter: 1rem;
     --space-section: 1.5rem;
     --field-text-size: 1rem; /* B1.7: 16 px in fields on a phone, admin too (no iOS zoom) */
@@ -426,8 +436,10 @@
 /* Touch targets: at least 44 px on a phone or a coarse pointer, store and admin (rule 16,
    WCAG 2.5.8, 44 pt). */
 @media (width < 48rem), (pointer: coarse) {
+  /* `:root:has(…)` outranks `:root`, so it is listed again (B4.6). */
   :root,
-  [data-density="admin"] {
+  [data-density="admin"],
+  :root:has([data-density="admin"]) {
     --control-h-sm: 2.75rem;
     --control-h-md: 2.75rem;
     --control-h-lg: 3rem;

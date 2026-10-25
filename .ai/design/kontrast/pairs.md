@@ -69,3 +69,9 @@
 | 69 | `--link` na `--warning-surface` | tekst 4,5 | 5,98 : 1 | ok | 6,84 : 1 | ok | link w alercie ostrzeżenia |
 | 70 | `--link` na `--demo-surface` | tekst 4,5 | 5,63 : 1 | ok | 6,84 : 1 | ok | link w alercie demo |
 | 71 | `--primary` na `--card` | UI 3 | 17,71 : 1 | ok | 14,35 : 1 | ok | zaznaczony checkbox / radio w karcie (B2.9) |
+| 75 | `--destructive` na `--popover` | tekst 4,5 | 6,62 : 1 | ok | 6,04 : 1 | ok | przycisk destructive w dialogu: tekst (etap 2, partia 4, B4.14) |
+| 76 | `--destructive` na `--popover` | UI 3 | 6,62 : 1 | ok | 6,04 : 1 | ok | przycisk destructive w dialogu: obrys |
+| 77 | `--input` na `--popover` | UI 3 | 3,66 : 1 | ok | 3,31 : 1 | ok | obrys przycisku outline (Cancel) w dialogu |
+| 78 | `--ring` na `--popover` | UI 3 | 19,13 : 1 | ok | 13,01 : 1 | ok | fokus w dialogu i w panelu megamenu |
+| 79 | `--primary` na `--popover` | UI 3 | 17,71 : 1 | ok | 13,01 : 1 | ok | przycisk główny w dialogu |
+| 80 | `--link` na `--popover` | tekst 4,5 | 6,71 : 1 | ok | 7,48 : 1 | ok | link w opisie dialogu |
