@@ -1,0 +1,121 @@
+import { ArgTypes, Canvas, Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import * as SkeletonStories from "./skeleton.stories";
+import { Skeleton, SkeletonGroup } from "../../src/components/ui/skeleton";
+import { DoDont } from "./blocks/do-dont";
+
+<Meta of={SkeletonStories} />
+
+# Skeleton
+
+## 1. What it is for
+
+Holding the place of content that is still loading, in its shape, so the page does not jump when it arrives and the user sees that something is coming.
+
+## 2. When to use
+
+- `<Suspense>` fallbacks of store pages: product grid, product page, cart, checkout, account.
+- Admin lists and the dashboard while their data streams (instead of "Loading…" text).
+- Any part that loads in under a few seconds and has a known shape.
+
+One loading pattern in the store and the admin (audit decision 5); the fallbacks move to it in the retrofit (lesson 08).
+
+## 3. When not to use
+
+| Instead of a skeleton…                    | Use                                      | Why                                                  |
+| ----------------------------------------- | ---------------------------------------- | ---------------------------------------------------- |
+| A button waiting for its action           | the Button `loading` state (`aria-busy`) | The button keeps its label and size                  |
+| A spinner                                 | not available (B1.6, tokeny §5)          | No loops except this pulse                           |
+| A long job (Copilot analysis, CSV import) | text with what is happening              | A pulse for 20 s says nothing                        |
+| A skeleton on the gray product tile       | one skeleton for the whole tile          | `--muted` on `--surface-product` is 1.00 : 1 (B3.16) |
+
+## 4. Anatomy
+
+1. `Skeleton`: a `--muted` block with the control radius (8 px) by default, `rounded-card` (12 px) for cards and tiles, a slow pulse, hidden from screen readers.
+2. `SkeletonGroup`: `role="status"` around the skeletons of one region, with a hidden `label` read once ("Loading products…", owner decision Q3).
+
+## 5. Variants
+
+No variants (B3.19). The size comes from what it replaces: `h-control-md` for a button or field, `h-lh` for a line of text (with the text style's class, e.g. `type-h2`), `aspect-square` for a photo, `rounded-card` for a tile or card.
+
+<Canvas of={SkeletonStories.TextLines} />
+<Canvas of={SkeletonStories.ProductGrid} />
+
+## 6. States
+
+One state: loading. The pulse stops under `prefers-reduced-motion` (globals.css). When the data arrives the skeleton is replaced by the content; when it fails, by Error state; when it is empty, by Empty state.
+
+## 7. Behavior and accessibility
+
+- Every `Skeleton` is `aria-hidden="true"`: blocks mean nothing to a screen reader.
+- `SkeletonGroup` announces the loading state once through `role="status"` and its `label`. Do not put `aria-label` on a plain `div`: a `generic` role cannot have a name, so nothing is announced (ARIA 1.2, B3.18).
+- One group per region, not per block.
+- The colors are decorative (1.00–1.19 : 1); the loading state is carried by the text, not the contrast.
+
+## 8. Content
+
+- `label`: "Loading" plus the thing, with an ellipsis: "Loading products…", "Loading the order…".
+- Match the real layout: the same number of lines and columns the content usually has.
+
+## 9. Responsive
+
+- Skeletons take the widths of the real layout at each breakpoint (`w-full`, fractions), never fixed pixel widths wider than 320 px.
+- Admin density: lines are 20 px (`h-lh` with 14/20 text).
+
+<Canvas of={SkeletonStories.TableRows} />
+
+## 10. API
+
+<ArgTypes of={SkeletonStories} />
+
+| Part            | Props                                                                     |
+| --------------- | ------------------------------------------------------------------------- |
+| `Skeleton`      | `<div>` props; size and `rounded-card` through `className`; `aria-hidden` |
+| `SkeletonGroup` | `<div>` props without `role`; `label` (required): the hidden loading text |
+
+## 11. Code
+
+```tsx
+import { Skeleton, SkeletonGroup } from "@/components/ui/skeleton";
+
+<Suspense
+  fallback={
+    <SkeletonGroup label="Loading products…" className="grid grid-cols-2 gap-group md:grid-cols-4">
+      {Array.from({ length: 8 }, (_, index) => (
+        <Skeleton key={index} className="aspect-square w-full rounded-card" />
+      ))}
+    </SkeletonGroup>
+  }
+>
+  <ProductGrid />
+</Suspense>;
+```
+
+The default radius has zero specificity, so `rounded-card` in `className` wins (`cn` does not merge the project's token classes).
+
+## 12. Do and don't
+
+<Unstyled>
+  <DoDont
+    good={
+      <SkeletonGroup label="Loading the order…" className="flex w-48 flex-col gap-related">
+        <Skeleton className="h-lh w-full" />
+        <Skeleton className="h-lh w-2/3" />
+      </SkeletonGroup>
+    }
+    goodNote="One status with a label; the blocks are hidden."
+    bad={
+      <div aria-label="Loading" className="flex w-48 flex-col gap-related">
+        <Skeleton className="h-lh w-full" />
+        <Skeleton className="h-lh w-2/3" />
+      </div>
+    }
+    badNote="A label on a plain div is never announced."
+  />
+</Unstyled>
+
+## 13. Related
+
+- **Button** (`loading`): waiting for an action.
+- **Empty state**, **Error state**: what replaces the skeleton when there is nothing or it failed.
+- **Table**: skeleton rows inside the real table.
+- Patterns (lesson 08): page loading, list with filters.

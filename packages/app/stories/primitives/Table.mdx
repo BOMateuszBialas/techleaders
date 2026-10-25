@@ -1,0 +1,180 @@
+import { ArgTypes, Canvas, Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import * as TableStories from "./table.stories";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../../src/components/ui/table";
+import { DoDont } from "./blocks/do-dont";
+
+<Meta of={TableStories} />
+
+# Table
+
+## 1. What it is for
+
+Comparing rows of the same kind (orders, products, metrics) column by column, so the merchant scans a value down a column instead of reading cards one by one.
+
+## 2. When to use
+
+- Admin lists: categories, products, orders, order lines, CSV import preview and columns.
+- Dashboard: top products and low stock; Copilot evidence.
+- Store: "My orders" in the customer account.
+- Any data where rows share the same columns and are compared.
+
+## 3. When not to use
+
+| Instead of a table…                          | Use                                               | Why                                                 |
+| -------------------------------------------- | ------------------------------------------------- | --------------------------------------------------- |
+| Products in the catalog                      | the product grid (stage 3, lesson 08)             | Shoppers compare photos, not columns                |
+| A list on a phone with many columns          | the list pattern with cards (retrofit, tokeny §3) | Sideways scrolling hides columns                    |
+| One record's fields (order contact, address) | a description list or Card                        | Two columns of label and value are not a data table |
+| Page layout                                  | the page grid                                     | Screen readers announce rows and columns            |
+| Selecting rows for a bulk action             | not available ("What is missing")                 | No row selection yet (B3.8)                         |
+
+## 4. Anatomy
+
+1. Container: full width, scrolls sideways only when the table is wider than the screen.
+2. `TableCaption` (or `aria-label` on `Table`): the table's name, under the table in the `small` style, or `sr-only`.
+3. `TableHeader`: one row on `--muted`, `--foreground` 500 text, never wraps, `--border` line under it.
+4. `TableBody` rows: `--border` line between rows, no fill, no hover.
+5. `TableCell`: 12 px padding, `body` text, wraps long text.
+6. `TableFooter` (optional): totals on `--muted`, 500, a line above.
+
+Rows: 48 px in the store (16/24 text), 44 px in the admin (14/20 text), plus the 1 px line. Below 768 px both scopes use 14/20 text and 8 px inline padding, so four columns stay in view at 390 px. Digits are tabular on the whole table.
+
+## 5. Variants
+
+No variants. Density comes from the scope (`data-density="admin"`), alignment from the column: numbers and amounts to the right (`text-right` on the cell and its header), text to the left (B3.6).
+
+<Canvas of={TableStories.StoreDensity} />
+<Canvas of={TableStories.AdminDensity} />
+
+## 6. States
+
+A table is static: rows have no hover, selected or expanded style (B3.8, owner decision), because a row is not clickable. The link on the resource name has its own hover and focus (`TextLink` `resource`). While loading, rows use Skeleton inside one `SkeletonGroup`; with no rows, the table is replaced by Empty state; on a failed load, by Error state.
+
+## 7. Behavior and accessibility
+
+- Native `<table>` semantics: header cells get `scope="col"` (or `scope="row"` in a footer), so screen readers announce the column for each value (WCAG 1.3.1).
+- Every table has a name: `TableCaption` (visible or `sr-only`) or `aria-label` (B3.9).
+- A wider-than-screen table scrolls in its container; the region is reachable by keyboard because every row has a link (axe `scrollable-region-focusable`, B3.10). The container gets no `tabIndex`.
+- No `"use client"`: the table renders on the server with its page (B3.4).
+
+<Canvas of={TableStories.WideOnPhone} />
+
+## 8. Content
+
+- Header: a noun, short, sentence case ("Order", "Total"); the unit in the header when all rows share it.
+- Cells: values, not sentences. Amounts with the currency (`1 249,00 zł`), dates in one format.
+- Order and SKU numbers may use the mono font (P13). Demo data stays visibly marked (`[DEMO]`, `DEMO-`).
+- Long names wrap; never cut them with an ellipsis without the full text elsewhere.
+
+## 9. Responsive
+
+- 320 px: long text wraps inside cells (B3.7); headers stay on one line; below 768 px the text is 14/20 and the inline padding 8 px in both scopes; the page never widens.
+- A table that cannot fit scrolls in its container; on a phone, prefer the list pattern with cards (retrofit).
+- 768 and 1440 px: full width of the content column.
+
+<Canvas of={TableStories.LongTextNarrow} />
+
+## 10. API
+
+<ArgTypes of={TableStories} />
+
+| Part           | Props                                                          |
+| -------------- | -------------------------------------------------------------- |
+| `Table`        | `<table>` props; `aria-label` when there is no visible caption |
+| `TableHeader`  | `<thead>` props                                                |
+| `TableBody`    | `<tbody>` props                                                |
+| `TableFooter`  | `<tfoot>` props                                                |
+| `TableRow`     | `<tr>` props                                                   |
+| `TableHead`    | `<th>` props; set `scope`; `text-right` for numeric columns    |
+| `TableCell`    | `<td>` props; `text-right` for numbers                         |
+| `TableCaption` | `<caption>` props; `className="sr-only"` to hide it            |
+
+## 11. Code
+
+```tsx
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { TextLink } from "@/components/ui/text-link";
+
+<Table aria-label="Orders">
+  <TableHeader>
+    <TableRow>
+      <TableHead scope="col">Order</TableHead>
+      <TableHead scope="col" className="text-right">
+        Total
+      </TableHead>
+    </TableRow>
+  </TableHeader>
+  <TableBody>
+    {orders.map((order) => (
+      <TableRow key={order.id}>
+        <TableCell>
+          <TextLink variant="resource" href={`/admin/orders/${order.id}`}>
+            {order.reference}
+          </TextLink>
+        </TableCell>
+        <TableCell className="text-right">{formatMoney(order.totalMinor)}</TableCell>
+      </TableRow>
+    ))}
+  </TableBody>
+</Table>;
+```
+
+<Canvas of={TableStories.CaptionAndFooter} />
+
+## 12. Do and don't
+
+<Unstyled>
+  <DoDont
+    good={
+      <Table aria-label="Stock">
+        <TableHeader>
+          <TableRow>
+            <TableHead scope="col">Product</TableHead>
+            <TableHead scope="col" className="text-right">
+              Stock
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow>
+            <TableCell>Mouse pad XL</TableCell>
+            <TableCell className="text-right">4</TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+    }
+    goodNote="Named table, numbers to the right under a right-aligned header."
+    bad={
+      <Table>
+        <TableBody>
+          <TableRow>
+            <TableCell>Mouse pad XL</TableCell>
+            <TableCell>4</TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+    }
+    badNote="No name, no header, numbers to the left: nothing says what 4 means."
+  />
+</Unstyled>
+
+## 13. Related
+
+- **Text link** (`resource`): the clickable name in a row.
+- **Badge**: a status in a cell.
+- **Skeleton**, **Empty state**, **Error state**: loading, no rows, failed load.
+- Patterns (lesson 08): list with filters, list as cards on a phone.

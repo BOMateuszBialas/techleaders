@@ -1,0 +1,159 @@
+import { ArgTypes, Canvas, Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import * as EmptyStories from "./empty.stories";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "../../src/components/ui/empty";
+import { Button } from "../../src/components/ui/button";
+import { DoDont } from "./blocks/do-dont";
+
+<Meta of={EmptyStories} />
+
+# Empty state
+
+## 1. What it is for
+
+Saying why a place has nothing to show and what to do next, so an empty list reads as a normal situation with a way forward, not as a broken page.
+
+## 2. When to use
+
+- "Nothing here yet": empty cart, no orders, no categories, no recommendations, no stock history.
+- "No results": a search or filters that match nothing in the catalog or an admin list.
+- "Not found" pages (order, product, category): neutral words, the same for a missing and a foreign item (orders spec A8).
+
+About 13 empty states and 5 not-found pages move to it in the retrofit (lesson 08).
+
+## 3. When not to use
+
+| Instead of an empty state…         | Use                  | Why                                             |
+| ---------------------------------- | -------------------- | ----------------------------------------------- |
+| Something failed to load           | Error state          | Empty is normal; a failure needs `role="alert"` |
+| Content still loading              | Skeleton             | It is not empty yet                             |
+| One empty cell or field in a table | an en dash or "None" | A box per cell is noise                         |
+| A message after a form             | Alert                | It has a meaning color and a role               |
+
+## 4. Anatomy
+
+1. `Empty`: `--muted` panel, 12 px radius, no outline, `--space-panel` padding, aligned to the start.
+2. `EmptyHeader`: title and description, at most `--measure-prose` wide.
+3. `EmptyTitle`: the `h3` style (18 px store, 14 px admin, 600); put the heading element inside.
+4. `EmptyDescription`: `body` in `--muted-foreground` (pair 9: 5.65 / 6.95 : 1).
+5. `EmptyContent` (optional): actions in a row that wraps, `--space-related` apart.
+
+No icon (`EmptyMedia` removed, owner decision): an icon on a colored square is the generic look from the audit.
+
+## 5. Variants
+
+No variants (B3.23). The kind comes from the words and the action:
+
+| Kind             | Words                              | Action                                 |
+| ---------------- | ---------------------------------- | -------------------------------------- |
+| Nothing here yet | what will appear here, and when    | create the first item or go to catalog |
+| No results       | what was searched or filtered      | clear the search or filters            |
+| Not found        | neutral, no hint whether it exists | back to the list                       |
+
+<Canvas of={EmptyStories.NoResults} />
+<Canvas of={EmptyStories.NotFound} />
+
+## 6. States
+
+Static: no hover, focus, disabled or loading of its own. The actions inside have their states.
+
+## 7. Behavior and accessibility
+
+- No role: the content is static and read in page order (B3.23).
+- The heading level comes from the page: `<h1>` on a not-found page, `<h2>` for a section (WCAG 1.3.1).
+- The action is reachable with Tab; use `Button` `default` or `outline`, or a `TextLink`. Never the red `action` button: it is 2.98 : 1 on `--muted` in the dark theme, and an empty state is not a purchase step (B3.21).
+
+<Canvas of={EmptyStories.Playground} />
+
+## 8. Content
+
+- Title: the fact, plainly ("Your cart is empty", "No products match “mousepad xxl”").
+- Description: why, and what happens next; one or two sentences.
+- Action: a verb for the next step ("Browse the catalog", "Clear search", "New category").
+- Never blame the user; never invent data to fill the space.
+
+## 9. Responsive
+
+- 320 px: text wraps; actions wrap to the next line.
+- Wide screens: the panel takes the width of its column; the text keeps a readable line.
+
+<Canvas of={EmptyStories.LongTextNarrow} />
+<Canvas of={EmptyStories.AdminDensity} />
+
+## 10. API
+
+<ArgTypes of={EmptyStories} />
+
+| Part               | Props                                    |
+| ------------------ | ---------------------------------------- |
+| `Empty`            | `<div>` props                            |
+| `EmptyHeader`      | `<div>` props                            |
+| `EmptyTitle`       | `<div>` props; holds the heading element |
+| `EmptyDescription` | `<div>` props                            |
+| `EmptyContent`     | `<div>` props; Buttons and links         |
+
+## 11. Code
+
+```tsx
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import { TextLink } from "@/components/ui/text-link";
+
+<Empty>
+  <EmptyHeader>
+    <EmptyTitle>
+      <h2>Your cart is empty</h2>
+    </EmptyTitle>
+    <EmptyDescription>Products you add stay here until you check out.</EmptyDescription>
+  </EmptyHeader>
+  <EmptyContent>
+    <TextLink variant="standalone" href="/products">
+      Browse the catalog
+    </TextLink>
+  </EmptyContent>
+</Empty>;
+```
+
+## 12. Do and don't
+
+<Unstyled>
+  <DoDont
+    good={
+      <Empty>
+        <EmptyHeader>
+          <EmptyTitle>No orders yet</EmptyTitle>
+          <EmptyDescription>Orders appear here after the first checkout.</EmptyDescription>
+        </EmptyHeader>
+      </Empty>
+    }
+    goodNote="Says what will appear and when."
+    bad={
+      <Empty>
+        <EmptyHeader>
+          <EmptyTitle>No data</EmptyTitle>
+        </EmptyHeader>
+        <EmptyContent>
+          <Button variant="outline">OK</Button>
+        </EmptyContent>
+      </Empty>
+    }
+    badNote="No reason, no next step, an action that does nothing."
+  />
+</Unstyled>
+
+## 13. Related
+
+- **Error state**: a failure, not an empty place.
+- **Skeleton**: still loading.
+- **Button**, **Text link**: the next step.
+- Patterns (lesson 08): list with filters, not-found pages.

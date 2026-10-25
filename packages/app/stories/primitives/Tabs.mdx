@@ -1,0 +1,165 @@
+import { ArgTypes, Canvas, Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import * as TabsStories from "./tabs.stories";
+import { TabsNav, TabsNavLink } from "../../src/components/ui/tabs";
+import { DoDont } from "./blocks/do-dont";
+
+<Meta of={TabsStories} />
+
+# Tabs
+
+## 1. What it is for
+
+Showing one of a few views of the same thing at a time (product details, a period, a category of featured products), with the other views one click away.
+
+## 2. When to use
+
+Two forms with one look (owner decision Q1):
+
+- **`Tabs`** (Base UI): panels on the same page that need no new data, e.g. product description, specification and delivery.
+- **`TabsNav`** + **`TabsNavLink`**: a view chosen by URL, e.g. "Featured categories" on the home page, the dashboard period. Works without JavaScript, the URL can be shared, the back button works.
+
+Screens today build these by hand; they move to `TabsNav` in the retrofit (lesson 08).
+
+## 3. When not to use
+
+| Instead of tabs…                           | Use                                      | Why                                             |
+| ------------------------------------------ | ---------------------------------------- | ----------------------------------------------- |
+| Main navigation of the admin               | the admin side menu (frame)              | Pages are not views of one thing (R04.1)        |
+| Filtering a list (catalog categories)      | a filter in the shape of a button (P4)   | A filter narrows a list, it does not swap views |
+| Steps that must go in order (checkout)     | a stepper or one page                    | Tabs let the user skip a step                   |
+| One choice inside a form                   | Radio group                              | It submits a value                              |
+| Content the user must compare side by side | one page with sections                   | Tabs hide all but one                           |
+| A segmented switch with a gray track       | not available ("What is missing", B2.13) | The `default` look is removed (B3.12)           |
+
+## 4. Anatomy
+
+1. List (`TabsList` or `TabsNav`): a row with a `--border` line under it; wraps on a narrow screen.
+2. Item (`TabsTrigger` or `TabsNavLink`): 44 px store / 32 px admin, `body` 500, `--muted-foreground`; optional icon before the text.
+3. Active item: `--foreground` text and a 2 px `--foreground` underline over the list line (pairs 72–73).
+4. Panel (`TabsContent`, Base UI form only): `body` text, `--space-group` under the list.
+
+## 5. Variants
+
+One look, `line` (owner decision Q2). The base `default` look (gray track, white tab with a shadow) and the vertical orientation are removed (B3.12, B3.15). No sizes: the height comes from the density.
+
+<Canvas of={TabsStories.Playground} />
+<Canvas of={TabsStories.NavByUrl} />
+
+## 6. States
+
+| State          | Look                                                         |
+| -------------- | ------------------------------------------------------------ |
+| default        | `--muted-foreground` text (6.25 / 8.28 : 1 on the page)      |
+| hover          | `--foreground` text, no fill                                 |
+| focus          | 2 px `--ring` outline with a 2 px offset                     |
+| active/current | `--foreground` text and the 2 px underline: shape plus color |
+| disabled       | `--muted-foreground`, no underline, `not-allowed` cursor     |
+
+Weight stays 500 in every state, so the width does not jump. Avoid disabled tabs: hide the tab or explain in its panel.
+
+<Canvas of={TabsStories.States} />
+
+## 7. Behavior and accessibility
+
+- `Tabs`: `role="tablist"`, `tab`, `tabpanel` from Base UI. One Tab stop on the list; arrows move, Home and End jump; a tab activates on focus (`activateOnFocus` defaults to `true` here, B3.14). The next Tab reaches the panel, which has a visible focus.
+- Name the list: `aria-label` on `TabsList`.
+- `TabsNav`: a `<nav>` with `aria-label`; each item is a link; the current one has `aria-current="page"` (prop `active`). Never `role="tab"` on a link: there is no panel to announce (WAI-ARIA APG).
+- The active state is never color alone: the underline marks it (WCAG 1.4.1).
+
+<Canvas of={TabsStories.Keyboard} />
+
+## 8. Content
+
+- Labels: one or two words, nouns, sentence case ("Description", "Last 30 days").
+- 2–6 items; more means the content wants a different structure.
+- The same labels in the same order on every page that uses them.
+
+## 9. Responsive
+
+- 320 px: the list wraps to a second line; nothing scrolls sideways and nothing is hidden (B3.13).
+- Phone and coarse pointer: items are 44 px tall (touch target).
+- 768 and 1440 px: one line, items as wide as their text.
+
+<Canvas of={TabsStories.InCardNarrow} />
+<Canvas of={TabsStories.AdminDensity} />
+
+## 10. API
+
+<ArgTypes of={TabsStories} />
+
+| Part          | Props                                                                                    |
+| ------------- | ---------------------------------------------------------------------------------------- |
+| `Tabs`        | Base UI `Tabs.Root` props (`defaultValue`, `value`, `onValueChange`); no `orientation`   |
+| `TabsList`    | Base UI `Tabs.List` props; `activateOnFocus` (default `true`), `loopFocus`; `aria-label` |
+| `TabsTrigger` | Base UI `Tabs.Tab` props; `value`, `disabled`                                            |
+| `TabsContent` | Base UI `Tabs.Panel` props; `value`, `keepMounted`                                       |
+| `TabsNav`     | `<nav>` props; `aria-label` required by convention                                       |
+| `TabsNavLink` | `next/link` props; `active` sets `aria-current="page"`                                   |
+
+`tabsTriggerVariants` is exported for the rare item that is neither a tab nor a link.
+
+## 11. Code
+
+```tsx
+import { TabsNav, TabsNavLink } from "@/components/ui/tabs";
+
+<TabsNav aria-label="Featured categories">
+  {categories.map((category) => (
+    <TabsNavLink
+      key={category.slug}
+      href={`/?featured=${category.slug}`}
+      active={category.slug === current}
+    >
+      {category.name}
+    </TabsNavLink>
+  ))}
+</TabsNav>;
+```
+
+```tsx
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+<Tabs defaultValue="description">
+  <TabsList aria-label="Product details">
+    <TabsTrigger value="description">Description</TabsTrigger>
+    <TabsTrigger value="specification">Specification</TabsTrigger>
+  </TabsList>
+  <TabsContent value="description">{product.description}</TabsContent>
+  <TabsContent value="specification">{product.specification}</TabsContent>
+</Tabs>;
+```
+
+`tabs.tsx` is a client module (Base UI); a `TabsNav` imported into a server page becomes a small client component, with `active` passed as a plain boolean.
+
+## 12. Do and don't
+
+<Unstyled>
+  <DoDont
+    good={
+      <TabsNav aria-label="Period example">
+        <TabsNavLink href="?period=7d">Last 7 days</TabsNavLink>
+        <TabsNavLink href="?period=30d" active>
+          Last 30 days
+        </TabsNavLink>
+      </TabsNav>
+    }
+    goodNote="A view chosen by URL is a nav of links with aria-current."
+    bad={
+      <TabsNav aria-label="Main menu example">
+        <TabsNavLink href="?page=orders" active>
+          Orders
+        </TabsNavLink>
+        <TabsNavLink href="?page=products">Products</TabsNavLink>
+        <TabsNavLink href="?page=settings">Settings</TabsNavLink>
+      </TabsNav>
+    }
+    badNote="Separate pages of the admin are the side menu, not tabs."
+  />
+</Unstyled>
+
+## 13. Related
+
+- **Radio group**: one choice that is submitted with a form.
+- **Text link**: navigation that is not a set of views.
+- **Disclosure**: extra content that opens in place.
+- Patterns (lesson 08): dashboard period, featured categories, list with filters.
