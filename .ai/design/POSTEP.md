@@ -447,6 +447,18 @@ Stories partii (szacunek): Alert dialog 7, Dialog 5, razem ok. 12 (z Menu i Popo
 
 Usunięcia do Twojej zgody (zasada 12), przyjmowane razem z listą: `showCloseButton` w `DialogFooter` (B4.12), `AlertDialogMedia` i `size="sm"` w Alert dialog (B4.13), rozmycie tła (B4.5); z planu etapu 2: Menu (Q1) i Popover (Q2). Gdyby Menu wchodziło: `CheckboxItem`, `RadioGroup`, `RadioItem`, `Sub*`, `Shortcut`, `inset` (B4.17). Nie uruchamiam `npx shadcn add dialog alert-dialog` (B4.3).
 
+### Decyzje właściciela (2026-10-25)
+
+- **Q1: odrzucone, zmiana właściciela.** Właściciel chce menu, najlepiej **megamenu**: nawigację kategorii w nagłówku sklepu (Base UI `NavigationMenu`, shadcn `navigation-menu`), a nie menu akcji z rolą `menu`. Interpretacja: Menu akcji (B4.17) zostaje poza partią (0 akcji wiersza, jak w inwentaryzacji) i trafia na „What is missing”; zamiast niego partia dostaje komponent **Navigation menu (megamenu)**. Różnice względem bazy i pytania: punkty B4.21 i dalsze w sekcji „Navigation menu (megamenu)” niżej; przyjęte domyślnie według rekomendacji, właściciel może je zawetować w review PR (praktyka z partii 1).
+- **Q2:** definicje metryk zostają widocznym tekstem w karcie; Popover trafia na „What is missing”.
+- **Q3:** Dialog budujemy teraz razem z Alert dialog.
+- **Q4:** nowy token `--backdrop` (jasny `gray-900` / 50%, ciemny czarny / 60%, bez rozmycia).
+- **Q5 (retrofit):** anulowanie i zwrot zamówienia dostają Alert dialog zamiast wymaganego checkboxa; ukryte `confirm=yes` zostaje.
+- **Q6 (retrofit):** usunięcie kategorii dostaje Alert dialog.
+- **Q7:** partia 4 nie zmienia miejsc użycia (dotyczy też megamenu: nagłówek sklepu przechodzi na nie w retroficie).
+- **B4.1–B4.16, B4.18–B4.20:** przyjęte zgodnie z rekomendacjami. B4.17 (Menu akcji) nie wchodzi (Q1). B4.18 (Popover) dotyczy tylko zapisu na „What is missing” (Q2).
+- **Usunięcia z bazy przyjęte:** `showCloseButton` w `DialogFooter`, `AlertDialogMedia`, `size="sm"` w Alert dialog, rozmycie tła; z planu etapu 2: Popover. Menu akcji wypada z planu (Q1), na jego miejsce wchodzi Navigation menu.
+
 ## Następny krok
 
 Review i merge PR partii 2 przez właściciela (gałąź `design/stage-2-batch-2`); potem partia 3 etapu 2: lista różnic do akceptacji.
