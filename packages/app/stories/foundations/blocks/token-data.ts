@@ -35,6 +35,12 @@ export const COLOR_GROUPS: ReadonlyArray<{ title: string; roles: readonly ColorR
         source: "Theme decision",
       },
       {
+        token: "backdrop",
+        use: "Dims the page under a dialog (translucent, no blur)",
+        avoid: "Menus, the megamenu and popovers (no backdrop); glass effects",
+        source: "B4.5, owner decision Q4",
+      },
+      {
         token: "surface-product",
         use: "Product card and its image tile (one surface)",
         avoid: "Page background, admin cards, form fields",
@@ -311,6 +317,12 @@ export const CONTRAST_PAIRS: readonly ContrastPair[] = [
   ["link", "warning-surface", "T", "Link in a warning alert"],
   ["link", "demo-surface", "T", "Link in a demo alert"],
   ["primary", "card", "U", "Checked checkbox or radio in a card"],
+  ["destructive", "popover", "T", "Destructive button text in a dialog"],
+  ["destructive", "popover", "U", "Destructive button outline in a dialog"],
+  ["input", "popover", "U", "Outline (Cancel) button in a dialog"],
+  ["ring", "popover", "U", "Focus in a dialog or the megamenu panel"],
+  ["primary", "popover", "U", "Main button in a dialog"],
+  ["link", "popover", "T", "Link in a dialog description"],
 ];
 
 /** Realistic examples from the seeded gaming store (decision D10); no invented ratings. */

@@ -66,6 +66,7 @@ Wszystkie wartości mieszczą się w gamucie sRGB (sprawdzone skryptem). `--raw-
 | `--foreground` | znaczeniowa (istniejący) | `oklch(0.17 0.005 285)` `#0f0f12` | `oklch(0.97 0.003 285)` `#f5f5f7` | karty: tekst prawie czarny 16,5–21 : 1 | tekst główny, **cena**, nagłówki | tekst na ciemnej ramie (`--frame-foreground`) |
 | `--card` / `--card-foreground` | znaczeniowa (istniejący) | `#ffffff` / `#0f0f12` | `oklch(0.21 0.005 285)` `#18181b` / `#f5f5f7` | R02.2 (podsumowanie w białej karcie), R04.1 | karty admina, podsumowanie koszyka, panele formularzy | karta produktu w katalogu (`--surface-product`) |
 | `--popover` / `--popover-foreground` | znaczeniowa (istniejący) | `#ffffff` / `#0f0f12` | `oklch(0.25 0.006 285)` `#212124` / `#f5f5f7` | Motyw (nakładka jaśniejsza od tła w dark) | menu, popover, dialog, menu mobilne | karty w treści |
+| `--backdrop` | znaczeniowa (**nowy**, etap 2 partia 4, Q4, B4.5) | `oklch(0.17 0.005 285 / 50%)` (grafit tekstu, 50%) | `oklch(0 0 0 / 60%)` | tokeny §5 (nakładki); bez szkła i rozmycia („What to avoid”) | tło pod Dialogiem i Alert dialogiem | menu, megamenu, popover (bez tła); rozmycie |
 | `--surface-product` | znaczeniowa (**nowy**) | `oklch(0.965 0.004 285)` `#f3f3f6` | `oklch(0.21 0.005 285)` `#18181b` | R01.3 (produkt na jasnej karcie `#f1f1f6`, bez cienia) | tło karty produktu i kafla zdjęcia (jedna powierzchnia) | tło strony, karty admina, pola formularzy |
 | `--primary` | znaczeniowa (istniejący) | `oklch(0.21 0.005 285)` `#18181b` | `oklch(0.93 0.004 285)` `#e7e7ea` | R04.2 (główna akcja neutralnie czarna `#101010`), K7 | główny przycisk admina, główny neutralny przycisk sklepu poza zakupem (np. „Find order”) | akcje zakupowe w sklepie (`--action`) |
 | `--primary-hover` | znaczeniowa (**nowy**) | `oklch(0.30 0.006 285)` `#2d2d31` | `oklch(0.85 0.006 285)` `#cdcdd2` | lekcja: stany osobnymi kolorami, nie półprzezroczystością (zamiast `bg-primary/80`) | hover przycisku głównego | – |
@@ -224,10 +225,18 @@ Progi: tekst 4,5 : 1; duży tekst (≥ 24 px albo ≥ 18,66 px pogrubiony) i ele
 | 72 | `--foreground` na `--background` (podkreślenie) | UI 3 | 19,13 : 1 | ok | 17,57 : 1 | ok | podkreślenie 2 px aktywnej zakładki (etap 2, partia 3, B3.12) |
 | 73 | `--foreground` na `--card` (podkreślenie) | UI 3 | 19,13 : 1 | ok | 16,27 : 1 | ok | podkreślenie aktywnej zakładki w karcie |
 | 74 | `--primary` na `--muted` | UI 3 | 15,99 : 1 | ok | 13,01 : 1 | ok | przycisk główny w pustym stanie (B3.21) |
+| 75 | `--destructive` na `--popover` | tekst 4,5 | 6,62 : 1 | ok | 6,04 : 1 | ok | przycisk destructive w dialogu: tekst (etap 2, partia 4, B4.14) |
+| 76 | `--destructive` na `--popover` | UI 3 | 6,62 : 1 | ok | 6,04 : 1 | ok | przycisk destructive w dialogu: obrys |
+| 77 | `--input` na `--popover` | UI 3 | 3,66 : 1 | ok | 3,31 : 1 | ok | obrys przycisku outline (Cancel) w dialogu |
+| 78 | `--ring` na `--popover` | UI 3 | 19,13 : 1 | ok | 13,01 : 1 | ok | fokus w dialogu i w panelu megamenu |
+| 79 | `--primary` na `--popover` | UI 3 | 17,71 : 1 | ok | 13,01 : 1 | ok | przycisk główny w dialogu |
+| 80 | `--link` na `--popover` | tekst 4,5 | 6,71 : 1 | ok | 7,48 : 1 | ok | link w opisie dialogu |
 
 Pary 63–71 dodane w etapie 2, partia 2 (policzone skryptem przed zapisem). Policzone, ale celowo poza tabelą, bo to granice dekoracyjne albo kształt wspierany obrysem: tła `--*-surface` do `--background` 1,10–1,28 : 1 (dlatego alert ma obrys w kolorze znaczenia, B2.19), `--card` do `--background` w ciemnym motywie 1,08 : 1 (obrys karty jedyną granicą, B2.25), `--secondary` do `--surface-product` 1,02 : 1 (neutralny badge na karcie produktu, B2.17). Obrysy alertów to pary 20, 26, 30 i 56; znak w checkboxie to para 12.
 
 Pary 72–74 dodane w etapie 2, partia 3 (policzone skryptem przed zapisem). Policzone, ale celowo poza tabelą, bo dekoracyjne: `--border` do `--muted` 1,17 : 1 (dolna kreska nagłówka tabeli, B3.5), `--muted` do `--background` 1,10 / 1,19 : 1, do `--card` 1,10 / 1,10 : 1 i do `--surface-product` 1,00 / 1,10 : 1 (szkielet ładowania i tło pustego stanu, B3.16, B3.21; stan ładowania niesie tekst w `SkeletonGroup`). Kontrola: `--action` na `--muted` w ciemnym motywie 2,98 : 1, więc pusty stan nie ma czerwonego przycisku (B3.21). Tekst zakładek to pary 1–2 i 6–7, tekst nagłówka tabeli para 4, tekst i link w pustym stanie pary 4, 9 i 23.
+
+Pary 75–80 dodane w etapie 2, partia 4 (numery 72–74 zajmuje partia 3). Tekst i podpisy w nakładkach (dialog, panel megamenu) to istniejące pary 5 i 11. Policzone, ale poza tabelą, bo dekoracyjne: `--popover` do `--background` 1,00 / 1,19 : 1 i `--border` do `--popover` 1,30 / 1,17 : 1 (granicę nakładki dają obrys i cień, B4.4); dialog do strony przyciemnionej `--backdrop` **3,58 : 1** (jasny) i 1,26 : 1 (ciemny, obrys 1,47 : 1), liczone przez `verify-css.mjs` funkcją `composite`. Wyzwalacz megamenu w nagłówku ma fokus w kolorze tekstu (`currentColor`), więc jego kontrast to para tekstu tła, na którym stoi: 1 (jasny nagłówek) albo 32 (ciemna rama).
 
 ### Oznaczone pary i poprawki
 

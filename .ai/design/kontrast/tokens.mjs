@@ -158,5 +158,14 @@ const pairs = [
   ["foreground", "background", "U", "podkreślenie aktywnej zakładki (etap 2, partia 3)"],
   ["foreground", "card", "U", "podkreślenie aktywnej zakładki w karcie"],
   ["primary", "muted", "U", "przycisk główny w pustym stanie"],
+  ["destructive", "popover", "T", "przycisk destructive w dialogu: tekst (etap 2, partia 4, B4.14)"],
+  ["destructive", "popover", "U", "przycisk destructive w dialogu: obrys"],
+  ["input", "popover", "U", "obrys przycisku outline (Cancel) w dialogu"],
+  ["ring", "popover", "U", "fokus w dialogu i w panelu megamenu"],
+  ["primary", "popover", "U", "przycisk główny w dialogu"],
+  ["link", "popover", "T", "link w opisie dialogu"],
 ];
-export { raw, L, D, light, dark, pairs };
+// Dialog backdrop (B4.5, owner decision Q4): composited over the page, decorative. verify-css.mjs
+// checks that globals.css writes exactly these values and prints the dialog-to-dimmed-page ratio.
+const backdrop = { light: "oklch(0.17 0.005 285 / 50%)", dark: "oklch(0 0 0 / 60%)" };
+export { raw, L, D, light, dark, pairs, backdrop };

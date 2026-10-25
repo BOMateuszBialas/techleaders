@@ -4,8 +4,8 @@
 // that falls below its threshold. Exit code 1 on a mismatch or a failing pair.
 // Usage: node .ai/design/kontrast/verify-css.mjs [path/to/globals.css]
 import { readFileSync } from "node:fs";
-import { ratio, toSrgb } from "./lib.mjs";
-import { D, L, pairs, raw as approvedRaw } from "./tokens.mjs";
+import { composite, ratio, toSrgb } from "./lib.mjs";
+import { D, L, backdrop as approvedBackdrop, pairs, raw as approvedRaw } from "./tokens.mjs";
 
 const file = process.argv[2] ?? "packages/app/src/app/globals.css";
 const css = readFileSync(file, "utf8");
@@ -57,6 +57,20 @@ for (const theme of ["light", "dark"]) {
     }
   }
   console.log(`${theme}: ${Object.keys(written[theme]).length} tokens from the raw layer, ${ok} pairs at or above threshold`);
+
+  // Dialog backdrop (B4.5): a translucent literal, not a raw token. Check the value, then report
+  // the dialog surface against the dimmed page (decorative edge; the dialog also has an outline).
+  const writtenBackdrop = block(theme === "light" ? ":root,\n.light" : ".dark").match(
+    /--backdrop:\s*(oklch\([^)]*\))/,
+  )?.[1];
+  if (numbers(writtenBackdrop) !== numbers(approvedBackdrop[theme])) {
+    failures++;
+    console.log(`MISMATCH ${theme} --backdrop: written ${writtenBackdrop}, approved ${approvedBackdrop[theme]}`);
+  } else {
+    const dimmed = composite(toSrgb(writtenBackdrop), toSrgb(color("background")).rgb);
+    const edge = Math.floor(ratio(toSrgb(color("popover")).rgb, dimmed) * 100) / 100;
+    console.log(`${theme}: --backdrop ok; dialog to dimmed page ${edge}:1 (decorative)`);
+  }
 }
 
 if (failures > 0) {

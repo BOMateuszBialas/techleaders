@@ -72,3 +72,9 @@
 | 72 | `--foreground` na `--background` (podkreślenie) | UI 3 | 19,13 : 1 | ok | 17,57 : 1 | ok | podkreślenie 2 px aktywnej zakładki (etap 2, partia 3, B3.12) |
 | 73 | `--foreground` na `--card` (podkreślenie) | UI 3 | 19,13 : 1 | ok | 16,27 : 1 | ok | podkreślenie aktywnej zakładki w karcie |
 | 74 | `--primary` na `--muted` | UI 3 | 15,99 : 1 | ok | 13,01 : 1 | ok | przycisk główny w pustym stanie (B3.21) |
+| 75 | `--destructive` na `--popover` | tekst 4,5 | 6,62 : 1 | ok | 6,04 : 1 | ok | przycisk destructive w dialogu: tekst (etap 2, partia 4, B4.14) |
+| 76 | `--destructive` na `--popover` | UI 3 | 6,62 : 1 | ok | 6,04 : 1 | ok | przycisk destructive w dialogu: obrys |
+| 77 | `--input` na `--popover` | UI 3 | 3,66 : 1 | ok | 3,31 : 1 | ok | obrys przycisku outline (Cancel) w dialogu |
+| 78 | `--ring` na `--popover` | UI 3 | 19,13 : 1 | ok | 13,01 : 1 | ok | fokus w dialogu i w panelu megamenu |
+| 79 | `--primary` na `--popover` | UI 3 | 17,71 : 1 | ok | 13,01 : 1 | ok | przycisk główny w dialogu |
+| 80 | `--link` na `--popover` | tekst 4,5 | 6,71 : 1 | ok | 7,48 : 1 | ok | link w opisie dialogu |

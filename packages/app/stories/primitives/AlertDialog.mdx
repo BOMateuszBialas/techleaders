@@ -1,0 +1,161 @@
+import { ArgTypes, Canvas, Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import * as AlertDialogStories from "./alert-dialog.stories";
+import { Button } from "../../src/components/ui/button";
+import { DoDont } from "./blocks/do-dont";
+
+<Meta of={AlertDialogStories} />
+
+# Alert dialog
+
+## 1. What it is for
+
+Stopping the user for one moment before an action that cannot be undone, saying what will happen, and letting them confirm or back out.
+
+## 2. When to use
+
+- Deleting a category (owner decision Q6): "Delete category Mousepads?".
+- Cancelling or refunding an order (owner decision Q5): it replaces the required checkbox; the form inside still sends `confirm=yes`, which the server checks again.
+- Any other irreversible change to store data that is one click away.
+
+## 3. When not to use
+
+| Instead of an alert dialog…              | Use                                                     | Why                                                             |
+| ---------------------------------------- | ------------------------------------------------------- | --------------------------------------------------------------- |
+| A change the user can undo or edit again | nothing; just do it and confirm with a status message   | Confirmations that are always "Yes" get clicked without reading |
+| A task with fields (rename, notes)       | [Dialog](?path=/docs/primitives-dialog--docs) or a page | An alert dialog is a yes/no question, not a form                |
+| An error after an action                 | Alert with `role="alert"` on the page                   | Nothing to decide; the message must stay visible                |
+| A purchase step                          | the checkout pages                                      | The purchase flow never hides behind a modal (R02.2)            |
+
+## 4. Anatomy
+
+1. Trigger: the button on the page that names the action ("Delete category").
+2. Backdrop: `--backdrop` (graphite 50% light, black 60% dark), no blur. A click on it does nothing.
+3. Popup: role `alertdialog`, `--popover` surface, `--border` outline, the overlay shadow, 12 px radius, `--space-panel` padding, at most 448 px wide, in the centre of the window with a `--space-gutter` margin.
+4. Title (`<h2>`, style `h2`): a question with the object ("Delete category Mousepads?"). It names the dialog.
+5. Description (`--foreground`, not muted): the consequence ("Links … stop working. This cannot be undone."). It describes the dialog.
+6. Footer: "Cancel" (`outline`) first in the DOM, then the confirmation (`destructive` or `default`). On a phone both are full width with the confirmation on top; from `sm` they sit right-aligned in a row.
+
+No X, no icon tile and no small size (removed from the base, B4.12–B4.13).
+
+## 5. Variants
+
+One look. The confirming button carries the meaning: `destructive` (text and outline in `--destructive`, never filled) for deleting or cancelling, `default` for an irreversible but neutral step. Never `action`: red fill is for buying (rule 2).
+
+<Canvas of={AlertDialogStories.CancelOrderConfirmation} />
+
+## 6. States
+
+<Canvas of={AlertDialogStories.PendingAndError} />
+
+| State          | What changes                                                                | Source      |
+| -------------- | --------------------------------------------------------------------------- | ----------- |
+| Open           | backdrop fades in, popup fades and scales from 95% (300 ms, ease-out)       | B4.7        |
+| Closing        | 200 ms, ease-in; focus returns to the trigger                               | B4.7, B4.15 |
+| Pending        | the confirmation is `aria-busy` with a busy label, "Cancel" is disabled     | B1.6, B4.16 |
+| Error          | an Alert with `role="alert"` inside the dialog; the dialog stays open       | B4.16       |
+| Focus          | 2 px `--ring` outline with a 2 px offset (19.13 / 13.01 : 1 on the popover) | pair 78     |
+| Reduced motion | no scale, fades shortened to 120 ms                                         | tokeny §5   |
+
+## 7. Behavior and accessibility
+
+- Role `alertdialog`, named by the title and described by the description (`aria-labelledby`, `aria-describedby`).
+- Opens with a click, Enter or Space on the trigger. Focus moves to "Cancel", the safer choice; Tab and Shift+Tab stay inside.
+- Escape closes it like "Cancel". A click on the backdrop never closes it (WAI-ARIA APG "Alert and Message Dialogs").
+- The page underneath is inert and does not scroll. After closing, focus returns to the trigger; if the trigger is gone (redirect), the page announces the result with `role="status"`.
+- Needs JavaScript (Base UI). Both uses are in the admin, which needs it anyway.
+
+<Canvas of={AlertDialogStories.DeleteCategoryConfirmation} />
+<Canvas of={AlertDialogStories.SubmitsTheForm} />
+
+## 8. Content
+
+- Title: a question with the verb and the object: "Delete category Mousepads?", "Cancel order CO-GWP9H?". Never "Are you sure?".
+- Description: what happens and what cannot be undone, with numbers ("2 units go back to stock").
+- Buttons: the confirmation repeats the verb and object ("Delete category", "Cancel order"); never "OK" or "Yes". The way out must not sound like the action: next to "Cancel order" it is "Keep order".
+
+## 9. Responsive
+
+- 320–639 px: buttons full width in a column, confirmation on top, each 44 px tall.
+- From 640 px: a right-aligned row. The popup is at most 448 px wide at every size.
+- Long text wraps; the popup never gets taller than the window minus the gutter.
+
+<Canvas of={AlertDialogStories.StoreDensity} />
+<Canvas of={AlertDialogStories.AdminDensityInPortal} />
+
+The admin sets `data-density="admin"` on a `div`, but dialogs render in `<body>`. `globals.css` also applies the admin scale to `:root:has([data-density="admin"])`, so the popup gets 16 px padding and 32 px buttons (B4.6).
+
+## 10. API
+
+<ArgTypes of={AlertDialogStories} />
+
+Parts: `AlertDialog` (Base UI `AlertDialog.Root`), `AlertDialogTrigger`, `AlertDialogContent` (portal, backdrop, viewport and popup), `AlertDialogHeader`, `AlertDialogTitle`, `AlertDialogDescription`, `AlertDialogFooter`, `AlertDialogCancel` (Base UI `Close` as an `outline` Button), `AlertDialogAction` (a Button, `destructive` by default). Title and description are required.
+
+## 11. Code
+
+```tsx
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
+// A hook-free view; the "use client" wrapper passes the server action (AGENTS.md, admin forms).
+<AlertDialog>
+  <AlertDialogTrigger render={<Button variant="destructive" />}>Cancel order</AlertDialogTrigger>
+  <AlertDialogContent>
+    <form action={formAction} className="contents">
+      <AlertDialogHeader>
+        <AlertDialogTitle>Cancel order {reference}?</AlertDialogTitle>
+        <AlertDialogDescription>{units} units go back to stock.</AlertDialogDescription>
+      </AlertDialogHeader>
+      <input type="hidden" name="confirm" value="yes" />
+      <AlertDialogFooter>
+        <AlertDialogCancel disabled={pending}>Keep order</AlertDialogCancel>
+        <AlertDialogAction type="submit" aria-busy={pending || undefined}>
+          Cancel order
+        </AlertDialogAction>
+      </AlertDialogFooter>
+    </form>
+  </AlertDialogContent>
+</AlertDialog>;
+```
+
+## 12. Do and don't
+
+<Unstyled>
+  <DoDont
+    good={
+      <span className="flex flex-col gap-related">
+        <strong>Delete category Mousepads?</strong>
+        <span className="flex gap-related">
+          <Button variant="outline">Cancel</Button>
+          <Button variant="destructive">Delete category</Button>
+        </span>
+      </span>
+    }
+    goodNote="The title and the button name the action and the object."
+    bad={
+      <span className="flex flex-col gap-related">
+        <strong>Are you sure?</strong>
+        <span className="flex gap-related">
+          <Button variant="outline">Cancel</Button>
+          <Button variant="action">OK</Button>
+        </span>
+      </span>
+    }
+    badNote="“OK” on a red purchase button says nothing about what will be deleted."
+  />
+</Unstyled>
+
+## 13. Related
+
+- **Dialog**: a short task with fields; closes on a backdrop click.
+- **Button** `destructive`: the confirming button and the trigger.
+- **Alert** `destructive`: a server error inside the dialog.
+- Patterns (lesson 08): confirmation of a destructive action.
