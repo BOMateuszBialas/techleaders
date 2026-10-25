@@ -38,6 +38,10 @@ Q1–Q6 zgodnie z rekomendacjami; B3.1–B3.30 przyjęte, w tym wszystkie usuni�
 4. Storybook: 6 stron MDX po 13 sekcji, 32 stories (`play` w 28), menu w `preview.tsx`.
 5. Odstępstwa (szczegóły w POSTEP, „Implementacja”): Disclosure bez testu Enter i Spacji w `play` (niezaufane zdarzenia `user-event` nie wywołują akcji `<summary>`); domyślny promień szkieletu przez `[:where(&)]`, bo `cn` nie scala klas tokenów projektu (lekcja w `.ai/lessons.md`); wysokości wierszy w testach z 1 px linii.
 
+## Poprawka po CI (2026-10-25)
+
+Pierwszy przebieg CI PR #107: czerwone e2e `admin-mobile` („keeps Copilot evidence tables readable without sideways scrolling”, 26 px nadmiaru) i `storefront-mobile` („keeps the signed-in customer header within the viewport”, tabela „My orders”). Przyczyna: padding poziomy komórek 8 → 12 px (+32 px na 4 kolumny) i tekst sklepu 14 → 16 px. Pomiar prawdziwych `RecommendationCardView` i `AccountOrdersView` w tymczasowej story (niecommitowanej) przy 326 / 358 px: 37 / 27 px z 12 px, 5 / 0 px z 8 px. Poprawka: `px-2 md:px-3` w `TableHead` i `TableCell` (odstępstwo od B3.5 opisane w POSTEP). Ryzyko wpisane w liście różnic („Sprawdzę 320 i 390 px przed commitem”) bez Dockera dało się sprawdzić dopiero w CI.
+
 ## Wynik bramki (2026-10-25, lokalnie na Windows)
 
 | Krok | Wynik |

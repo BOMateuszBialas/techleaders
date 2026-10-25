@@ -486,6 +486,7 @@ Usunięcia z bazy do Twojej zgody (zasada 12), przyjmowane razem z listą: style
   - B3.30 Disclosure: test `play` nie naciska Enter ani Spacji, bo zdarzenia z `user-event` są niezaufane i nie wywołują domyślnej akcji `<summary>`; story „Keyboard” sprawdza fokus, obrys i natywną strukturę (`summary` pierwszym dzieckiem `details`, bez elementów fokusowalnych w środku). Klik sprawdza story „Click”.
   - B3.16 Skeleton: domyślny promień ma zerową specyficzność (`[:where(&)]:rounded-control`), bo `cn` nie scala klas tokenów projektu (`cn("rounded-control", "rounded-card")` zostawia obie, wygrywa kolejność w CSS). Lekcja w `.ai/lessons.md`.
   - B3.5: wysokość wiersza w testach to 48 / 44 px plus 1 px linii wiersza (49 / 45 px w `getBoundingClientRect`).
+  - B3.5: padding poziomy komórki i nagłówka 12 px od 768 px, **8 px poniżej** (`px-2 md:px-3`). Z 12 px na każdym ekranie CI (e2e `admin-mobile`: tabele dowodów Copilota, `storefront-mobile`: „My orders”) pokazało przewijanie w kontenerze tabeli przy 390 px (26 px), wbrew lekcji 2026-10-19; pomiar prawdziwych komponentów w tymczasowej story przy 326 / 358 px: 37 / 27 px nadmiaru z 12 px, 5 / 0 px z 8 px. Miejsca użycia bez zmian (Q6). Pionowo bez zmian (wiersz 44 / 48 px).
   - B3.27: wyzwalacz w kształcie przycisku dostaje `buttonVariants({ variant: "outline" })` i `hover:no-underline` (bez tego podkreślenie z hover zostaje na przycisku).
 
 ## Następny krok

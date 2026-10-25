@@ -41,7 +41,7 @@ Comparing rows of the same kind (orders, products, metrics) column by column, so
 2. `TableCaption` (or `aria-label` on `Table`): the table's name, under the table in the `small` style, or `sr-only`.
 3. `TableHeader`: one row on `--muted`, `--foreground` 500 text, never wraps, `--border` line under it.
 4. `TableBody` rows: `--border` line between rows, no fill, no hover.
-5. `TableCell`: 12 px padding, `body` text, wraps long text.
+5. `TableCell`: 12 px padding (8 px inline below 768 px, so columns stay in view at 390 px), `body` text, wraps long text.
 6. `TableFooter` (optional): totals on `--muted`, 500, a line above.
 
 Rows: 48 px in the store (16/24 text), 44 px in the admin (14/20 text), plus the 1 px line. Digits are tabular on the whole table.
@@ -75,7 +75,7 @@ A table is static: rows have no hover, selected or expanded style (B3.8, owner d
 
 ## 9. Responsive
 
-- 320 px: long text wraps inside cells (B3.7); headers stay on one line; the page never widens.
+- 320 px: long text wraps inside cells (B3.7); headers stay on one line; inline cell padding drops to 8 px below 768 px; the page never widens.
 - A table that cannot fit scrolls in its container; on a phone, prefer the list pattern with cards (retrofit).
 - 768 and 1440 px: full width of the content column.
 

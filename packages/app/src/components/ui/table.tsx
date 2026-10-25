@@ -4,12 +4,14 @@ import { cn } from "cn";
 /**
  * Table (design system stage 2, batch 3; B3.4–B3.10 in .ai/design/POSTEP.md). No `"use client"`:
  * a table has no state or events, so it renders on the server with its page (B3.4). Rows are 44 px
- * in the admin and 48 px in the store (`body` text + 12 px padding, B3.5); the header sits on
- * `--muted` with `--foreground` 500 text. Digits are tabular on the whole table (B3.6); numeric
- * columns set `text-right` at the call site. Cells wrap long text, headers do not (B3.7). Rows have
- * no hover, selected or expanded styles (B3.8, owner decision): a row is not clickable, the
- * resource name inside it is a `TextLink`. Every table has a name: `TableCaption` (also `sr-only`)
- * or `aria-label` (B3.9). The scroll container stays for wide tables; it gets no `tabIndex` (B3.10).
+ * in the admin and 48 px in the store (`body` text + 12 px block padding, B3.5). Inline padding is
+ * 12 px from 768 px and 8 px below, so tables keep every column in view at 390 px (lesson
+ * 2026-10-19; `admin-mobile` and `storefront-mobile` e2e). The header sits on `--muted` with
+ * `--foreground` 500 text. Digits are tabular on the whole table (B3.6); numeric columns set
+ * `text-right` at the call site. Cells wrap long text, headers do not (B3.7). Rows have no hover,
+ * selected or expanded styles (B3.8, owner decision): a row is not clickable, the resource name
+ * inside it is a `TextLink`. Every table has a name: `TableCaption` (also `sr-only`) or
+ * `aria-label` (B3.9). The scroll container stays for wide tables, without `tabIndex` (B3.10).
  */
 function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
@@ -67,7 +69,7 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
     <th
       data-slot="table-head"
       className={cn(
-        "p-3 text-left align-middle font-medium whitespace-nowrap text-foreground [&:has([role=checkbox])]:pr-0",
+        "px-2 py-3 text-left align-middle md:px-3 font-medium whitespace-nowrap text-foreground [&:has([role=checkbox])]:pr-0",
         className,
       )}
       {...props}
@@ -80,7 +82,7 @@ function TableCell({ className, ...props }: React.ComponentProps<"td">) {
     <td
       data-slot="table-cell"
       className={cn(
-        "p-3 align-middle whitespace-normal wrap-break-word [&:has([role=checkbox])]:pr-0",
+        "px-2 py-3 align-middle md:px-3 whitespace-normal wrap-break-word [&:has([role=checkbox])]:pr-0",
         className,
       )}
       {...props}
