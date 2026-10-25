@@ -358,6 +358,15 @@ Stories partii (szacunek): Select 6, Checkbox 7, Radio group 6, Badge 6, Alert 7
 
 Usunięcia z bazy do Twojej zgody (zasada 12), przyjmowane razem z listą: rozmiar `sm` w Select (B2.5), wariant `link` w Badge (B2.16), `AlertAction` (B2.23).
 
+### Decyzje właściciela (2026-10-24)
+
+- **Q1:** Select natywny (`native-select`).
+- **Q2:** Checkbox i Radio z Base UI.
+- **Q3:** Radio group budujemy teraz; przełącznik motywu zostaje natywny.
+- **Q4:** Alert bez domyślnej roli.
+- **Q5:** partia 2 nie zmienia miejsc użycia; na ekranie zmieniają się tylko Badge i Card.
+- **B2.1–B2.31:** przyjęte zgodnie z rekomendacjami, w tym trzy usunięcia z bazy (Select `sm`, Badge `link`, `AlertAction`).
+
 ## Następny krok
 
-Decyzje właściciela w sprawie Q1–Q5 i punktów B2.1–B2.31 (w tym trzech usunięć z bazy). Potem implementacja partii 2 na gałęzi `design/stage-2-batch-2` (worktree `wt-ds-batch2`) i PR do review.
+Implementacja partii 2 na gałęzi `design/stage-2-batch-2` (worktree `wt-ds-batch2`) i PR do review właściciela.
