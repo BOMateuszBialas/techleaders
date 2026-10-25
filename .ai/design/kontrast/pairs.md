@@ -60,3 +60,12 @@
 | 60 | `--ring` na `--primary` | kontrola | 1,08 : 1 | kontrola | 1,00 : 1 | kontrola | fokus bez odstępu na przycisku głównym (kontrola) |
 | 61 | `--action` na `--frame` | kontrola | 2,88 : 1 | kontrola | 3,75 : 1 | kontrola | czerwień akcji bezpośrednio na ciemnej ramie (kontrola) |
 | 62 | `--action-foreground` na `--frame-accent` | kontrola | 3,26 : 1 | kontrola | 3,26 : 1 | kontrola | biały tekst na jasnej czerwieni ramy (kontrola) |
+| 63 | `--foreground` na `--destructive-surface` | tekst 4,5 | 16,46 : 1 | ok | 14,15 : 1 | ok | opis alertu błędu (etap 2, partia 2, B2.20) |
+| 64 | `--foreground` na `--success-surface` | tekst 4,5 | 17,28 : 1 | ok | 13,62 : 1 | ok | opis alertu sukcesu |
+| 65 | `--foreground` na `--warning-surface` | tekst 4,5 | 17,05 : 1 | ok | 13,48 : 1 | ok | opis alertu ostrzeżenia |
+| 66 | `--foreground` na `--demo-surface` | tekst 4,5 | 16,05 : 1 | ok | 13,48 : 1 | ok | opis alertu demo |
+| 67 | `--link` na `--destructive-surface` | tekst 4,5 | 5,77 : 1 | ok | 7,18 : 1 | ok | link w alercie błędu |
+| 68 | `--link` na `--success-surface` | tekst 4,5 | 6,06 : 1 | ok | 6,91 : 1 | ok | link w alercie sukcesu |
+| 69 | `--link` na `--warning-surface` | tekst 4,5 | 5,98 : 1 | ok | 6,84 : 1 | ok | link w alercie ostrzeżenia |
+| 70 | `--link` na `--demo-surface` | tekst 4,5 | 5,63 : 1 | ok | 6,84 : 1 | ok | link w alercie demo |
+| 71 | `--primary` na `--card` | UI 3 | 17,71 : 1 | ok | 14,35 : 1 | ok | zaznaczony checkbox / radio w karcie (B2.9) |

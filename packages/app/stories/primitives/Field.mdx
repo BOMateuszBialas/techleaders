@@ -28,19 +28,21 @@ Every value in a form: checkout, order lookup, sign-in and sign-up, the product 
 
 1. `Field`: the wrapper, `--space-related` (8 px) between its parts.
 2. `FieldLabel`: always visible; `optional` adds "(optional)".
-3. The control: `Input`, `Textarea` (later `Select`, `Checkbox`).
-4. `FieldDescription` (optional): the hint, `type-small`, `--muted-foreground`.
-5. `FieldError` (optional): icon and text in `--destructive`; renders nothing without a message.
-6. `FieldGroup`: fields `--space-group-item` apart (16 px store, 12 px admin).
-7. `FieldSet` and `FieldLegend` (optional): a named group of fields ("Shipping address").
+3. The control: `Input`, `Textarea`, `NativeSelect`, or (horizontal) `Checkbox`, `RadioGroupItem`.
+4. `FieldContent` (horizontal only): the label, hint and error next to the control.
+5. `FieldDescription` (optional): the hint, `type-small`, `--muted-foreground`.
+6. `FieldError` (optional): icon and text in `--destructive`; renders nothing without a message.
+7. `FieldGroup`: fields `--space-group-item` apart (16 px store, 12 px admin).
+8. `FieldSet` and `FieldLegend` (optional): a named group of fields ("Shipping address").
 
 Order: label, control, hint, error (B1.26).
 
 ## 5. Variants
 
-`FieldLegend` has two: `legend` (`type-h3`, a group title) and `label` (looks like a field label, for a group that is one question). `Field` has no variants; the horizontal layout for checkboxes arrives in batch 2.
+`FieldLegend` has two: `legend` (`type-h3`, a group title) and `label` (looks like a field label, for a group that is one question). `Field` has two orientations: `vertical` (default: label, control, hint, error stacked) and `horizontal` (batch 2, B2.11: a checkbox or radio on the left, `FieldContent` with the label, hint and error on the right; the row is at least `--control-h-sm` tall, 44 px on a phone, and the box sits on the first line of the label through `--choice-offset`).
 
 <Canvas of={FieldStories.Group} />
+<Canvas of={FieldStories.Horizontal} />
 
 ## 6. States
 
@@ -81,15 +83,16 @@ Order: label, control, hint, error (B1.26).
 
 ## 10. API
 
-| Part               | Props                                                              | Default    |
-| ------------------ | ------------------------------------------------------------------ | ---------- |
-| `Field`            | `<div>` props; `data-disabled="true"` greys the label              | –          |
-| `FieldLabel`       | `<label>` props; `optional?: boolean` adds "(optional)"            | `false`    |
-| `FieldDescription` | `<p>` props; give it an `id` for `aria-describedby`                | –          |
-| `FieldError`       | `<p>` props; `children` = the message, nothing rendered when empty | –          |
-| `FieldGroup`       | `<div>` props                                                      | –          |
-| `FieldSet`         | `<fieldset>` props                                                 | –          |
-| `FieldLegend`      | `<legend>` props; `variant?: "legend" \| "label"`                  | `"legend"` |
+| Part               | Props                                                                                             | Default      |
+| ------------------ | ------------------------------------------------------------------------------------------------- | ------------ |
+| `Field`            | `<div>` props; `orientation?: "vertical" \| "horizontal"`; `data-disabled="true"` greys the label | `"vertical"` |
+| `FieldContent`     | `<div>` props; label, hint and error of a horizontal field                                        | –            |
+| `FieldLabel`       | `<label>` props; `optional?: boolean` adds "(optional)"                                           | `false`      |
+| `FieldDescription` | `<p>` props; give it an `id` for `aria-describedby`                                               | –            |
+| `FieldError`       | `<p>` props; `children` = the message, nothing rendered when empty                                | –            |
+| `FieldGroup`       | `<div>` props                                                                                     | –            |
+| `FieldSet`         | `<fieldset>` props                                                                                | –            |
+| `FieldLegend`      | `<legend>` props; `variant?: "legend" \| "label"`                                                 | `"legend"`   |
 
 ## 11. Code
 
@@ -151,6 +154,6 @@ import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui
 
 ## 13. Related
 
-- **Label**, **Input**, **Textarea**: the parts inside a field.
+- **Label**, **Input**, **Textarea**, **Select**, **Checkbox**, **Radio group**: the parts inside a field.
 - **Button**: the submit of the form.
 - Patterns (lesson 08): form (validation on blur and on submit, focus on the first error, double-submit lock).

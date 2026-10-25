@@ -146,5 +146,14 @@ const pairs = [
   ["ring", "primary", "X", "fokus bez odstępu na przycisku głównym (kontrola)"],
   ["action", "frame", "X", "czerwień akcji bezpośrednio na ciemnej ramie (kontrola)"],
   ["action-foreground", "frame-accent", "X", "biały tekst na jasnej czerwieni ramy (kontrola)"],
+  ["foreground", "destructive-surface", "T", "opis alertu błędu (etap 2, partia 2)"],
+  ["foreground", "success-surface", "T", "opis alertu sukcesu"],
+  ["foreground", "warning-surface", "T", "opis alertu ostrzeżenia"],
+  ["foreground", "demo-surface", "T", "opis alertu demo"],
+  ["link", "destructive-surface", "T", "link w alercie błędu"],
+  ["link", "success-surface", "T", "link w alercie sukcesu"],
+  ["link", "warning-surface", "T", "link w alercie ostrzeżenia"],
+  ["link", "demo-surface", "T", "link w alercie demo"],
+  ["primary", "card", "U", "zaznaczony checkbox / radio w karcie"],
 ];
 export { raw, L, D, light, dark, pairs };

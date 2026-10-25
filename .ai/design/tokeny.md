@@ -121,6 +121,7 @@ Wszystkie wartości mieszczą się w gamucie sRGB (sprawdzone skryptem). `--raw-
 | `--duration-fast` / `--duration-base` / `--duration-slow` | znaczeniowa (**nowy**, P9) | 120 / 200 / 300 ms | = | luka „Ruch i reakcja”; próg Doherty’ego 400 ms | kolor/hover / menu, popover / dialog, panel | pętle, animacje dekoracyjne |
 | `--ease-out` / `--ease-in` | znaczeniowa (**nowy**, P9) | `cubic-bezier(0.2, 0, 0, 1)` / `cubic-bezier(0.4, 0, 1, 1)` | = | jw. | wejście / wyjście nakładek | – |
 | `--control-h-sm` / `-md` / `-lg` | komponentowa (**nowy**) | sklep: 40 / 44 / 48 px; admin desktop: 28 / 32 / 36 px; telefon (oba): min. 44 px | = | K7, R04.3, R01 (CTA 40/48), R02.2 (56 px), WCAG 2.5.8, 44 pt | wysokość przycisku, pola, selecta | odstępy (to nie jest skala odstępów) |
+| `--choice-offset` | komponentowa (**nowy**, etap 2 partia 2, B2.11) | sklep: 0; admin: 2 px | = | linia etykiety 20 px minus pole checkboxa / radia (`--control-icon-size` 20 / 16 px), przez 2 | wyrównanie checkboxa i radia do pierwszej linii etykiety w poziomym `Field` | odstępy |
 | `--space-*` | znaczeniowa (**nowy**) | patrz sekcja 3 | = | R04.3 (siatka 4 px), audyt decyzja 3 | odstępy według relacji | – |
 | `--measure-prose` | znaczeniowa (**nowy**) | `65ch` | = | audyt (84 znaki na `/orders/lookup`), lekcja (45–75 znaków) | tekst ciągły | tabele |
 
@@ -211,6 +212,17 @@ Progi: tekst 4,5 : 1; duży tekst (≥ 24 px albo ≥ 18,66 px pogrubiony) i ele
 | 60 | `--ring` na `--primary` | kontrola | 1,08 : 1 | kontrola | 1,00 : 1 | kontrola | fokus bez odstępu na przycisku głównym |
 | 61 | `--action` na `--frame` | kontrola | 2,88 : 1 | kontrola | 3,75 : 1 | kontrola | czerwień akcji bezpośrednio na ciemnej ramie |
 | 62 | `--action-foreground` na `--frame-accent` | kontrola | 3,26 : 1 | kontrola | 3,26 : 1 | kontrola | biały tekst na jasnej czerwieni ramy |
+| 63 | `--foreground` na `--destructive-surface` | tekst 4,5 | 16,46 : 1 | ok | 14,15 : 1 | ok | opis alertu błędu (etap 2, partia 2, B2.20) |
+| 64 | `--foreground` na `--success-surface` | tekst 4,5 | 17,28 : 1 | ok | 13,62 : 1 | ok | opis alertu sukcesu |
+| 65 | `--foreground` na `--warning-surface` | tekst 4,5 | 17,05 : 1 | ok | 13,48 : 1 | ok | opis alertu ostrzeżenia |
+| 66 | `--foreground` na `--demo-surface` | tekst 4,5 | 16,05 : 1 | ok | 13,48 : 1 | ok | opis alertu demo |
+| 67 | `--link` na `--destructive-surface` | tekst 4,5 | 5,77 : 1 | ok | 7,18 : 1 | ok | link w alercie błędu |
+| 68 | `--link` na `--success-surface` | tekst 4,5 | 6,06 : 1 | ok | 6,91 : 1 | ok | link w alercie sukcesu |
+| 69 | `--link` na `--warning-surface` | tekst 4,5 | 5,98 : 1 | ok | 6,84 : 1 | ok | link w alercie ostrzeżenia |
+| 70 | `--link` na `--demo-surface` | tekst 4,5 | 5,63 : 1 | ok | 6,84 : 1 | ok | link w alercie demo |
+| 71 | `--primary` na `--card` | UI 3 | 17,71 : 1 | ok | 14,35 : 1 | ok | zaznaczony checkbox / radio w karcie (B2.9) |
+
+Pary 63–71 dodane w etapie 2, partia 2 (policzone skryptem przed zapisem). Policzone, ale celowo poza tabelą, bo to granice dekoracyjne albo kształt wspierany obrysem: tła `--*-surface` do `--background` 1,10–1,28 : 1 (dlatego alert ma obrys w kolorze znaczenia, B2.19), `--card` do `--background` w ciemnym motywie 1,08 : 1 (obrys karty jedyną granicą, B2.25), `--secondary` do `--surface-product` 1,02 : 1 (neutralny badge na karcie produktu, B2.17). Obrysy alertów to pary 20, 26, 30 i 56; znak w checkboxie to para 12.
 
 ### Oznaczone pary i poprawki
 

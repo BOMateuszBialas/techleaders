@@ -1,6 +1,14 @@
 import * as React from "react";
 import { cn } from "cn";
 
+/**
+ * Card (design system stage 2, batch 2; B2.25–B2.29 in .ai/design/POSTEP.md). A panel that groups
+ * related content: `--card` surface, a decorative `--border` outline (in the dark theme the only
+ * edge: the card is 1.08 : 1 to the page), 12 px radius and no shadow (A01, `--shadow-card: none`).
+ * Padding `--space-panel` (24 px store, 16 px admin); `size="sm"` uses `--space-group-item`. The
+ * title has the `h2` style; the heading level comes from the caller (an `<h1>` or `<h3>` inside).
+ * The product tile in the catalog is not a Card (one `--surface-product` surface, rule 7).
+ */
 function Card({
   className,
   size = "default",
@@ -11,7 +19,7 @@ function Card({
       data-slot="card"
       data-size={size}
       className={cn(
-        "group/card flex flex-col gap-(--card-spacing) overflow-hidden rounded-xl bg-card py-(--card-spacing) text-sm text-card-foreground ring-1 ring-foreground/10 [--card-spacing:--spacing(4)] has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:[--card-spacing:--spacing(3)] data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl",
+        "group/card flex flex-col gap-group-item overflow-hidden rounded-card border border-border bg-card py-panel type-body text-card-foreground shadow-card has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:py-group-item data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-card *:[img:last-child]:rounded-b-card",
         className,
       )}
       {...props}
@@ -24,7 +32,7 @@ function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card-header"
       className={cn(
-        "group/card-header @container/card-header grid auto-rows-min items-start gap-1 rounded-t-xl px-(--card-spacing) has-data-[slot=card-action]:grid-cols-[1fr_auto] has-data-[slot=card-description]:grid-rows-[auto_auto] [.border-b]:pb-(--card-spacing)",
+        "group/card-header @container/card-header grid auto-rows-min items-start gap-1 px-panel group-data-[size=sm]/card:px-group-item has-data-[slot=card-action]:grid-cols-card-header [.border-b]:pb-panel",
         className,
       )}
       {...props}
@@ -33,23 +41,14 @@ function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
 }
 
 function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="card-title"
-      className={cn(
-        "font-heading text-base leading-snug font-medium group-data-[size=sm]/card:text-sm",
-        className,
-      )}
-      {...props}
-    />
-  );
+  return <div data-slot="card-title" className={cn("type-h2", className)} {...props} />;
 }
 
 function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-description"
-      className={cn("text-sm text-muted-foreground", className)}
+      className={cn("type-body text-muted-foreground", className)}
       {...props}
     />
   );
@@ -67,7 +66,11 @@ function CardAction({ className, ...props }: React.ComponentProps<"div">) {
 
 function CardContent({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <div data-slot="card-content" className={cn("px-(--card-spacing)", className)} {...props} />
+    <div
+      data-slot="card-content"
+      className={cn("px-panel group-data-[size=sm]/card:px-group-item", className)}
+      {...props}
+    />
   );
 }
 
@@ -76,7 +79,7 @@ function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card-footer"
       className={cn(
-        "flex items-center rounded-b-xl border-t bg-muted/50 p-(--card-spacing)",
+        "flex items-center border-t border-border p-panel group-data-[size=sm]/card:p-group-item",
         className,
       )}
       {...props}

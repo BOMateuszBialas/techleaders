@@ -1,0 +1,146 @@
+import { ArgTypes, Canvas, Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import * as CardStories from "./card.stories";
+import { Card, CardContent, CardHeader, CardTitle } from "../../src/components/ui/card";
+import { DoDont } from "./blocks/do-dont";
+
+<Meta of={CardStories} />
+
+# Card
+
+## 1. What it is for
+
+Grouping content that belongs together (a sign-in form, a metric, a recommendation) into one panel, so the page reads as a few clear blocks.
+
+## 2. When to use
+
+- Store: customer sign-in and sign-up; later the order summary in the cart (R02.2).
+- Admin: sign-in, dashboard metric cards, system status, Copilot recommendation cards.
+- Any self-contained block with a title that sits next to other blocks.
+
+## 3. When not to use
+
+| Instead of a card…            | Use                                   | Why                                                  |
+| ----------------------------- | ------------------------------------- | ---------------------------------------------------- |
+| A product tile in the catalog | the product card (stage 3, lesson 08) | One `--surface-product` surface, no outline (rule 7) |
+| A card inside a card          | a heading and spacing inside one card | Card in card is a generic AI look (audit)            |
+| A message                     | Alert                                 | It has a meaning color and an icon                   |
+| A whole page section          | the page layout and `--space-section` | A card around everything separates nothing           |
+| Rows of data                  | Table (batch 3)                       | Rows compare better than a grid of cards             |
+
+## 4. Anatomy
+
+1. `Card`: `--card` surface, `--border` outline (decorative; in the dark theme the only edge, 1.08 : 1 surface to page), 12 px radius, no shadow (A01).
+2. `CardHeader`: title, description (optional) and `CardAction` (optional, on the right, like page actions in R04.1).
+3. `CardTitle`: the `h2` style (20–24 px store, 16 px admin, 600); holds the real heading element.
+4. `CardDescription` (optional): the `body` style in `--muted-foreground`.
+5. `CardContent`: the body.
+6. `CardFooter` (optional): actions under a `--border` line, no fill.
+
+Padding: `--space-panel` (24 px store, 16 px admin); parts `--space-group-item` apart.
+
+## 5. Variants
+
+| Size      | Padding                           | When                            |
+| --------- | --------------------------------- | ------------------------------- |
+| `default` | `--space-panel` (24 / 16 px)      | most cards                      |
+| `sm`      | `--space-group-item` (16 / 12 px) | dense panels next to each other |
+
+No color variants (rule 7; color carries meaning only in Badge and Alert).
+
+<Canvas of={CardStories.AllParts} />
+<Canvas of={CardStories.Small} />
+
+## 6. States
+
+A card is static: no hover, focus, pressed, disabled, loading or selected. A clickable whole card is not used; put a link on the title instead. Loading content inside uses Skeleton (batch 3).
+
+## 7. Behavior and accessibility
+
+- A `<div>`: give the title a real heading at the right level (`<h1>` on a sign-in page, `<h2>` for a section, `<h3>` inside a section) (WCAG 1.3.1, 2.4.6).
+- Reading order follows the DOM: header, content, footer.
+- The outline is decorative (WCAG 1.4.11 does not apply); text inside has the normal contrast (pairs 2, 7).
+
+## 8. Content
+
+- Title: a noun phrase naming the block ("Order summary", "Revenue (paid orders)").
+- Description: one sentence of context or the metric definition.
+- Long titles wrap; numbers use `tabular-nums`.
+
+## 9. Responsive
+
+- 320 px: cards take the full width; the padding stays.
+- 768 and 1440 px: cards sit in a grid (dashboard 2–4 columns) or keep a fixed width (`max-w-sm` for sign-in).
+
+<Canvas of={CardStories.LongTitleNarrow} />
+<Canvas of={CardStories.AdminDensity} />
+
+## 10. API
+
+<ArgTypes of={CardStories} />
+
+All parts accept `<div>` props.
+
+## 11. Code
+
+```tsx
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
+<Card>
+  <CardHeader>
+    <CardTitle>
+      <h2>Order summary</h2>
+    </CardTitle>
+  </CardHeader>
+  <CardContent>…</CardContent>
+</Card>;
+```
+
+```tsx
+// Dashboard metric card: title, definition, value.
+<Card data-metric={definition.id}>
+  <CardHeader>
+    <CardTitle>
+      <h3>{definition.label}</h3>
+    </CardTitle>
+    <CardDescription>{definition.definition}</CardDescription>
+  </CardHeader>
+  <CardContent>
+    <p className="type-display">{formatted}</p>
+  </CardContent>
+</Card>
+```
+
+## 12. Do and don't
+
+<Unstyled>
+  <DoDont
+    good={
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle>
+            <h3>System status</h3>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>Database up</CardContent>
+      </Card>
+    }
+    goodNote="One card, one heading, content inside."
+    bad={
+      <Card className="w-full">
+        <CardContent>
+          <Card size="sm">
+            <CardContent>Database up</CardContent>
+          </Card>
+        </CardContent>
+      </Card>
+    }
+    badNote="A card inside a card adds outlines without adding structure."
+  />
+</Unstyled>
+
+## 13. Related
+
+- **Alert**: a message, not a container.
+- **Badge**: the status inside a card's header.
+- Product card (stage 3): the catalog tile on `--surface-product`.
+- Patterns (lesson 08): details view, AI answer with recommendations, dashboard.
