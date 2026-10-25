@@ -1,0 +1,139 @@
+import { ArgTypes, Canvas, Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import * as DialogStories from "./dialog.stories";
+import { DoDont } from "./blocks/do-dont";
+
+<Meta of={DialogStories} />
+
+# Dialog
+
+## 1. What it is for
+
+Doing one short task or reading one short piece of information on top of the current page, without losing the place, and returning to exactly where you were.
+
+## 2. When to use
+
+- A task with one or two fields that belongs to the page behind it (for example renaming something you are looking at).
+- Short information the user asked for and must read before going on.
+
+Today the product has **no dialog**: admin tasks are separate pages (R04.1), and both confirmations use the [Alert dialog](?path=/docs/primitives-alert-dialog--docs). The component exists so the anatomy, both themes and both densities are settled before the first use (owner decision Q3).
+
+## 3. When not to use
+
+| Instead of a dialog…                                      | Use                      | Why                                                             |
+| --------------------------------------------------------- | ------------------------ | --------------------------------------------------------------- |
+| A yes/no confirmation of an irreversible action           | Alert dialog             | Role `alertdialog`, no backdrop dismiss, focus on the safe side |
+| A form with more than a few fields, or a CSV preview      | a page                   | Pages can be linked, reloaded and used without JavaScript       |
+| Information needed to decide (metric definitions, prices) | visible text on the page | Hidden behind a click means unread (Q2, R05)                    |
+| A message after an action                                 | Alert or a status line   | No task, nothing to close                                       |
+| Navigation                                                | Navigation menu, links   | A dialog is not a place                                         |
+
+## 4. Anatomy
+
+1. Trigger: a button that names the task.
+2. Backdrop: `--backdrop`, no blur; a click on it closes the dialog.
+3. Popup: role `dialog`, the overlay surface shared with Alert dialog (`--popover`, `--border`, the overlay shadow, 12 px radius, `--space-panel` padding), at most 512 px wide.
+4. Header: title (`<h2>`, style `h2`) and an optional description (`--muted-foreground`).
+5. Body: the content; `DialogBody` when it can be long (it scrolls, the header and footer stay).
+6. Footer: explicit buttons with verbs, right-aligned from `sm`, a full-width column on a phone.
+7. X: a `ghost` icon button named "Close" in the corner (`showCloseButton`, on by default).
+
+## 5. Variants
+
+One look, one size. `showCloseButton={false}` only when the footer already has "Cancel" and the dialog is short.
+
+<Canvas of={DialogStories.Playground} />
+
+## 6. States
+
+| State          | What changes                                                        | Source    |
+| -------------- | ------------------------------------------------------------------- | --------- |
+| Opening        | backdrop fades in; popup fades and scales from 95%, 300 ms ease-out | B4.7      |
+| Closing        | 200 ms ease-in; focus returns to the trigger                        | B4.7      |
+| Long content   | the body scrolls inside the window; title and buttons stay visible  | B4.9      |
+| Reduced motion | no scale; fades at most 120 ms                                      | tokeny §5 |
+
+Field states (error, disabled, busy) are the ones of the controls inside.
+
+<Canvas of={DialogStories.LongContent} />
+
+## 7. Behavior and accessibility
+
+- Role `dialog` named by the title, described by the description. Modal: focus is trapped, the page is inert and does not scroll.
+- Focus starts on the first control (in a form, the first field) and returns to the trigger on close.
+- Escape, a click on the backdrop, the X and "Cancel" close it (WAI-ARIA APG "Dialog (Modal)").
+- A scrolling `DialogBody` is focusable, so the keyboard can scroll it; give it a name (`role="group"` and `aria-label`).
+- Needs JavaScript (Base UI).
+
+<Canvas of={DialogStories.FocusAndEscape} />
+<Canvas of={DialogStories.BackdropXAndCancel} />
+
+## 8. Content
+
+- Title: the task as a verb and an object ("Rename category"), the same words as the trigger.
+- Description: one sentence that answers the question the task raises ("The address does not change.").
+- Buttons: verbs ("Save name"), never "OK"; the way out is "Cancel".
+
+## 9. Responsive
+
+- 320 px: 16 px from each edge, buttons full width and 44 px tall.
+- From 640 px: buttons in a row on the right; at most 512 px wide.
+- Admin: 16 px padding, 32 px buttons, 16 px title, also in the `<body>` portal (B4.6).
+
+<Canvas of={DialogStories.AdminDensity} />
+
+## 10. API
+
+<ArgTypes of={DialogStories} />
+
+Parts: `Dialog` (Base UI `Dialog.Root`), `DialogTrigger`, `DialogContent` (portal, backdrop, viewport, popup; `showCloseButton`), `DialogHeader`, `DialogTitle`, `DialogDescription`, `DialogBody`, `DialogFooter`, `DialogClose`. The base's `DialogFooter showCloseButton` is removed (owner decision): write the footer buttons explicitly.
+
+## 11. Code
+
+```tsx
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+
+<Dialog>
+  <DialogTrigger render={<Button variant="outline" />}>Rename category</DialogTrigger>
+  <DialogContent>
+    <form action={formAction} className="contents">
+      <DialogHeader>
+        <DialogTitle>Rename category</DialogTitle>
+        <DialogDescription>The address does not change.</DialogDescription>
+      </DialogHeader>
+      {/* Field + Input */}
+      <DialogFooter>
+        <DialogClose render={<Button variant="outline" />}>Cancel</DialogClose>
+        <Button type="submit">Save name</Button>
+      </DialogFooter>
+    </form>
+  </DialogContent>
+</Dialog>;
+```
+
+## 12. Do and don't
+
+<Unstyled>
+  <DoDont
+    good={<span>One task, one or two fields, buttons with verbs.</span>}
+    goodNote="A short task the user can finish without leaving the page."
+    bad={<span>A dialog that opens another dialog with a ten-field form.</span>}
+    badNote="Long forms and stacked dialogs belong on a page with its own address."
+  />
+</Unstyled>
+
+## 13. Related
+
+- **Alert dialog**: confirmation of an irreversible action.
+- **Field**, **Input**: the controls inside.
+- **Navigation menu**: for moving between pages, never a dialog.
+- "What is missing": Drawer (a panel from the bottom on phones), Popover, Menu (actions).
