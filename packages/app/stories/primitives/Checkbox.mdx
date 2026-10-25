@@ -1,0 +1,146 @@
+import { ArgTypes, Canvas, Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import * as CheckboxStories from "./checkbox.stories";
+import { Checkbox } from "../../src/components/ui/checkbox";
+import { Field, FieldContent, FieldLabel } from "../../src/components/ui/field";
+import { DoDont } from "./blocks/do-dont";
+
+<Meta of={CheckboxStories} />
+
+# Checkbox
+
+## 1. What it is for
+
+Turning one option on or off inside a form, or confirming a consequence before a risky action, with the choice saved only when the form is submitted.
+
+## 2. When to use
+
+- Product form: "Featured on the home page".
+- Order status form: the confirmation before cancelling an order ("Return 2 units to stock and cancel order …", `required`).
+- A list of independent options where any number may be on (none today).
+
+Always in a horizontal [Field](?path=/docs/primitives-field--docs) with a visible label.
+
+## 3. When not to use
+
+| Instead of a checkbox…                       | Use                                       | Why                                           |
+| -------------------------------------------- | ----------------------------------------- | --------------------------------------------- |
+| One of several exclusive options             | Radio group                               | A checkbox lets the user pick none or many    |
+| A setting that applies at once, without Save | not available (Switch, "What is missing") | The product saves through forms (P0 decision) |
+| An action ("Publish now")                    | Button                                    | A checkbox changes a value, not the page      |
+| Accepting something the user cannot refuse   | nothing                                   | A box that must be ticked is noise            |
+
+## 4. Anatomy
+
+1. Box: Base UI `Checkbox.Root` (`<span role="checkbox">`), 20 px store / 16 px admin (`--control-icon-size`), 4.8 px radius, `--input` outline.
+2. Check mark: Tabler `IconCheck` in `--primary-foreground` on `--primary` (16.98 : 1); never `--action` (rules 2, 4).
+3. Hidden `<input>`: carries `name`, `value` and `required` for the form; the `id` prop lands on it, so `<label htmlFor>` works.
+4. Label, hint, error: `FieldContent` next to the box; the box sits on the first label line (`--choice-offset`).
+
+## 5. Variants
+
+No visual variants. Checked and unchecked are states; an indeterminate state is not needed by the product ("What is missing").
+
+<Canvas of={CheckboxStories.WithLabelAndHint} />
+
+## 6. States
+
+<Canvas of={CheckboxStories.States} />
+
+| State            | What changes                                                         | Source       |
+| ---------------- | -------------------------------------------------------------------- | ------------ |
+| Hover            | nothing                                                              | B2.10        |
+| Focus            | 2 px `--ring` outline with a 2 px offset                             | tokeny.md §5 |
+| Checked          | `--primary` fill and outline, white check                            | B2.9         |
+| Error            | unchecked: `--destructive` outline; the message is in the Field      | rule 5       |
+| Disabled         | `--muted` fill, grey check and label, not-allowed cursor, no opacity | P5, rule 14  |
+| Loading, pressed | not applicable                                                       | –            |
+
+**How the user learns why a checkbox is disabled:** the hint under the label says it ("Publish the product first to feature it."). A disabled checkbox is not submitted.
+
+## 7. Behavior and accessibility
+
+- Role `checkbox` with `aria-checked`; Tab focuses, Space toggles (WAI-ARIA APG "Checkbox"). A click on the label toggles too.
+- The form gets `name=value` only when checked (default value `on`); `required` blocks the submit until checked.
+- Needs JavaScript (Base UI). Today checkboxes are only in the admin, which needs it anyway.
+- Target: the box has a 24 px+ hit area; the horizontal Field row is 40 px store / 28 px admin and 44 px on a phone (WCAG 2.5.8, rule 16).
+- Screen readers announce the label, the state and the hint ("Featured on the home page, checkbox, checked, Shown in …").
+
+<Canvas of={CheckboxStories.KeyboardAndForm} />
+<Canvas of={CheckboxStories.Required} />
+
+## 8. Content
+
+- The label states what is true when checked ("Featured on the home page"), never a question and never a negative ("Don't show …").
+- A confirmation names the consequence and the object ("Return 2 units to stock and cancel order CO-GWP9H").
+- Long labels wrap next to the box; numbers stay digits.
+
+## 9. Responsive
+
+- 320 px: the label wraps; the box stays on the first line.
+- 768 and 1440 px: no change.
+- Below 48rem the row is 44 px tall.
+
+<Canvas of={CheckboxStories.LongLabelNarrow} />
+<Canvas of={CheckboxStories.AdminDensity} />
+
+## 10. API
+
+<ArgTypes of={CheckboxStories} />
+
+Every Base UI `Checkbox.Root` prop works (`checked`, `onCheckedChange`, `readOnly`, `inputRef`).
+
+## 11. Code
+
+```tsx
+import { Checkbox } from "@/components/ui/checkbox";
+import { Field, FieldContent, FieldLabel } from "@/components/ui/field";
+
+<Field orientation="horizontal">
+  <Checkbox id="product-featured" name="featured" defaultChecked={featured} />
+  <FieldContent>
+    <FieldLabel htmlFor="product-featured">Featured on the home page</FieldLabel>
+  </FieldContent>
+</Field>;
+```
+
+```tsx
+// Order status form: a required confirmation before cancelling.
+<Field orientation="horizontal">
+  <Checkbox id="confirm-cancelled" name="confirm" value="yes" required />
+  <FieldContent>
+    <FieldLabel htmlFor="confirm-cancelled">{confirmationLabel(transition, units)}</FieldLabel>
+  </FieldContent>
+</Field>
+```
+
+## 12. Do and don't
+
+<Unstyled>
+  <DoDont
+    good={
+      <Field orientation="horizontal">
+        <Checkbox id="dd-cb-ok" defaultChecked />
+        <FieldContent>
+          <FieldLabel htmlFor="dd-cb-ok">Featured on the home page</FieldLabel>
+        </FieldContent>
+      </Field>
+    }
+    goodNote="The label says what is true when the box is checked."
+    bad={
+      <Field orientation="horizontal">
+        <Checkbox id="dd-cb-bad" />
+        <FieldContent>
+          <FieldLabel htmlFor="dd-cb-bad">Don't hide from the slider?</FieldLabel>
+        </FieldContent>
+      </Field>
+    }
+    badNote="A negative question makes “checked” mean the opposite of what users expect."
+  />
+</Unstyled>
+
+## 13. Related
+
+- **Radio group**: one choice out of several.
+- **Field** (horizontal): label, hint and error next to the box.
+- **Button** `destructive`: the action the confirmation unlocks.
+- Patterns (lesson 08): form, confirmation of a destructive action.

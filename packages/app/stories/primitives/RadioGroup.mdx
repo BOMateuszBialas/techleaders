@@ -1,0 +1,175 @@
+import { ArgTypes, Canvas, Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import * as RadioGroupStories from "./radio-group.stories";
+import { RadioGroup, RadioGroupItem } from "../../src/components/ui/radio-group";
+import { Field, FieldContent, FieldLabel } from "../../src/components/ui/field";
+import { DoDont } from "./blocks/do-dont";
+
+<Meta of={RadioGroupStories} />
+
+# Radio group
+
+## 1. What it is for
+
+Choosing exactly one of a few options while seeing all of them, so the user can compare before choosing.
+
+## 2. When to use
+
+- 2–5 exclusive options that fit on screen: the period of the dashboard metrics (planned), a sort order, a delivery option in a future checkout.
+- When the options need a hint each ("System: follows the setting of this device").
+
+No screen uses it yet (owner decision Q3). The theme switch in the footer and the admin menu stays a native segmented control (spec A5).
+
+## 3. When not to use
+
+| Instead of a radio group…          | Use                                                  | Why                                           |
+| ---------------------------------- | ---------------------------------------------------- | --------------------------------------------- |
+| More than about 5 options          | Select                                               | A long column of circles pushes the form down |
+| Yes or no                          | Checkbox                                             | One box is lighter than two circles           |
+| Several options may be on          | checkboxes                                           | Radios allow exactly one                      |
+| Switching views on the same page   | Tabs (batch 3)                                       | Tabs change content, radios change a value    |
+| A compact two- or three-way toggle | not available (segmented control, "What is missing") | Today only the theme switch needs it          |
+
+## 4. Anatomy
+
+1. Group: Base UI `RadioGroup` (`role="radiogroup"`), named by a `FieldLegend` (`aria-labelledby`) or `aria-label`; options `--space-related` apart.
+2. Option: Base UI `Radio.Root`, a 20 px store / 16 px admin circle with an `--input` outline.
+3. Dot: 8 px `--primary-foreground` on a `--primary` fill when chosen.
+4. Hidden input: one per group, carries `name` and the chosen `value`.
+5. Label and hint: a horizontal Field per option.
+
+## 5. Variants
+
+No visual variants (a segmented look is a separate component, not a variant; prompt rule 6).
+
+<Canvas of={RadioGroupStories.WithHints} />
+
+## 6. States
+
+<Canvas of={RadioGroupStories.States} />
+
+| State            | What changes                                                    | Source       |
+| ---------------- | --------------------------------------------------------------- | ------------ |
+| Hover            | nothing                                                         | B2.10        |
+| Focus            | 2 px `--ring` outline with a 2 px offset                        | tokeny.md §5 |
+| Checked          | `--primary` fill and outline, light dot                         | B2.12        |
+| Error            | unchecked: `--destructive` outline; the message under the group | rule 5       |
+| Disabled         | `--muted` fill, grey dot and label, no opacity                  | P5, rule 14  |
+| Loading, pressed | not applicable                                                  | –            |
+
+**How the user learns why options are disabled:** a hint under the legend ("Comparison needs at least 2 full periods of data.").
+
+## 7. Behavior and accessibility
+
+- One Tab stop for the whole group; arrow keys move focus and choose (WAI-ARIA APG "Radio Group"); a click on a label chooses.
+- The group is a `radiogroup` named by its legend; each option is a `radio` with `aria-checked`.
+- The form submits the group's `name` with the chosen value.
+- Needs JavaScript (Base UI).
+- Target: each option row is at least 40 px store / 28 px admin and 44 px on a phone (WCAG 2.5.8).
+
+<Canvas of={RadioGroupStories.Keyboard} />
+<Canvas of={RadioGroupStories.LabelClick} />
+
+## 8. Content
+
+- The legend asks or names the choice ("Period"); options are short and parallel ("Last 7 days", "Last 30 days").
+- Order options logically (shortest to longest, most common first) and pre-select the safe default.
+- Long labels wrap next to the circle.
+
+## 9. Responsive
+
+- 320 px: one column; labels wrap.
+- 768 and 1440 px: still one column (a row of radios is hard to scan); a short group may sit next to other fields.
+
+<Canvas of={RadioGroupStories.LongLabelsNarrow} />
+<Canvas of={RadioGroupStories.AdminDensity} />
+
+## 10. API
+
+<ArgTypes of={RadioGroupStories} />
+
+| Part             | Props                                                                                                |
+| ---------------- | ---------------------------------------------------------------------------------------------------- |
+| `RadioGroup`     | Base UI `RadioGroup` props: `value`, `defaultValue`, `onValueChange`, `name`, `disabled`, `required` |
+| `RadioGroupItem` | Base UI `Radio.Root` props: `value` (required), `id`, `disabled`                                     |
+
+## 11. Code
+
+```tsx
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+
+<RadioGroup aria-label="Period" name="period" defaultValue="30">
+  <Field orientation="horizontal">
+    <RadioGroupItem id="period-30" value="30" />
+    <FieldContent>
+      <FieldLabel htmlFor="period-30">Last 30 days</FieldLabel>
+    </FieldContent>
+  </Field>
+</RadioGroup>;
+```
+
+```tsx
+// Dashboard (planned): the period with a legend.
+<FieldSet>
+  <FieldLegend id="period-legend" variant="label">
+    Period
+  </FieldLegend>
+  <RadioGroup aria-labelledby="period-legend" name="period" defaultValue={range}>
+    {PERIODS.map(([value, label]) => (
+      <Field key={value} orientation="horizontal">
+        <RadioGroupItem id={`period-${value}`} value={value} />
+        <FieldContent>
+          <FieldLabel htmlFor={`period-${value}`}>{label}</FieldLabel>
+        </FieldContent>
+      </Field>
+    ))}
+  </RadioGroup>
+</FieldSet>
+```
+
+## 12. Do and don't
+
+<Unstyled>
+  <DoDont
+    good={
+      <RadioGroup aria-label="Period, good example" defaultValue="30">
+        <Field orientation="horizontal">
+          <RadioGroupItem id="dd-r-7" value="7" />
+          <FieldContent>
+            <FieldLabel htmlFor="dd-r-7">Last 7 days</FieldLabel>
+          </FieldContent>
+        </Field>
+        <Field orientation="horizontal">
+          <RadioGroupItem id="dd-r-30" value="30" />
+          <FieldContent>
+            <FieldLabel htmlFor="dd-r-30">Last 30 days</FieldLabel>
+          </FieldContent>
+        </Field>
+      </RadioGroup>
+    }
+    goodNote="A safe default is chosen and the options are parallel."
+    bad={
+      <RadioGroup aria-label="Period, bad example">
+        <Field orientation="horizontal">
+          <RadioGroupItem id="dd-rb-7" value="7" />
+          <FieldContent>
+            <FieldLabel htmlFor="dd-rb-7">7</FieldLabel>
+          </FieldContent>
+        </Field>
+        <Field orientation="horizontal">
+          <RadioGroupItem id="dd-rb-30" value="30" />
+          <FieldContent>
+            <FieldLabel htmlFor="dd-rb-30">Previous month (comparison)</FieldLabel>
+          </FieldContent>
+        </Field>
+      </RadioGroup>
+    }
+    badNote="Unclear, unparallel labels and no default force the user to guess."
+  />
+</Unstyled>
+
+## 13. Related
+
+- **Select**: the same choice when there are many options.
+- **Checkbox**: independent on/off options.
+- **Field**, **FieldSet**: the legend and the horizontal rows.
+- Patterns (lesson 08): form, dashboard range.

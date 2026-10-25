@@ -2,8 +2,10 @@ import { useRef, useState, type FormEvent } from "react";
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { expect } from "storybook/test";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Field,
+  FieldContent,
   FieldDescription,
   FieldError,
   FieldGroup,
@@ -254,5 +256,27 @@ export const Validation: Story = {
     await expect(name).toHaveAccessibleDescription(NAME_ERROR);
     await expect(email).toHaveAccessibleDescription(EMAIL_ERROR);
     await expect(email).toHaveValue("jan.example.com");
+  },
+};
+
+/** Horizontal (batch 2, B2.11): the checkbox on the left, label, hint and error on the right. */
+export const Horizontal: Story = {
+  render: () => (
+    <Field orientation="horizontal" className="max-w-sm">
+      <Checkbox id="h-featured" name="featured" aria-describedby="h-featured-hint" />
+      <FieldContent>
+        <FieldLabel htmlFor="h-featured">Featured on the home page</FieldLabel>
+        <FieldDescription id="h-featured-hint">
+          Shown in the home page slider while the product is published.
+        </FieldDescription>
+      </FieldContent>
+    </Field>
+  ),
+  play: async ({ canvas, userEvent }) => {
+    const box = canvas.getByRole("checkbox", { name: "Featured on the home page" });
+    await userEvent.click(canvas.getByText("Featured on the home page"));
+    await expect(box).toBeChecked();
+    const field = box.closest("[data-slot=field]");
+    await expect(field?.getAttribute("data-orientation")).toBe("horizontal");
   },
 };

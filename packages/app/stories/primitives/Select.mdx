@@ -1,0 +1,160 @@
+import { ArgTypes, Canvas, Meta, Unstyled } from "@storybook/addon-docs/blocks";
+import * as SelectStories from "./select.stories";
+import { NativeSelect, NativeSelectOption } from "../../src/components/ui/native-select";
+import { Field, FieldLabel } from "../../src/components/ui/field";
+import { DoDont } from "./blocks/do-dont";
+
+<Meta of={SelectStories} />
+
+# Select
+
+## 1. What it is for
+
+Choosing one value from a short, fixed list (a category, a status) without typing, so the value is always one the server accepts.
+
+## 2. When to use
+
+- Product form: the category and, when creating a product, the status (Draft or Published).
+- Catalog search: the category filter next to the search field.
+- Any list of about 4–15 known options where the current choice should stay visible in one line.
+
+Always inside a [Field](?path=/docs/primitives-field--docs) with a visible label.
+
+## 3. When not to use
+
+| Instead of a select…                            | Use                                       | Why                                         |
+| ----------------------------------------------- | ----------------------------------------- | ------------------------------------------- |
+| 2–3 options the user should compare at a glance | Radio group                               | All options visible, one click (APG)        |
+| Yes or no ("Featured")                          | Checkbox                                  | One click, no list                          |
+| A long list the user searches (products)        | an input with search (pattern, lesson 08) | Scrolling 100 options is slow               |
+| Options with pictures or extra lines            | not available yet ("What is missing")     | A native select shows text only             |
+| Navigation (go to another page)                 | links (`TextLink`, menu)                  | A select that navigates surprises keyboards |
+
+## 4. Anatomy
+
+1. Container: a native `<select>`, `--input` outline (3.66 : 1, rule 12), 8 px radius, height from the density token.
+2. Value: 16 px in the store and on every phone, 14 px in the admin on a desktop.
+3. Icon: Tabler `IconSelector`, 20 px store / 16 px admin, `--muted-foreground`, hidden from screen readers.
+4. Options and option groups (`NativeSelectOption`, `NativeSelectOptGroup`): drawn by the system in its own list, colored by `color-scheme` from the theme.
+5. Focus ring: 2 px `--ring` outline with a 2 px offset.
+
+## 5. Variants
+
+One look and one size, the same as Input (B2.5: the base `sm` size is removed). Option groups split a list into named parts.
+
+<Canvas of={SelectStories.Options} />
+
+## 6. States
+
+<Canvas of={SelectStories.States} />
+
+| State            | What changes                                                        | Source       |
+| ---------------- | ------------------------------------------------------------------- | ------------ |
+| Hover            | nothing                                                             | B2.7         |
+| Focus            | outline `--ring`, plus a 2 px ring with a 2 px offset               | tokeny.md §5 |
+| Error            | outline `--destructive`, also in focus; the message is in the Field | rule 5       |
+| Disabled         | `--muted` fill, `--muted-foreground` text, not-allowed cursor       | P5, rule 14  |
+| Selected         | the chosen option is the shown value                                | –            |
+| Loading, pressed | not applicable (options are rendered with the page)                 | –            |
+
+**How the user learns why a select is disabled:** the Field hint says it ("Choose a category first."). A disabled select is not submitted with the form; send the value in a hidden input if the server needs it.
+
+## 7. Behavior and accessibility
+
+- A native `<select>`: role `combobox`, its value and the list come from the browser (WCAG 4.1.2). Tab focuses; arrows change the value; Alt+Down (Windows) or Space opens the list; type-ahead jumps to an option.
+- On a phone the system picker opens; it is always large enough to tap.
+- Works without JavaScript: the form submits `name=value` (audit: content without JS).
+- The label is a `<label for>`; hint and error are linked with `aria-describedby`; an error sets `aria-invalid`.
+- Target: 44 px in the store and on a phone, 32 px in the admin on a desktop (WCAG 2.5.8).
+
+<Canvas of={SelectStories.Choosing} />
+<Canvas of={SelectStories.InField} />
+
+## 8. Content
+
+- Option labels are nouns in sentence case ("Mice", "Pending payment"), sorted as the user expects (alphabetical for categories, workflow order for statuses).
+- An empty first option names what empty means ("All categories", "No category"), never "Select…".
+- Keep options short: the closed select shows one line and cuts the rest with the system's ellipsis.
+- Longer languages: allow about 30% more text; the select takes the full width of its field.
+
+## 9. Responsive
+
+- 320 px: full width of the form; a long option is cut inside the select, the page never scrolls sideways.
+- 768 and 1440 px: the catalog filter keeps a fixed width next to the search field (`sm:w-56` today).
+- Below 48rem every select is 44 px tall, admin too.
+
+<Canvas of={SelectStories.LongOptionNarrow} />
+<Canvas of={SelectStories.AdminDensity} />
+
+## 10. API
+
+<ArgTypes of={SelectStories} />
+
+| Part                   | Props                                                                 |
+| ---------------------- | --------------------------------------------------------------------- |
+| `NativeSelect`         | every native `<select>` prop; `className` goes on the wrapper (width) |
+| `NativeSelectOption`   | every native `<option>` prop                                          |
+| `NativeSelectOptGroup` | every native `<optgroup>` prop (`label`)                              |
+
+## 11. Code
+
+```tsx
+import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
+
+<NativeSelect id="catalog-search-category" name="category" defaultValue="">
+  <NativeSelectOption value="">All categories</NativeSelectOption>
+  <NativeSelectOption value="mice">Mice</NativeSelectOption>
+</NativeSelect>;
+```
+
+```tsx
+// Product form: the category with a server error (fieldA11y builds the aria attributes).
+<Field>
+  <FieldLabel htmlFor="product-category">Category</FieldLabel>
+  <NativeSelect
+    id="product-category"
+    name="categoryId"
+    defaultValue={fieldDefault(state, "categoryId", product?.categoryId ?? "")}
+    {...fieldA11y("product-category-error", errors.categoryId)}
+  >
+    <NativeSelectOption value="">No category</NativeSelectOption>
+    {categories.map((category) => (
+      <NativeSelectOption key={category.id} value={category.id}>
+        {category.name}
+      </NativeSelectOption>
+    ))}
+  </NativeSelect>
+  <FieldError id="product-category-error">{errors.categoryId?.join(" ")}</FieldError>
+</Field>
+```
+
+## 12. Do and don't
+
+<Unstyled>
+  <DoDont
+    good={
+      <Field>
+        <FieldLabel htmlFor="dd-sel-ok">Category</FieldLabel>
+        <NativeSelect id="dd-sel-ok" defaultValue="">
+          <NativeSelectOption value="">All categories</NativeSelectOption>
+          <NativeSelectOption value="mice">Mice</NativeSelectOption>
+        </NativeSelect>
+      </Field>
+    }
+    goodNote="A visible label, and the empty option says what it means."
+    bad={
+      <NativeSelect aria-label="Category" defaultValue="">
+        <NativeSelectOption value="">Select…</NativeSelectOption>
+        <NativeSelectOption value="mice">Mice</NativeSelectOption>
+      </NativeSelect>
+    }
+    badNote="“Select…” as the only label disappears once a value is chosen."
+  />
+</Unstyled>
+
+## 13. Related
+
+- **Radio group**: for 2–3 options that should all stay visible.
+- **Input**: same shape, states and density.
+- **Field**: label, hint and error around the select.
+- Patterns (lesson 08): form, list with filters (category filter).

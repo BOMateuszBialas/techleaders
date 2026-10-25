@@ -6,20 +6,42 @@ import { Label } from "./label";
 /**
  * Form field (design system stage 2, batch 1; B1.22–B1.26 in .ai/design/POSTEP.md). Based on the
  * shadcn `base-nova` `field` registry item (4.21.4), trimmed to the parts the product needs: no
- * `FieldSeparator` (it pulls the unplanned `separator`), no `FieldContent` / `FieldTitle` and no
- * horizontal orientation until the checkbox arrives in batch 2.
+ * `FieldSeparator` (it pulls the unplanned `separator`) and no `FieldTitle` (B2.11).
  *
  * Order inside a field: label, control, hint, error (B1.26). The control points at the hint and the
  * error with `aria-describedby` and carries `aria-invalid`; the error is not a live region, because
  * the form already announces one summary with `role="alert"` (B1.23). Required fields are not
  * marked; optional ones say "(optional)" (owner decision Q2).
+ *
+ * `orientation="horizontal"` (batch 2, B2.11) is for a checkbox or a radio: the control on the left,
+ * then `FieldContent` with the label, hint and error; the row is at least `--control-h-sm` tall
+ * (44 px on a phone), so the whole row is a comfortable target.
  */
-function Field({ className, ...props }: React.ComponentProps<"div">) {
+function Field({
+  className,
+  orientation = "vertical",
+  ...props
+}: React.ComponentProps<"div"> & { orientation?: "vertical" | "horizontal" }) {
   return (
     <div
       role="group"
       data-slot="field"
-      className={cn("group flex w-full flex-col gap-related", className)}
+      data-orientation={orientation}
+      className={cn(
+        "group flex w-full gap-related data-[orientation=horizontal]:min-h-control-sm data-[orientation=horizontal]:flex-row data-[orientation=horizontal]:items-start data-[orientation=vertical]:flex-col",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+/** The label, hint and error next to the control of a horizontal field (B2.11). */
+function FieldContent({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="field-content"
+      className={cn("flex min-w-0 flex-1 flex-col gap-1", className)}
       {...props}
     />
   );
@@ -111,4 +133,13 @@ function FieldError({ className, children, ...props }: React.ComponentProps<"p">
   );
 }
 
-export { Field, FieldDescription, FieldError, FieldGroup, FieldLabel, FieldLegend, FieldSet };
+export {
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+  FieldLegend,
+  FieldSet,
+};
