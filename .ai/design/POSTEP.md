@@ -10,7 +10,7 @@
 |---|---|---|
 | 0. Inwentaryzacja i plan | **zakończony** 2026-10-24 | ten plik, spec |
 | 1. Fundamenty | **zmergowany** (PR #99); pełna bramka zielona | log `.ai/runs/2026-10-24-design-system-stage-1.md` |
-| 2. Komponenty bazowe | **w toku:** partie 1 i 2 zmergowane (PR #104, #106); partia 3 zaimplementowana 2026-10-25, PR czeka na merge (gałąź `design/stage-2-batch-3`); partia 4 nie rozpoczęta | sekcje „Etap 2, partia 1”, „Etap 2, partia 2” i „Etap 2, partia 3” niżej; logi `.ai/runs/2026-10-24-design-system-stage-2-batch-1.md`, `.ai/runs/2026-10-24-design-system-stage-2-batch-2.md`, `.ai/runs/2026-10-25-design-system-stage-2-batch-3.md` |
+| 2. Komponenty bazowe | **w toku:** partie 1–3 zmergowane (PR #104, #106, #107); partia 4 (Dialog, Alert dialog, Navigation menu / megamenu) zaimplementowana 2026-10-25, PR do review właściciela (gałąź `design/stage-2-batch-4`) | sekcje „Etap 2, partia 1”–„Etap 2, partia 4” niżej; logi `.ai/runs/2026-10-24-design-system-stage-2-batch-1.md`, `.ai/runs/2026-10-24-design-system-stage-2-batch-2.md`, `.ai/runs/2026-10-25-design-system-stage-2-batch-3.md`, `.ai/runs/2026-10-25-design-system-stage-2-batch-4.md` |
 | 3. Komponenty produktu, wzorce, ekrany | przeniesiony do lekcji 08 (retrofit) | osobny spec |
 | 4. Strony, które uczą + `docs/design-system.md` | nie rozpoczęty | – |
 | 5. Sprawdzenie i raport | nie rozpoczęty | – |
@@ -155,7 +155,7 @@ Przybliżona liczba stories: Foundations ok. 10 (bloki z testem a11y), Primitive
 
 ## Otwarte pytania
 
-Pytania 2–5 z sekcji 2 (pytanie 1, ⚠D1–⚠D5, rozstrzygnięte) i pytania Q1–Q6 partii 3 (sekcja „Etap 2, partia 3”). Pytania partii 1 i 2 są rozstrzygnięte.
+Pytania 2–5 z sekcji 2 (pytanie 1, ⚠D1–⚠D5, rozstrzygnięte) i pytania megamenu Q8–Q12 partii 4 (sekcja „Etap 2, partia 4”; przyjęte domyślnie według rekomendacji, weto w review PR). Pytania partii 1–3 i Q1–Q7 partii 4 są rozstrzygnięte.
 
 ## Wynik etapu 1 (do pokazania)
 
@@ -168,7 +168,7 @@ Pytania 2–5 z sekcji 2 (pytanie 1, ⚠D1–⚠D5, rozstrzygnięte) i pytania Q
 
 ## Etap 2, partia 1: różnice względem bazy (do akceptacji punkt po punkcie)
 
-Partia: Button, Text link, Input, Textarea, Label, Field. Baza: shadcn `base-nova` 4.21.4 na Base UI 1.9 (stan `components/ui/*` po etapie 1, `npx shadcn view field` dla Field). Każdy punkt ma jedną rekomendację i źródło; **P** = moja propozycja, bo materiały milczą (zasada 1 i 4 promptu). Nic z tej listy nie jest jeszcze w kodzie.
+Partia: Button, Text link, Input, Textarea, Label, Field. Baza: shadcn `base-nova` 4.21.4 na Base UI 1.9 (stan `components/ui/*` po etapie 1, `npx shadcn view field` dla Field). Każdy punkt ma jedną rekomendację i źródło; **P** = moja propozycja, bo materiały milczą (zasada 1 i 4 promptu). Stan: Dialog, Alert dialog i Navigation menu są w kodzie (PR partii 4); Menu i Popover nie wchodzą (Q1, Q2).
 
 ### Wspólne dla wszystkich kontrolek
 
@@ -614,6 +614,23 @@ Baza: `npx shadcn@4.21.4 view navigation-menu` (styl `base-nova`, plik bez `"use
 
 Usunięcia z bazy (B4.31): `NavigationMenuIndicator`, podmenu zagnieżdżone, animacje przełączania treści między pozycjami.
 
+### Implementacja (2026-10-25)
+
+- Nowe `ui/dialog.tsx`, `ui/alert-dialog.tsx` i `ui/navigation-menu.tsx`, pisane ręcznie z `npx shadcn@4.21.4 view` (bez CLI, bez zmian w `package.json` i `package-lock.json`). Miejsca użycia bez zmian (Q7).
+- `globals.css`: token `--backdrop` (Q4) w obu motywach i klasa `bg-backdrop`; gęstość admina także dla `:root:has([data-density="admin"])` w trzech blokach (B4.6; w bloku celów dotyku powtórzony, bo `:root:has(…)` ma wyższą specyficzność niż `:root`).
+- Pary 75–80 w `tokeny.md` §2, `kontrast/tokens.mjs`, `kontrast/pairs.md` i w bloku kontrastu Storybooka (`token-data.ts`, też wpis `--backdrop` w rolach kolorów); `verify-css.mjs` sprawdza wartość `--backdrop` w obu motywach i wypisuje kontrast dialogu do przyciemnionej strony (3,58 / 1,26 : 1). Numery 72–74 ma partia 3.
+- Storybook: 3 strony MDX po 13 sekcji, 19 stories (Alert dialog 7, Dialog 5, Navigation menu 7), kolejność menu w `preview.tsx`. Unit `ui/navigation-menu.test.ts` sprawdza HTML z serwera (zachowanie bez JS).
+- **Odstępstwa i uzupełnienia:**
+  - B4.9: część `DialogBody` (nowa, poza bazą) przewija długą treść; jest fokusowalna (`tabIndex=0`), więc nazwę i rolę daje miejsce użycia (`role="group"` + `aria-label`).
+  - B4.12: X ma położenie `top-related right-related`, a nagłówek dostaje prawy padding `--control-h-sm`, gdy X jest widoczny (bez wartości arbitralnych).
+  - B4.14: `AlertDialogAction` ma domyślnie wariant `destructive` (oba znane użycia to usunięcie i anulowanie).
+  - B4.16 i stories: przy otwartym dialogu reszta strony jest nieaktywna i ukryta przed czytnikiem ekranu, więc komunikat `role="status"` na stronie nie zostanie ogłoszony, dopóki dialog jest otwarty. Stories zamykają dialog po wysłaniu (kontrolowany `open`); w aplikacji robi to przekierowanie albo odświeżenie po akcji serwera.
+  - B4.20: wysokości w testach przez `offsetHeight`, bo wejście skaluje popup (95 → 100%) i `getBoundingClientRect` w trakcie animacji daje 41,8 zamiast 44 px. Ruch przy `prefers-reduced-motion` sprawdzony tylko w kodzie (`motion-safe:`); emulacji mediów w testach Storybooka nie dodałem.
+  - B4.25: Base UI nadaje wyzwalaczowi-linkowi `role="button"` i `aria-expanded` także w HTML z serwera, więc bez JS czytnik ogłosiłby przycisk, który nawiguje. Wyzwalacz dodaje oba atrybuty dopiero po hydracji (`useSyncExternalStore`, bez ostrzeżenia o niezgodności hydracji); test unit pilnuje, że HTML z serwera to zwykły link.
+  - B4.24 / B4.32: test najechania sprawdza opóźnienie otwarcia i zamknięcie po zjechaniu. Przejście kursorem z wyzwalacza na panel („bezpieczny trójkąt” Base UI) wymaga prawdziwych współrzędnych kursora, których zdarzenia syntetyczne nie mają; nie jest testowane automatycznie.
+  - a11y: Base UI wstawia przy otwartym megamenu dwa 1 px elementy-strażniki fokusu (`aria-hidden`, `tabindex=0`), które axe zgłasza jako `aria-hidden-focus`; stories Navigation menu wyłączają je z analizy (`a11y.context.exclude: [data-base-ui-focus-guard]`, powód w komentarzu). Reszta strony, panel i linki są sprawdzane. Dialogi tego nie potrzebowały.
+  - B4.23: kolumna linku ma stałą szerokość `w-60` (240 px), panel `w-max max-w-3xl`, więc szerokość wynika z liczby kolumn bez wartości arbitralnych.
+
 ## Następny krok
 
-Merge PR partii 3 po zielonym CI (risk-high: merguje właściciel); potem partia 4 etapu 2 (lista różnic jak w partiach 1–3).
+Review PR partii 4 przez właściciela (decyzje megamenu Q8–Q12 do ewentualnego weta) i merge po zielonym CI (risk-high: merguje właściciel); potem etap 4 (strony, które uczą, w tym „What is missing”: Menu akcji, Popover, Drawer, Tooltip, Toast) albo retrofit (lekcja 08: Alert dialog przy kategorii i zamówieniu, megamenu w nagłówku sklepu).

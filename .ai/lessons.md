@@ -11,6 +11,12 @@ Keep entries short; put longer write-ups in `.ai/lessons/YYYY-MM-DD-slug.md` and
 
 <!-- Newest first -->
 
+- **2026-10-25 — Base UI overlays: the page under a modal is hidden, portals miss a div-scoped density, a link trigger gets `role="button"` on the server**:
+  - While a Base UI modal dialog is open, everything outside it is inert and `aria-hidden`, so a `role="status"` message rendered on the page is not found by `getByRole` (and not announced). Close the dialog on success (controlled `open`, or the redirect/refresh of the server action) before reporting on the page.
+  - Overlays portal into `<body>`, outside a `div[data-density]`. `:root:has([data-density="admin"])` gives the whole admin document the scale, but it outranks a later `:root` rule, so every `@media` override block must list it again.
+  - A `NavigationMenu.Trigger` rendered as `<a href>` (`nativeButton={false}`) gets `role="button"` and `aria-expanded` already in the server HTML, which lies to no-JS users. Strip them in a `render` function until hydration (`useSyncExternalStore` with a `false` server snapshot) and pin it with a `renderToStaticMarkup` unit test.
+  - Scale-in animations change `getBoundingClientRect()` for ~300 ms; measure control heights with `offsetHeight`. `transition-[opacity,scale]` is an arbitrary value for `check:tokens`; plain `transition` already covers opacity, translate and scale.
+
 - **2026-10-25 — `cn` does not merge the project's token classes**: `cn("rounded-control", "rounded-card")`, `cn("h-control-md", "h-control-sm")` and `cn("p-3", "p-panel")` keep both classes, because `cn` (like tailwind-merge) only knows Tailwind's default scales; the winner is the CSS order, not the `className` order. A caller's override of a token class in a `ui/*` component may silently do nothing. Check overrides in a story (`getComputedStyle`), give a default that must be overridable zero specificity (`[:where(&)]:rounded-control`, `ui/skeleton.tsx`), or configure `createCn` from `cn/config` with the token groups (not done yet; a separate change).
 - **2026-10-24 — E07 Phase 2: lint treats e2e helpers named `use*` as React hooks; a migration guard needs a lock; split phases by consumer**:
   - `react-hooks/rules-of-hooks` runs on e2e files too. A helper that calls `useCustomerSession()`, or is itself named `use…`, fails lint when it is called from a named function or a loop. Name such helpers without `use` and call `browser().setCookieHeader(...)` directly.

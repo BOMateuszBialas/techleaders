@@ -27,9 +27,38 @@ Krok 1 partii 4 według promptu Storybooka: lista różnic kształtu, gęstości
 
 Jeden commit lokalny z POSTEP i tym logiem (lista różnic). Bez zmian w kodzie, bez push i bez PR.
 
+## Krok 2: decyzje właściciela i implementacja (2026-10-25)
+
+Decyzje: B4.1–B4.16 i B4.18–B4.20 przyjęte, Q2–Q7 zgodnie z rekomendacjami; **Q1 odrzucone**: właściciel chce megamenu (nawigacja kategorii w nagłówku, Base UI `NavigationMenu`), a nie menu akcji. Zapis w POSTEP („Decyzje właściciela (2026-10-25)” partii 4).
+
+1. Commit z decyzjami w POSTEP.
+2. Token `--backdrop`, gęstość admina w portalach (`:root:has([data-density="admin"])`), pary 75–80, sprawdzenie `--backdrop` w `verify-css.mjs`.
+3. Dialog i Alert dialog (ręcznie z `view`), 12 stories z `play`, 2 strony MDX. Debug: status na stronie pod otwartym dialogiem jest niewidoczny dla `getByRole` (strona jest `aria-hidden`), więc stories zamykają dialog po wysłaniu; wysokości przez `offsetHeight` (animacja skali).
+4. Merge `origin/main` po zmergowaniu partii 3 (#107): konflikty w `tokens.mjs`, `pairs.md`, `tokeny.md` (najpierw pary 72–74, potem 75–80) i w POSTEP (wersja z `main` + sekcja partii 4 przed „Następny krok”). Dopisane w POSTEP: właściciel zaakceptował odstępstwo B3.5 na telefonie 2026-10-25.
+5. Lista różnic megamenu B4.21–B4.32 i pytania Q8–Q12 z rekomendacjami (inwentaryzacja nagłówka i danych kategorii, zrzuty R01–R03 z kart referencji). Przyjęte domyślnie, weto w review PR.
+6. Navigation menu (`ui/navigation-menu.tsx`): wyzwalacz-link do `/products` (bez JS zwykły link; rola przycisku i `aria-expanded` dopiero po hydracji), panel `keepMounted`, najechanie z opóźnieniem 200 / 300 ms, 7 stories, MDX, unit test HTML z serwera. axe zgłaszał strażniki fokusu Base UI (`aria-hidden-focus`): wyłączone z analizy w stories megamenu z komentarzem.
+7. Bramka, POSTEP (stan etapu, „Otwarte pytania”, „Następny krok”, sekcja „Implementacja”), lekcja w `.ai/lessons.md`, PR.
+
+## Bramka (po merge'u `main` z partią 3)
+
+| Krok | Wynik |
+|---|---|
+| `npm run lint`, `format:check`, `test:hooks`, `typecheck` | ok |
+| `npm run test:coverage` | ok, 100% |
+| `npm run build`, `build-storybook` | ok |
+| `npm run test:storybook:themes` | 56 plików, 272 testy ok (pierwszy przebieg: znany błąd „Failed to fetch dynamically imported module” po nowych importach, drugi zielony) |
+| `npm run check:tokens` | pliki partii czyste; 25 znanych wartości poza partią (jak po partii 3) |
+| `node .ai/design/kontrast/verify-css.mjs` | ok, 77 par w obu motywach, `--backdrop` zgodny |
+| `npm run test:integration` | 20 plików, 182 testy ok (Docker lokalnie) |
+| `npm run test:e2e` | 23 pliki, 121 testów ok |
+
+## Decyzje kroku 2
+
+- Megamenu: jeden wyzwalacz „Shop” (kategorie są płaskie), wyzwalacz jest linkiem (spec G13), najechanie + klik, panel tylko z „Shop all” i kategoriami, od 768 px (telefon: Disclosure z partii 3).
+- Bez nowych zależności i bez CLI shadcn (wszystkie trzy pliki ręcznie z `view`).
+
 ## Do zrobienia
 
-- Decyzje właściciela: Q1–Q7, B4.1–B4.20 i usunięcia (`DialogFooter showCloseButton`, `AlertDialogMedia`, `size="sm"`, rozmycie tła; Menu i Popover z planu).
-- Po decyzjach: implementacja partii 4, token `--backdrop` i pary kontrastu w `tokeny.md` §2 i `kontrast/tokens.mjs`, selektor gęstości w `globals.css`, stories i strony MDX, bramka, PR.
-- Uzgodnienie POSTEP z partią 3 (wiersz etapu 2, „Otwarte pytania”, „Następny krok”).
-- Retrofit (lekcja 08): Alert dialog przy usunięciu kategorii i przy anulowaniu / zwrocie zamówienia (Q5, Q6), e2e `admin-categories` i `admin-orders`, testy widoków.
+- Review właściciela: weto Q8–Q12 megamenu, merge po zielonym CI.
+- Retrofit (lekcja 08): Alert dialog przy usunięciu kategorii i przy anulowaniu / zwrocie zamówienia (Q5, Q6), e2e `admin-categories` i `admin-orders`, testy widoków; megamenu w nagłówku sklepu (test `storefront-shell.test.ts`).
+- Etap 4: „What is missing” (Menu akcji, Popover, Drawer, Tooltip, Toast).
