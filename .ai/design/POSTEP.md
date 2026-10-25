@@ -10,7 +10,7 @@
 |---|---|---|
 | 0. Inwentaryzacja i plan | **zakończony** 2026-10-24 | ten plik, spec |
 | 1. Fundamenty | **zmergowany** (PR #99); pełna bramka zielona | log `.ai/runs/2026-10-24-design-system-stage-1.md` |
-| 2. Komponenty bazowe | **w toku:** partie 1 i 2 zmergowane (PR #104, #106); partia 3: lista różnic czeka na decyzje właściciela (gałąź `design/stage-2-batch-3`, bez implementacji); partia 4 nie rozpoczęta | sekcje „Etap 2, partia 1”, „Etap 2, partia 2” i „Etap 2, partia 3” niżej; logi `.ai/runs/2026-10-24-design-system-stage-2-batch-1.md`, `.ai/runs/2026-10-24-design-system-stage-2-batch-2.md`, `.ai/runs/2026-10-25-design-system-stage-2-batch-3.md` |
+| 2. Komponenty bazowe | **w toku:** partie 1 i 2 zmergowane (PR #104, #106); partia 3: decyzje właściciela 2026-10-25, implementacja w toku (gałąź `design/stage-2-batch-3`); partia 4 nie rozpoczęta | sekcje „Etap 2, partia 1”, „Etap 2, partia 2” i „Etap 2, partia 3” niżej; logi `.ai/runs/2026-10-24-design-system-stage-2-batch-1.md`, `.ai/runs/2026-10-24-design-system-stage-2-batch-2.md`, `.ai/runs/2026-10-25-design-system-stage-2-batch-3.md` |
 | 3. Komponenty produktu, wzorce, ekrany | przeniesiony do lekcji 08 (retrofit) | osobny spec |
 | 4. Strony, które uczą + `docs/design-system.md` | nie rozpoczęty | – |
 | 5. Sprawdzenie i raport | nie rozpoczęty | – |
@@ -466,6 +466,16 @@ Stories partii (szacunek): Table 6, Tabs 7, Skeleton 4, Empty state 5, Error sta
 - **Q6 (B3.1):** potwierdzasz, że partia 3 nie zmienia miejsc użycia, a na ekranie zmienia się tylko Table (nagłówek na szarym tle, wiersz 44 px w adminie, zawijanie długich tekstów, bez hover wiersza)? Rekomendacja: tak.
 
 Usunięcia z bazy do Twojej zgody (zasada 12), przyjmowane razem z listą: style wiersza `selected` i `expanded` oraz podświetlenie w hover w Table (B3.8), wariant `default` w Tabs (B3.12), style pionowej orientacji Tabs (B3.15), `EmptyMedia` z wariantami `default` i `icon` (B3.20). Nie dodaję z rejestru: `collapsible`, `accordion`, `spinner` (B3.3).
+
+### Decyzje właściciela (2026-10-25)
+
+- **Q1:** Tabs w dwóch formach: Base UI (`Tabs`, `TabsList`, `TabsTrigger`, `TabsContent`) do paneli na tej samej stronie oraz `TabsNav` + `TabsNavLink` z linkami do przełączania przez adres, ze wspólnym wyglądem.
+- **Q2:** jeden wygląd zakładek `line`; wariant `default` usunięty.
+- **Q3:** nowa część `SkeletonGroup` (`role="status"` i ukryty tekst).
+- **Q4:** komponent `ErrorState` na `Alert variant="destructive"`.
+- **Q5:** Disclosure na natywnym `<details>` / `<summary>`.
+- **Q6:** partia 3 nie zmienia miejsc użycia; na ekranie zmienia się tylko Table.
+- **B3.1–B3.30:** przyjęte zgodnie z rekomendacjami, w tym wszystkie usunięcia z bazy (style wiersza `selected`, `expanded` i hover w Table, wariant `default` i orientacja pionowa w Tabs, `EmptyMedia`). Nie dodajemy `collapsible`, `accordion` ani `spinner`.
 
 ## Następny krok
 
