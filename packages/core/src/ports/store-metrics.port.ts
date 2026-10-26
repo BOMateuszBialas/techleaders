@@ -22,7 +22,14 @@ export type TopProductAggregate = {
   revenueMinor: number;
 };
 
-export type LowStockRow = { id: string; name: string; sku: string | null; stockQuantity: number };
+/** `slug` links the home page's "Low stock" banner to the product; it is shopper-public data. */
+export type LowStockRow = {
+  id: string;
+  slug: string;
+  name: string;
+  sku: string | null;
+  stockQuantity: number;
+};
 
 /** The first `limit` low-stock products and how many there are in total. */
 export type LowStockAggregate = { total: number; rows: LowStockRow[] };

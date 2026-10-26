@@ -1,4 +1,5 @@
 import type {
+  CatalogCategoryCountRecord,
   CatalogCategoryRecord,
   CatalogProductCriteria,
   CatalogProductRecord,
@@ -90,5 +91,18 @@ export class InMemoryCatalog implements CatalogReadPort {
   async findProductsByIds(ids: readonly string[]): Promise<CatalogProductRecord[]> {
     this.idLookups.push(ids);
     return this.products.filter((product) => ids.includes(product.id));
+  }
+
+  async countPublishedProductsByCategory(): Promise<CatalogCategoryCountRecord[]> {
+    return [...this.categories]
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((category) => ({
+        slug: category.slug,
+        name: category.name,
+        productCount: this.products.filter(
+          (product) =>
+            product.status === "published" && this.productCategoryIds[product.slug] === category.id,
+        ).length,
+      }));
   }
 }

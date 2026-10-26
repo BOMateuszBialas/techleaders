@@ -93,15 +93,22 @@ describe("DatabaseStoreMetrics", () => {
 
   it("lists low-stock products with the total before the limit", async () => {
     const { execute, metrics } = setup([
-      { id: "p-2", name: "Titan", sku: "DEMO-MOU-003", stock_quantity: 0, total: "4" },
-      { id: "p-3", name: "Arena", sku: null, stock_quantity: 2, total: "4" },
+      {
+        id: "p-2",
+        slug: "titan",
+        name: "Titan",
+        sku: "DEMO-MOU-003",
+        stock_quantity: 0,
+        total: "4",
+      },
+      { id: "p-3", slug: "arena", name: "Arena", sku: null, stock_quantity: 2, total: "4" },
     ]);
 
     expect(await metrics.lowStockProducts(5, 2)).toEqual({
       total: 4,
       rows: [
-        { id: "p-2", name: "Titan", sku: "DEMO-MOU-003", stockQuantity: 0 },
-        { id: "p-3", name: "Arena", sku: null, stockQuantity: 2 },
+        { id: "p-2", slug: "titan", name: "Titan", sku: "DEMO-MOU-003", stockQuantity: 0 },
+        { id: "p-3", slug: "arena", name: "Arena", sku: null, stockQuantity: 2 },
       ],
     });
     expect(execute.mock.calls[0]?.[0]).toContain("status = 'published' and stock_quantity <= ?");

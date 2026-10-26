@@ -37,6 +37,7 @@ export * from "./services/cart/update-cart-line.use-case";
 export * from "./services/catalog/catalog.dto";
 export * from "./services/catalog/get-catalog-product.use-case";
 export * from "./services/catalog/list-catalog-categories.use-case";
+export * from "./services/catalog/list-category-counts.use-case";
 export * from "./services/catalog/list-catalog-products.use-case";
 export * from "./services/catalog/list-featured-products.use-case";
 export * from "./services/categories/category.dto";

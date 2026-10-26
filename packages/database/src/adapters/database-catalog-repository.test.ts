@@ -152,6 +152,20 @@ describe("DatabaseCatalogRepository", () => {
     expect(await repository.findProductsByIds([])).toEqual([]);
     expect(find).toHaveBeenCalledTimes(1);
   });
+
+  it("counts published products per category with a single grouped query", async () => {
+    const { em, repository } = setup();
+    const execute = vi
+      .spyOn(em, "execute")
+      .mockResolvedValue([{ slug: "mice", name: "Mice", product_count: 2 }] as never);
+
+    expect(await repository.countPublishedProductsByCategory()).toEqual([
+      { slug: "mice", name: "Mice", productCount: 2 },
+    ]);
+    const sql = String(execute.mock.calls[0]?.[0]);
+    expect(sql).toContain("count(p.id) filter (where p.status = 'published')::int");
+    expect(sql).toContain("left join products p on p.category_id = c.id");
+  });
 });
 
 describe("toContainsPattern", () => {

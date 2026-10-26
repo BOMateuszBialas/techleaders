@@ -1,4 +1,5 @@
 import type {
+  CatalogCategoryCountRecord,
   CatalogCategoryRecord,
   CatalogProductCriteria,
   CatalogProductRecord,
@@ -99,5 +100,27 @@ export class DatabaseCatalogRepository implements CatalogReadPort {
       { populate: ["category"] },
     );
     return products.map(toProductRecord);
+  }
+
+  /**
+   * One row per category, so an empty category is a zero count, not a missing row. The `::int`
+   * cast keeps the count a JavaScript number (PostgreSQL returns `bigint` as a string).
+   */
+  async countPublishedProductsByCategory(): Promise<CatalogCategoryCountRecord[]> {
+    const rows = await this.deps.em.execute<
+      { slug: string; name: string; product_count: number }[]
+    >(
+      `select c.slug, c.name,
+              count(p.id) filter (where p.status = 'published')::int as product_count
+         from categories c
+         left join products p on p.category_id = c.id
+        group by c.id, c.slug, c.name
+        order by c.name asc, c.slug asc`,
+    );
+    return rows.map((row) => ({
+      slug: row.slug,
+      name: row.name,
+      productCount: row.product_count,
+    }));
   }
 }

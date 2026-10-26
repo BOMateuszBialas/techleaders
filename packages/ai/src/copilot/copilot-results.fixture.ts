@@ -68,8 +68,20 @@ export function lowStock(rows: LowStockProducts["rows"] = defaultLowStockRows())
 
 export function defaultLowStockRows(): LowStockProducts["rows"] {
   return [
-    { id: TITAN_ID, name: "Titan MMO Mouse", sku: "DEMO-MOU-003", stockQuantity: 0 },
-    { id: PULSE_ID, name: "Pulse Ultralight Mouse", sku: "DEMO-MOU-002", stockQuantity: 3 },
+    {
+      id: TITAN_ID,
+      slug: "titan-mmo-mouse",
+      name: "Titan MMO Mouse",
+      sku: "DEMO-MOU-003",
+      stockQuantity: 0,
+    },
+    {
+      id: PULSE_ID,
+      slug: "pulse-ultralight-mouse",
+      name: "Pulse Ultralight Mouse",
+      sku: "DEMO-MOU-002",
+      stockQuantity: 3,
+    },
   ];
 }
 
