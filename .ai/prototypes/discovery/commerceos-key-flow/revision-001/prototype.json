@@ -1,0 +1,38 @@
+{
+  "format": "discovery-prototype-v1",
+  "skill": "om-mockup-prototype",
+  "slug": "commerceos-key-flow",
+  "revision": 1,
+  "revisionPath": ".ai/prototypes/discovery/commerceos-key-flow/revision-001",
+  "previousRevision": null,
+  "brief": ".ai/specs/product-brief.md",
+  "flow": "Key flows (future state purchase to Copilot, steps 1-6) and Customer account flow (D11, steps 1-4), one prototype with an account switch",
+  "panelReport": null,
+  "verification": "not-run",
+  "files": [
+    {
+      "path": "index.html",
+      "sha256": "9fd2ffc765b48f3c3183daf659086f491fa9d22a0c9fd6b9219107e0f1dfa3be"
+    },
+    {
+      "path": "README.md",
+      "sha256": "e321b1dd92b0d356faa457aa00e98fac41a62a88bc77b5673ff0bc625a41641e"
+    },
+    {
+      "path": "evidence/s01-home-1440.png",
+      "sha256": "f3a5ed93ea4608ef3d2cad8bb3c0e378f0f0c927afbe8ea894bb6c0a4b548a51"
+    },
+    {
+      "path": "evidence/s18-copilot-answer-320.png",
+      "sha256": "caba813824bdfc4f561c31f901d091fab1350a2b873fcaac78a0a3b6ee12ba4f"
+    },
+    {
+      "path": "evidence/browser-walk/scenario.js",
+      "sha256": "7ab4c240928757b7332d44a39807f3c5f40b60b15db5a0fa1faf0fa3028145d6"
+    },
+    {
+      "path": "evidence/browser-walk/run.mjs",
+      "sha256": "76d7eb1ff26a168beb257fe97b11f3b98cbdd365ce91add5570500c164cab41f"
+    }
+  ]
+}
