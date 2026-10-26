@@ -1,7 +1,7 @@
 # Storefront design implementation (storefront v2)
 
 - Backlog: none yet. The stories should be filed with `om-backlog` after the owner approves this spec.
-- Status: **draft, design-only PR, updated with the owner's answers to Q1–Q17 (2026-10-26)**. No application code is changed by this spec. Written on 2026-10-26 from the owner's five decisions (accepted 2026-10-26, recorded in `.ai/design/POSTEP.md`, section "Storefront v2 (2026-10-26)"). The owner's answers are applied in the sections below; each answer is recorded under its question in "Open questions". Items that still need the owner's explicit approval are listed in "Owner approvals needed" (OA-1 to OA-11).
+- Status: **ready for the owner to merge (design-only PR; owner answers Q1–Q17 applied; OA-1 to OA-11 approved by the owner on 2026-10-26)**. No application code is changed by this spec. Written on 2026-10-26 from the owner's five decisions (accepted 2026-10-26, recorded in `.ai/design/POSTEP.md`, section "Storefront v2 (2026-10-26)"). The owner's answers are applied in the sections below; each answer is recorded under its question in "Open questions". All OA items are owner-approved (2026-10-26) and listed in "Owner approvals needed".
 - Risk: **risk-high**. It changes the shared storefront shell (header, footer, every page), the cart UI, the payment-step wording, demo text in the database and in the admin (OA-2), the AI description demo marker (OA-3), and, in Phases 3 and 4, the product and category schema (migrations). It also changes protected rules that the owner has to approve knowingly (section "Existing rules this changes" and "Protected rule change").
 - Design reference (not code to copy): `.ai/prototypes/ds/` (README.md, `src/app/screens/shopper.tsx`, `src/app/cart.tsx`, `src/app/fixtures.ts`, `evidence/storefront-v2-results.json`). The prototype is simulated data; its product names, prices, stock and sales figures are not the seeded catalogue.
 - Design authority: `.ai/specs/product-brief.md` (R03, R07, D03, D07, N02), `.ai/specs/2026-10-13-commerceos-mvp.md` (§3, §5, §7, D08), `.ai/specs/implemented/2026-10-15-storefront-catalog.md`, `.ai/specs/implemented/2026-10-15-cart-and-demo-checkout.md`, `.ai/specs/implemented/2026-10-16-orders-dashboard-demo-store.md`, `.ai/specs/implemented/2026-10-18-ai-product-descriptions.md` (A12), `.ai/specs/implemented/2026-10-24-customer-accounts.md`, `ENGINEERING_STANDARDS.md`, `BACKWARD_COMPATIBILITY.md`, `SDLC.md`, `AGENTS.md`.
@@ -26,12 +26,12 @@ The owner accepted a storefront design in the prototype and has answered the ope
 | D4 | Home: hero with CTA, featured products (existing slider, unchanged, Q15), promo banners (no discounts), category tiles with counts and photos (empty categories omitted, Q12), "why buy here", best sellers from real paid orders (Q11) | Owner decision 4; Q11–Q15 | Phase 4 |
 | D5 | Product page: two columns from 1024 px, gallery (one image now, thumbnails from two, Q9), tabs Description / Technical data / Delivery and returns; one column below 1024 px | Owner decision 5; Q9, Q10 | Phase 3 |
 | D6 | Photos: wherever a photo is mapped (product cards, product page, category tiles). Unmapped items show the placeholder "No photo yet" (Q8). This supersedes the earlier recommendation to keep the SVG product images on the storefront | Owner answer Q8 | Phases 3 and 4. Section "Photo mapping" |
-| D7 | Delivery and returns: example text, labelled as an example on the storefront: "Example policy: delivery in 1–3 working days, 14-day returns. Shown for the demo store only." (Q7) | Owner answer Q7 | Phase 3 (Delivery tab) and Phase 4 ("Why buy here"). OA-5 |
+| D7 | Delivery and returns: example text, labelled as an example on the storefront: "Example policy: delivery in 1–3 working days, 14-day returns." (Q7) | Owner answer Q7 | Phase 3 (Delivery tab) and Phase 4 ("Why buy here"). OA-5 |
 | A-1 | The example delivery text is an **assumption (AS-01)**. It is shown only with its example label, never as the store's real policy | Owner answer Q7 | Section "Delivery and returns" |
-| A-2 | Hero, banner and "Low stock" copy is invented (AS-08). The owner approved it (Q13, Q14). Two claims in the banner copy name items the seed does not hold (OA-6) | Owner answers Q13, Q14 | Phase 4 |
+| A-2 | Hero, banner and "Low stock" copy is invented (AS-08). The owner approved it (Q13, Q14). The two banner lines name only catalogue items (OA-6, approved) | Owner answers Q13, Q14 | Phase 4 |
 | A-3 | Technical values are fictional (AS-10). The tab carries the note "Example values for the demo store." | Owner answer Q10; prototype fixtures | Phase 3 |
 | A-4 | "Best sellers" are real paid-order rankings from `GetTopProductsUseCase` over the last 30 days, not fixture numbers. The seeded orders are fictional, so the ranking is real data about fictional orders (OA-7) | Owner answer Q11 | Phase 4 |
-| A-5 | The AI description demo marker is moved from the `[DEMO] ` text to the `DEMO-` SKU. Whether AI drafts keep a visible prefix is the owner's decision (OA-3) | Owner answer Q1 (consequence) | Phase 1 |
+| A-5 | The AI description demo marker is moved from the `[DEMO] ` text to the `DEMO-` SKU. AI drafts get no visible prefix (OA-3, approved) | Owner answer Q1 (consequence) | Phase 1 |
 
 Protected rules: `R07` in `.ai/specs/product-brief.md` is "active" and changes only by "superseding row approved by product owner". Owner answer Q5 approves the narrowing. The exact new row is "R11" in section "Protected rule change". Until that row is written and approved, Phase 1 must not merge. `R03` (checkout never implies a real payment) stays in force: the payment note is the label, and the button names a test payment.
 
@@ -50,7 +50,7 @@ The current storefront (`packages/app/src/app/(storefront)/`) carries the demo f
 - Real company data of any kind in the footer.
 - New public URLs. The drawer is a layer over existing pages; `/cart` keeps its URL.
 - Storybook docs for the other prototype screens.
-- A backfill of technical data or photos for existing databases without the owner's decision (OA-4b, OA-4c). Phase 1's text update for existing rows (OA-4a) is part of the approved scope once the owner approves it.
+- A backfill of technical data or photos for existing databases without the owner's decision (OA-4b, OA-4c). Phase 1's text update for existing rows (OA-4a) is part of the approved scope (OA-4a, approved).
 
 ## 📝 Existing rules this changes (owner approval needed)
 
@@ -64,7 +64,7 @@ The current storefront (`packages/app/src/app/(storefront)/`) carries the demo f
 | C6 | Shipping reads "Shipping: free (demo store)" | Cart spec G5 (line 46); `packages/app/src/components/checkout/checkout-copy.ts` (`SHIPPING_FREE`) | "Shipping: free" (Q4) | 1 |
 | C7 | The product page is one image, a price and a description (no tabs, no gallery) | Storefront catalog spec "Product page" (line 192) | Photo or placeholder, gallery, two columns from 1024 px and tabs are added. The description stays plain text (no HTML) | 3 |
 | C8 | Admin shows "[DEMO]" in product and category descriptions and in customer names (demo marking, D08) | `.ai/specs/2026-10-13-commerceos-mvp.md` principle 6 and §3 (demo labelling); `.ai/specs/product-brief.md` R07 (scope "admin"); seeder header comment; `packages/database/src/seeders/demo-store.ts` (customer names, line 180) | The text marker is removed from admin-visible text (Q1 "remove in both places", OA-2). The DEMO- SKU and order references and the demo-data labels stay. This change needs the owner's explicit approval | 1 |
-| C9 | A product is demo content when its notes start with `[DEMO]`; drafts get the `[DEMO] ` prefix | `.ai/specs/implemented/2026-10-18-ai-product-descriptions.md` A12 (line 29), A4 step 3 and step 7; `packages/ai/src/descriptions/description-sources.ts` (`isDemoNotes`, `stripDemoMarker`), `draft-product-description.use-case.ts` (`DEMO_PREFIX`) | The discriminator becomes the `DEMO-` SKU (OA-3, required by Q1). Whether drafts keep the prefix is the owner's decision (OA-3). Eval fixtures and tests that use the text marker are updated | 1 |
+| C9 | A product is demo content when its notes start with `[DEMO]`; drafts get the `[DEMO] ` prefix | `.ai/specs/implemented/2026-10-18-ai-product-descriptions.md` A12 (line 29), A4 step 3 and step 7; `packages/ai/src/descriptions/description-sources.ts` (`isDemoNotes`, `stripDemoMarker`), `draft-product-description.use-case.ts` (`DEMO_PREFIX`) | The discriminator becomes the `DEMO-` SKU (OA-3, required by Q1). Drafts get no `[DEMO] ` prefix (OA-3, approved). Eval fixtures and tests that use the text marker are updated | 1 |
 
 Not changed: URLs, the cart cookie format, the order and payment flow, the stock writers, the seeder's insert-only rule, the admin's labels for demo orders (the `DEMO` badge on `DEMO-` orders) and the demo-data labels on the dashboard, traffic views and Copilot.
 
@@ -96,7 +96,7 @@ Packages: `packages/app` (all phases), `packages/database` (seed text, data-only
 - `packages/app/src/components/account/account-copy.ts` (sign-in note, Q4, OA-10).
 - `packages/database/src/seeders/DatabaseSeeder.ts`: category and product descriptions without the `[DEMO] ` prefix; header comment updated. `packages/database/src/seeders/demo-store.ts`: customer names without `[DEMO] `. Only new rows change (the seeder is insert-only), and the DEMO- orders are regenerated on each seed run.
 - New one-off data migration in `packages/database/src/migrations/` (data only, see "Data changes", OA-4a).
-- `packages/ai/src/descriptions/description-sources.ts`, `draft-product-description.use-case.ts` and the description eval fixtures under `packages/ai/src/evals/descriptions/`: the discriminator uses the `DEMO-` SKU; the draft prefix follows OA-3. The tests that name `[DEMO]` are updated with it.
+- `packages/ai/src/descriptions/description-sources.ts`, `draft-product-description.use-case.ts` and the description eval fixtures under `packages/ai/src/evals/descriptions/`: the discriminator uses the `DEMO-` SKU; the draft prefix is removed (OA-3). The tests that name `[DEMO]` are updated with it.
 - Tests: `storefront-shell.test.ts`, `checkout-components.test.ts`, `checkout-copy` assertions, `account-components.test.ts`, `DatabaseSeeder.test.ts` (which asserts the `[DEMO]` prefix today), `demo-store.test.ts`.
 - E2E assertions that name the old wording: `packages/app/e2e/home.e2e.test.ts`, `checkout.e2e.test.ts`, `purchase.e2e.test.ts`, `customer-isolation.e2e.test.ts`, `admin-orders.e2e.test.ts` (checks "free (demo store)" and the `[DEMO]` customer name), `admin-dashboard.e2e.test.ts` (checks "Confirm demo payment (no charge)"), `product.e2e.test.ts` (checks the `[DEMO]` description). Admin assertions for demo labels stay.
 - Protected-text update: `.ai/specs/product-brief.md` (R11 row, R07 status) in its own PR (OA-1). `BACKWARD_COMPATIBILITY.md` only if a URL or cookie changes (none expected).
@@ -198,7 +198,7 @@ Packages: `packages/app` (all phases), `packages/database` (seed text, data-only
 
 0. **Gate.** The R11 row is written into `product-brief.md` by its own PR and approved (OA-1). The AI discriminator decision (OA-3) and the admin approval (OA-2) are recorded. Without them the phase does not merge.
 1. **Storefront copy and footer.** Edit `storefront-copy.ts`, `site-footer.tsx`, `layout.tsx`; add `FICTIONAL_COMPANY`. Unit tests in `storefront-shell.test.ts`: no "demo store" text, the fictional block present, no address, tax or contact fields.
-2. **Seed text and AI discriminator.** Remove the `[DEMO] ` prefix from the seed definitions (`DatabaseSeeder.ts`, `demo-store.ts`). In `packages/ai`, `isDemoNotes` is replaced by a `DEMO-` SKU check passed from the use case; `stripDemoMarker` stays only if OA-3 keeps a draft prefix. Tests and eval fixtures move with it. A seeded demo product still gets its demo handling (test).
+2. **Seed text and AI discriminator.** Remove the `[DEMO] ` prefix from the seed definitions (`DatabaseSeeder.ts`, `demo-store.ts`). In `packages/ai`, `isDemoNotes` is replaced by a `DEMO-` SKU check passed from the use case; `stripDemoMarker` and `DEMO_PREFIX` are removed (OA-3). Tests and eval fixtures move with it. A seeded demo product still gets its demo handling (test).
 3. **One-off data migration (OA-4a).** Data-only, idempotent, scoped to the seeded demo rows (see "Data changes"). Integration test: an existing database with the old prefix after the migration has none; a non-demo row is unchanged; `stock_quantity` is unchanged.
 4. **Checkout and pay copy.** Payment note, button, shipping and paid-confirmation wording (Q3, Q4); the account note (OA-10). Component tests for the note and for "Test payment. No money is taken.". The note has role `note`, is visible and is not dismissible. Keep "no card fields" (R03) as a fact in the code and tests (no card input exists).
 5. **E2E and wording sweep.** Update the e2e assertions listed in "Affected packages". A grep step in the PR lists remaining "demo store", "demo payment" and "[DEMO]" strings. The storefront must have none; the admin may keep only the demo-data labels and the `DEMO-` markers.
@@ -210,7 +210,7 @@ Acceptance (Phase 1):
 - **A4:** no product, category or customer text shows "[DEMO]" on the storefront or in the admin, for new databases and (after OA-4a) for existing ones. The `DEMO-` SKUs, the `DEMO-` order references and the demo-data labels remain.
 - **A5:** the admin keeps its demo-data labels (dashboard, traffic views, Copilot) and the `DEMO` badge on `DEMO-` orders; its other e2e tests pass after the text assertions are updated.
 - **A6:** the R11 row exists in `product-brief.md` with the owner's approval recorded (OA-1).
-- **A7:** the AI description demo handling works on the `DEMO-` SKU, with the decision on the draft prefix applied (OA-3).
+- **A7:** the AI description demo handling works on the `DEMO-` SKU, with no draft prefix (OA-3).
 - **A8:** the register check for "CommerceOS Demo Shop" is recorded in the PR (OA-8).
 - **A9:** unit coverage 100%; e2e green; 320 px no sideways scroll on home, product, checkout and pay pages.
 
@@ -263,8 +263,8 @@ Depends on: Phase 3 (photo set), the second photo set (local branch `design/more
 
 Approved copy as shown in the owner-approved prototype (Q13, Q14):
 - Hero: "Gear for every desk and every match" / "Mice, keyboards, headsets and desk gear. Stock is shown on every product." / CTA "Shop all products" (to `/products`).
-- Banner "Build your setup": "Mats and cable trays for a tidy desk." / CTA "Browse desk gear" (to the mousepads category filter). Photo `banner-build-your-setup.jpg`. Claim check: OA-6.
-- Banner "Audio for calls": "Headsets and microphones for voice chat." / CTA "See audio" (to the headsets category filter). Photo `product-headset-black.jpg`. Claim check: OA-6.
+- Banner "Build your setup": "Mousepads for every desk setup." / CTA "Browse desk gear" (to the mousepads category filter). Photo `banner-build-your-setup.jpg`. Claim check: OA-6.
+- Banner "Audio for calls": "Gaming headsets for PC and consoles." / CTA "See audio" (to the headsets category filter). Photo `product-headset-black.jpg`. Claim check: OA-6.
 - Banner "Low stock" (only when `GetLowStockProducts` returns a published product at or below the threshold): title "Low stock", text "<product name>: <n> left" (template, OA-11b), CTA "View product" (to that product). No photo.
 
 Order of sections: hero, featured slider (unchanged), promo banners, category tiles, "Why buy here", best sellers. Empty states as in "Edge cases".
@@ -329,7 +329,7 @@ Acceptance (Phase 4):
 
 - **Protected-rule change (R07 → R11, C1–C9).** Mitigated by the superseding row (Q5, OA-1) and by listing every change here. The owner must approve the list knowingly.
 - **Admin text (C8).** Removing `[DEMO]` from admin-visible text reduces the labelling the brief asks for on admin pages (R07 scope "admin"). The demo-data labels on the dashboard, traffic views and Copilot and the `DEMO` badge on `DEMO-` orders remain. OA-2 is the owner's explicit approval of this part.
-- **AI descriptions.** The `[DEMO] ` prefix is the marker that the implemented AI feature uses (A12). Moving to the SKU marker is required by Q1; whether drafts keep a visible prefix is OA-3. A wrong choice would show a seeded demo product's draft as if it were a real product.
+- **AI descriptions.** The `[DEMO] ` prefix is the marker that the implemented AI feature uses (A12). Moving to the SKU marker is required by Q1; drafts get no visible prefix (OA-3, approved). A wrong choice would show a seeded demo product's draft as if it were a real product.
 - **Stock and money.** Not touched. The drawer, the product page and the home page only call existing actions and reads, and the one-off migrations never touch `stock_quantity`, prices or statuses.
 - **Visible fake data.** Demo data on the storefront becomes less labelled by design (owner decision). Mitigation: the payment note, the fictional footer block, the labelled technical values and the labelled delivery text; best sellers carry no label (OA-7). The risk is accepted only with the owner's approvals.
 - **Invented facts.** Delivery, returns, warranty, the banner claims (OA-6) and the sale ranking could look like real claims. Mitigation: Q7 (labelled example), Q11 (real paid-order ranking, names only), Q10 (labelled values), OA-6 (claim check).
@@ -411,7 +411,7 @@ Each question was answered by the owner on 2026-10-26. The answer is recorded un
 6. **Drawer behaviour (Phase 2).**
    **Answer (owner):** open the drawer after a successful "Add to cart"; the header link is a real link to `/cart` for users without JavaScript. Applied in D3 and Phase 2.
 7. **Delivery and returns (Phase 3 and 4).**
-   **Answer (owner):** show sample text, labelled as an example, with the owner's wording: "Example policy: delivery in 1–3 working days, 14-day returns. Shown for the demo store only." Shown on the Delivery tab and in "Why buy here". Option A (no text) is not used. The exact wording is approved in OA-5.
+   **Answer (owner):** show sample text, labelled as an example, with the owner's wording: "Example policy: delivery in 1–3 working days, 14-day returns." Shown on the Delivery tab and in "Why buy here". Option A (no text) is not used. The exact wording is approved in OA-5.
 8. **Photos (Phase 3 and 4).**
    **Answer (owner):** photos wherever possible ("wszędzie zdjęcia gdzie możliwe"): product cards, the product page gallery and each category tile. Unmapped items show "No photo yet". Mapping: seed `imageUrl` for products and a new `categories.image_url` for categories (Phase 4). This supersedes the earlier recommendation to keep SVG product images. The second photo set (local branch `design/more-storefront-photos`) is needed for the missing products and the category tiles. Licences: OA-9.
 9. **Gallery (Phase 3).**
@@ -423,9 +423,9 @@ Each question was answered by the owner on 2026-10-26. The answer is recorded un
 12. **Category tiles (Phase 4).**
    **Answer (owner):** count published products per category; empty categories are omitted.
 13. **Promo banner copy (Phase 4).**
-   **Answer (owner):** the copy is approved. Applied as written in "Proposed Solution" (Phase 4). The "Low stock" banner comes from `GetLowStockProducts` only. Two claims need a check (OA-6), and the "Low stock" text template and CTA are OA-11b.
+   **Answer (owner):** the copy is approved. Applied as written in "Proposed Solution" (Phase 4). The "Low stock" banner comes from `GetLowStockProducts` only. The two banner lines were replaced with catalogue-only copy (OA-6, approved); the "Low stock" template and CTA are approved (OA-11b).
 14. **Hero copy (Phase 4).**
-   **Answer (owner):** approved without "Everything here is demo data". Applied: "Gear for every desk and every match" / "Mice, keyboards, headsets and desk gear. Stock is shown on every product." / "Shop all products" (OA-6 for the claim check).
+   **Answer (owner):** approved without "Everything here is demo data". Applied: "Gear for every desk and every match" / "Mice, keyboards, headsets and desk gear. Stock is shown on every product." / "Shop all products" (OA-6, approved).
 15. **Featured section (Phase 4).**
    **Answer (owner):** keep the existing featured slider with category tabs, unchanged (storefront catalog G9–G11).
 16. **Admin scope.**
@@ -435,28 +435,28 @@ Each question was answered by the owner on 2026-10-26. The answer is recorded un
 
 ## 📝 Owner approvals needed
 
-The owner gave the answers above. The items below still need the owner's explicit approval, because they touch a protected rule or a decision that the owner did not state in those terms. They are listed in full so the owner can approve each one. Each item names the phase that waits for it.
+All items below were approved by the owner on 2026-10-26 with the recommended option (OA-3, OA-5 and OA-6 with the wording given here). Each item names the phase it gates. The R11 row is still written by a separate PR to the brief (Phase 1, step 1); this spec does not edit the brief.
 
-- **OA-1: R11 superseding R07 (Phase 1, gate).** Approve the exact R11 row in "Protected rule change", and R07's status change, to be written into `product-brief.md` by a separate PR. Also confirm that "Test payment" with the note "Test payment. No money is taken." satisfies R03's "clearly labelled demo" wording.
-- **OA-2: admin text without `[DEMO]` (Phase 1).** The owner's answer removes "[DEMO]" from admin-visible product and category descriptions and customer names. R07 applies to the admin, D08 requires fictional data to be labelled, and principle 6 asks for explicit limitations. The admin part therefore needs the owner's explicit approval. What stays: the `DEMO-` SKUs and order references, the `DEMO` badge on `DEMO-` orders, and the demo-data labels on the dashboard, traffic views and Copilot.
-- **OA-3: AI description demo marker (Phase 1, `packages/ai`).** The implemented AI descriptions feature (spec 2026-10-18, A12) uses `[DEMO] ` as the demo discriminator and prefixes drafts for demo products. Removing the text marker from the seed (Q1) requires the discriminator to move to the `DEMO-` SKU. The owner must also decide whether drafts for demo products keep a visible `[DEMO] ` prefix. Recommended: no prefix, consistent with OA-2. Keeping it contradicts Q1. `packages/ai` is outside the packages the original spec named, so this is a scope addition.
-- **OA-4: one-off data updates for existing databases (phases 1, 3, 4).** The seeder is insert-only, so existing rows keep their old values. Each update is data-only, idempotent and scoped to seeded demo rows; none touches `stock_quantity`, prices or statuses.
+- **OA-1 (approved 2026-10-26).** R11 supersedes R07 as written in "Protected rule change"; R07's status changes in the brief by a separate PR. "Test payment" with the note "Test payment. No money is taken." is the R03 label. Gates Phase 1.
+- **OA-2 (approved 2026-10-26).** Admin text loses "[DEMO]" in product and category descriptions and customer names. Kept: `DEMO-` SKUs and order references, the `DEMO` badge on `DEMO-` orders, and the demo-data labels on the dashboard, traffic views and Copilot. Gates Phase 1.
+- **OA-3 (approved 2026-10-26, recommended option).** The AI demo marker moves from the `[DEMO] ` text to the `DEMO-` SKU. Drafts for demo products get no visible prefix. `isDemoNotes`, `stripDemoMarker` and `DEMO_PREFIX` are removed in `packages/ai` in Phase 1, with the tests and eval fixtures. Gates Phase 1.
+- **OA-4 (approved 2026-10-26, a, b and c).** One-off data updates for existing databases (phases 1, 3, 4). The seeder is insert-only, so existing rows keep their old values. Each update is data-only, idempotent and scoped to seeded demo rows; none touches `stock_quantity`, prices or statuses.
   - **OA-4a (Phase 1):** remove the `[DEMO] ` prefix from demo product and category descriptions and from the DEMO- orders' customer names. Without it, existing installs show "[DEMO] " on the storefront.
   - **OA-4b (Phase 3):** set `imageUrl` to the `/photos/` path for mapped demo products, and fill `technical_specs` for the demo slugs (Q10 option C). Without it, existing installs show "No photo yet" and an empty technical tab.
   - **OA-4c (Phase 4):** set `categories.image_url` for mapped demo categories.
-- **OA-5: delivery and returns sample text (Phase 3 and 4).** The owner's exact text is "Example policy: delivery in 1–3 working days, 14-day returns. Shown for the demo store only.", shown on the Delivery tab and in "Why buy here". The owner approves the wording. The phrase "demo store" is the only storefront use of that phrase, and it comes from the owner's example text, not from the spec. It conflicts with the Q1 and Q4 removal of demo wording, and with principle 2 (real data beats unsupported claims), which the label mitigates.
-- **OA-6: copy claims in the approved banners and hero (Phase 4).** "Mats and cable trays for a tidy desk." and "Headsets and microphones for voice chat." name items the seed does not hold. The catalogue has mousepads and headsets, with detachable microphones only, and no cable trays or standalone microphones. The owner approved the copy, but principle 2 asks for claims the data supports. The owner confirms the copy as written, or gives a replacement.
-- **OA-7: best sellers on the storefront (Phase 4).** The best-sellers section shows names from fictional seeded orders, with no demo label (R11). It uses a 30-day window, so on a database whose seed is older than 30 days the section is omitted. The owner confirms that no label is wanted there.
-- **OA-8: footer name register check (Phase 1, pre-merge).** Search the Polish company register (KRS, ekrs.ms.gov.pl or rejestr.io) for "CommerceOS Demo Shop" and its main words, and record the result in the Phase 1 PR. This spec did not run the search (see "What could not be verified").
-- **OA-9: photo licences and credits (Phase 3 and 4).** Check the open items in `.ai/prototypes/ds/public/photos/CREDITS.md` (the owner's check of the small marks on the hero and the mouse at full size). The controller photo stays unused until its licence and author check are done. Check the second photo set (local branch `design/more-storefront-photos`) the same way before its files are merged.
-- **OA-10: sign-in note wording (Phase 1).** "Sign-in has no password reset and no email verification." replaces the demo sentence. The owner confirms the exact wording.
-- **OA-11: schema and banner template (Phase 4).** (a) The new nullable column `categories.image_url` (a Phase 4 migration, additive, with the `/photos/` check). (b) The "Low stock" banner text "<product name>: <n> left" and CTA "View product", the template for the approved banner. The owner confirms both.
+- **OA-5 (approved 2026-10-26, wording changed).** Sample delivery text: "Example policy: delivery in 1–3 working days, 14-day returns." It has no "demo store" wording and is labelled as an example on the Delivery tab and in "Why buy here". Gates Phases 3 and 4.
+- **OA-6 (approved 2026-10-26, banner lines replaced).** The two banner lines name only items in the catalogue: "Build your setup" reads "Mousepads for every desk setup." and "Audio for calls" reads "Gaming headsets for PC and consoles.". The hero copy is approved as written. Gates Phase 4.
+- **OA-7 (approved 2026-10-26).** Best sellers from paid orders in the last 30 days, names only, no demo label. A database whose seed is older than 30 days shows no best sellers. Gates Phase 4.
+- **OA-8 (approved 2026-10-26).** The footer name "CommerceOS Demo Shop" is approved. The register search is still a pre-merge step: search the Polish company register (KRS, ekrs.ms.gov.pl or rejestr.io) for the name and its main words, and record the result in the Phase 1 PR before merge. This spec did not run it (see "What could not be verified"). Gates Phase 1 merge.
+- **OA-9 (approved 2026-10-26).** The photo set and its use are approved. Before the photos are merged, the open items in `.ai/prototypes/ds/public/photos/CREDITS.md` and the licence and credit check of the second photo set (local branch `design/more-storefront-photos`) are recorded in the PR. The controller photo stays unused. Gates Phases 3 and 4.
+- **OA-10 (approved 2026-10-26).** Sign-in note: "Sign-in has no password reset and no email verification." Gates Phase 1.
+- **OA-11 (approved 2026-10-26).** (a) Nullable `categories.image_url` column (Phase 4 migration, additive, with the `/photos/` check). (b) "Low stock" banner text "<product name>: <n> left" and CTA "View product". Gates Phase 4.
 
 ## 📋 Review log
 
 - Spec written 2026-10-26 by an agent from the owner's five decisions and the repository state at commit `dd9902c`. Not yet reviewed by a second model or a human reviewer.
 - Updated 2026-10-26 with the owner's answers to Q1–Q17. Changes: Q1 (`[DEMO]` removed; OA-2, OA-3, OA-4a added), Q2 (name), Q3 and Q4 (button and copy), Q5 (R11 text), Q6 (confirmed), Q7 (example text, OA-5), Q8 (photo mapping; Phase 3 and 4 steps), Q9 and Q10 (confirmed; OA-4b), Q11 (OA-7), Q12 and Q13 and Q14 (copy; OA-6, OA-11), Q15 and Q16 and Q17 (confirmed). The `stripDemoPrefix` helper from the earlier draft is removed. The AI-description conflict (C9) was found while applying Q1 and is new.
-- Fresh-context review is required before Phase 1 starts (SDLC: risk-high needs a second person; the spec is design-only). The owner approvals OA-1 to OA-11 are the gate.
+- Fresh-context review is required before Phase 1 starts (SDLC: risk-high needs a second person; the spec is design-only). The owner approvals OA-1 to OA-11 were given on 2026-10-26; the R11 brief PR is still the first Phase 1 step.
 
 ## What could not be verified
 
