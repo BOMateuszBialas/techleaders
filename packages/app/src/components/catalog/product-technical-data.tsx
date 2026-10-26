@@ -17,10 +17,10 @@ export function ProductTechnicalData({ specs }: { specs: TechnicalSpec[] }) {
         {specs.map((spec) => (
           <div
             key={spec.label}
-            className="grid gap-1 border-b border-border py-2 sm:grid-cols-[12rem_minmax(0,1fr)] sm:gap-4"
+            className="flex flex-col gap-1 border-b border-border py-2 sm:flex-row sm:gap-4"
           >
-            <dt className="text-muted-foreground">{spec.label}</dt>
-            <dd className="break-words">{spec.value}</dd>
+            <dt className="text-muted-foreground sm:w-48 sm:shrink-0">{spec.label}</dt>
+            <dd className="min-w-0 break-words">{spec.value}</dd>
           </div>
         ))}
       </dl>
