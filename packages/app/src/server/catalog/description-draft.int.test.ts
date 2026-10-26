@@ -57,6 +57,9 @@ describe("DraftProductDescriptionUseCase (PostgreSQL, real container)", () => {
   let container: typeof ContainerModule;
 
   beforeAll(async () => {
+    // The container is shared by every integration file, and a file that renames demo orders
+    // leaves rows the re-seed cannot delete: start from an empty schema (orders_pkey collision).
+    await pool.query("drop schema public cascade; create schema public;");
     await cli("migrate.ts", "up");
     await cli("seed.ts");
     await clearBuckets();

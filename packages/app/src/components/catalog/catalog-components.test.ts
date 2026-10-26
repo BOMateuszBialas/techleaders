@@ -20,7 +20,7 @@ const product: CatalogProductSummary = {
   price: money(24900, "PLN"),
   category: { slug: "mice", name: "Mice" },
   availability: "in_stock",
-  imageUrl: "/demo/products/vortex-wireless-mouse.svg",
+  imageUrl: "/photos/product-mouse-black.jpg",
 };
 
 const categories = [
@@ -69,26 +69,26 @@ describe("AvailabilityBadge", () => {
 });
 
 describe("ProductImage", () => {
-  it("renders a local demo image with the product name as alt text", () => {
+  it("renders a mapped photo with the product name as alt text", () => {
     const html = renderToStaticMarkup(
       createElement(ProductImage, { imageUrl: product.imageUrl, name: product.name, size: 320 }),
     );
-    expect(html).toContain('src="/demo/products/vortex-wireless-mouse.svg"');
+    expect(html).toContain('src="/photos/product-mouse-black.jpg"');
     expect(html).toContain('alt="Vortex Wireless Mouse"');
+    expect(html).not.toContain("No photo yet");
   });
 
-  it("renders a remote image as a plain img without a referrer", () => {
-    const html = renderToStaticMarkup(
-      createElement(ProductImage, {
-        imageUrl: "https://cdn.example.com/vortex.png",
-        name: product.name,
-        size: 320,
-      }),
-    );
-    expect(html).toMatch(/^<img /);
-    expect(html).toContain('src="https://cdn.example.com/vortex.png"');
-    expect(html).toContain('referrerPolicy="no-referrer"');
-    expect(html).toContain('loading="lazy"');
+  it("shows the placeholder, never the demo SVG or a remote image", () => {
+    for (const imageUrl of [
+      "/demo/products/vortex-wireless-mouse.svg",
+      "https://cdn.example.com/vortex.png",
+    ]) {
+      const html = renderToStaticMarkup(
+        createElement(ProductImage, { imageUrl, name: product.name, size: 320 }),
+      );
+      expect(html).toContain(">No photo yet<");
+      expect(html).not.toContain(imageUrl);
+    }
   });
 
   it("shows a placeholder without an image", () => {

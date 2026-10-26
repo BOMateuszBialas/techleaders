@@ -73,7 +73,8 @@ describe("seedCatalog (insert-only, A18)", () => {
       status: "published",
       featured: true,
       currency: "PLN",
-      imageUrl: "/demo/products/vortex-wireless-mouse.svg",
+      imageUrl: "/photos/product-mouse-black.jpg",
+      technicalSpecs: expect.arrayContaining([expect.objectContaining({ label: "Weight" })]),
       description: expect.stringMatching(/^Wireless gaming mouse/),
     });
   });
@@ -96,8 +97,11 @@ describe("seedCatalog (insert-only, A18)", () => {
     ]);
     expect(DEMO_CATALOG.products.length).toBeGreaterThanOrEqual(15);
     expect(DEMO_CATALOG.products.some((product) => product.stockQuantity === 0)).toBe(true);
+    // Mapped products carry a /photos/ path; the rest keep their demo SVG (admin only).
     for (const product of DEMO_CATALOG.products)
-      expect(product.imageUrl).toBe(`/demo/products/${product.slug}.svg`);
+      expect(product.imageUrl).toMatch(/^\/(demo\/products\/.+\.svg|photos\/.+\.jpg)$/);
+    const mouse = DEMO_CATALOG.products.find((product) => product.slug === "vortex-wireless-mouse");
+    expect(mouse?.imageUrl).toBe("/photos/product-mouse-black.jpg");
   });
 
   it("features about six products across at least three categories (spec G9)", () => {

@@ -14,6 +14,7 @@ export * from "./domain/orders/order-access";
 export * from "./domain/orders/order-reference";
 export * from "./domain/orders/order-status";
 export * from "./domain/imports/csv";
+export * from "./domain/products/demo-sku";
 export * from "./domain/products/product";
 export * from "./domain/traffic/demo-traffic";
 export * from "./errors/app-error";
