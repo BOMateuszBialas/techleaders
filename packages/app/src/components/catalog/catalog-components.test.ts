@@ -95,9 +95,10 @@ describe("ProductImage", () => {
     const html = renderToStaticMarkup(
       createElement(ProductImage, { imageUrl: null, name: product.name, size: 320 }),
     );
-    expect(html).toContain('role="img"');
-    expect(html).toContain('aria-label="No image for Vortex Wireless Mouse"');
-    expect(html).toContain(">No image<");
+    // A text label, not an image: no role and no alt text (storefront v2 Q8).
+    expect(html).not.toContain('role="img"');
+    expect(html).not.toContain("<img");
+    expect(html).toContain(">No photo yet<");
   });
 });
 
