@@ -29,16 +29,19 @@ export const PUBLISHED_PRICE_MESSAGE =
 /** On the publish control: a draft priced at 0.00 cannot be published (#41). */
 export const PUBLISH_PRICE_MESSAGE = "Set a price above 0.00 PLN before publishing.";
 
-/** Seeded demo images are local files under `public/demo/` (storefront spec G6, G21). */
-const LOCAL_DEMO_IMAGE_PATTERN = /^\/demo\/[a-z0-9/-]+\.(?:svg|png|jpe?g|webp)$/;
+/**
+ * Seeded images are local files under `public/demo/` (SVG, storefront spec G6, G21) or under
+ * `public/photos/` (storefront v2 photo mapping). The admin must keep saving both.
+ */
+const LOCAL_SEED_IMAGE_PATTERN = /^\/(?:demo|photos)\/[a-z0-9/-]+\.(?:svg|png|jpe?g|webp)$/;
 
 /**
  * An image address the admin may store (spec A12, G6): an `https:` URL, or one of the seeded
- * local demo paths, so a seeded product can be saved without losing its picture.
+ * local paths, so a seeded product can be saved without losing its picture.
  * `javascript:`, `data:` and `http:` URLs are refused.
  */
 export function isAllowedImageUrl(value: string): boolean {
-  if (LOCAL_DEMO_IMAGE_PATTERN.test(value)) return true;
+  if (LOCAL_SEED_IMAGE_PATTERN.test(value)) return true;
   return URL.canParse(value) && new URL(value).protocol === "https:";
 }
 

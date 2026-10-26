@@ -68,7 +68,7 @@ describe("DatabaseCatalogRepository (PostgreSQL)", () => {
     expect(items[14]).toMatchObject({
       slug: "vortex-wireless-mouse",
       category: { slug: "mice", name: "Mice" },
-      imageUrl: "/demo/products/vortex-wireless-mouse.svg",
+      imageUrl: "/photos/product-mouse-black.jpg",
       priceMinor: 24900,
       currency: "PLN",
     });

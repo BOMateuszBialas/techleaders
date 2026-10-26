@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { cn } from "cn";
-import { isLocalDemoImage, NO_PHOTO_LABEL } from "./catalog-copy";
+import { NO_PHOTO_LABEL } from "./catalog-copy";
+import { photoSrc } from "./product-photo";
 
 type ProductImageProps = {
   imageUrl: string | null;
@@ -14,12 +15,13 @@ type ProductImageProps = {
 const FRAME = "aspect-square w-full rounded-md border bg-muted object-cover";
 
 /**
- * A product image. Local demo images use `next/image` (unoptimized, so no image config is
- * needed); any other URL uses a plain `<img>` that sends no referrer (spec G21). Without an
- * image, a neutral placeholder is shown.
+ * A product photo (storefront v2 photo rule, see `product-photo.ts`). Only a `/photos/` path is
+ * shown, through `next/image` (unoptimized, so no image config is needed). Anything else shows
+ * the neutral "No photo yet" text placeholder, never the demo SVG.
  */
 export function ProductImage({ imageUrl, name, size, className }: ProductImageProps) {
-  if (!imageUrl) {
+  const src = photoSrc(imageUrl);
+  if (!src) {
     return (
       <div
         className={cn(
@@ -32,29 +34,13 @@ export function ProductImage({ imageUrl, name, size, className }: ProductImagePr
       </div>
     );
   }
-  if (isLocalDemoImage(imageUrl)) {
-    return (
-      <Image
-        src={imageUrl}
-        alt={name}
-        width={size}
-        height={size}
-        unoptimized
-        className={cn(FRAME, className)}
-      />
-    );
-  }
   return (
-    // Remote product images must not go through next/image or need a next.config.ts
-    // change (spec G21); a plain <img> with no referrer is the agreed rendering.
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={imageUrl}
+    <Image
+      src={src}
       alt={name}
       width={size}
       height={size}
-      loading="lazy"
-      referrerPolicy="no-referrer"
+      unoptimized
       className={cn(FRAME, className)}
     />
   );

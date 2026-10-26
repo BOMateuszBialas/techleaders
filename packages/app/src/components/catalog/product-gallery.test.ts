@@ -103,11 +103,12 @@ describe("ProductGallery", () => {
   it("renders one image and no thumbnail row", () => {
     const html = renderToStaticMarkup(
       createElement(ProductGallery, {
-        imageUrls: ["/demo/products/vortex-wireless-mouse.svg"],
+        imageUrls: ["/photos/product-mouse-black.jpg"],
         name: "Vortex Wireless Mouse",
       }),
     );
     expect(html).toContain('alt="Vortex Wireless Mouse"');
+    expect(html).toContain('src="/photos/product-mouse-black.jpg"');
     expect(html).not.toContain('role="group"');
   });
 

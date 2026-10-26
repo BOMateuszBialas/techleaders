@@ -8,10 +8,11 @@ import { ProductGallery } from "@/components/catalog/product-gallery";
  * is a Server Component with a database read, so the stories render the same client component.
  */
 
-const SVG_IMAGES = [
-  "/demo/products/vortex-wireless-mouse.svg",
-  "/demo/products/nova-tkl-mechanical-keyboard.svg",
-  "/demo/products/arena-fight-stick.svg",
+// Photos under public/photos/ (the storefront photo rule shows only /photos/ paths).
+const PHOTO_IMAGES = [
+  "/photos/product-mouse-black.jpg",
+  "/photos/product-keyboard-rgb.jpg",
+  "/photos/product-headset-black.jpg",
 ];
 
 const galleryMeta = {
@@ -32,7 +33,7 @@ export default galleryMeta;
 type GalleryStory = StoryObj<typeof galleryMeta>;
 
 export const OneImage: GalleryStory = {
-  args: { imageUrls: [SVG_IMAGES[0] ?? ""] },
+  args: { imageUrls: [PHOTO_IMAGES[0] ?? ""] },
   play: async ({ canvas }) => {
     // One image: no thumbnail row (Q9).
     await expect(canvas.queryByRole("group", { name: "Product images" })).toBeNull();
@@ -41,7 +42,7 @@ export const OneImage: GalleryStory = {
 };
 
 export const ThreeImages: GalleryStory = {
-  args: { imageUrls: SVG_IMAGES },
+  args: { imageUrls: PHOTO_IMAGES },
   play: async ({ canvas, userEvent }) => {
     const row = canvas.getByRole("group", { name: "Product images" });
     const second = canvas.getByRole("button", { name: "Show image 2 of 3" });
