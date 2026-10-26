@@ -1,4 +1,8 @@
-import { DEMO_ORDER_REFERENCE_LIKE, type ProductStatus } from "@commerceos/core";
+import {
+  DEMO_ORDER_REFERENCE_LIKE,
+  type ProductStatus,
+  type TechnicalSpec,
+} from "@commerceos/core";
 import type { EntityManager } from "@mikro-orm/postgresql";
 import { Seeder } from "@mikro-orm/seeder";
 import { CategorySchema } from "../entities/categories/category.entity";
@@ -39,8 +43,13 @@ type SeedProduct = {
   featured?: boolean;
   /** Shopper-facing text, stored as given (no "[DEMO]" prefix). Defaults to a generic line. */
   description?: string;
-  /** A local path under `packages/app/public`, e.g. `/demo/products/<slug>.svg`. */
+  /**
+   * A local path under `packages/app/public`. Only `/photos/` paths are shown on the storefront
+   * (storefront v2 photo rule); other paths are kept for the admin.
+   */
   imageUrl?: string;
+  /** Fictional technical rows (storefront v2 Q10). Set for created products only. */
+  technicalSpecs?: readonly TechnicalSpec[];
 };
 export type SeedCatalog = { categories: readonly SeedCategory[]; products: readonly SeedProduct[] };
 
@@ -60,6 +69,18 @@ const demoCategories = [
   { slug: "mousepads", name: "Mousepads", description: "Cloth, speed and glass mousepads." },
 ] as const;
 
+/**
+ * Fictional technical rows of the Vortex mouse (storefront v2 Q10, AS-10). The same rows are
+ * written by the one-off update `Migration20261026180000_demo_product_media` for existing rows.
+ */
+const DEMO_MOUSE_TECHNICAL_SPECS: readonly TechnicalSpec[] = [
+  { label: "Switch type", value: "Optical-mechanical (fictional)" },
+  { label: "Connection", value: "2.4 GHz wireless and USB-C (fictional)" },
+  { label: "Weight", value: "65 g (fictional)" },
+  { label: "Dimensions", value: "118 × 62 × 38 mm (fictional)" },
+  { label: "Warranty", value: "24 months (fictional, AS-10)" },
+];
+
 const demoProducts = [
   {
     slug: "vortex-wireless-mouse",
@@ -71,7 +92,8 @@ const demoProducts = [
     description:
       "Wireless gaming mouse with a 26,000 DPI optical sensor, 70 hours of battery life and five programmable buttons.",
     featured: true,
-    imageUrl: "/demo/products/vortex-wireless-mouse.svg",
+    imageUrl: "/photos/product-mouse-black.jpg",
+    technicalSpecs: DEMO_MOUSE_TECHNICAL_SPECS,
   },
   {
     slug: "pulse-ultralight-mouse",
@@ -106,7 +128,7 @@ const demoProducts = [
     description:
       "Tenkeyless mechanical keyboard with hot-swappable linear switches, PBT keycaps and per-key RGB lighting.",
     featured: true,
-    imageUrl: "/demo/products/nova-tkl-mechanical-keyboard.svg",
+    imageUrl: "/photos/product-keyboard-rgb.jpg",
   },
   {
     slug: "strike-60-keyboard",
@@ -140,7 +162,7 @@ const demoProducts = [
     description:
       "Wired headset with virtual 7.1 surround sound, 50 mm drivers and a detachable noise-cancelling microphone.",
     featured: true,
-    imageUrl: "/demo/products/echo-surround-headset.svg",
+    imageUrl: "/photos/product-headset-black.jpg",
   },
   {
     slug: "drift-wireless-headset",
@@ -264,7 +286,7 @@ export async function seedCatalog(
 
   const skipped: string[] = [];
   const rows = catalog.products.flatMap(
-    ({ category, status, featured, imageUrl, description, ...product }) => {
+    ({ category, status, featured, imageUrl, description, technicalSpecs, ...product }) => {
       const categoryId = categoryIds.get(category);
       if (!categoryId) {
         skipped.push(product.slug);
@@ -279,6 +301,7 @@ export async function seedCatalog(
           status: status ?? ("published" as const),
           featured: featured ?? false,
           imageUrl: imageUrl ?? null,
+          technicalSpecs: technicalSpecs ? [...technicalSpecs] : [],
           category: categoryId,
         },
       ];
