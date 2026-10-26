@@ -1,0 +1,3 @@
+# 2026-10-19 — Gemini 3 Flash thinking eats the output-token cap and the timeout on short texts
+
+A product-description draft (60 output tokens) at the adapter's `LOW` thinking level spent 1 440 thinking tokens and stopped at a 1 500 `maxOutputTokens` cap (`finish_max_tokens`: thinking counts as output), and with a 4 000 cap it thought 4 564 tokens for 20 s, past a 15 s attempt timeout. `ThinkingLevel.MINIMAL` gave the same grounded draft in 1.4 s. Short, fully specified generations pass `effort: "minimal"` on `StructuredGenerationRequest`; measure one uncapped call (latency and `usageThinking`) before tuning timeouts. Also: the root `.env` may hold `LLM_API_KEY` without `LLM_PROVIDER`/`LLM_MODEL`, so a smoke script must not assume the model name is set.

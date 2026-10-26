@@ -1,0 +1,3 @@
+# 2026-10-26 — Browser walk without the provider: drive an installed Chrome over CDP, and start Chrome from the shell
+
+When the configured browser provider is not installed and the Chrome extension is not connected, a headless Chrome (`--headless=new --remote-debugging-port`) driven by Node 24's built-in `WebSocket` runs a scripted walk with no new packages. Spawning Chrome from a Node script on Windows gave no DevTools port; start it from the shell instead. Report such a walk as a substitute, not as the provider's verification. A scratch profile folder can be left behind when a recursive delete is blocked by the hook; ask the user to remove it.

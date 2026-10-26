@@ -116,6 +116,46 @@ describe("database (PostgreSQL)", () => {
     await expect(em.flush()).rejects.toThrow(/price_minor_check/);
   });
 
+  it("defaults a product's technical specs to an empty array (storefront v2 Phase 3, Q10)", async () => {
+    const [inserted] = await orm.em
+      .fork()
+      .execute<{ technical_specs: unknown }[]>(
+        `insert into products (name, slug, price_minor) values ('No specs', 'no-technical-specs', 100) returning technical_specs`,
+      );
+    expect(inserted?.technical_specs).toEqual([]);
+  });
+
+  it("stores technical specs as a jsonb array of label and value rows", async () => {
+    const rows = [{ label: "Sensor", value: "Optical" }];
+    const [inserted] = await orm.em
+      .fork()
+      .execute<{ technical_specs: unknown }[]>(
+        `insert into products (name, slug, price_minor, technical_specs) values ('Specs', 'with-technical-specs', 100, ?::jsonb) returning technical_specs`,
+        [JSON.stringify(rows)],
+      );
+    expect(inserted?.technical_specs).toEqual(rows);
+  });
+
+  it("rejects technical specs that are not a json array", async () => {
+    const em = orm.em.fork();
+    await expect(
+      em.execute(
+        `insert into products (name, slug, price_minor, technical_specs) values ('Bad', 'bad-technical-specs', 100, ?::jsonb)`,
+        [JSON.stringify({ label: "Sensor", value: "Optical" })],
+      ),
+    ).rejects.toThrow(/products_technical_specs_check/);
+  });
+
+  it("rejects a null for technical specs (the column is not nullable)", async () => {
+    await expect(
+      orm.em
+        .fork()
+        .execute(
+          `insert into products (name, slug, price_minor, technical_specs) values ('Null', 'null-technical-specs', 100, null)`,
+        ),
+    ).rejects.toThrow(/technical_specs/);
+  });
+
   it("creates the admin auth tables with the owner-only role check", async () => {
     const em = orm.em.fork();
     const [user] = await em.execute<{ id: string; role: string }[]>(

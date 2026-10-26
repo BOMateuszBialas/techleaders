@@ -1,0 +1,3 @@
+# 2026-10-16 — MikroORM driver exceptions carry the failed SQL with its parameters
+
+A `DriverException` message (and the pg `detail`) inlines the query values, so logging an unexpected order-insert error would have written the customer's name, email, address and the order reference to the log. Adapters that write personal data or secrets throw `sanitizeDatabaseError(operation, error)` instead (`packages/database/src/adapters/sanitize-database-error.ts`: operation, class, SQLSTATE, constraint only); application errors pass through. Do the same for any new adapter whose parameters are sensitive.

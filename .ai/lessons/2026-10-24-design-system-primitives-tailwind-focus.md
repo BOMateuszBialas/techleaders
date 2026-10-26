@@ -1,0 +1,7 @@
+# 2026-10-24 — Design system primitives: Tailwind v4 focus outline, Base UI disabled, Storybook test viewport and docs ids
+
+- In Tailwind v4 `outline-none` sets `--tw-outline-style: none`, and `outline-2` reuses that variable, so `outline-none focus-visible:outline-2` draws nothing. Add `focus-visible:outline-solid` (a story asserts the computed `outlineStyle`).
+- Base UI `Button` with `focusableWhenDisabled` sets `aria-disabled` and `data-disabled` but no `disabled` attribute, so `disabled:` utilities never apply. Style disabled buttons with `data-disabled:` (it is set in both cases).
+- The Vitest browser mode viewport defaults to 414 × 896, which is below the `48rem` phone breakpoint: every control token resolves to 44 px. `vitest.storybook.config.mts` sets 1280 × 800 so density stories measure the desktop heights; a story can set `globals: { density: "admin" }` to test the admin scope.
+- A docs page from `Button.mdx` with `<Meta of={…} />` gets the id `primitives-button--button`, not `…--docs`. The first `test:storybook` run after adding new imports can fail every story with "Failed to fetch dynamically imported module" while Vite optimizes dependencies; rerun before debugging.
+- Frozen hover and focus previews: `.storybook/preview.css` imports `globals.css` and redefines the `hover`, `focus-visible` and `active` variants to also match `[data-preview-state~=…]`, so the state matrix shows the exact component declarations without touching app CSS.

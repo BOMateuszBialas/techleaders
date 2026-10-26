@@ -1,0 +1,6 @@
+# 2026-10-25 — Base UI overlays: the page under a modal is hidden, portals miss a div-scoped density, a link trigger gets `role="button"` on the server
+
+- While a Base UI modal dialog is open, everything outside it is inert and `aria-hidden`, so a `role="status"` message rendered on the page is not found by `getByRole` (and not announced). Close the dialog on success (controlled `open`, or the redirect/refresh of the server action) before reporting on the page.
+- Overlays portal into `<body>`, outside a `div[data-density]`. `:root:has([data-density="admin"])` gives the whole admin document the scale, but it outranks a later `:root` rule, so every `@media` override block must list it again.
+- A `NavigationMenu.Trigger` rendered as `<a href>` (`nativeButton={false}`) gets `role="button"` and `aria-expanded` already in the server HTML, which lies to no-JS users. Strip them in a `render` function until hydration (`useSyncExternalStore` with a `false` server snapshot) and pin it with a `renderToStaticMarkup` unit test.
+- Scale-in animations change `getBoundingClientRect()` for ~300 ms; measure control heights with `offsetHeight`. `transition-[opacity,scale]` is an arbitrary value for `check:tokens`; plain `transition` already covers opacity, translate and scale.

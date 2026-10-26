@@ -13,7 +13,7 @@
     "build": "npm run build -w @commerceos/app",
     "start": "npm run start -w @commerceos/app",
     "lint": "eslint .",
-    "typecheck": "npm run typecheck --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present && tsc -p scripts/tsconfig.json",
     "test": "vitest run --project unit",
     "test:watch": "vitest --project unit",
     "test:coverage": "vitest run --project unit --coverage",
@@ -34,7 +34,8 @@
     "test:storybook": "npm run test:storybook -w @commerceos/app",
     "test:storybook:dark": "npm run test:storybook:dark -w @commerceos/app",
     "test:storybook:themes": "npm run test:storybook:themes -w @commerceos/app",
-    "check:tokens": "npm run check:tokens -w @commerceos/app"
+    "check:tokens": "npm run check:tokens -w @commerceos/app",
+    "check:agents": "tsx scripts/check-agents.ts"
   },
   "devDependencies": {
     "@testcontainers/postgresql": "^12.2.1",

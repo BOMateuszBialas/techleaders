@@ -7,7 +7,10 @@ import { formatMoney } from "@commerceos/core";
 import { AddToCart } from "@/components/cart/add-to-cart";
 import { AvailabilityBadge } from "@/components/catalog/availability-badge";
 import { CATALOG_UNAVAILABLE_MESSAGE, productsHref } from "@/components/catalog/catalog-copy";
-import { ProductImage } from "@/components/catalog/product-image";
+import { galleryImageUrls } from "@/components/catalog/product-gallery-state";
+import { ProductGallery } from "@/components/catalog/product-gallery";
+import { leadSentence } from "@/components/catalog/product-page-copy";
+import { ProductTabs } from "@/components/catalog/product-tabs";
 import { addToCart } from "@/server/cart/cart.action";
 import { loadProductPage, productPageTitle } from "./load-product-page";
 
@@ -44,13 +47,20 @@ async function ProductDetails({ params }: { params: ProductPageProps["params"] }
   }
 
   const product = result.data;
+  // Two columns from 1024 px (Tailwind `lg`); below it one column, the gallery first (DOM order).
   return (
-    <article className="grid gap-8 md:grid-cols-2">
-      <ProductImage imageUrl={product.imageUrl} name={product.name} size={480} />
-      <div className="flex flex-col gap-4">
-        <h1 className="text-3xl font-semibold tracking-tight">{product.name}</h1>
-        <p className="text-2xl font-semibold">{formatMoney(product.price)}</p>
-        <AvailabilityBadge availability={product.availability} />
+    <article className="grid gap-8 lg:grid-cols-2 lg:items-start">
+      <ProductGallery imageUrls={galleryImageUrls(product.imageUrl)} name={product.name} />
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-3">
+          <h1 className="text-3xl font-semibold tracking-tight">{product.name}</h1>
+          <p className="max-w-measure text-muted-foreground">{leadSentence(product.description)}</p>
+          {/* The price is the foreground colour: the action colour is for the buttons only. */}
+          <p className="text-2xl font-semibold">{formatMoney(product.price)}</p>
+          <div>
+            <AvailabilityBadge availability={product.availability} />
+          </div>
+        </div>
         <AddToCart
           action={addToCart}
           productId={product.id}
@@ -68,8 +78,7 @@ async function ProductDetails({ params }: { params: ProductPageProps["params"] }
             </Link>
           </p>
         ) : null}
-        {/* Plain text: React escapes it, and model or merchant content is never rendered as HTML. */}
-        <p className="whitespace-pre-line">{product.description}</p>
+        <ProductTabs description={product.description} technicalSpecs={product.technicalSpecs} />
         <Link href="/products" className="w-fit text-sm underline underline-offset-4">
           Back to all products
         </Link>
@@ -80,7 +89,7 @@ async function ProductDetails({ params }: { params: ProductPageProps["params"] }
 
 function DetailSkeleton() {
   return (
-    <div aria-label="Loading product" className="grid gap-8 md:grid-cols-2">
+    <div aria-label="Loading product" className="grid gap-8 lg:grid-cols-2">
       <div className="aspect-square animate-pulse rounded-md border bg-muted" />
       <div className="flex flex-col gap-4">
         <div className="h-9 w-2/3 animate-pulse rounded bg-muted" />

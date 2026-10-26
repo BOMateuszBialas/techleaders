@@ -4,9 +4,7 @@
 
 This file documents how work flows from ticket to merged PR in this repository. The agent skills configured in `.ai/agentic.config.json` enforce the process; humans read it here. PRs target `main`; issues and PRs live in GitHub, with every tracker operation the skills run defined in `.ai/trackers/github.md` (edit that file to extend or override tracker behavior).
 
-Work enters through two paths: a free-form task brief handed to an agent, or a filed ticket. Both converge on the same review loop, the same validation gate, and the same merge gates.
-
-Before intake, the work is shaped: `om-brainstorm` turns a single idea or question into a routing decision and a brief, and the spec skills (`om-spec-writing`, `om-auto-write-spec`) turn a feature into a design document before anything is built. Those steps feed the table below; they are not the ticket flow itself.
+Work enters as a free-form task brief handed to an agent, or as a filed ticket. Both use the same review loop, validation gate and merge gates. Shaping skills (`om-brainstorm`, `om-spec-writing`, `om-auto-write-spec`) run before intake.
 
 <!-- discovery:start -->
 Before any of that, `om-discover` establishes the product context every later decision reads: `.ai/specs/product-brief.md` — who the users are, what hurts, what the product is not, which rules and decisions bind the work. The Definition of Ready below is the contract between that context and Intake.
@@ -37,7 +35,7 @@ Before any of that, `om-discover` establishes the product context every later de
 | Merge | `om-merge-buddy` reports, read-only, which PRs can merge now and which are close but blocked. `om-approve-merge-pr` re-checks every gate, approves, and squash-merges. | `om-merge-buddy` + `om-approve-merge-pr`, or a human | PR squash-merged into `main` |
 | Post-merge housekeeping | Close issues the merged PR fixes; comment on issues whose PRs were closed without merging; turn leftover asks or review comments into tracked follow-up issues. | `om-close-fixed-issues`, `om-followup-issue-from-pr` | Tracker reconciled, follow-ups filed |
 
-After merge, this process stops. Deployment, smoke tests, monitoring, and rollback belong to the repository's release process, not to this document: the Maintainer — or a release manager, when the team names one — drafts the changelog with `om-auto-update-changelog` and reconciles the tracker with `om-close-fixed-issues`, and `om-pipeline-retro` reads finished runs to rank what second passes cost. Merge is where this document ends; delivering the change to users is a separate process the team owns.
+After merge, this process stops. Deployment, smoke tests, monitoring and rollback belong to the release process: the Maintainer, or a release manager when the team names one, drafts the changelog with `om-auto-update-changelog` and reconciles the tracker with `om-close-fixed-issues`. `om-pipeline-retro` reads finished runs to rank what second passes cost.
 
 <!-- discovery:start -->
 ## Definition of Ready
@@ -161,6 +159,7 @@ Every PR passes the full validation gate before review sign-off, in this order:
 - `npm run lint`
 - `npm run format:check`
 - `npm run check:tokens` (design tokens: no palette or arbitrary values outside `globals.css`)
+- `npm run check:agents` (agent instructions: root `AGENTS.md` size budget, referenced paths, `CLAUDE.md` content, `.ai/lessons.md` line budget)
 - `npm run test:hooks` (dry-run tests of the agent PreToolUse hook in `.claude/hooks/`)
 - `npm run typecheck`
 - `npm run test:coverage` (unit tests; fails below 100% coverage)
@@ -170,7 +169,7 @@ Every PR passes the full validation gate before review sign-off, in this order:
 
 The same checks run as separate jobs in `.github/workflows/ci.yml` on every pull request.
 
-Any non-zero exit fails the gate and blocks the PR. The implementing skills run the gate before opening a PR, and `om-check-and-commit` runs it before pushing a hand-worked branch. The command list lives in `.ai/agentic.config.json`; when it changes, update it there and in this section together.
+Any non-zero exit fails the gate and blocks the PR. The implementing skills run the gate before opening a PR, and `om-check-and-commit` runs it before pushing a hand-worked branch. The command list lives in `.ai/agentic.config.json`; change it there and in this section together (see Amending).
 
 ## Amending this process
 
