@@ -1,0 +1,1204 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>CommerceOS key flow: discovery prototype (gray)</title>
+<style>
+  :root { --fg:#1a1a1a; --muted:#555; --line:#9a9a9a; --soft:#eeeeee; --bg:#ffffff; --focus:#0055cc; }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; font-size: 16px; color: var(--fg); background: var(--bg); }
+  body { margin: 0; line-height: 1.45; }
+  a { color: var(--fg); }
+  :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .skip { position: absolute; left: 8px; top: -48px; background: #fff; border: 1px solid var(--line); padding: 6px 10px; cursor: pointer; font: inherit; }
+  .skip:focus { top: 8px; }
+
+  .review { border-bottom: 2px dashed var(--line); padding: 12px 16px; background: #f6f6f6; font-size: 14px; }
+  .review h2 { font-size: 15px; margin: 0 0 6px; }
+  .review .controls { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: flex-end; }
+  .review fieldset { border: 1px solid var(--line); padding: 4px 8px; margin: 0; }
+  .review legend { font-size: 12px; color: var(--muted); padding: 0 4px; }
+  .review label { display: inline-flex; flex-direction: column; font-size: 12px; color: var(--muted); gap: 2px; }
+  .review label.inline { flex-direction: row; align-items: center; gap: 4px; color: var(--fg); font-size: 14px; }
+  .review select, .review button { font: inherit; font-size: 14px; }
+  .review details { margin-top: 8px; }
+
+  header.site { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+  header.site nav ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: center; }
+  header.site nav a[aria-current="page"] { font-weight: 700; text-decoration: underline; }
+  .brand { font-weight: 700; text-decoration: none; }
+  .admin-nav { border: 1px dashed var(--line); padding: 4px 8px; }
+  footer.site { border-top: 1px solid var(--line); padding: 12px 16px; font-size: 14px; color: var(--muted); }
+
+  main { padding: 12px 16px 48px; max-width: 960px; margin: 0 auto; }
+  .screen { padding-top: 8px; }
+  .screen h1 { font-size: 1.5rem; margin: 8px 0 12px; outline: none; }
+  .screen h2 { font-size: 1.1rem; margin: 18px 0 8px; }
+  .screen h3 { font-size: 1rem; margin: 0 0 4px; }
+  .note { color: var(--muted); font-size: 14px; }
+  .demo-banner { border: 2px dashed var(--fg); padding: 8px 10px; margin: 8px 0; }
+  .flash { border: 1px solid var(--fg); padding: 8px 10px; margin: 8px 0; background: var(--soft); }
+  .flash.error { border-style: dashed; }
+  .block { border: 1px solid var(--line); padding: 12px; margin: 8px 0; }
+  .block.error { border: 2px solid var(--fg); }
+  .empty { border: 1px dashed var(--line); padding: 16px; }
+  .btn { font: inherit; font-size: 15px; padding: 8px 12px; border: 1px solid var(--fg); background: #fff; color: var(--fg); cursor: pointer; border-radius: 2px; min-height: 40px; }
+  .btn.primary { background: var(--fg); color: #fff; }
+  .btn:disabled { color: #777; border-color: #aaa; cursor: not-allowed; background: #f3f3f3; }
+  .btn.small { min-height: 32px; padding: 4px 8px; font-size: 14px; }
+  .link-btn { background: none; border: 0; padding: 0; font: inherit; text-decoration: underline; cursor: pointer; color: var(--fg); }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  ul.plain, ol.plain { list-style: none; padding: 0; margin: 0; }
+  ul.items > li, ol.items > li { border-bottom: 1px solid var(--soft); padding: 10px 0; }
+  .badge { display: inline-block; border: 1px solid var(--fg); padding: 0 6px; font-size: 13px; margin-right: 4px; }
+  .badge.demo { border-style: dashed; }
+  .field { display: flex; flex-direction: column; gap: 4px; margin: 10px 0; max-width: 420px; }
+  .field input, .field textarea { font: inherit; font-size: 16px; padding: 8px; border: 1px solid var(--fg); min-height: 40px; max-width: 100%; }
+  .field-error { font-weight: 700; font-size: 14px; margin: 0; }
+  .field-error::before { content: "Error: "; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { border: 1px solid var(--line); padding: 6px 8px; text-align: left; vertical-align: top; }
+  .table-wrap { overflow-x: auto; }
+  .card { border: 1px solid var(--fg); padding: 12px; margin: 10px 0; }
+  .tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+  .hero { border: 1px solid var(--line); padding: 16px; background: var(--soft); }
+  .metric-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 10px; }
+  .metric { border: 1px solid var(--line); padding: 10px; }
+  .metric .value { font-size: 1.25rem; font-weight: 700; }
+
+  /* Layout variants (s01, s18): differences in order and grouping only */
+  .layout { display: flex; flex-direction: column; gap: 12px; }
+  [data-lay="s01"][data-layout="b"] .hero { display: none; }
+  [data-lay="s01"][data-layout="b"] .tabs { order: -1; }
+  [data-lay="s01"][data-layout="c"] .featured-list { display: grid; grid-template-columns: 1fr; gap: 4px; }
+  [data-lay="s18"] .summary { display: none; }
+  [data-lay="s18"][data-layout="b"] .summary { display: block; order: -1; }
+  [data-lay="s18"][data-layout="c"] .banner-wrap { order: 2; }
+  [data-lay="s18"][data-layout="c"] .cards { order: 1; }
+
+  /* Loading (Skeleton pattern, Q6) and database-error states */
+  .skeleton { display: none; }
+  .is-loading > .content { display: none; }
+  .is-loading > .skeleton { display: block; }
+  .skeleton .bar { background: #dcdcdc; height: 14px; margin: 10px 0; }
+  .skeleton .bar.wide { width: 80%; }
+  .skeleton .bar.short { width: 40%; }
+  .db-error { display: none; }
+  .is-db-error > .content, .is-db-error > .skeleton { display: none !important; }
+  .is-db-error > .db-error { display: block; }
+
+  /* 320 px is the width contract (Q7); tables scroll inside their box, never the page */
+  @media (max-width: 420px) {
+    .review .controls { flex-direction: column; align-items: stretch; }
+    header.site { flex-direction: column; align-items: flex-start; }
+    .metric-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<button class="skip" type="button" data-act="skip">Skip to content</button>
+
+<section class="review" aria-label="Prototype review controls (not product UI)">
+  <h2>Discovery prototype. Simulated data.</h2>
+  <p class="note" style="margin:0 0 8px">Fictitious products, accounts, orders and numbers. Nothing is stored or sent. These controls set the account and the states; Reset restores the start.</p>
+  <div class="controls">
+    <fieldset>
+      <legend>Account</legend>
+      <div class="row">
+        <label class="inline"><input type="radio" name="acct" value="guest" data-ctl="acct"> Guest</label>
+        <label class="inline"><input type="radio" name="acct" value="A" data-ctl="acct"> Customer A</label>
+        <label class="inline"><input type="radio" name="acct" value="B" data-ctl="acct"> Customer B</label>
+        <label class="inline"><input type="radio" name="acct" value="owner" data-ctl="acct"> Owner</label>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>Layout s01 (home)</legend>
+      <div class="row">
+        <label class="inline"><input type="radio" name="v01" value="a" data-ctl="v01"> A</label>
+        <label class="inline"><input type="radio" name="v01" value="b" data-ctl="v01"> B</label>
+        <label class="inline"><input type="radio" name="v01" value="c" data-ctl="v01"> C</label>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>Layout s18 (Copilot answer)</legend>
+      <div class="row">
+        <label class="inline"><input type="radio" name="v18" value="a" data-ctl="v18"> A</label>
+        <label class="inline"><input type="radio" name="v18" value="b" data-ctl="v18"> B</label>
+        <label class="inline"><input type="radio" name="v18" value="c" data-ctl="v18"> C</label>
+      </div>
+    </fieldset>
+    <label>Catalog data
+      <select data-ctl="store"><option value="full">Full demo catalog</option><option value="empty">Empty store</option></select>
+    </label>
+    <label>Next checkout request (one time)
+      <select data-ctl="checkout">
+        <option value="ok">OK</option><option value="price">Prices changed</option><option value="sold">Last unit sold out</option><option value="cart">Cart changed in another tab</option><option value="session">Session read failed (A24)</option><option value="general">General error</option>
+      </select>
+    </label>
+    <label>Demo payment of the placed order
+      <select data-ctl="payment"><option value="confirm">Awaiting payment</option><option value="cancelled">Cancelled by owner meanwhile</option><option value="paid">Already paid (other tab)</option></select>
+    </label>
+    <label>Order view (s12)
+      <select data-ctl="ref"><option value="own">Own order</option><option value="foreign">Another customer's order</option><option value="random">Random id</option><option value="malformed">Malformed id</option></select>
+    </label>
+    <label>Dashboard data (s14)
+      <select data-ctl="dash"><option value="data">Data</option><option value="notenough">Not enough data</option><option value="empty">No orders yet</option><option value="error">Dashboard error</option></select>
+    </label>
+    <label>Copilot source (s18)
+      <select data-ctl="csrc"><option value="ai">AI-generated</option><option value="notconfigured">AI not configured</option><option value="timeout">AI timed out</option><option value="limit">Daily AI limit</option><option value="checks">Failed our checks</option></select>
+    </label>
+    <label>Copilot response kind (s17, s18)
+      <select data-ctl="ckind"><option value="answer">Answer</option><option value="refusal">Refusal (margin)</option><option value="outlist">Question outside the list</option><option value="empty">Empty store</option><option value="error">500 error</option></select>
+    </label>
+    <label>Limits
+      <select data-ctl="limit"><option value="none">None</option><option value="lookup">Order lookup limit</option><option value="login">Sign-in attempt limit</option><option value="copilot429">Copilot 429 (too many questions)</option></select>
+    </label>
+    <label>Sign-in result
+      <select data-ctl="login"><option value="ok">Correct details</option><option value="wrong">Wrong password</option><option value="down">Sign-in unavailable</option></select>
+    </label>
+    <label>Error state
+      <select data-ctl="err"><option value="none">None</option><option value="catalog">Catalog error (s01, s02)</option><option value="cart">Cart error (s04)</option><option value="db">Database unavailable (all screens)</option></select>
+    </label>
+    <fieldset>
+      <legend>Conflicts and other</legend>
+      <label class="inline"><input type="checkbox" data-ctl="stale"> Next admin action: payment arrived first (pending order)</label>
+      <label class="inline"><input type="checkbox" data-ctl="recConflict"> Next recommendation action: changed in another tab</label>
+      <label class="inline"><input type="checkbox" data-ctl="withdraw"> Withdraw Glide XL Mousepad from the catalog</label>
+      <label class="inline"><input type="checkbox" data-ctl="simload"> Show loading on the next visit to each screen</label>
+    </fieldset>
+    <button type="button" class="btn" data-act="reset">Reset simulation</button>
+  </div>
+  <details>
+    <summary>All screens (jump)</summary>
+    <ul class="plain">
+      <li><a href="#s01">s01 Storefront home</a> · <a href="#s02">s02 Catalog</a> · <a href="#s03">s03 Product</a> · <a href="#s04">s04 Cart</a> · <a href="#s05">s05 Checkout</a> · <a href="#s06">s06 Demo payment</a> · <a href="#s07">s07 Confirmation</a></li>
+      <li><a href="#s08">s08 Order lookup</a> · <a href="#s09">s09 Sign-up</a> · <a href="#s10">s10 Customer sign-in</a> · <a href="#s11">s11 My orders</a> · <a href="#s12">s12 Account order</a></li>
+      <li><a href="#s13">s13 Owner sign-in</a> · <a href="#s14">s14 Dashboard</a> · <a href="#s15">s15 Orders</a> · <a href="#s16">s16 Order (admin)</a> · <a href="#s17">s17 Copilot question</a> · <a href="#s18">s18 Copilot answer</a> · <a href="#s19">s19 Your recommendations</a></li>
+    </ul>
+  </details>
+</section>
+
+<header class="site">
+  <a class="brand" href="#s01">CommerceOS demo store</a>
+  <nav aria-label="Shop">
+    <ul>
+      <li><a data-nav href="#s01">Home</a></li>
+      <li><a data-nav href="#s02">Catalog</a></li>
+      <li><a data-nav href="#s04">Cart (<span data-text="cartCount">0</span>)</a></li>
+      <li><a data-nav href="#s08">Find an order</a></li>
+      <li data-show="acct:guest|owner"><a data-nav href="#s10">Sign in</a></li>
+      <li data-show="acct:A|B"><a data-nav href="#s11">My orders</a></li>
+      <li data-show="acct:A|B"><button class="link-btn" type="button" data-act="signout">Sign out</button></li>
+    </ul>
+  </nav>
+  <nav class="admin-nav" aria-label="Owner" data-show="acct:owner">
+    <ul>
+      <li>Owner:</li>
+      <li><a data-nav href="#s14">Dashboard</a></li>
+      <li><a data-nav href="#s15">Orders</a></li>
+      <li><a data-nav href="#s17">Copilot</a></li>
+      <li><button class="link-btn" type="button" data-act="signout">Sign out</button></li>
+    </ul>
+  </nav>
+</header>
+
+<main id="main">
+  <div id="flash" class="flash" role="status" hidden></div>
+
+  <!-- s01 Storefront home (layouts A/B/C) -->
+  <section id="s01" class="screen" data-screen data-loadable>
+    <div class="content">
+      <h1 tabindex="-1">Gaming accessories</h1>
+      <p class="demo-banner">Demo store. Products, prices and orders are fictional. No real payment is taken.</p>
+      <div class="layout" data-lay="s01" data-layout="a" data-show="store:full;err:none|cart">
+        <div class="hero">
+          <h2 style="margin-top:0">Mice, headsets and controllers</h2>
+          <p>Stock and prices are shown on each product page.</p>
+          <a class="btn primary" href="#s02" data-act="cat" data-cat="all">Shop all</a>
+        </div>
+        <nav class="tabs" aria-label="Categories">
+          <button type="button" class="btn small" data-act="cat" data-cat="all">All</button>
+          <button type="button" class="btn small" data-act="cat" data-cat="mice">Mice</button>
+          <button type="button" class="btn small" data-act="cat" data-cat="headsets">Headsets</button>
+          <button type="button" class="btn small" data-act="cat" data-cat="controllers">Controllers</button>
+        </nav>
+        <h2>Featured</h2>
+        <ul class="plain items featured-list" data-featured></ul>
+      </div>
+      <div class="block empty" data-show="store:empty"><p>No categories yet.</p></div>
+      <div class="block error" data-show="err:catalog"><p>The catalog is temporarily unavailable.</p><button type="button" class="btn" data-act="retry">Try again</button></div>
+    </div>
+    <div class="skeleton" aria-hidden="true"><p class="sr-only">Loading featured products</p><div class="bar wide"></div><div class="bar"></div><div class="bar short"></div></div>
+    <div class="db-error block error"><p>This page could not be loaded. Try again later.</p><button type="button" class="btn" data-act="retry">Try again</button></div>
+  </section>
+
+  <!-- s02 Catalog and search -->
+  <section id="s02" class="screen" data-screen data-loadable>
+    <div class="content">
+      <h1 tabindex="-1">Catalog</h1>
+      <div class="row">
+        <label for="q" style="font-weight:700">Search products</label>
+        <input id="q" type="search" maxlength="100" autocomplete="off" style="font:inherit;padding:8px;border:1px solid #1a1a1a;min-height:40px;max-width:280px">
+        <button type="button" class="btn small" data-act="clearq">Clear search</button>
+      </div>
+      <nav class="tabs" aria-label="Categories" data-cats style="margin:10px 0"></nav>
+      <div data-show="store:full;err:none|cart">
+        <div class="empty" data-show="catEmpty:1"><p>This category is empty.</p></div>
+        <div class="empty" data-show="noResults:1"><p>No products match your search.</p><button type="button" class="btn" data-act="clearq">Clear search</button></div>
+        <ul class="plain items" data-catalog></ul>
+      </div>
+      <div class="block empty" data-show="store:empty"><p>No products yet.</p></div>
+      <div class="block error" data-show="err:catalog"><p>The catalog is temporarily unavailable.</p><button type="button" class="btn" data-act="retry">Try again</button></div>
+    </div>
+    <div class="skeleton" aria-hidden="true"><p class="sr-only">Loading products</p><div class="bar wide"></div><div class="bar"></div><div class="bar short"></div></div>
+    <div class="db-error block error"><p>This page could not be loaded. Try again later.</p><button type="button" class="btn" data-act="retry">Try again</button></div>
+  </section>
+
+  <!-- s03 Product -->
+  <section id="s03" class="screen" data-screen>
+    <div class="content">
+      <div data-show="pdpMissing:0">
+        <h1 tabindex="-1" data-text="pdpName">Product</h1>
+        <p data-text="pdpPrice"></p>
+        <p class="note" data-text="pdpStock"></p>
+        <div class="row"><button type="button" class="btn primary" data-act="pdpadd">Add to cart</button></div>
+        <p class="note" data-show="pdpAdded:1">Added to cart.</p>
+        <p><a href="#s02">Back to catalog</a></p>
+      </div>
+      <div class="block" data-show="pdpMissing:1"><h1 tabindex="-1">Product not found</h1><p>This product is not in the catalog.</p><a class="btn" href="#s02">Back to catalog</a></div>
+    </div>
+    <div class="db-error block error"><p>This page could not be loaded. Try again later.</p><button type="button" class="btn" data-act="retry">Try again</button></div>
+  </section>
+
+  <!-- s04 Cart -->
+  <section id="s04" class="screen" data-screen data-loadable>
+    <div class="content">
+      <h1 tabindex="-1">Your cart</h1>
+      <div class="block error" data-show="err:cart"><p>The cart is temporarily unavailable.</p><button type="button" class="btn" data-act="retry">Try again</button></div>
+      <div data-show="err:none|catalog">
+        <div class="block" data-show="notice:1"><p data-text="notice"></p></div>
+        <div class="block empty" data-show="cartEmpty:1"><p>Your cart is empty.</p><a class="btn" href="#s02">Browse the catalog</a></div>
+        <div data-show="cartEmpty:0">
+          <ul class="plain items" data-cart></ul>
+          <p><strong data-text="cartTotal"></strong></p>
+          <p class="note">Prices are confirmed at checkout. This demo keeps your cart in memory only.</p>
+          <a class="btn primary" href="#s05">Checkout</a>
+        </div>
+      </div>
+    </div>
+    <div class="skeleton" aria-hidden="true"><p class="sr-only">Loading cart</p><div class="bar wide"></div><div class="bar"></div></div>
+    <div class="db-error block error"><p>This page could not be loaded. Try again later.</p><button type="button" class="btn" data-act="retry">Try again</button></div>
+  </section>
+
+  <!-- s05 Checkout -->
+  <section id="s05" class="screen" data-screen>
+    <div class="content">
+      <h1 tabindex="-1">Checkout</h1>
+      <p data-show="acct:guest|owner">Buying as a guest. <a href="#s10">Sign in</a> to attach this order to your account.</p>
+      <p data-show="acct:A|B" data-text="buyingAs"></p>
+      <h2>Order</h2>
+      <ol class="plain items" data-summary></ol>
+      <p><strong data-text="cartTotal"></strong></p>
+      <h2>Your details</h2>
+      <form data-form="checkout" novalidate>
+        <div class="field">
+          <label for="ck-name">Full name</label>
+          <input id="ck-name" name="name" autocomplete="name" aria-describedby="ck-name-err">
+          <p class="field-error" id="ck-name-err" data-err="name" hidden>Enter your name.</p>
+        </div>
+        <div class="field">
+          <label for="ck-email">Email</label>
+          <input id="ck-email" name="email" type="email" autocomplete="email" aria-describedby="ck-email-err">
+          <p class="field-error" id="ck-email-err" data-err="email" hidden>Enter a valid email address.</p>
+        </div>
+        <div class="field">
+          <label for="ck-address">Delivery address</label>
+          <input id="ck-address" name="address" autocomplete="street-address" aria-describedby="ck-address-err">
+          <p class="field-error" id="ck-address-err" data-err="address" hidden>Enter a delivery address. No real shipping in this demo.</p>
+        </div>
+        <p class="note">Demo payment: no card is needed and nothing is charged.</p>
+        <button type="submit" class="btn primary">Place order</button>
+      </form>
+    </div>
+    <div class="db-error block error"><p>This page could not be loaded. Try again later.</p><button type="button" class="btn" data-act="retry">Try again</button></div>
+  </section>
+
+  <!-- s06 Demo payment -->
+  <section id="s06" class="screen" data-screen>
+    <div class="content">
+      <h1 tabindex="-1">Demo payment</h1>
+      <div class="demo-banner" role="note"><strong>Demo store.</strong> This is a demo payment. No card is charged and no real money moves.</div>
+      <div class="block empty" data-show="pview:0"><p>There is no order to pay here.</p><a class="btn" href="#s04">Go to cart</a></div>
+      <div data-show="coState:pending">
+        <p>Order <strong>CO-24817</strong></p>
+        <ol class="plain items" data-summary-pay></ol>
+        <p><strong data-text="payTotal"></strong></p>
+        <button type="button" class="btn primary" data-act="pay">Confirm demo payment (no charge)</button>
+      </div>
+      <div class="block error" data-show="coState:cancelled"><p>This order can no longer be paid.</p><a class="btn" href="#s07">View order status</a></div>
+    </div>
+    <div class="db-error block error"><p>This page could not be loaded. Try again later.</p><button type="button" class="btn" data-act="retry">Try again</button></div>
+  </section>
+
+  <!-- s07 Confirmation and status -->
+  <section id="s07" class="screen" data-screen data-loadable>
+    <div class="content">
+      <div data-show="pview:1">
+        <h1 tabindex="-1">Order CO-24817</h1>
+        <div class="block" data-show="justPaid:1"><p><strong>Thank you. Demo payment received.</strong> No money was taken.</p></div>
+        <p>Status: <strong data-text="coLabel"></strong></p>
+        <p data-show="coState:pending">Payment is not complete yet. <a href="#s06">Complete demo payment</a></p>
+        <p class="note">Keep this reference to find your order later: CO-24817. <a href="#s08">Find an order</a></p>
+      </div>
+      <div class="block empty" data-show="pview:0">
+        <h1 tabindex="-1">No order found with this reference</h1>
+        <a class="btn" href="#s08">Find an order</a>
+      </div>
+    </div>
+    <div class="skeleton" aria-hidden="true"><p class="sr-only">Loading order</p><div class="bar wide"></div><div class="bar"></div></div>
+    <div class="db-error block error"><p>This page could not be loaded. Try again later.</p><button type="button" class="btn" data-act="retry">Try again</button></div>
+  </section>
+
+  <!-- s08 Order lookup -->
+  <section id="s08" class="screen" data-screen>
+    <div class="content">
+      <h1 tabindex="-1">Find an order</h1>
+      <form data-form="lookup" novalidate>
+        <div class="field">
+          <label for="lk-ref">Order reference</label>
+          <input id="lk-ref" name="ref" autocomplete="off" aria-describedby="lk-ref-err">
+          <p class="field-error" id="lk-ref-err" data-err="ref" hidden>Enter a reference such as CO-24817.</p>
+        </div>
+        <button type="submit" class="btn primary">Find order</button>
+      </form>
+      <p class="note">Guests find an order with its reference only. There is no password reset in this demo.</p>
+    </div>
+    <div class="db-error block error"><p>This page could not be loaded. Try again later.</p><button type="button" class="btn" data-act="retry">Try again</button></div>
+  </section>
+
+  <!-- s09 Customer sign-up -->
+  <section id="s09" class="screen" data-screen data-loadable>
+    <div class="content">
+      <h1 tabindex="-1">Create an account</h1>
+      <p class="demo-banner">Demo store: accounts are fictional. There is no password reset and no email check.</p>
+      <form data-form="signup" novalidate>
+        <div class="field"><label for="su-email">Email</label><input id="su-email" name="email" type="email" autocomplete="email" aria-describedby="su-email-err"><p class="field-error" id="su-email-err" data-err="email" hidden>Enter a valid email address.</p></div>
+        <div class="field"><label for="su-pass">Password (8 characters or more)</label><input id="su-pass" name="pass" type="password" autocomplete="new-password" aria-describedby="su-pass-err"><p class="field-error" id="su-pass-err" data-err="pass" hidden>Use at least 8 characters.</p></div>
+        <button type="submit" class="btn primary">Create account</button>
+      </form>
+      <p><a href="#s05">Continue as a guest</a> · <a href="#s10">Sign in</a></p>
+    </div>
+    <div class="skeleton" aria-hidden="true"><p class="sr-only">Loading</p><div class="bar wide"></div><div class="bar"></div></div>
+    <div class="db-error block error"><p>This page could not be loaded. Try again later.</p><button type="button" class="btn" data-act="retry">Try again</button></div>
+  </section>
+
+  <!-- s10 Customer sign-in -->
+  <section id="s10" class="screen" data-screen>
+    <div class="content">
+      <h1 tabindex="-1">Sign in</h1>
+      <div class="block" data-show="acct:owner"><p>You are signed in as the owner. Customer accounts need a customer sign-in. <button type="button" class="link-btn" data-act="signout">Sign out</button> first.</p></div>
+      <form data-form="signin" novalidate data-show="acct:guest">
+        <div class="field"><label for="si-email">Email</label><input id="si-email" name="email" type="email" autocomplete="email" aria-describedby="si-email-err"><p class="field-error" id="si-email-err" data-err="email" hidden>Enter your email.</p></div>
+        <div class="field"><label for="si-pass">Password</label><input id="si-pass" name="pass" type="password" autocomplete="current-password" aria-describedby="si-pass-err"><p class="field-error" id="si-pass-err" data-err="pass" hidden>Enter your password.</p></div>
+        <button type="submit" class="btn primary">Sign in</button>
+      </form>
+      <p><a href="#s09">Create an account</a></p>
+    </div>
+    <div class="db-error block error"><p>This page could not be loaded. Try again later.</p><button type="button" class="btn" data-act="retry">Try again</button></div>
+  </section>
+
+  <!-- s11 My orders -->
+  <section id="s11" class="screen" data-screen data-loadable>
+    <div class="content">
+      <h1 tabindex="-1">My orders</h1>
+      <p class="note" data-text="acctLine"></p>
+      <div class="block empty" data-show="mine:0"><p>You have no orders yet.</p><a class="btn" href="#s02">Shop the catalog</a></div>
+      <div data-show="mine:1"><ul class="plain items" data-myorders></ul><p class="note">Showing your 50 most recent orders. Read-only.</p></div>
+      <p><button type="button" class="link-btn" data-act="signout">Sign out</button></p>
+    </div>
+    <div class="skeleton" aria-hidden="true"><p class="sr-only">Loading orders</p><div class="bar wide"></div><div class="bar"></div></div>
+    <div class="db-error block error"><p>Your orders are unavailable. Try again later.</p><button type="button" class="btn" data-act="retry">Try again</button></div>
+  </section>
+
+  <!-- s12 Account order detail -->
+  <section id="s12" class="screen" data-screen>
+    <div class="content">
+      <div data-show="ownview:1">
+        <h1 tabindex="-1">Order CO-24817</h1>
+        <p>Status: <strong data-text="coLabel"></strong></p>
+        <ol class="plain items" data-summary-acct></ol>
+        <p><strong data-text="acctTotal"></strong></p>
+        <p data-show="coState:pending"><a href="#s06">Complete demo payment</a></p>
+        <p class="note">Read-only. You can see only your own orders.</p>
+      </div>
+      <div class="block" data-show="ownview:0">
+        <h1 tabindex="-1">Order not found</h1>
+        <p>No order matches this link.</p>
+        <a class="btn" href="#s11">Back to My orders</a>
+      </div>
+    </div>
+    <div class="db-error block error"><p>This page could not be loaded. Try again later.</p><button type="button" class="btn" data-act="retry">Try again</button></div>
+  </section>
+
+  <!-- s13 Owner sign-in -->
+  <section id="s13" class="screen" data-screen>
+    <div class="content">
+      <h1 tabindex="-1">Owner sign-in</h1>
+      <div class="block" data-show="acct:A|B"><p>You are signed in as a customer. The owner area needs an owner sign-in. <button type="button" class="link-btn" data-act="signout">Sign out</button> first.</p></div>
+      <form data-form="owner" novalidate data-show="acct:guest|owner">
+        <div class="field"><label for="ow-email">Email</label><input id="ow-email" name="email" type="email" autocomplete="username" aria-describedby="ow-email-err"><p class="field-error" id="ow-email-err" data-err="email" hidden>Enter your email.</p></div>
+        <div class="field"><label for="ow-pass">Password</label><input id="ow-pass" name="pass" type="password" autocomplete="current-password" aria-describedby="ow-pass-err"><p class="field-error" id="ow-pass-err" data-err="pass" hidden>Enter your password.</p></div>
+        <button type="submit" class="btn primary">Sign in</button>
+      </form>
+    </div>
+    <div class="db-error block error"><p>This page could not be loaded. Try again later.</p><button type="button" class="btn" data-act="retry">Try again</button></div>
+  </section>
+
+  <!-- s14 Dashboard -->
+  <section id="s14" class="screen" data-screen data-loadable>
+    <div class="content">
+      <h1 tabindex="-1">Dashboard</h1>
+      <p class="demo-banner">Demo store: this view includes fictional demo orders, marked as demo in the order list.</p>
+      <div class="row" role="group" aria-label="Period">
+        <button type="button" class="btn small" data-act="range" data-r="7">Last 7 days</button>
+        <button type="button" class="btn small" data-act="range" data-r="30">Last 30 days</button>
+        <button type="button" class="btn small" data-act="range" data-r="custom">Custom range</button>
+      </div>
+      <form data-form="range" novalidate data-show="range:custom" style="margin-top:10px">
+        <div class="row">
+          <div class="field" style="margin:0"><label for="rg-from">From</label><input id="rg-from" type="date" value="2026-10-09"></div>
+          <div class="field" style="margin:0"><label for="rg-to">To</label><input id="rg-to" type="date" value="2026-10-16"></div>
+          <label class="inline"><input type="checkbox" data-ctl="compare"> Compare with previous period</label>
+          <button type="submit" class="btn">Apply</button>
+        </div>
+      </form>
+      <p><strong data-text="dRange"></strong></p>
+      <div data-show="dash:data|notenough">
+        <div class="metric-grid">
+          <div class="metric"><h3>Revenue</h3><div class="value" data-text="dRevenue"></div><p class="note">Paid-order totals under the documented definition.</p></div>
+          <div class="metric"><h3>Paid orders</h3><div class="value" data-text="dOrders"></div><p class="note">Orders with verified payment in the period.</p></div>
+          <div class="metric"><h3>Average order value</h3><div class="value" data-text="dAov"></div><p class="note">Revenue divided by included orders. "Not enough data" when zero.</p></div>
+          <div class="metric"><h3>Top products</h3><div class="value" style="font-size:1rem" data-text="dTop"></div><p class="note">Ranked by paid order line items over the stated period.</p></div>
+          <div class="metric"><h3>Low stock</h3><div class="value" style="font-size:1rem" data-text="dLow"></div><p class="note">Published products at or below the threshold of 3.</p></div>
+        </div>
+        <p class="note" data-show="compare:1">Compared with the previous period: revenue up 12% (fictional).</p>
+      </div>
+      <div class="block empty" data-show="dash:empty"><h2 style="margin-top:0">No orders yet</h2><p>Metrics appear after the first paid order.</p></div>
+      <div class="block error" data-show="dash:error"><p>The dashboard could not be loaded.</p><button type="button" class="btn" data-act="dashretry">Try again</button></div>
+    </div>
+    <div class="skeleton" aria-hidden="true"><p class="sr-only">Loading metrics</p><div class="bar wide"></div><div class="bar"></div><div class="bar short"></div></div>
+    <div class="db-error block error"><p>This page could not be loaded. Try again later.</p><button type="button" class="btn" data-act="retry">Try again</button></div>
+  </section>
+
+  <!-- s15 Orders list (admin) -->
+  <section id="s15" class="screen" data-screen data-loadable>
+    <div class="content">
+      <h1 tabindex="-1">Orders</h1>
+      <div class="block empty" data-show="ordersEmpty:1"><p>No orders yet.</p></div>
+      <div class="table-wrap" data-show="ordersEmpty:0">
+        <table>
+          <thead><tr><th scope="col">Reference</th><th scope="col">Status</th><th scope="col">Kind</th><th scope="col">Total</th></tr></thead>
+          <tbody data-admin-rows></tbody>
+        </table>
+      </div>
+      <p class="note">Paging: <button type="button" class="link-btn" disabled>Newer</button> · <button type="button" class="link-btn" disabled>Older</button> · Page 1 of 1</p>
+      <p><a href="#s16" data-focus="NONE">Open an unknown order reference</a></p>
+    </div>
+    <div class="skeleton" aria-hidden="true"><p class="sr-only">Loading orders</p><div class="bar wide"></div><div class="bar"></div><div class="bar"></div></div>
+    <div class="db-error block error"><p>This page could not be loaded. Try again later.</p><button type="button" class="btn" data-act="retry">Try again</button></div>
+  </section>
+
+  <!-- s16 Order detail (admin) -->
+  <section id="s16" class="screen" data-screen>
+    <div class="content">
+      <div data-show="focus:NONE" class="block"><h1 tabindex="-1">Order not found</h1><a class="btn" href="#s15">Back to orders</a></div>
+      <div data-show="focus:D1|D2|CO">
+        <h1 tabindex="-1" data-text="fTitle"></h1>
+        <p class="demo-banner" data-show="fDemo:1">Seeded demo order: fictional customer, no payment.</p>
+        <p>Status: <strong data-text="fStatus"></strong></p>
+        <ol class="plain items" data-fitems></ol>
+        <p><strong data-text="fTotal"></strong></p>
+        <div class="block error" data-show="fConflict:1" role="alert"><p>This order changed to Paid in the meantime. Review it and try again.</p></div>
+        <h2>Actions</h2>
+        <p class="note">The owner moves orders only along the allowed transitions. Payment is set only by the shopper's demo payment.</p>
+        <div class="row" data-trans></div>
+        <div class="field" data-show="cancelAvail:1">
+          <label class="inline"><input type="checkbox" data-ctl="cancelAck"> I understand cancelling restores stock for each item.</label>
+        </div>
+        <p class="note" data-show="refundNote:1">Record only: no money moves and no stock returns.</p>
+      </div>
+      <p><a href="#s15">Back to orders</a></p>
+    </div>
+    <div class="db-error block error"><p>This page could not be loaded. Try again later.</p><button type="button" class="btn" data-act="retry">Try again</button></div>
+  </section>
+
+  <!-- s17 Copilot question -->
+  <section id="s17" class="screen" data-screen data-loadable>
+    <div class="content">
+      <h1 tabindex="-1">Commerce Copilot</h1>
+      <p class="demo-banner">Copilot suggests; you decide. It never changes prices, products, stock or orders. Figures come from the store's own data.</p>
+      <form data-form="ask" novalidate>
+        <div class="field">
+          <label for="cq">Ask a question about your store (500 characters at most)</label>
+          <textarea id="cq" name="q" rows="3" maxlength="500" aria-describedby="cq-count cq-err"></textarea>
+          <p class="note" id="cq-count" data-text="qCount">0 / 500</p>
+          <p class="field-error" id="cq-err" hidden>Enter a question.</p>
+        </div>
+        <button type="submit" class="btn primary">Ask</button>
+      </form>
+      <h2>Suggested questions</h2>
+      <ul class="plain" data-suggest></ul>
+      <div class="block error" data-show="ckind:error"><p>Copilot is temporarily unavailable.</p></div>
+    </div>
+    <div class="skeleton" aria-hidden="true"><p class="sr-only">Loading Copilot</p><div class="bar wide"></div><div class="bar"></div></div>
+    <div class="db-error block error"><p>This page could not be loaded. Try again later.</p><button type="button" class="btn" data-act="retry">Try again</button></div>
+  </section>
+
+  <!-- s18 Copilot answer (layouts A/B/C) -->
+  <section id="s18" class="screen" data-screen>
+    <div class="content">
+      <h1 tabindex="-1">Copilot answer</h1>
+      <p class="note" data-text="question"></p>
+      <div class="block" data-show="waiting:1"><p>Analysing your store data… up to 45 seconds.</p></div>
+      <div class="layout" data-lay="s18" data-layout="a" data-show="waiting:0;ckind:answer">
+        <div class="banner-wrap">
+          <div class="block" data-show="csrc:ai"><p><strong>AI-generated</strong> · example model (fictional). Every number comes from approved tools.</p></div>
+          <div class="block" data-show="csrc:notconfigured"><p><strong>Rule-based insights</strong> · AI is not configured.</p></div>
+          <div class="block" data-show="csrc:timeout"><p>AI timed out. Showing rule-based insights instead.</p></div>
+          <div class="block" data-show="csrc:limit"><p>Daily AI limit reached. Showing rule-based insights instead.</p></div>
+          <div class="block" data-show="csrc:checks"><p>The AI answer failed our checks. Showing rule-based insights instead.</p></div>
+          <p class="note">Period: 9–16 Oct 2026. Traffic figures are <strong>fictional demo data</strong>.</p>
+        </div>
+        <div class="summary" data-summary-recs></div>
+        <div class="cards" data-recs></div>
+        <p class="note">Limitations: paid orders and fictional traffic only. Copilot does not hold margin, ad spend or competitor data.</p>
+      </div>
+      <div class="block" data-show="waiting:0;ckind:refusal">
+        <h2 style="margin-top:0">Copilot cannot answer this</h2>
+        <p>Margin, conversion by source and similar figures are not in the demo data. Copilot answers only from approved tools and says what it lacks.</p>
+        <p class="note">Try one of these:</p>
+        <ul class="plain" data-suggest-small></ul>
+      </div>
+      <div class="block" data-show="waiting:0;ckind:outlist">
+        <h2 style="margin-top:0">Question outside the list</h2>
+        <p>This demo answers seven named questions. Try one of these:</p>
+        <ul class="plain" data-suggest-small2></ul>
+      </div>
+      <div class="block empty" data-show="waiting:0;ckind:empty">
+        <h2 style="margin-top:0">Not enough data yet</h2>
+        <p>Not enough data yet: no paid orders and no traffic in this period.</p>
+        <p class="note">Suggested questions are still available below.</p>
+        <ul class="plain" data-suggest-small3></ul>
+      </div>
+      <div class="block error" data-show="waiting:0;ckind:error">
+        <p>Copilot is temporarily unavailable.</p>
+        <a class="btn" href="#s17">Ask again</a>
+      </div>
+      <p><a href="#s19">Your recommendations</a></p>
+    </div>
+    <div class="db-error block error"><p>This page could not be loaded. Try again later.</p><button type="button" class="btn" data-act="retry">Try again</button></div>
+  </section>
+
+  <!-- s19 Recommendation decisions -->
+  <section id="s19" class="screen" data-screen>
+    <div class="content">
+      <h1 tabindex="-1">Your recommendations</h1>
+      <p class="note">Saved and completed recommendations. Dismissed ones are hidden. The owner decides; nothing is changed automatically.</p>
+      <div class="block empty" data-show="savedNone:1"><p>Saved recommendations appear here.</p></div>
+      <ul class="plain items" data-saved></ul>
+      <p><a href="#s18">Back to the Copilot answer</a></p>
+    </div>
+    <div class="db-error block error"><p>This page could not be loaded. Try again later.</p><button type="button" class="btn" data-act="retry">Try again</button></div>
+  </section>
+
+  <!-- Unknown fragment -->
+  <section id="unknown" class="screen" data-screen>
+    <div class="content">
+      <h1 tabindex="-1">This page is not in the prototype</h1>
+      <p>Choose a screen from the list at the top, or go back to the storefront.</p>
+      <a class="btn primary" href="#s01">Storefront home</a>
+    </div>
+    <div class="db-error block error"><p>This page could not be loaded. Try again later.</p><button type="button" class="btn" data-act="retry">Try again</button></div>
+  </section>
+</main>
+
+<div id="live" class="sr-only" aria-live="polite"></div>
+
+<footer class="site">
+  <p>Discovery prototype (gray, simulated). Not a production design. Theme switch and real latency are not simulated. <a href="#s13">Owner sign-in</a></p>
+</footer>
+
+<script>
+(() => {
+  'use strict';
+
+  // ---- Fictional fixtures (no real people, stores or money) ----
+  const PRODUCTS = [
+    { id: 'pulse', name: 'Pulse Ultralight Mouse', cat: 'mice', price: 12900, stock: 12, featured: true },
+    { id: 'titan', name: 'Titan MMO Mouse', cat: 'mice', price: 21900, stock: 0 },
+    { id: 'drift', name: 'Drift Wireless Headset', cat: 'headsets', price: 34900, stock: 5, featured: true },
+    { id: 'glide', name: 'Glide XL Mousepad', cat: 'mousepads', price: 5900, stock: 30 },
+    { id: 'arena', name: 'Arena Fight Stick', cat: 'controllers', price: 39900, stock: 2, featured: true },
+  ];
+  const CATS = [['all', 'All'], ['mice', 'Mice'], ['headsets', 'Headsets'], ['mousepads', 'Mousepads'], ['controllers', 'Controllers'], ['keyboards', 'Keyboards']];
+  const CUSTOMERS = { A: 'klient-a@demo.test', B: 'klient-b@demo.test' };
+  const OWNER_EMAIL = 'owner@demo.test';
+  const CO_REF = 'CO-24817';
+  // Same allowed transitions as packages/core/src/domain/orders/order-status.ts (orders spec A4)
+  const ORDER_T = { pending_payment: ['cancelled'], paid: ['processing', 'refunded'], processing: ['shipped', 'refunded'], shipped: ['refunded'], cancelled: [], refunded: [] };
+  const ORDER_LABEL = { pending_payment: 'Awaiting payment', paid: 'Paid', processing: 'Processing', shipped: 'Shipped', cancelled: 'Cancelled', refunded: 'Refunded' };
+  const ACTION_LABEL = { processing: 'Mark as processing', shipped: 'Mark as shipped', refunded: 'Mark as refunded (record only)', cancelled: 'Cancel order' };
+  // Same transitions as packages/core/src/domain/copilot/recommendation-status.ts (Copilot spec A14)
+  const REC_T = { new: ['saved', 'dismissed'], saved: ['completed', 'dismissed'], dismissed: [], completed: [] };
+  const REC_LABEL = { new: 'New', saved: 'Saved', dismissed: 'Dismissed', completed: 'Completed' };
+  const REC_MSG = { saved: 'Saved to your recommendations.', dismissed: 'Dismissed.', completed: 'Marked as completed.' };
+  const SUGGESTED = [
+    'What should I focus on to improve sales this week?',
+    'Which products sold best in the last 7 days?',
+    'Which products are low on stock?',
+    'What happened to my paid orders this week?',
+    'Where do shoppers drop off at checkout?',
+    'Which products get views but few sales?',
+    'Which traffic sources brought visitors this week?',
+  ];
+  const DEMO_ORDERS = {
+    D1: { ref: 'DEMO-1001', status: 'paid', items: [['Pulse Ultralight Mouse', 1, 12900]] },
+    D2: { ref: 'DEMO-1002', status: 'pending_payment', items: [['Glide XL Mousepad', 2, 5900], ['Old Keypad (deleted product)', 1, 3900]] },
+  };
+  const DASH = {
+    7: { range: '9–16 Oct 2026', revenue: 'PLN 1,486.00', orders: '9', aov: 'PLN 165.11', top: 'Arena Fight Stick (4), Pulse Ultralight Mouse (3)', low: 'Arena Fight Stick (2 left)' },
+    30: { range: '17 Sep–16 Oct 2026', revenue: 'PLN 5,920.00', orders: '38', aov: 'PLN 155.79', top: 'Drift Wireless Headset (11), Pulse Ultralight Mouse (9)', low: 'Arena Fight Stick (2 left)' },
+  };
+  // Fictional recommendations; the traffic figure is tagged as demo data (R07)
+  const RECS = [
+    { id: 'r1', title: 'Check stock on the Arena Fight Stick before it sells out', priority: 'High',
+      observation: 'Two units are left. Four were sold in the period (fictional).',
+      evidence: [['Units in stock (now)', '2'], ['Paid line items, 9–16 Oct 2026', '4']],
+      reasoning: 'Stock is at or below the threshold of 3 and the item sold in the period.',
+      action: 'Review stock with your supplier. Nothing is changed automatically.',
+      limits: 'Paid orders only. Current stock count, not a forecast.' },
+    { id: 'r2', title: 'Review the Drift Wireless Headset listing: many views, few sales', priority: 'Medium',
+      observation: 'Product views are high, but paid line items are low.',
+      evidence: [['Product views, 9–16 Oct 2026 [Fictional demo data]', '1,240'], ['Paid line items, same period', '3']],
+      reasoning: 'Views without sales can point to the listing, not to demand. This is a question to check, not a cause.',
+      action: 'Check the listing text and photos. Nothing is changed automatically.',
+      limits: 'Traffic figures are fictional demo data. Views do not show why shoppers left.' },
+    { id: 'r3', title: 'Keep the Glide XL Mousepad in the featured list', priority: 'Low',
+      observation: 'The mousepad has stock for the period and sold steadily.',
+      evidence: [['Paid line items, 9–16 Oct 2026', '2'], ['Units in stock (now)', '30']],
+      reasoning: 'Steady sales and ample stock make this a low-risk product to show.',
+      action: 'No change needed now. Review again next week.',
+      limits: 'Small numbers; one week of paid orders only.' },
+  ];
+
+  const DEFAULT = () => ({
+    acct: 'guest', v01: 'a', v18: 'a', store: 'full', checkout: 'ok', payment: 'confirm', ref: 'own',
+    dash: 'data', csrc: 'ai', ckind: 'answer', err: 'none', limit: 'none', login: 'ok',
+    stale: false, recConflict: false, withdraw: false, simload: false, compare: false, cancelAck: false,
+    cart: {}, notice: '', placed: false, orderAccount: null, orderItems: [], orderTotal: 0,
+    status: { CO: 'pending_payment', D1: 'paid', D2: 'pending_payment' },
+    focus: 'D1', pdp: 'pulse', cat: 'all', q: '', recs: { r1: 'new', r2: 'new', r3: 'new' },
+    justPaid: false, waiting: false, question: '', range: '7', customFrom: '2026-10-09', customTo: '2026-10-16',
+    adding: false, pdpAdded: false, fConflict: false,
+  });
+  let S = DEFAULT();
+  let UI = { msg: '', kind: '' };
+  let lastId = null;
+  let loadedOnce = {};
+
+  // ---- helpers ----
+  const money = (m) => 'PLN ' + (m / 100).toFixed(2);
+  const $ = (sel, root = document) => root.querySelector(sel);
+  const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+  const later = (ms, fn) => setTimeout(fn, ms);
+  function h(tag, props, ...kids) {
+    const e = document.createElement(tag);
+    if (props) for (const [k, v] of Object.entries(props)) {
+      if (v === undefined || v === null || v === false) continue;
+      if (k === 'class') e.className = v;
+      else if (k === 'disabled') e.disabled = v === true;
+      else e.setAttribute(k, v === true ? '' : String(v));
+    }
+    for (const kid of kids.flat()) {
+      if (kid === null || kid === undefined || kid === false) continue;
+      e.append(kid instanceof Node ? kid : document.createTextNode(String(kid)));
+    }
+    return e;
+  }
+  const setUI = (msg, kind = '') => { UI = { msg, kind }; };
+  const visibleProducts = () => PRODUCTS.filter((p) => !(S.withdraw && p.id === 'glide'));
+  const productById = (id) => visibleProducts().find((p) => p.id === id);
+  const cartCount = () => Object.values(S.cart).reduce((a, b) => a + b, 0);
+  const cartLines = () => Object.entries(S.cart).map(([id, qty]) => ({ p: productById(id), qty })).filter((l) => l.p);
+  const cartTotal = () => cartLines().reduce((a, l) => a + l.p.price * l.qty, 0);
+  const isCustomer = () => S.acct === 'A' || S.acct === 'B';
+  const mine = () => S.placed && S.orderAccount === S.acct;
+  // Public reference: a guest order, or an account order viewed by its own customer (R08, R10)
+  const publicView = () => S.placed && (S.orderAccount === 'guest' || S.orderAccount === S.acct);
+  const coState = () => {
+    if (!publicView()) return 'none';
+    const st = S.status.CO;
+    return st === 'pending_payment' ? 'pending' : st === 'cancelled' ? 'cancelled' : 'paid';
+  };
+  const catalogList = () => {
+    if (S.store === 'empty') return [];
+    const q = S.q.trim().toLowerCase();
+    return visibleProducts().filter((p) => (S.cat === 'all' || p.cat === S.cat) && (!q || p.name.toLowerCase().includes(q)));
+  };
+  const orderFor = (key) => {
+    if (key === 'CO') {
+      if (!S.placed) return null;
+      return { ref: CO_REF, status: S.status.CO, items: S.orderItems, total: S.orderTotal, demo: false };
+    }
+    const d = DEMO_ORDERS[key];
+    if (!d) return null;
+    const total = d.items.reduce((a, [, q, p]) => a + q * p, 0);
+    return { ref: d.ref, status: S.status[key], items: d.items, total, demo: true };
+  };
+  const itemLis = (items) => items.map(([name, qty, price]) => h('li', null, `${qty} × ${name}`, h('span', { class: 'note' }, ` · ${money(price * qty)}`)));
+  const stockText = (p) => (p.stock === 0 ? 'Out of stock' : p.stock <= 2 ? `Only ${p.stock} left` : 'In stock');
+
+  // ---- context for data-show ----
+  function ctx() {
+    const bit = (b) => (b ? '1' : '0');
+    const cat = S.store === 'full' && S.cat !== 'all' && !PRODUCTS.some((p) => p.cat === S.cat);
+    const o = orderFor(S.focus);
+    return {
+      acct: S.acct, placed: bit(S.placed), pview: bit(publicView()), coState: coState(), mine: bit(mine()),
+      ownview: bit(S.ref === 'own' && mine()), cartEmpty: bit(cartCount() === 0), store: S.store, err: S.err,
+      dash: S.dash, range: S.range, csrc: S.csrc, ckind: S.ckind, waiting: bit(S.waiting), justPaid: bit(S.justPaid),
+      notice: bit(S.notice), catEmpty: bit(cat), noResults: bit(!cat && catalogList().length === 0 && S.store === 'full'),
+      ordersEmpty: bit(S.store === 'empty' && !S.placed), focus: S.focus, fDemo: bit(!!o && o.demo),
+      fConflict: bit(S.fConflict), cancelAvail: bit(!!o && ORDER_T[o.status].includes('cancelled')),
+      refundNote: bit(!!o && ORDER_T[o.status].includes('refunded')), compare: bit(S.compare),
+      pdpMissing: bit(!productById(S.pdp)), pdpAdded: bit(S.pdpAdded),
+      savedNone: bit(!Object.values(S.recs).some((x) => x === 'saved' || x === 'completed')),
+    };
+  }
+  function match(spec, c) {
+    return spec.split(';').every((part) => {
+      const idx = part.indexOf(':');
+      return part.slice(idx + 1).split('|').includes(String(c[part.slice(0, idx)]));
+    });
+  }
+
+  // ---- text bindings ----
+  const dash = () => DASH[S.range === '30' ? 30 : 7];
+  const TEXT = {
+    cartCount: () => String(cartCount()),
+    cartTotal: () => `Total: ${money(cartTotal())}`,
+    notice: () => S.notice,
+    buyingAs: () => `Buying as ${CUSTOMERS[S.acct] || ''}`,
+    payTotal: () => `Total: ${money(S.orderTotal)}`,
+    acctLine: () => (isCustomer() ? `Signed in as ${CUSTOMERS[S.acct]}. Only your own orders are listed.` : ''),
+    acctTotal: () => `Total: ${money(S.orderTotal)}`,
+    coLabel: () => (S.placed ? ORDER_LABEL[S.status.CO] : ''),
+    pdpName: () => (productById(S.pdp) || {}).name || '',
+    pdpPrice: () => (productById(S.pdp) ? money(productById(S.pdp).price) : ''),
+    pdpStock: () => (productById(S.pdp) ? stockText(productById(S.pdp)) : ''),
+    qCount: () => `${($('#cq') || { value: '' }).value.length} / 500`,
+    question: () => (S.question ? `You asked: ${S.question}` : ''),
+    dRange: () => (S.range === 'custom' ? `Custom: ${S.customFrom} to ${S.customTo} (fictional numbers)` : `${S.range === '30' ? 'Last 30 days' : 'Last 7 days'}: ${dash().range}`),
+    dRevenue: () => (S.dash === 'notenough' ? 'PLN 0.00' : dash().revenue),
+    dOrders: () => (S.dash === 'notenough' ? '0' : dash().orders),
+    dAov: () => (S.dash === 'notenough' ? 'Not enough data' : dash().aov),
+    dTop: () => (S.dash === 'notenough' ? 'Not enough data' : dash().top),
+    dLow: () => dash().low,
+    fTitle: () => (orderFor(S.focus) ? `Order ${orderFor(S.focus).ref}` : ''),
+    fStatus: () => (orderFor(S.focus) ? ORDER_LABEL[orderFor(S.focus).status] : ''),
+    fTotal: () => (orderFor(S.focus) ? `Total: ${money(orderFor(S.focus).total)}` : ''),
+  };
+
+  // ---- list renders ----
+  function renderLists() {
+    $('[data-cats]').replaceChildren(...CATS.map(([id, label]) => h('button', { type: 'button', class: 'btn small', 'data-act': 'cat', 'data-cat': id, 'aria-pressed': S.cat === id ? 'true' : 'false' }, label)));
+    $('[data-featured]').replaceChildren(...visibleProducts().filter((p) => p.featured).map(productRow));
+    $('[data-catalog]').replaceChildren(...catalogList().map(productRow));
+    const pdp = productById(S.pdp);
+    const pdpBtn = $('[data-act="pdpadd"]');
+    pdpBtn.disabled = !pdp || pdp.stock === 0 || S.adding;
+    pdpBtn.textContent = S.adding ? 'Adding…' : 'Add to cart';
+    $('[data-cart]').replaceChildren(...cartLines().map(({ p, qty }) => h('li', null,
+      h('strong', null, p.name),
+      h('div', { class: 'note' }, `${money(p.price)} each`, p.stock <= 2 ? ` · Only ${p.stock} left` : ''),
+      h('div', { class: 'row' },
+        h('button', { type: 'button', class: 'btn small', 'data-act': 'qty', 'data-id': p.id, 'data-d': -1, 'aria-label': `Decrease ${p.name}` }, '−'),
+        h('span', null, `Quantity ${qty}`),
+        h('button', { type: 'button', class: 'btn small', 'data-act': 'qty', 'data-id': p.id, 'data-d': 1, 'aria-label': `Increase ${p.name}` }, '+'),
+        h('button', { type: 'button', class: 'btn small', 'data-act': 'remove', 'data-id': p.id }, 'Remove'),
+        h('span', null, money(p.price * qty))))));
+    $('[data-summary]').replaceChildren(...itemLis(cartLines().map(({ p, qty }) => [p.name, qty, p.price])));
+    const email = $('#ck-email');
+    if (isCustomer()) { email.value = CUSTOMERS[S.acct]; email.readOnly = true; } else { email.readOnly = false; }
+    $('[data-summary-pay]').replaceChildren(...itemLis(S.orderItems));
+    $('[data-summary-acct]').replaceChildren(...itemLis(S.orderItems));
+    $('[data-myorders]').replaceChildren(h('li', null,
+      h('a', { href: '#s12', 'data-ref': 'own' }, CO_REF), ' · ',
+      h('span', { class: 'badge' }, ORDER_LABEL[S.status.CO]), ' ', money(S.orderTotal)));
+    const keys = (S.store === 'full' ? ['D1', 'D2'] : []).concat(S.placed ? ['CO'] : []);
+    $('[data-admin-rows]').replaceChildren(...keys.map((key) => {
+      const o = orderFor(key);
+      return h('tr', null,
+        h('td', null, h('a', { href: '#s16', 'data-focus': key }, o.ref), o.demo ? h('span', { class: 'badge demo' }, 'Demo') : ''),
+        h('td', null, ORDER_LABEL[o.status]),
+        h('td', null, o.demo || S.orderAccount === 'guest' ? 'Guest order' : 'Account order'),
+        h('td', null, money(o.total)));
+    }));
+    const o = orderFor(S.focus);
+    if (o) {
+      $('[data-fitems]').replaceChildren(...itemLis(o.items));
+      const buttons = ORDER_T[o.status].map((to) => h('button', { type: 'button', class: 'btn', 'data-act': 'trans', 'data-to': to, disabled: to === 'cancelled' && !S.cancelAck }, ACTION_LABEL[to]));
+      if (!buttons.length) buttons.push(h('p', { class: 'note' }, 'No further status changes.'));
+      $('[data-trans]').replaceChildren(...buttons);
+    }
+    const suggestItem = (q) => h('li', { style: 'margin:6px 0' }, h('button', { type: 'button', class: 'btn small', 'data-act': 'suggest', 'data-q': q }, q));
+    $('[data-suggest]').replaceChildren(...SUGGESTED.map(suggestItem));
+    $('[data-suggest-small]').replaceChildren(...SUGGESTED.map(suggestItem));
+    $('[data-suggest-small2]').replaceChildren(...SUGGESTED.map(suggestItem));
+    $('[data-suggest-small3]').replaceChildren(...SUGGESTED.map(suggestItem));
+    renderAnswer();
+    $('[data-saved]').replaceChildren(...RECS.filter((r) => S.recs[r.id] === 'saved' || S.recs[r.id] === 'completed').map((r) => h('li', null,
+      h('h3', null, r.title),
+      h('p', { class: 'note', style: 'margin:0' }, `Status: ${REC_LABEL[S.recs[r.id]]}`),
+      S.recs[r.id] === 'saved' ? h('div', { class: 'row', style: 'margin-top:6px' },
+        h('button', { type: 'button', class: 'btn small', 'data-act': 'rec', 'data-id': r.id, 'data-to': 'completed' }, 'Mark completed'),
+        h('button', { type: 'button', class: 'btn small', 'data-act': 'rec', 'data-id': r.id, 'data-to': 'dismissed' }, 'Dismiss')) : '')));
+  }
+  function productRow(p) {
+    return h('li', null,
+      h('h3', null, h('a', { href: '#s03', 'data-act': 'pdp', 'data-id': p.id }, p.name)),
+      h('p', { class: 'note', style: 'margin:0' }, money(p.price), ' · ', stockText(p)),
+      h('button', { type: 'button', class: 'btn small', 'data-act': 'add', 'data-id': p.id, disabled: p.stock === 0 }, 'Add to cart'));
+  }
+  function renderAnswer() {
+    const recs = RECS.filter((r) => S.recs[r.id] === 'new' || S.recs[r.id] === 'saved');
+    $('[data-summary-recs]').replaceChildren(h('table', null,
+      h('thead', null, h('tr', null, h('th', { scope: 'col' }, 'Recommendation'), h('th', { scope: 'col' }, 'Priority'), h('th', { scope: 'col' }, 'Status'))),
+      h('tbody', null, RECS.map((r) => h('tr', null, h('td', null, r.title), h('td', null, r.priority), h('td', null, REC_LABEL[S.recs[r.id]]))))));
+    $('[data-recs]').replaceChildren(...recs.map((r) => h('article', { class: 'card' },
+      h('h3', null, r.title),
+      h('p', null, h('span', { class: 'badge' }, `Priority: ${r.priority}`), ' ', h('span', { class: 'badge' }, REC_LABEL[S.recs[r.id]])),
+      h('p', null, r.observation),
+      h('div', { class: 'table-wrap' }, h('table', null,
+        h('thead', null, h('tr', null, h('th', { scope: 'col' }, 'Evidence'), h('th', { scope: 'col' }, 'Value'))),
+        h('tbody', null, r.evidence.map(([k, v]) => h('tr', null, h('td', null, k), h('td', null, v)))))),
+      h('p', null, h('strong', null, 'Reasoning. '), r.reasoning),
+      h('p', null, h('strong', null, 'Suggested next step. '), r.action),
+      h('p', { class: 'note' }, h('strong', null, 'Limitations. '), r.limits),
+      h('div', { class: 'row' },
+        h('button', { type: 'button', class: 'btn small', 'data-act': 'rec', 'data-id': r.id, 'data-to': 'saved', disabled: S.recs[r.id] !== 'new' }, 'Save'),
+        h('button', { type: 'button', class: 'btn small', 'data-act': 'rec', 'data-id': r.id, 'data-to': 'dismissed' }, 'Dismiss')))));
+  }
+  function renderLayouts() {
+    $('[data-lay="s01"]').dataset.layout = S.v01;
+    $('[data-lay="s18"]').dataset.layout = S.v18;
+  }
+  function renderControls() {
+    $$('[data-ctl]').forEach((el) => {
+      const key = el.dataset.ctl;
+      if (el.type === 'radio') el.checked = el.value === S[key];
+      else if (el.type === 'checkbox') el.checked = S[key] === true;
+      else el.value = String(S[key]);
+    });
+    $('[data-ctl="cancelAck"]').checked = S.cancelAck === true;
+    $$('[data-act="range"]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.r === S.range)));
+    if ($('#q').value !== S.q) $('#q').value = S.q;
+  }
+
+  // ---- render ----
+  function render() {
+    if (S.withdraw && S.cart.glide) {
+      delete S.cart.glide;
+      S.notice = 'Glide XL Mousepad is no longer available and was removed from your cart.';
+    }
+    renderLists();
+    renderLayouts();
+    $$('[data-text]').forEach((el) => { el.textContent = TEXT[el.dataset.text](); });
+    const c = ctx();
+    $$('[data-show]').forEach((el) => { el.hidden = !match(el.dataset.show, c); });
+    renderControls();
+    const flash = $('#flash');
+    flash.hidden = !UI.msg;
+    flash.className = 'flash' + (UI.kind === 'error' ? ' error' : '');
+    flash.textContent = UI.msg;
+    $$('[data-screen]').forEach((sec) => sec.classList.toggle('is-db-error', S.err === 'db'));
+  }
+
+  // ---- business actions (simulated, in memory) ----
+  function addToCart(id) {
+    const p = productById(id);
+    if (!p) return;
+    const have = S.cart[id] || 0;
+    if (have + 1 > p.stock) { setUI(`Only ${p.stock} left in stock.`, 'error'); return; }
+    S.cart[id] = have + 1;
+    setUI('Added to cart.');
+  }
+  function changeQty(id, d) {
+    const p = productById(id);
+    if (!p) return;
+    const have = S.cart[id] || 0;
+    if (d > 0 && have + 1 > p.stock) { setUI(`Only ${p.stock} left in stock.`, 'error'); return; }
+    const n = have + d;
+    if (n <= 0) delete S.cart[id]; else S.cart[id] = n;
+    setUI('');
+  }
+  function pdpAdd() {
+    S.adding = true; S.pdpAdded = false; render();
+    later(400, () => {
+      S.adding = false;
+      addToCart(S.pdp);
+      S.pdpAdded = Boolean(S.cart[S.pdp]);
+      render();
+    });
+  }
+  function place() {
+    const outcome = S.checkout;
+    S.checkout = 'ok';
+    const msgs = {
+      price: 'Prices changed since your cart was loaded. Review your cart and try again.',
+      sold: 'Sorry, Pulse Ultralight Mouse just sold out. Review your cart and try again.',
+      cart: 'Your cart changed in another tab. Review it and try again.',
+      session: 'We could not check your sign-in. No order was placed. Try again.',
+      general: 'Something went wrong. Your order was not placed. Try again.',
+    };
+    if (msgs[outcome]) { setUI(msgs[outcome], 'error'); return false; }
+    S.placed = true;
+    S.orderAccount = isCustomer() ? S.acct : 'guest';
+    S.orderItems = cartLines().map(({ p, qty }) => [p.name, qty, p.price]);
+    S.orderTotal = cartTotal();
+    S.status.CO = 'pending_payment';
+    S.cart = {};
+    setUI('');
+    return true;
+  }
+  function applyPayment() {
+    if (!S.placed) return;
+    const st = S.status.CO;
+    if (st === 'processing' || st === 'shipped' || st === 'refunded') return;
+    S.status.CO = S.payment === 'cancelled' ? 'cancelled' : S.payment === 'paid' ? 'paid' : 'pending_payment';
+  }
+  function transition(to) {
+    const o = orderFor(S.focus);
+    if (!o) return;
+    if (S.stale && o.status === 'pending_payment') {
+      // Payment arrived in another tab first: nothing is written (orders spec A4 / stale status)
+      S.stale = false;
+      S.status[S.focus] = 'paid';
+      S.fConflict = true;
+      setUI('This order changed to Paid in the meantime. Nothing was written.', 'error');
+      return;
+    }
+    S.fConflict = false;
+    S.status[S.focus] = to;
+    S.cancelAck = false;
+    setUI(`Order ${o.ref} is now ${ORDER_LABEL[to]}.`);
+  }
+  function recAction(id, to) {
+    if (S.recConflict) {
+      S.recConflict = false;
+      setUI('This recommendation changed in another tab. Reload to see the latest.', 'error');
+      return;
+    }
+    if (!REC_T[S.recs[id]].includes(to)) return;
+    S.recs[id] = to;
+    setUI(REC_MSG[to]);
+  }
+  function askNow(q) {
+    if (!q) { $('#cq-err').hidden = false; setUI(''); render(); return; }
+    $('#cq-err').hidden = true;
+    if (S.limit === 'copilot429') { setUI('You asked many questions. Try again later.', 'error'); render(); return; }
+    S.question = q;
+    $('#cq').value = q;
+    S.waiting = true;
+    setUI('');
+    go('s18');
+    later(900, () => { S.waiting = false; render(); });
+  }
+
+  // ---- routing ----
+  function redirectFor(id) {
+    if (id === 's05' && cartCount() === 0) return 's04';
+    if (id === 's09' && isCustomer()) return 's11';
+    if (id === 's10' && isCustomer()) return cartCount() ? 's05' : 's11';
+    if ((id === 's11' || id === 's12') && !isCustomer()) return 's10';
+    if (id === 's13' && S.acct === 'owner') return 's14';
+    if (/^s1[4-9]$/.test(id) && S.acct !== 'owner') return 's13';
+    if (id === 's06' && coState() === 'paid') return 's07';
+    return null;
+  }
+  function route() {
+    let id = location.hash.slice(1) || 's01';
+    if (id !== 'unknown' && !(/^s\d\d$/.test(id) && document.getElementById(id))) id = 'unknown';
+    for (let i = 0; i < 3; i++) { const r = redirectFor(id); if (!r) break; id = r; }
+    if (location.hash !== '#' + id) history.replaceState(null, '', '#' + id);
+    const changed = id !== lastId;
+    if (changed) {
+      setUI('');
+      if (lastId === 's04') S.notice = '';
+      if (id !== 's07') S.justPaid = false;
+    }
+    lastId = id;
+    $$('[data-screen]').forEach((sec) => { sec.hidden = sec.id !== id; });
+    $$('[data-nav]').forEach((a) => { if (a.getAttribute('href') === '#' + id) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+    const sec = document.getElementById(id);
+    const key = id + '|' + S.acct;
+    if (changed && S.simload && sec.hasAttribute('data-loadable') && !loadedOnce[key]) {
+      loadedOnce[key] = true;
+      sec.classList.add('is-loading');
+      later(600, () => { sec.classList.remove('is-loading'); render(); });
+    }
+    render();
+    if (changed) {
+      const heading = sec.querySelector('h1');
+      if (heading) heading.focus({ preventScroll: true });
+      window.scrollTo(0, 0);
+      document.title = (heading ? heading.textContent + ' · ' : '') + 'CommerceOS key flow (prototype)';
+      $('#live').textContent = heading ? heading.textContent : '';
+    }
+  }
+  // Navigate, then show a message on the new screen (the message is set after the screen change clears old messages)
+  function go(id, msg = '', kind = '') {
+    location.hash = id;
+    route();
+    if (msg) { setUI(msg, kind); render(); }
+  }
+
+  // ---- events ----
+  document.addEventListener('click', (ev) => {
+    const t = ev.target.closest('[data-act], [data-focus], [data-ref]');
+    if (!t) return;
+    if (t.dataset.focus) { S.focus = t.dataset.focus; S.fConflict = false; return; }
+    if (t.dataset.ref) { S.ref = 'own'; return; }
+    switch (t.dataset.act) {
+      case 'skip': { const hd = $('[data-screen]:not([hidden]) h1'); if (hd) hd.focus(); return; }
+      case 'pdp': S.pdp = t.dataset.id; S.pdpAdded = false; return;
+      case 'cat': S.cat = t.dataset.cat; S.q = ''; go('s02'); return;
+      case 'clearq': S.q = ''; break;
+      case 'add': addToCart(t.dataset.id); break;
+      case 'pdpadd': pdpAdd(); return;
+      case 'qty': changeQty(t.dataset.id, Number(t.dataset.d)); break;
+      case 'remove': delete S.cart[t.dataset.id]; setUI(''); break;
+      case 'pay':
+        if (S.status.CO === 'pending_payment') { S.status.CO = 'paid'; S.justPaid = true; go('s07'); }
+        return;
+      case 'trans': transition(t.dataset.to); break;
+      case 'rec': recAction(t.dataset.id, t.dataset.to); break;
+      case 'suggest': askNow(t.dataset.q); return;
+      case 'range': S.range = t.dataset.r; break;
+      case 'dashretry': S.dash = 'data'; break;
+      case 'retry': S.err = 'none'; if (S.dash === 'error') S.dash = 'data'; break;
+      case 'signout': S.acct = 'guest'; go('s01', 'Signed out.'); return;
+      case 'reset':
+        S = DEFAULT(); loadedOnce = {}; lastId = null;
+        go('s01', 'Simulation reset.');
+        return;
+      default: return;
+    }
+    render();
+  });
+  document.addEventListener('input', (ev) => {
+    if (ev.target.id === 'q') { S.q = ev.target.value; render(); }
+    if (ev.target.id === 'cq') render();
+  });
+  document.addEventListener('change', (ev) => {
+    const el = ev.target;
+    const key = el.dataset && el.dataset.ctl;
+    if (!key) return;
+    S[key] = el.type === 'checkbox' ? el.checked : el.value;
+    if (key === 'payment') applyPayment();
+    if (key === 'simload') loadedOnce = {};
+    route();
+  });
+  document.addEventListener('submit', (ev) => {
+    const form = ev.target;
+    if (!form.dataset.form) return;
+    ev.preventDefault();
+    const data = new FormData(form);
+    const field = (name, bad) => { const e = form.querySelector(`[data-err="${name}"]`); if (e) e.hidden = !bad; };
+    const emailOk = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+    const tooMany = () => { setUI('Too many attempts. Try again in a few minutes.', 'error'); render(); };
+    const unavailable = () => { setUI('Sign-in is unavailable. Try again later.', 'error'); render(); };
+    const wrong = () => { setUI('Email or password is incorrect.', 'error'); render(); };
+    switch (form.dataset.form) {
+      case 'checkout': {
+        const name = String(data.get('name') || '').trim();
+        const email = String(data.get('email') || '').trim();
+        const address = String(data.get('address') || '').trim();
+        field('name', !name); field('email', !emailOk(email)); field('address', !address);
+        if (!name || !emailOk(email) || !address) { setUI(''); render(); return; }
+        if (place()) { go('s06'); return; }
+        render();
+        return;
+      }
+      case 'lookup': {
+        const ref = String(data.get('ref') || '').trim();
+        const bad = !/^[A-Z]{2,4}-\d{4,}$/i.test(ref);
+        field('ref', bad);
+        if (bad) { setUI(''); render(); return; }
+        if (S.limit === 'lookup') { setUI('Too many lookups. Try again in a minute.', 'error'); render(); return; }
+        if (ref.toUpperCase() === CO_REF && publicView()) { go('s07'); return; }
+        setUI('No order matches that reference.', 'error');
+        render();
+        return;
+      }
+      case 'signup': {
+        const email = String(data.get('email') || '').trim();
+        const pass = String(data.get('pass') || '');
+        field('email', !emailOk(email)); field('pass', pass.length < 8);
+        if (!emailOk(email) || pass.length < 8) { render(); return; }
+        if (S.limit === 'login') { tooMany(); return; }
+        if (email.toLowerCase() === CUSTOMERS.A) { setUI('We could not create an account with these details.', 'error'); render(); return; }
+        S.acct = 'A';
+        go('s11', 'Account created. You are signed in.');
+        return;
+      }
+      case 'signin': {
+        const email = String(data.get('email') || '').trim().toLowerCase();
+        const pass = String(data.get('pass') || '');
+        field('email', !email); field('pass', !pass);
+        if (!email || !pass) { render(); return; }
+        if (S.limit === 'login') { tooMany(); return; }
+        if (S.login === 'down') { unavailable(); return; }
+        const who = Object.keys(CUSTOMERS).find((k) => CUSTOMERS[k] === email);
+        if (S.login === 'ok' && who) { S.acct = who; go(cartCount() ? 's05' : 's11', 'Signed in.'); return; }
+        wrong();
+        return;
+      }
+      case 'owner': {
+        const email = String(data.get('email') || '').trim().toLowerCase();
+        const pass = String(data.get('pass') || '');
+        field('email', !email); field('pass', !pass);
+        if (!email || !pass) { render(); return; }
+        if (S.limit === 'login') { tooMany(); return; }
+        if (S.login === 'down') { unavailable(); return; }
+        if (S.login === 'ok' && email === OWNER_EMAIL) { S.acct = 'owner'; go('s14', 'Signed in as the owner.'); return; }
+        wrong();
+        return;
+      }
+      case 'range': {
+        const from = $('#rg-from').value;
+        const to = $('#rg-to').value;
+        if (!from || !to || from > to) { S.range = '7'; setUI('Choose a valid range. Showing the last 7 days.', 'error'); render(); return; }
+        S.customFrom = from; S.customTo = to; S.range = 'custom'; setUI('');
+        render();
+        return;
+      }
+      case 'ask': {
+        askNow(String($('#cq').value || '').trim());
+        return;
+      }
+      default: return;
+    }
+  });
+  window.addEventListener('hashchange', route);
+
+  route();
+})();
+</script>
+<noscript><p style="padding:16px">This prototype needs JavaScript to switch screens.</p></noscript>
+</body>
+</html>

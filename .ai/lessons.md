@@ -11,6 +11,8 @@ Keep entries short; put longer write-ups in `.ai/lessons/YYYY-MM-DD-slug.md` and
 
 <!-- Newest first -->
 
+- **2026-10-26 — Browser walk without the provider: drive an installed Chrome over CDP, and start Chrome from the shell**: when the configured browser provider is not installed and the Chrome extension is not connected, a headless Chrome (`--headless=new --remote-debugging-port`) driven by Node 24's built-in `WebSocket` runs a scripted walk with no new packages. Spawning Chrome from a Node script on Windows gave no DevTools port; start it from the shell instead. Report such a walk as a substitute, not as the provider's verification. A scratch profile folder can be left behind when a recursive delete is blocked by the hook; ask the user to remove it.
+
 - **2026-10-25 — Base UI overlays: the page under a modal is hidden, portals miss a div-scoped density, a link trigger gets `role="button"` on the server**:
   - While a Base UI modal dialog is open, everything outside it is inert and `aria-hidden`, so a `role="status"` message rendered on the page is not found by `getByRole` (and not announced). Close the dialog on success (controlled `open`, or the redirect/refresh of the server action) before reporting on the page.
   - Overlays portal into `<body>`, outside a `div[data-density]`. `:root:has([data-density="admin"])` gives the whole admin document the scale, but it outranks a later `:root` rule, so every `@media` override block must list it again.
