@@ -1,0 +1,842 @@
+[
+  {
+    "name": "AccountHeaderLink",
+    "file": "packages\\app\\src\\components\\account\\account-header-link.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "AccountOrderDetailView",
+    "file": "packages\\app\\src\\components\\account\\account-order-detail-view.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "AccountOrderHint",
+    "file": "packages\\app\\src\\components\\account\\account-order-not-found.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "AccountOrderNotFound",
+    "file": "packages\\app\\src\\components\\account\\account-order-not-found.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "AccountOrdersView",
+    "file": "packages\\app\\src\\components\\account\\account-orders-view.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "AddToCart",
+    "file": "packages\\app\\src\\components\\cart\\add-to-cart.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "AddToCartView",
+    "file": "packages\\app\\src\\components\\cart\\add-to-cart-view.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "Alert",
+    "file": "packages\\app\\src\\components\\ui\\alert.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "AlertDescription",
+    "file": "packages\\app\\src\\components\\ui\\alert.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "AlertDialog",
+    "file": "packages\\app\\src\\components\\ui\\alert-dialog.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "AlertDialogAction",
+    "file": "packages\\app\\src\\components\\ui\\alert-dialog.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "AlertDialogCancel",
+    "file": "packages\\app\\src\\components\\ui\\alert-dialog.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "AlertDialogContent",
+    "file": "packages\\app\\src\\components\\ui\\alert-dialog.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "AlertDialogDescription",
+    "file": "packages\\app\\src\\components\\ui\\alert-dialog.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "AlertDialogFooter",
+    "file": "packages\\app\\src\\components\\ui\\alert-dialog.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "AlertDialogHeader",
+    "file": "packages\\app\\src\\components\\ui\\alert-dialog.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "AlertDialogTitle",
+    "file": "packages\\app\\src\\components\\ui\\alert-dialog.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "AlertDialogTrigger",
+    "file": "packages\\app\\src\\components\\ui\\alert-dialog.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "AlertTitle",
+    "file": "packages\\app\\src\\components\\ui\\alert.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "AvailabilityBadge",
+    "file": "packages\\app\\src\\components\\catalog\\availability-badge.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "Badge",
+    "file": "packages\\app\\src\\components\\ui\\badge.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "Button",
+    "file": "packages\\app\\src\\components\\ui\\button.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "Card",
+    "file": "packages\\app\\src\\components\\ui\\card.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "CardAction",
+    "file": "packages\\app\\src\\components\\ui\\card.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "CardContent",
+    "file": "packages\\app\\src\\components\\ui\\card.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "CardDescription",
+    "file": "packages\\app\\src\\components\\ui\\card.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "CardFooter",
+    "file": "packages\\app\\src\\components\\ui\\card.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "CardHeader",
+    "file": "packages\\app\\src\\components\\ui\\card.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "CardTitle",
+    "file": "packages\\app\\src\\components\\ui\\card.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "CartChanges",
+    "file": "packages\\app\\src\\components\\cart\\cart-changes.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "CartDrawer",
+    "file": "packages\\app\\src\\components\\cart\\cart-drawer.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "CartDrawerLine",
+    "file": "packages\\app\\src\\components\\cart\\cart-drawer-line.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "CartDrawerLineView",
+    "file": "packages\\app\\src\\components\\cart\\cart-drawer-line-view.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "CartDrawerProvider",
+    "file": "packages\\app\\src\\components\\cart\\cart-drawer-context.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "CartDrawerView",
+    "file": "packages\\app\\src\\components\\cart\\cart-drawer-view.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "CartLineItem",
+    "file": "packages\\app\\src\\components\\cart\\cart-line-item.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "CartLineView",
+    "file": "packages\\app\\src\\components\\cart\\cart-line-view.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "CartLink",
+    "file": "packages\\app\\src\\components\\cart\\cart-link.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "CartSummary",
+    "file": "packages\\app\\src\\components\\cart\\cart-summary.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "CatalogResults",
+    "file": "packages\\app\\src\\components\\catalog\\catalog-results.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "CatalogSearchForm",
+    "file": "packages\\app\\src\\components\\catalog\\catalog-search-form.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "CategoryForm",
+    "file": "packages\\app\\src\\components\\admin\\categories\\category-form.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "CategoryFormView",
+    "file": "packages\\app\\src\\components\\admin\\categories\\category-form-view.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "CategoryNav",
+    "file": "packages\\app\\src\\components\\catalog\\category-nav.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "Checkbox",
+    "file": "packages\\app\\src\\components\\ui\\checkbox.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "CheckoutForm",
+    "file": "packages\\app\\src\\components\\checkout\\checkout-form.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "CheckoutFormView",
+    "file": "packages\\app\\src\\components\\checkout\\checkout-form-view.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "CopilotAnswerView",
+    "file": "packages\\app\\src\\components\\admin\\copilot\\copilot-answer-view.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "CopilotPanel",
+    "file": "packages\\app\\src\\components\\admin\\copilot\\copilot-panel.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "CopilotPanelView",
+    "file": "packages\\app\\src\\components\\admin\\copilot\\copilot-panel-view.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "CustomerAuthCard",
+    "file": "packages\\app\\src\\components\\account\\customer-auth-card.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "CustomerAuthCardSkeleton",
+    "file": "packages\\app\\src\\components\\account\\customer-auth-card.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "DashboardView",
+    "file": "packages\\app\\src\\components\\admin\\dashboard\\dashboard-view.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "DeleteCategoryForm",
+    "file": "packages\\app\\src\\components\\admin\\categories\\delete-category-form.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "DeleteCategoryView",
+    "file": "packages\\app\\src\\components\\admin\\categories\\delete-category-view.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "DemoBadge",
+    "file": "packages\\app\\src\\components\\admin\\orders\\order-badges.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "DescriptionDraftPanel",
+    "file": "packages\\app\\src\\components\\admin\\products\\description-draft-panel.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "DescriptionDraftPanelView",
+    "file": "packages\\app\\src\\components\\admin\\products\\description-draft-panel-view.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "Dialog",
+    "file": "packages\\app\\src\\components\\ui\\dialog.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "DialogBody",
+    "file": "packages\\app\\src\\components\\ui\\dialog.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "DialogClose",
+    "file": "packages\\app\\src\\components\\ui\\dialog.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "DialogContent",
+    "file": "packages\\app\\src\\components\\ui\\dialog.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "DialogDescription",
+    "file": "packages\\app\\src\\components\\ui\\dialog.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "DialogFooter",
+    "file": "packages\\app\\src\\components\\ui\\dialog.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "DialogHeader",
+    "file": "packages\\app\\src\\components\\ui\\dialog.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "DialogTitle",
+    "file": "packages\\app\\src\\components\\ui\\dialog.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "DialogTrigger",
+    "file": "packages\\app\\src\\components\\ui\\dialog.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "Disclosure",
+    "file": "packages\\app\\src\\components\\ui\\disclosure.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "DisclosureContent",
+    "file": "packages\\app\\src\\components\\ui\\disclosure.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "DisclosureTrigger",
+    "file": "packages\\app\\src\\components\\ui\\disclosure.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "DoDont",
+    "file": "packages\\app\\stories\\primitives\\blocks\\do-dont.tsx",
+    "root": "packages/app/stories/primitives"
+  },
+  {
+    "name": "Drawer",
+    "file": "packages\\app\\src\\components\\ui\\drawer.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "DrawerBody",
+    "file": "packages\\app\\src\\components\\ui\\drawer.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "DrawerClose",
+    "file": "packages\\app\\src\\components\\ui\\drawer.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "DrawerContent",
+    "file": "packages\\app\\src\\components\\ui\\drawer.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "DrawerDescription",
+    "file": "packages\\app\\src\\components\\ui\\drawer.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "DrawerFooter",
+    "file": "packages\\app\\src\\components\\ui\\drawer.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "DrawerHeader",
+    "file": "packages\\app\\src\\components\\ui\\drawer.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "DrawerTitle",
+    "file": "packages\\app\\src\\components\\ui\\drawer.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "DrawerTrigger",
+    "file": "packages\\app\\src\\components\\ui\\drawer.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "Empty",
+    "file": "packages\\app\\src\\components\\ui\\empty.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "EmptyContent",
+    "file": "packages\\app\\src\\components\\ui\\empty.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "EmptyDescription",
+    "file": "packages\\app\\src\\components\\ui\\empty.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "EmptyHeader",
+    "file": "packages\\app\\src\\components\\ui\\empty.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "EmptyTitle",
+    "file": "packages\\app\\src\\components\\ui\\empty.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "ErrorState",
+    "file": "packages\\app\\src\\components\\ui\\error-state.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "FeaturedBadge",
+    "file": "packages\\app\\src\\components\\admin\\products\\product-badges.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "FeaturedSlider",
+    "file": "packages\\app\\src\\components\\storefront\\featured-products.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "FeaturedTabs",
+    "file": "packages\\app\\src\\components\\storefront\\featured-products.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "Field",
+    "file": "packages\\app\\src\\components\\ui\\field.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "FieldContent",
+    "file": "packages\\app\\src\\components\\ui\\field.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "FieldDescription",
+    "file": "packages\\app\\src\\components\\ui\\field.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "FieldError",
+    "file": "packages\\app\\src\\components\\ui\\field.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "FieldGroup",
+    "file": "packages\\app\\src\\components\\ui\\field.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "FieldLabel",
+    "file": "packages\\app\\src\\components\\ui\\field.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "FieldLegend",
+    "file": "packages\\app\\src\\components\\ui\\field.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "FieldSet",
+    "file": "packages\\app\\src\\components\\ui\\field.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "FooterCategoryLinks",
+    "file": "packages\\app\\src\\components\\storefront\\site-footer.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "FormMessage",
+    "file": "packages\\app\\src\\components\\admin\\form-feedback.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "HeaderMenu",
+    "file": "packages\\app\\src\\components\\storefront\\header-menu.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "HeaderSearch",
+    "file": "packages\\app\\src\\components\\storefront\\header-search.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "ImagePreview",
+    "file": "packages\\app\\src\\components\\admin\\products\\image-preview.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "ImagePreviewView",
+    "file": "packages\\app\\src\\components\\admin\\products\\image-preview-view.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "Input",
+    "file": "packages\\app\\src\\components\\ui\\input.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "Label",
+    "file": "packages\\app\\src\\components\\ui\\label.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "LookupForm",
+    "file": "packages\\app\\src\\components\\checkout\\order-forms.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "LookupFormView",
+    "file": "packages\\app\\src\\components\\checkout\\order-forms-view.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "Narrow",
+    "file": "packages\\app\\stories\\primitives\\blocks\\state-grid.tsx",
+    "root": "packages/app/stories/primitives"
+  },
+  {
+    "name": "NativeSelect",
+    "file": "packages\\app\\src\\components\\ui\\native-select.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "NativeSelectOptGroup",
+    "file": "packages\\app\\src\\components\\ui\\native-select.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "NativeSelectOption",
+    "file": "packages\\app\\src\\components\\ui\\native-select.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "NavigationMenu",
+    "file": "packages\\app\\src\\components\\ui\\navigation-menu.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "NavigationMenuContent",
+    "file": "packages\\app\\src\\components\\ui\\navigation-menu.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "NavigationMenuGrid",
+    "file": "packages\\app\\src\\components\\ui\\navigation-menu.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "NavigationMenuItem",
+    "file": "packages\\app\\src\\components\\ui\\navigation-menu.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "NavigationMenuLink",
+    "file": "packages\\app\\src\\components\\ui\\navigation-menu.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "NavigationMenuList",
+    "file": "packages\\app\\src\\components\\ui\\navigation-menu.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "NavigationMenuTrigger",
+    "file": "packages\\app\\src\\components\\ui\\navigation-menu.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "OrderDetails",
+    "file": "packages\\app\\src\\components\\checkout\\order-details.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "OrderOriginBadge",
+    "file": "packages\\app\\src\\components\\admin\\orders\\order-badges.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "OrderStatusBadge",
+    "file": "packages\\app\\src\\components\\checkout\\order-forms-view.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "OrderStatusForm",
+    "file": "packages\\app\\src\\components\\admin\\orders\\order-status-form.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "OrderStatusFormView",
+    "file": "packages\\app\\src\\components\\admin\\orders\\order-status-form-view.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "OrderSummary",
+    "file": "packages\\app\\src\\components\\checkout\\order-summary.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "PayForm",
+    "file": "packages\\app\\src\\components\\checkout\\order-forms.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "PayFormView",
+    "file": "packages\\app\\src\\components\\checkout\\order-forms-view.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "PaymentTestNote",
+    "file": "packages\\app\\src\\components\\checkout\\order-forms-view.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "ProductCard",
+    "file": "packages\\app\\src\\components\\catalog\\product-card.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "ProductForm",
+    "file": "packages\\app\\src\\components\\admin\\products\\product-form.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "ProductFormView",
+    "file": "packages\\app\\src\\components\\admin\\products\\product-form-view.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "ProductImage",
+    "file": "packages\\app\\src\\components\\catalog\\product-image.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "ProductImportForm",
+    "file": "packages\\app\\src\\components\\admin\\products\\product-import-form.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "ProductImportView",
+    "file": "packages\\app\\src\\components\\admin\\products\\product-import-view.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "PublishControl",
+    "file": "packages\\app\\src\\components\\admin\\products\\publish-control.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "PublishControlView",
+    "file": "packages\\app\\src\\components\\admin\\products\\publish-control-view.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "RadioGroup",
+    "file": "packages\\app\\src\\components\\ui\\radio-group.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "RadioGroupItem",
+    "file": "packages\\app\\src\\components\\ui\\radio-group.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "RecommendationCardView",
+    "file": "packages\\app\\src\\components\\admin\\copilot\\copilot-answer-view.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "RecommendationStatusesContext",
+    "file": "packages\\app\\src\\components\\admin\\copilot\\recommendation-statuses.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "RecommendationStatusesProvider",
+    "file": "packages\\app\\src\\components\\admin\\copilot\\recommendation-statuses.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "RecommendationStatusForm",
+    "file": "packages\\app\\src\\components\\admin\\copilot\\recommendation-status-form.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "RecommendationStatusFormView",
+    "file": "packages\\app\\src\\components\\admin\\copilot\\recommendation-status-form-view.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "RedirectNotice",
+    "file": "packages\\app\\src\\components\\admin\\redirect-notice.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "SavedRecommendationsView",
+    "file": "packages\\app\\src\\components\\admin\\copilot\\saved-recommendations-view.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "SiteFooter",
+    "file": "packages\\app\\src\\components\\storefront\\site-footer.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "Skeleton",
+    "file": "packages\\app\\src\\components\\ui\\skeleton.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "SkeletonGroup",
+    "file": "packages\\app\\src\\components\\ui\\skeleton.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "StateGrid",
+    "file": "packages\\app\\stories\\primitives\\blocks\\state-grid.tsx",
+    "root": "packages/app/stories/primitives"
+  },
+  {
+    "name": "StockPanel",
+    "file": "packages\\app\\src\\components\\admin\\products\\stock-panel.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "StockPanelView",
+    "file": "packages\\app\\src\\components\\admin\\products\\stock-panel-view.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "StoreAvailabilityBadge",
+    "file": "packages\\app\\src\\components\\admin\\products\\product-badges.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "Table",
+    "file": "packages\\app\\src\\components\\ui\\table.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "TableBody",
+    "file": "packages\\app\\src\\components\\ui\\table.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "TableCaption",
+    "file": "packages\\app\\src\\components\\ui\\table.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "TableCell",
+    "file": "packages\\app\\src\\components\\ui\\table.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "TableFooter",
+    "file": "packages\\app\\src\\components\\ui\\table.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "TableHead",
+    "file": "packages\\app\\src\\components\\ui\\table.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "TableHeader",
+    "file": "packages\\app\\src\\components\\ui\\table.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "TableRow",
+    "file": "packages\\app\\src\\components\\ui\\table.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "Tabs",
+    "file": "packages\\app\\src\\components\\ui\\tabs.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "TabsContent",
+    "file": "packages\\app\\src\\components\\ui\\tabs.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "TabsList",
+    "file": "packages\\app\\src\\components\\ui\\tabs.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "TabsNav",
+    "file": "packages\\app\\src\\components\\ui\\tabs.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "TabsNavLink",
+    "file": "packages\\app\\src\\components\\ui\\tabs.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "TabsTrigger",
+    "file": "packages\\app\\src\\components\\ui\\tabs.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "Textarea",
+    "file": "packages\\app\\src\\components\\ui\\textarea.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "TextLink",
+    "file": "packages\\app\\src\\components\\ui\\text-link.tsx",
+    "root": "packages/app/src/components"
+  },
+  {
+    "name": "ThemeToggle",
+    "file": "packages\\app\\src\\components\\theme\\theme-toggle.tsx",
+    "root": "packages/app/src/components"
+  }
+]

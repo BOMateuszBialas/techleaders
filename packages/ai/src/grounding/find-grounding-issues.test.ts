@@ -305,7 +305,13 @@ describe("findGroundingIssues: numbers", () => {
         { productId: "x", name: "Strike 65 Keyboard", units: 2, revenueMinor: 10 },
       ]),
       lowStock: lowStock([
-        { id: "x", name: "Strike 65 Keyboard", sku: "DEMO-KEY-065", stockQuantity: 1 },
+        {
+          id: "x",
+          slug: "strike-65-keyboard",
+          name: "Strike 65 Keyboard",
+          sku: "DEMO-KEY-065",
+          stockQuantity: 1,
+        },
       ]),
     });
     const issues = findGroundingIssues(

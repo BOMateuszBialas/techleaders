@@ -10,6 +10,13 @@ export type CatalogCategoryRecord = {
   description: string | null;
 };
 
+/** A category with how many published products it holds (0 when none). */
+export type CatalogCategoryCountRecord = {
+  slug: string;
+  name: string;
+  productCount: number;
+};
+
 /** A product as stored, with its category (null when it has none). */
 export type CatalogProductRecord = {
   id: string;
@@ -62,4 +69,6 @@ export interface CatalogReadPort {
    * shopper may buy.
    */
   findProductsByIds(ids: readonly string[]): Promise<CatalogProductRecord[]>;
+  /** Every category with its number of published products, sorted by name (0 when none). */
+  countPublishedProductsByCategory(): Promise<CatalogCategoryCountRecord[]>;
 }
