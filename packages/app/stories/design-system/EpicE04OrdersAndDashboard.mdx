@@ -1,0 +1,76 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Design system/Epics/E04 Orders and dashboard" />
+
+# Epic E04: Orders and dashboard for the owner
+
+Backlog epic E04 (issue #11): stories E04-S01 (list orders, open one, move it through the status workflow), E04-S02 (a dashboard of real metrics with visible definitions), E04-S03 (a populated, clearly labelled demo store on first run). The owner reads tables and figures here, so the rules are density, neutral color, and definitions on the page.
+
+## Flow
+
+1. The owner opens the dashboard (`/admin`) and reads the metrics for a period: 7 days, 30 days, or a custom range of whole days.
+2. Each metric shows its definition as visible text (orders spec A8). AOV says "Not enough data" when there are no paid orders.
+3. The owner opens the orders list (`/admin/orders`) and an order (`/admin/orders/[id]`).
+4. The order shows its items (name and price as they were sold), its total and its status.
+5. The owner changes the status only along the workflow. The next states offered are the ones the rules allow; a status with none says "No further status changes."
+6. Cancelling an unpaid order returns its stock. Refunding records the status only: no money moves (demo store).
+7. Demo data is labelled: `DEMO-` order references and `[DEMO]` products. The seed creates no unpaid order (orders spec A15), so the seeded list starts without one.
+
+## Screens and routes
+
+| Route                | Screen          | What is on it today                                                                                                                                                                                                                             | Source files                                                                                           |
+| -------------------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `/admin`             | dashboard       | four metric cards (orders placed, paid orders, revenue from paid orders, average order value), lists for top products and low stock, period links (7 days, 30 days, custom), definitions under each figure, comparison with the previous period | `app/admin/(protected)/page.tsx`, `components/admin/dashboard/dashboard-view.tsx`, `dashboard-copy.ts` |
+| `/admin/orders`      | order list      | table: reference, date, customer, status, total; "No orders yet…" when empty                                                                                                                                                                    | `app/admin/(protected)/orders/page.tsx`, `components/admin/orders/order-badges.tsx`, `order-copy.ts`   |
+| `/admin/orders/[id]` | order detail    | items with snapshot prices, totals, status badge, status form ("Change status")                                                                                                                                                                 | `orders/[id]/page.tsx`, `components/admin/orders/order-status-form.tsx`, `order-status-form-view.tsx`  |
+| `/admin` (no data)   | dashboard empty | "No orders in this period…", "No paid orders in this period.", "No published product is at or below N in stock."                                                                                                                                | `dashboard-copy.ts`                                                                                    |
+
+## Statuses and the workflow
+
+| Status            | Label            | Badge variant (target, tokeny P2)                              | Next states the rules allow |
+| ----------------- | ---------------- | -------------------------------------------------------------- | --------------------------- |
+| `pending_payment` | Awaiting payment | the warning badge (P2)                                         | cancelled                   |
+| `paid`            | Paid             | success (P2); set only by the payment flow, never by the owner | processing, refunded        |
+| `processing`      | Processing       | secondary (P2)                                                 | shipped, refunded           |
+| `shipped`         | Shipped          | outline with strong text (P2)                                  | refunded                    |
+| `cancelled`       | Cancelled        | destructive surface (P2)                                       | none                        |
+| `refunded`        | Refunded         | outline (P2)                                                   | none                        |
+
+Source for the table: `ORDER_TRANSITIONS` in `packages/core/src/domain/orders/order-status.ts`, the status labels in the same module, and the badge mapping of tokeny P2. Today `paid` and `processing` share one badge variant, so only the text tells them apart (audit).
+
+## States
+
+| State                   | Today                                                                            | Copy                                                                                                          | Target after the retrofit                                                        |
+| ----------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| dashboard loading       | "Loading…" text in the metric area; the admin error page on failure              | `Loading…`                                                                                                    | `Skeleton` in one `SkeletonGroup` with a label (B3.16–B3.19, audit)              |
+| no orders in the period | message under the metric row                                                     | "No orders in this period. Orders appear here after a checkout; to load the demo store, run npm run db:seed." | `Empty` with the next step (B3.23); the seed hint is **P** (see Content)         |
+| no paid orders          | "No paid orders in this period." in the top products card                        | `EMPTY_TOP_PRODUCTS`                                                                                          | `Empty` inside the card                                                          |
+| nothing low in stock    | "No published product is at or below N in stock."                                | `EMPTY_LOW_STOCK`                                                                                             | `Empty` inside the card                                                          |
+| AOV without paid orders | "Not enough data"                                                                | `dashboard-copy.ts`                                                                                           | the same text, in the figure's place                                             |
+| comparison              | "Up 3 from 0 (no % change: the previous period had none)"; "No change from 12"   | `changeText`                                                                                                  | the same; never a percentage when there is no base                               |
+| range error             | the preset period is shown with the message "Showing the preset period instead." | `dashboard-view.tsx`                                                                                          | `FieldError` on the date fields, `Alert` `warning` for the fallback              |
+| no orders in the list   | "No orders yet. Orders appear here after a checkout…"                            | `order-copy.ts`                                                                                               | `Empty`                                                                          |
+| status change saved     | `Order marked as {status}.`                                                      | `order-copy.ts`                                                                                               | `Alert` `success` with `role="status"` (B2.18)                                   |
+| status change refused   | the server's message                                                             | `order-copy.ts`                                                                                               | `Alert` `destructive` with `role="alert"`                                        |
+| cancel or refund        | a required checkbox with its confirmation text, then the button                  | `order-copy.ts`                                                                                               | `AlertDialog` with the order reference in the title; "Cancel" first (batch 4 Q5) |
+
+## Rules this epic follows
+
+- Metric definitions are visible text next to each figure, never behind a hover (orders spec A8, batch 4 Q2). The Copilot uses the same definitions (AGENTS.md metric rule).
+- The admin never shows the purchase red. Status badges use text and their variant; the main button is graphite (tokeny §7 rule 4, P2).
+- Numbers are right-aligned with tabular figures; a table cell does not wrap a number (tokeny §3, B3.5).
+- The dashboard shows order and stock metrics; the demo traffic figures belong to the Copilot and are labelled "(demo)" (orders spec A12).
+- Refund and cancel move no money: the refund is a status record only, and the cancel restocks a pending order in one transaction (AGENTS.md).
+
+## Retrofit (lesson 08)
+
+1. `Card` for each metric, the definition printed under it, `Skeleton` in one labelled group.
+2. `TabsNav` with `TabsNavLink` for the period, so the links keep working without JavaScript (batch 3 Q1).
+3. `Table` for the orders list with the status as `Badge` text and the totals right-aligned.
+4. `AlertDialog` for cancel and refund instead of the checkbox (batch 4 Q5); the hidden `confirm=yes` field stays.
+5. `Empty` for the empty states with the next step; `Alert` for the range fallback and the status results.
+
+## P items on this page
+
+- The status-to-badge mapping comes from tokeny P2, which the owner accepted; no new P item.
+- The seed hint on the empty orders list is P11 on the What is missing page.

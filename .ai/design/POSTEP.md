@@ -10,10 +10,10 @@
 |---|---|---|
 | 0. Inwentaryzacja i plan | **zakończony** 2026-10-24 | ten plik, spec |
 | 1. Fundamenty | **zmergowany** (PR #99); pełna bramka zielona | log `.ai/runs/2026-10-24-design-system-stage-1.md` |
-| 2. Komponenty bazowe | **w toku:** partie 1–3 zmergowane (PR #104, #106, #107); partia 4 (Dialog, Alert dialog, Navigation menu / megamenu) zaimplementowana 2026-10-25, PR do review właściciela (gałąź `design/stage-2-batch-4`) | sekcje „Etap 2, partia 1”–„Etap 2, partia 4” niżej; logi `.ai/runs/2026-10-24-design-system-stage-2-batch-1.md`, `.ai/runs/2026-10-24-design-system-stage-2-batch-2.md`, `.ai/runs/2026-10-25-design-system-stage-2-batch-3.md`, `.ai/runs/2026-10-25-design-system-stage-2-batch-4.md` |
+| 2. Komponenty bazowe | **zmergowany:** partie 1–4 (PR #104, #106, #107, #108) | sekcje „Etap 2, partia 1”–„Etap 2, partia 4” niżej; logi `.ai/runs/2026-10-24-design-system-stage-2-batch-1.md`, `.ai/runs/2026-10-24-design-system-stage-2-batch-2.md`, `.ai/runs/2026-10-25-design-system-stage-2-batch-3.md`, `.ai/runs/2026-10-25-design-system-stage-2-batch-4.md` |
 | 3. Komponenty produktu, wzorce, ekrany | przeniesiony do lekcji 08 (retrofit) | osobny spec |
-| 4. Strony, które uczą + `docs/design-system.md` | nie rozpoczęty | – |
-| 5. Sprawdzenie i raport | nie rozpoczęty | – |
+| 4. Strony, które uczą + `docs/design-system.md` | **zrobiony w PR** (gałąź `design/stage-4-teaching-pages`, nie zmergowany) | sekcja „Etap 4” niżej, wynik 2026-10-26 |
+| 5. Sprawdzenie i raport | **zrobiony w tym samym PR** (bramka, Storybook, przegląd 320 / 768 / 1440 px, liczby) | sekcja „Etap 5” niżej; test agentem przygotowany w `.ai/design/test-agentem.md`, nie wykonany |
 
 ## Decyzje zatwierdzone przez właściciela
 
@@ -631,6 +631,67 @@ Usunięcia z bazy (B4.31): `NavigationMenuIndicator`, podmenu zagnieżdżone, an
   - a11y: Base UI wstawia przy otwartym megamenu dwa 1 px elementy-strażniki fokusu (`aria-hidden`, `tabindex=0`), które axe zgłasza jako `aria-hidden-focus`; stories Navigation menu wyłączają je z analizy (`a11y.context.exclude: [data-base-ui-focus-guard]`, powód w komentarzu). Reszta strony, panel i linki są sprawdzane. Dialogi tego nie potrzebowały.
   - B4.23: kolumna linku ma stałą szerokość `w-60` (240 px), panel `w-max max-w-3xl`, więc szerokość wynika z liczby kolumn bez wartości arbitralnych.
 
+## Etap 4: strony, które uczą (plan, 2026-10-25)
+
+Zakres zatwierdzony w specu (wiersz „etap 4” w „Fazy”): strony Storybooka w grupie „Design system”, plik dla agentów i wiersz w AGENTS.md. Treść po angielsku (A14), każda reguła ze źródłem (ID z tego pliku, `tokeny.md`, `referencje.md`, audytu, specu albo WCAG / WAI-ARIA); reguła bez źródła jest oznaczona jako propozycja (**P**) i trafia do listy P niżej. Bez nowych komponentów, wariantów i zależności. Etap 3 jest w lekcji 08, więc strony epików opisują dzisiejsze ekrany i pliki aplikacji, a nie stories komponentów produktu.
+
+| # | Strona (plik w `packages/app/stories/design-system/`) | Jedna linia: co zawiera |
+|---|---|---|
+| 1 | Start here (`StartHere.mdx`) | charakter w 3 zdaniach i słowa charakteru, 5 kroków budowy ekranu, tabela wszystkich 21 komponentów: nazwa, import, kiedy, kiedy nie |
+| 2 | Components (`Components.mdx` + `components.stories.tsx`) | katalog z małym działającym podglądem prawdziwego komponentu, grupą, jednym zdaniem i linkiem; podgląd to story, więc ma test a11y w obu motywach |
+| 3 | How to choose (`HowToChoose.mdx`) | tabele „if… use…” z przykładem z CommerceOS dla 9 par z promptu; brakujące komponenty odsyłają do „What is missing” |
+| 4 | Usage and accessibility (`UsageAndAccessibility.mdx`) | klawiatura i fokus, formularze i komunikaty, kolor, ruch, treść, układ 320 / 768 / 1440, reguły produktu pilnowane przez UI; każda ze źródłem |
+| 5 | Content (`Content.mdx`) | ton (R03.3, K5) z 3 zdaniami, które produkt mówi, i 3, których nie mówi; przyciski, błędy, puste stany; formaty dat, godzin, walut i liczb z kodu (`formatMoney`, `formatOrderDateTime`) |
+| 6 | What to avoid (`WhatToAvoid.mdx`) | 3 części (antywzorce A01 i audytu, generyczny wygląd AI, błędy implementacji); przy każdym punkcie: jak rozpoznać w kodzie, dlaczego, czym zastąpić |
+| 7 | What is missing (`WhatIsMissing.mdx`) | co jest gotowe, pokrycie backlogu (pozycja, komponent lub ekran, stan, priorytet) i komponenty spoza systemu z powodem: Menu akcji, Popover, Drawer, Tooltip, Toast, Avatar, Switch, Base UI Select, checkbox nieokreślony, przełącznik segmentowy, accordion, wybór wierszy, spinner |
+| 8 | Contributing (`Contributing.mdx`) | kiedy komponent (ta sama potrzeba w ≥ 2 miejscach), kiedy wariant, kiedy nic; 13 sekcji dokumentacji; zmiana tokenu (kontrast, `verify-css.mjs`); kto zatwierdza; komendy |
+| 9 | Epic E01 Catalog (`EpicE01Catalog.mdx`) | kroki przepływu, ekrany i trasy, stany, pliki źródłowe, praca w retroficie |
+| 10 | Epic E02 Cart and checkout | jw. |
+| 11 | Epic E03 Owner catalog | jw. |
+| 12 | Epic E04 Orders and dashboard | jw. |
+| 13 | Epic E05 Copilot | jw. |
+| 14 | Epic E07 Customer accounts (**P**, drzewo z etapu 0 kończy się na E05) | jw. |
+| – | `docs/design-system.md` | skrót dla agentów: charakter, tabela komponentów (import, kiedy, kiedy nie), tokeny znaczeniowe, gęstość, motywy, a11y, „if… use…”, czego unikać, jak dodać komponent, gdzie jest dokumentacja, komendy |
+| – | AGENTS.md „Task routing” | jeden wiersz „UI screens and design system” wskazujący `docs/design-system.md` (zmiana addytywna) |
+
+Etap 5 w tym samym PR: build Storybooka, typecheck, lint, `check:tokens` (każde znalezisko z plikiem i linią), a11y wszystkich stories w obu motywach, przegląd stron w przeglądarce przy 320 / 768 / 1440 px w obu motywach, liczby (strony, komponenty, stories, testy interakcji), raport tutaj i przygotowany (nie wykonany) test agentem w `.ai/design/test-agentem.md`.
+
+## Etap 4: wynik (2026-10-26)
+
+- **Strony (14 w grupie „Design system”):** Start here, Components (katalog: 21 kafli, każdy z podglądem prawdziwego komponentu i linkiem do strony), How to choose (9 tabel „if… use…” z przykładami z CommerceOS), Usage and accessibility, Content, What to avoid (A01, ogólny wygląd z audytu, błędy implementacji), What is missing (gotowe, pokrycie backlogu, komponenty spoza systemu z powodem, **lista P**: 23 pozycje), Contributing (kiedy komponent / wariant / nic; 13 sekcji; zmiana tokenu; kto zatwierdza; komendy), sześć stron epików: E01 Catalog, E02 Cart and checkout, E03 Owner catalog, E04 Orders and dashboard, E05 Copilot, E07 Customer accounts (**P**, poza drzewem etapu 0).
+- **Pliki:** `packages/app/stories/design-system/` (8 MDX, 6 epików, `components.stories.tsx`); `docs/design-system.md`; wiersz „UI screens and design system” w `AGENTS.md` (Task routing, addytywnie); kolejność menu w `.storybook/preview.tsx`; `.storybook/preview.css` (zawijanie komórek tabeli na stronach dokumentacji).
+- **Poprawki stron z partii 1–4 (znalezione przy sprawdzeniu linków):** pięć linków do stron dokumentacji miało złe identyfikatory (`--docs` zamiast `--field`, `--dialog`, `--alertdialog`, `--disclosure`, `--textlink`); `Button.mdx` wskazywał na nieistniejącą stronę Text link. Poprawione w `stories/primitives/*.mdx`.
+- **Zasada źródeł:** każda reguła ma źródło (ID z POSTEP, tokeny, referencje, audyt, spec, WCAG / WAI-ARIA) albo jest oznaczona **P** i ma pozycję na liście P („What is missing”, §4).
+- **Odstępstwa od planu:** (1) przycisk publikacji to przycisk z opisem wyniku, nie checkbox (plan zakładał checkbox; kod wygrywa, pozycja na liście P nie jest potrzebna, bo Switch jest poza systemem); (2) przykład „How these metrics are calculated” zastąpiono etykietą z kodu „How these numbers are defined”; (3) w przykładach „Save product”, „Featured on the home page”, „Continue shopping”, „Back to products” i „catalog category filter (Select)” poprawiono albo usunięto według kodu; (4) strony epików opisują dzisiejsze ekrany, a nie stories; żaden ekran nie używa jeszcze prymitywów (retrofit, lekcja 08).
+
+## Etap 5: wynik (2026-10-26)
+
+Bramka (lokalnie, worktree):
+
+| Sprawdzenie | Wynik |
+| --- | --- |
+| `npm run typecheck` | zielony |
+| `npm run lint` | zielony |
+| `npm run format:check` | zielony |
+| `npm run build-storybook` | zielony (po naprawie nawiasów klamrowych w czterech miejscach MDX, które parser traktował jako wyrażenia JS) |
+| `npm run test:storybook:themes` | 58 plików, 274 testy, zielone; `Catalog` (21 kafli, linki i axe) w obu motywach |
+| `npm run check:tokens` | 25 znalezisk, wszystkie w istniejących plikach aplikacji (nie w nowych stories): 4 wartości arbitralne (`grid-cols-[…]`, w checkout, zamówieniu admina i podsumowaniu zamówienia), 21 klas palety Tailwinda (amber, emerald) w 9 plikach; łącznie 11 plików. Lista z plikiem i linią: wynik komendy; `check:tokens` nie jest jeszcze bramką CI. |
+| `npm run test:coverage`, `npm run test:hooks`, integracja, e2e | nie uruchomione w tej sesji albo bez zmian w kodzie aplikacji (zobacz PR) |
+
+Przegląd w przeglądarce (Playwright z `node_modules`, skrypt poza repo; strony dokumentacji, 14 na szerokość i motyw):
+
+| Szerokość | Motyw | Strony z poziomym przewijaniem | Największe przepełnienie |
+| --- | --- | --- | --- |
+| 1440 px | jasny i ciemny | 0 z 14 | 0 px |
+| 768 px | jasny i ciemny | 5 z 14 | 264 px (What to avoid) |
+| 320 px | jasny i ciemny | 14 z 14 | 712 px (What to avoid) |
+
+Przyczyna: szerokie tabele MDX (pięć kolumn z długimi nazwami) mają minimalną szerokość większą niż ekran; zawijanie komórek to poprawiło na 768 px, na 320 px nie wystarcza. **Nieotwarte:** przeprojektowanie tabel na karty albo węższe kolumny na stronach dokumentacji. Strony nie mają błędów JavaScript. Wizualny przegląd: zrzuty 320 px przejrzane, układ czytelny; reszta oceniona metrykami, nie okiem.
+
+Liczby: 14 stron dokumentacji w „Design system” (8 ogólnych, 6 epików), 21 komponentów w katalogu, 1 story katalogu (w obu motywach), 274 testy Storybooka (58 plików, obie grupy), 23 pozycje na liście P.
+
+Test agentem: przygotowany w `.ai/design/test-agentem.md`, **nie wykonany**.
+
 ## Następny krok
 
-Review PR partii 4 przez właściciela (decyzje megamenu Q8–Q12 do ewentualnego weta) i merge po zielonym CI (risk-high: merguje właściciel); potem etap 4 (strony, które uczą, w tym „What is missing”: Menu akcji, Popover, Drawer, Tooltip, Toast) albo retrofit (lekcja 08: Alert dialog przy kategorii i zamówieniu, megamenu w nagłówku sklepu).
+Review PR etapu 4 i 5 przez właściciela: merge (risk-high, merguje właściciel) po zielonym CI. Najpierw decyzje z listy P (Storybook „What is missing”, §4). Potem retrofit (lekcja 08: Alert dialog przy kategorii i zamówieniu, megamenu w nagłówku sklepu, `ErrorState` i `error.tsx` sklepu, przepięcie formularzy na `Field`) oraz wykonanie testu agentem z `.ai/design/test-agentem.md`. Otwarte: zawijanie szerokich tabel na 320 px w stronach dokumentacji (wynik etapu 5).

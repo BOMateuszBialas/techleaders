@@ -1,0 +1,86 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Design system/Contributing" />
+
+# Contributing
+
+How the system grows, and how a change is checked. The owner approves every change to a token, a component, a variant or a rule (AGENTS.md: scope expansions need the user's approval). An agent proposes; it does not add.
+
+## When to add a component
+
+Add a component only when the same need appears in at least two places (Etap 4 plan). Before that, a screen keeps its own markup with the tokens.
+
+| Situation                                                                                              | Decision                                                                                                               | Source                                            |
+| ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| the same control or layout in two or more screens                                                      | add a component to `packages/app/src/components/ui/` (primitive) or to the product area (product component, lesson 08) | Etap 4 plan                                       |
+| the need appears once                                                                                  | keep it in the screen, with tokens only                                                                                | Etap 4 plan (**P23**: the rule of one screen)     |
+| the component is not in the list in [What is missing](?path=/docs/design-system-what-is-missing--docs) | record the case there first; it is out of the system until the owner says otherwise                                    | What is missing, section 3                        |
+| a new dependency                                                                                       | not without a stated reason; the owner decides                                                                         | AGENTS.md (do not add libraries without a reason) |
+
+Components are added with `npx shadcn@latest add <name>` in `packages/app`, then checked: the diff of the file, the icon library (Tabler only, tokeny §6), and no `dark:` classes (B1.11).
+
+## When to add a variant
+
+A variant is a second look of a component that a screen needs. Add it when the screen cannot be built from an existing variant, and when at least two uses exist or are planned in the epic pages (**P22**: the two-use rule has no owner decision yet).
+
+Remove a variant with no use: batch 1 removed `xs` and `icon-xs` for that reason (B1.17), and batch 2 and 3 removed their unused variants too.
+
+## When to change nothing
+
+Change nothing when the need is one-off, when a screen can use an existing component with its own tokens, or when the change only moves copy. A copy change goes to the `*-copy.ts` file of the screen (Content page).
+
+## What a component page contains
+
+Every primitive has 13 sections, in this order (the template is `Button.mdx`):
+
+1. What it is for
+2. When to use
+3. When not to use
+4. Anatomy
+5. Variants
+6. States
+7. Behavior and accessibility
+8. Content
+9. Responsive
+10. API
+11. Code
+12. Do and don't
+13. Related
+
+Its stories cover the playground, variants and sizes, the state matrix (hover and focus frozen with `data-preview-state`), long content and a narrow screen, and one `play` function for the main behaviour. The accessibility check (axe) runs on every story in both themes; a violation fails the build.
+
+## Changing a token
+
+1. Change the value in `packages/app/src/app/globals.css` (light and `.dark`), and the matching row in `.ai/design/tokeny.md`.
+2. Recount the contrast of every pair with the script in `.ai/design/kontrast/` (`tokens.mjs`, `run.mjs`, `verify-css.mjs`). A pair below its threshold does not ship (tokeny §2).
+3. Update the contrast block of the Foundations pages in Storybook (`token-data.ts`).
+4. Run `npm run check:tokens` and the Storybook checks below.
+
+Source: tokeny §2 (contrast counted by script, not by estimate), rule 19 (every new pair in both themes).
+
+## Who approves
+
+| Change                                                                     | Approver                                          | Source                               |
+| -------------------------------------------------------------------------- | ------------------------------------------------- | ------------------------------------ |
+| a token value, a new token                                                 | owner                                             | tokeny (approval record, 2026-10-24) |
+| a component or a variant                                                   | owner                                             | POSTEP batch decisions (Q lists)     |
+| a rule on a page                                                           | owner, through the P list                         | What is missing, section 4           |
+| a copy change                                                              | owner for a new claim; agent for a fix of wording | Content page                         |
+| agent configuration (`.claude/`, `AGENTS.md` rows owned by the maintainer) | the maintainer (`.github/CODEOWNERS`)             | AGENTS.md                            |
+
+## Commands
+
+Run from the repository root:
+
+```bash
+npm run lint
+npm run format:check
+npm run typecheck
+npm run test:coverage          # unit tests, 100% coverage
+npm run build-storybook        # the design system as a static site
+npm run test:storybook         # stories as tests, axe in the default theme
+npm run test:storybook:themes  # stories in light and dark, axe as errors
+npm run check:tokens           # palette classes, colour literals, arbitrary values, with file and line
+```
+
+A PR that touches the design system runs all of them. The Storybook jobs also run in CI (`storybook` job).

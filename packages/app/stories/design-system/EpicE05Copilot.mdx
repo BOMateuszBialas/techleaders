@@ -1,0 +1,64 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Design system/Epics/E05 Copilot" />
+
+# Epic E05: Commerce Copilot
+
+Backlog epic E05 (issue #12): stories E05-S01 (up to three grounded, prioritised recommendations), E05-S02 (save, dismiss or complete a recommendation, recorded), E05-S03 (an explicit fallback when the AI provider is unavailable), E05-S04 (traffic, funnel and views-without-sales questions from fictional demo data). Copilot advises; the owner decides (AGENTS.md principle 3). Its screens follow the admin rules: neutral cards, priority as text, no AI decoration (tokeny rule 20).
+
+## Flow
+
+1. The owner opens `/admin/copilot`, reads the advisory text ("Copilot suggests; you decide…") and asks a question, or picks a suggested question.
+2. While the answer loads, the status reads "Analysing your store data…".
+3. The answer gives a short summary with its figures, then up to three recommendations. Each has a title, a priority word ("High priority", "Medium priority", "Low priority"), what was observed, the evidence from the store's data, the reasoning, a suggested action and, where it applies, the products it concerns.
+4. The owner saves a recommendation ("Save"), dismisses it ("Dismiss") or marks it done ("Mark completed"). The same card can appear in the answer and under "Your recommendations"; both show the same status.
+5. If the AI provider cannot answer, the owner gets the rule-based insights with the reason, and the page says so. It never shows an invented answer.
+6. Traffic answers carry the tag "Fictional demo data" and say that the figures are demo figures.
+
+## Screens and routes
+
+| Route                  | Screen                       | What is on it today                                                                                                                                                             | Source files                                                                                                     |
+| ---------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `/admin/copilot`       | Copilot page                 | advisory text, question form (`Textarea`, `maxLength` from the server, "Ask"), answer, "Your recommendations"                                                                   | `app/admin/(protected)/copilot/page.tsx`, `components/admin/copilot/copilot-panel.tsx`, `copilot-panel-view.tsx` |
+| answer                 | answer view                  | summary and its figures ("Figures in this summary"), recommendation cards with evidence ("Evidence from this store's data"), native `<details>` "How these numbers are defined" | `copilot-answer-view.tsx`                                                                                        |
+| recommendation actions | status form                  | "Save", "Dismiss", "Mark completed" with a result line                                                                                                                          | `recommendation-status-form.tsx`, `recommendation-status-form-view.tsx`, `recommendation-statuses.tsx`           |
+| saved list             | "Your recommendations"       | saved and open recommendations, with their status                                                                                                                               | `saved-recommendations-view.tsx`                                                                                 |
+| API                    | `/api/admin/copilot/answers` | the answer as data; the page renders it as text, never as HTML                                                                                                                  | `app/api/admin/copilot/answers/route.ts`                                                                         |
+
+## States
+
+| State                      | Today                                                                                                  | Copy                                                            | Target after the retrofit                                                    |
+| -------------------------- | ------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| idle                       | the question form with the advisory text                                                               | `IDLE_COPILOT_STATE`, `ADVISORY_TEXT`                           | the same                                                                     |
+| loading                    | "Analysing your store data…"                                                                           | `PENDING_TEXT`                                                  | `role="status"` text; the button shows its pending state (B1.6)              |
+| answer                     | summary, up to three cards                                                                             | `PRIORITY_TEXT`, `EVIDENCE_CAPTION`, `SUMMARY_EVIDENCE_CAPTION` | `Card`s; evidence as a `Table` (B3.10); details as `Disclosure` (batch 3 Q5) |
+| rule-based fallback        | "Rule-based insights" with the reason, for example "AI is not configured" or "The AI provider is busy" | `RULE_BASED_LABEL`, `FALLBACK_REASON_TEXT`                      | `Alert` `info` (or `warning`), never `ErrorState` (B3.24)                    |
+| provider unavailable       | "Copilot is temporarily unavailable."                                                                  | `UNAVAILABLE_TEXT`                                              | `Alert` `warning` with the fallback beside it                                |
+| rate limited               | "You asked many questions in a short time. Try again in a few minutes."                                | `RATE_LIMITED_TEXT`                                             | `Alert` `warning`                                                            |
+| session ended              | "Your session has ended. Sign in again to ask Copilot."                                                | `SESSION_ENDED_TEXT`                                            | `Alert` `warning` with a sign-in link (`TextLink`)                           |
+| recommendations not loaded | "Your recommendations could not be loaded. Try again in a moment."                                     | `recommendation-copy.ts`                                        | `ErrorState` for the saved list                                              |
+| demo traffic               | "Fictional demo data" tag                                                                              | `DEMO_DATA_TAG`                                                 | `Badge` `demo` with the text                                                 |
+| action saved               | a result line under the buttons                                                                        | `recommendation-copy.ts`                                        | `Alert` `success` with `role="status"` (B2.18)                               |
+
+Copilot text is plain text. Every number comes from a tool result, and the page shows the figures it used under "Figures in this summary" (AGENTS.md Copilot rules).
+
+## Rules this epic follows
+
+- The answer never changes the store: no price, product, refund or order is touched by a recommendation (AGENTS.md principle 3, tokeny rule 20).
+- Priority is a word with a neutral badge, never an AI symbol, a gradient or a purple accent (tokeny rule 20, audit step 2).
+- Actions go only through the allowed transitions (Copilot spec A14); the same card shows the same status everywhere (the answer and the saved list share one status, **P**).
+- A fallback is an information state, not an error: the rule-based insights still work (B3.24).
+- The question field shows its length limit before the owner types past it (**P**: the field uses `maxLength`; a visible counter is not built).
+- Metric definitions come from one source, the same as the dashboard (AGENTS.md metric rule).
+
+## Retrofit (lesson 08)
+
+1. `Textarea` inside `Field`, with a hint for the limit and a `FieldError` when the server refuses the question.
+2. Recommendation cards as `Card` with the priority as `Badge` text; evidence as `Table` with numbers right-aligned.
+3. `Disclosure` for "How these numbers are defined", replacing the native `<details>` (batch 3 Q5).
+4. `Alert` `info` for the fallback, `warning` for rate limits and session end; `ErrorState` only for the saved list.
+5. `SkeletonGroup` with a label for the loading answer, in place of text alone.
+
+## P items on this page
+
+- None new. The fallback reasons are copy from the code and are reviewed with the Copilot spec, not with this page.
