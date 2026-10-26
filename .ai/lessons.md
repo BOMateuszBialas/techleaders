@@ -10,6 +10,7 @@ Long-term memory for LLM agents: an index. Add an entry after fixing a bug, or w
 
 <!-- Newest first -->
 
+- **2026-10-26 — A `.ts` and a `.tsx` with one basename shadow each other on import; the 100% gate needs handler tests without a DOM library** — [details](lessons/2026-10-26-product-gallery-ts-tsx-handlers.md)
 - **2026-10-26 — A new port field reaches every fixture; copy a tracked binary from git, not the shell** — [details](lessons/2026-10-26-port-field-fixtures-binary-copy.md)
 - **2026-10-26 — Git Bash rewrites `ref:path` in `git show`, and Base UI focus is checked after its guards** — [details](lessons/2026-10-26-git-bash-rewrites-ref-path.md)
 - **2026-10-26 — Design-token gate needs a token for every role** — [details](lessons/2026-10-26-design-token-gate-token-per-role.md)
