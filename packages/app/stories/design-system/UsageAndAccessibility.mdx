@@ -76,23 +76,25 @@ Today's screens do not all follow the focus rule: checkout keeps focus on `body`
 
 ## Layout at 320, 768 and 1440 px
 
-| Rule                                                                                                                                                                     | Source                           |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------- |
-| No horizontal page scroll from 320 px. The gutter is 16 px on a phone, 24 px on a tablet and 32 px on a desktop in the store (`px-gutter`); the admin uses 16 and 24 px. | tokeny §3, WCAG 1.4.10           |
-| Spacing follows the relation, not a number: `related` (8 px), `group-item` (16 / 12 px admin), `group` (24 / 16 px), `panel` (24 / 16 px), `section` (64 / 32 px).       | tokeny §3, audit decision 3      |
-| Touch targets are at least 44 px on a phone and 24 px everywhere; below 768 px every control is 44 px tall, in the admin too.                                            | tokeny rule 16, WCAG 2.5.8, B1.2 |
-| The store is spacious (controls 40 / 44 / 48 px), the admin dense (28 / 32 / 36 px); the admin layout sets `data-density="admin"`.                                       | K7, R04.3, tokeny P15, B1.2      |
-| A table that does not fit wraps its text cells; after the retrofit it becomes a list of cards on a phone.                                                                | B3.7, B3.10                      |
-| The megamenu starts at 768 px; below, the store menu is a Disclosure.                                                                                                    | batch 4 Q12, B4.28               |
-| Check every new screen at 320, 768 and 1440 px, in both themes.                                                                                                          | Etap 4 plan (stage 5 checks)     |
+| Rule                                                                                                                                                                                             | Source                                                          |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------- |
+| No horizontal page scroll from 320 px. The gutter is 16 px on a phone, 24 px on a tablet and 32 px on a desktop in the store (`px-gutter`); the admin uses 16 and 24 px.                         | tokeny §3, WCAG 1.4.10                                          |
+| Spacing follows the relation, not a number: `related` (8 px), `group-item` (16 / 12 px admin), `group` (24 / 16 px), `panel` (24 / 16 px), `section` (64 / 32 px).                               | tokeny §3, audit decision 3                                     |
+| Touch targets are at least 44 px on a phone and 24 px everywhere; below 768 px every control is 44 px tall, in the admin too.                                                                    | tokeny rule 16, WCAG 2.5.8, B1.2                                |
+| The store is spacious (controls 40 / 44 / 48 px), the admin dense (28 / 32 / 36 px); the admin layout sets `data-density="admin"`.                                                               | K7, R04.3, tokeny P15, B1.2                                     |
+| A table that does not fit wraps its text cells; after the retrofit it becomes a list of cards on a phone.                                                                                        | B3.7, B3.10                                                     |
+| The megamenu starts at 768 px; below, the store menu is a Disclosure.                                                                                                                            | batch 4 Q12, B4.28                                              |
+| An order confirmation page (E02-S03) reads top to bottom: h1 with the outcome, one status `Badge` with its word, one summary `Card`, one demo `Alert` without a role, at most two actions below. | owner approval 2026-10-26, gap L1 of .ai/design/test-agentem.md |
+| Check every new screen at 320, 768 and 1440 px, in both themes.                                                                                                                                  | Etap 4 plan (stage 5 checks)                                    |
 
 ## Product rules the interface enforces
 
-| Rule                                                                                                                                            | Source                                        |
-| ----------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| AI advises, the merchant decides: Copilot shows recommendations with evidence and actions save, dismiss or complete; it never changes data.     | AGENTS.md principle 3                         |
-| A mock payment is never shown as live: the payment page carries a standing demo notice and the button reads "Confirm demo payment (no charge)". | AGENTS.md principle 6, cart and checkout spec |
-| The admin never shows the red purchase color; the main button is graphite.                                                                      | R04.2, tokeny rule 4                          |
-| Metric definitions are visible text next to the metric, never behind a hover or a disclosure.                                                   | orders spec A8, batch 4 Q2                    |
-| An order that is not yours is "not found", never "forbidden": the same empty page for unknown and foreign orders.                               | customer accounts spec, AGENTS.md (Security)  |
-| Prices, totals and stock on screen come from the server; the cart says "Prices are confirmed at checkout."                                      | AGENTS.md (Security), cart copy               |
+| Rule                                                                                                                                            | Source                                                          |
+| ----------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| AI advises, the merchant decides: Copilot shows recommendations with evidence and actions save, dismiss or complete; it never changes data.     | AGENTS.md principle 3                                           |
+| A mock payment is never shown as live: the payment page carries a standing demo notice and the button reads "Confirm demo payment (no charge)". | AGENTS.md principle 6, cart and checkout spec                   |
+| The admin never shows the red purchase color; the main button is graphite.                                                                      | R04.2, tokeny rule 4                                            |
+| Metric definitions are visible text next to the metric, never behind a hover or a disclosure.                                                   | orders spec A8, batch 4 Q2                                      |
+| An order that is not yours is "not found", never "forbidden": the same empty page for unknown and foreign orders.                               | customer accounts spec, AGENTS.md (Security)                    |
+| Prices, totals and stock on screen come from the server; the cart says "Prices are confirmed at checkout."                                      | AGENTS.md (Security), cart copy                                 |
+| Confirmation pages follow checkout: light body, dark frame header and footer (tokeny §7 rule 18).                                               | owner approval 2026-10-26, gap L4 of .ai/design/test-agentem.md |

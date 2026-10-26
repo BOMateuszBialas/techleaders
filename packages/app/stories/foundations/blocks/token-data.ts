@@ -252,7 +252,7 @@ export const CONTRAST_PAIRS: readonly ContrastPair[] = [
   ["foreground", "popover", "T", "Menu, popover"],
   ["muted-foreground", "background", "T", "Description, caption, placeholder"],
   ["muted-foreground", "card", "T", "Caption in a card"],
-  ["muted-foreground", "surface-product", "T", "“No image”, caption on a product card"],
+  ["muted-foreground", "surface-product", "T", "“No photo yet”, caption on a product card"],
   ["muted-foreground", "muted", "T", "Caption in a table header, skeleton"],
   ["muted-foreground", "accent", "T", "Caption in a hovered row"],
   ["muted-foreground", "popover", "T", "Description in a menu"],

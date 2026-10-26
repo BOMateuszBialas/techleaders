@@ -1,0 +1,3 @@
+# 2026-10-15 — MikroORM 7 exposes the PostgreSQL constraint name; e2e must wait for streamed admin content
+
+MikroORM's `DriverException` copies the `pg` error's own properties, so `error.code` (SQLSTATE, e.g. `23505`) and `error.constraint` (e.g. `categories_slug_unique`) are readable structurally; map them by name (`toCatalogWriteError`) instead of `instanceof` on exception classes. In e2e, admin pages render a static shell first and stream the form inside `<Suspense>`, so `fillLabel`/`clickRole` right after `open()` can miss the form: wait for text that only the streamed part renders. For a client error boundary, pass `retry` directly to `onClick` (no arrow), so a static render covers every function.

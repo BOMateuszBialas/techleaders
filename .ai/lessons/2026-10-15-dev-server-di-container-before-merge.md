@@ -1,0 +1,3 @@
+# 2026-10-15 — Dev server kept a DI container from before the merge
+
+After #34 merged, a `next dev` started earlier showed "The catalog is temporarily unavailable" (`AwilixResolutionError: Could not resolve 'listCatalogCategoriesUseCase'`). The container is cached on `globalThis` to survive hot reloads, so it never saw the new registrations. `container.ts` now stamps the cache with a per-evaluation `Symbol`; a container from an older evaluation is disposed (pools closed) and rebuilt. When a page breaks only on a long-running dev server, suspect module-level or `globalThis` caches before the code.

@@ -11,7 +11,7 @@ Words: bold, concrete. Never: hard to read, overloaded. The store is light insid
 1. Name the screen's job and copy the structure of the same screen type in the epic pages (`Design system/Epics`).
 2. Choose components by what they do (table below), not by how they look.
 3. Use semantic tokens only (`bg-action`, `gap-related`, `rounded-card`, `type-h2`, `h-control-md`). No palette classes, no arbitrary values, no `dark:` in components.
-4. Design the data states: loading (`SkeletonGroup` with a label), empty (why and the next step), error (what happened and what to do), long text at 320 px, demo data labelled `[DEMO]` / `DEMO-`.
+4. Design the data states: loading (`SkeletonGroup` with a label), empty (why and the next step), error (what happened and what to do), long text at 320 px, demo data labelled `[DEMO]` / `DEMO-` (buyer demo orders too, with the demo Alert on their confirmation and order pages). Order confirmation: see Storybook, What is missing, E02-S03. Confirmation pages have the light body and the dark frame header and footer, as checkout does.
 5. Run `npm run check:tokens` and check both themes and both densities (`data-density="admin"` on the admin layout).
 
 ## Components
@@ -20,8 +20,8 @@ Words: bold, concrete. Never: hard to read, overloaded. The store is light insid
 
 | Component | Import | Use when | Do not use when |
 | --- | --- | --- | --- |
-| Button | `Button`, `buttonVariants` (`ui/button`) | an action on this screen; `action` (red) only for a purchase step | navigation (Text link); red in the admin |
-| Text link | `TextLink` (`ui/text-link`) | going to another page; a resource name in a table (`resource`) | an action (Button) |
+| Button | `Button`, `buttonVariants` (`ui/button`) | an action on this screen; `action` (red) only for a purchase step; a navigation step as a link with `buttonVariants` (`default` main, `secondary` supporting) | red in the admin |
+| Text link | `TextLink` (`ui/text-link`) | navigation inside running text; a resource name in a table (`resource`) | an action (Button); a navigation step (`buttonVariants`) |
 | Input | `Input` | one line of text | several lines (Textarea); a choice (Select, Radio group) |
 | Textarea | `Textarea` | several lines | one line (Input) |
 | Label | `Label` | a visible name outside a form layout | inside a form (use `FieldLabel`) |

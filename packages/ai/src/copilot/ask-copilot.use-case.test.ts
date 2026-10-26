@@ -68,7 +68,13 @@ function fakeMetrics(): StoreMetricsPort {
     lowStockProducts: vi.fn(async () => ({
       total: 1,
       rows: [
-        { id: PULSE_ID, name: "Pulse Ultralight Mouse", sku: "DEMO-MOU-002", stockQuantity: 2 },
+        {
+          id: PULSE_ID,
+          slug: "pulse-ultralight-mouse",
+          name: "Pulse Ultralight Mouse",
+          sku: "DEMO-MOU-002",
+          stockQuantity: 2,
+        },
       ],
     })),
     demoOrderCount: vi.fn(async () => 0),
