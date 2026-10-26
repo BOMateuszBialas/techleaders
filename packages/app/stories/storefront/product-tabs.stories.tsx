@@ -37,7 +37,9 @@ export const WithTechnicalData: TabsStory = {
     ],
   },
   play: async ({ canvas, userEvent }) => {
-    await expect(canvas.getByText(DESCRIPTION.split("\n")[0] ?? "")).toBeInTheDocument();
+    await expect(
+      canvas.getByText(/Wireless gaming mouse with a 26,000 DPI sensor\./),
+    ).toBeInTheDocument();
 
     await userEvent.click(canvas.getByRole("tab", { name: "Technical data" }));
     await expect(canvas.getByText("Example values for the demo store.")).toBeInTheDocument();
