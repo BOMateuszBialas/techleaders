@@ -34,3 +34,13 @@
     @slot;
   }
 }
+
+/*
+ * Documentation pages only: MDX tables are wider than a 320 px or 768 px viewport when a cell
+ * holds a long path or a long identifier. Let such text wrap, so the page does not scroll
+ * sideways (the docs pages have no focusable scroll region, which axe would report).
+ */
+.sbdocs table td,
+.sbdocs table th {
+  overflow-wrap: anywhere;
+}

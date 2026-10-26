@@ -64,6 +64,25 @@ const preview: Preview = {
       storySort: {
         order: [
           "Design system",
+          [
+            "Start here",
+            "Components",
+            "How to choose",
+            "Usage and accessibility",
+            "Content",
+            "What to avoid",
+            "What is missing",
+            "Contributing",
+            "Epics",
+            [
+              "E01 Catalog",
+              "E02 Cart and checkout",
+              "E03 Owner catalog",
+              "E04 Orders and dashboard",
+              "E05 Copilot",
+              "E07 Customer accounts",
+            ],
+          ],
           "Foundations",
           [
             "Colors",
