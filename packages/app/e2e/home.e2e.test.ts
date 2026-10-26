@@ -11,7 +11,6 @@ const FEATURED = [
   "Vortex Wireless Mouse",
 ];
 const SLIDER = 'ul[aria-label="Featured products"]';
-const DEMO_NOTICE = "Demo store. Products and prices are fictional; no real orders or payments.";
 
 /** Retries `read` until `done` holds, for content that changes after a client navigation. */
 async function eventually(
@@ -31,7 +30,7 @@ describe("storefront home page (Phase 1b)", () => {
   const browser = useBrowser();
   const baseUrl = inject("baseUrl");
 
-  it("shows the demo banner, the hero, the header menu and the footer", async () => {
+  it("shows the hero, the header menu and the footer, with no demo banner (storefront v2, A1, A2)", async () => {
     await browser().open("/");
     await browser().waitForText("Vortex Wireless Mouse");
 
@@ -50,9 +49,10 @@ describe("storefront home page (Phase 1b)", () => {
     expect(elements).not.toContainEqual({ role: "link", name: "Admin" });
 
     const footer = await browser().text("footer");
-    expect(footer).toContain(DEMO_NOTICE);
-    expect(footer).toContain("A CommerceOS demo store.");
-    expect(await browser().text("body")).toContain(DEMO_NOTICE);
+    expect(footer).toContain("CommerceOS Demo Shop");
+    expect(footer).toContain("Fictional company. No address, tax number or contact.");
+    expect(footer).not.toMatch(/demo store/i);
+    expect(await browser().text("body")).not.toMatch(/demo store/i);
   });
 
   it("goes to the full listing from the hero's “Shop all products”", async () => {

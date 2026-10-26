@@ -128,16 +128,18 @@ describe("description draft copy", () => {
 });
 
 describe("description draft client helpers", () => {
-  it("reads the four fields from the form data, the description as notes", () => {
+  it("reads the four fields from the form data, the description as notes, and the SKU", () => {
     const data = new RealFormData();
     data.append("name", "Mouse");
     data.append("description", "Light.");
+    data.append("sku", "DEMO-MOU-001");
     data.append("price", new Blob(["x"]));
     expect(readDraftFields(data)).toEqual({
       name: "Mouse",
       categoryId: "",
       price: "",
       notes: "Light.",
+      sku: "DEMO-MOU-001",
     });
   });
 
@@ -180,6 +182,7 @@ describe("createDraftPanelAction: draft", () => {
         categoryId: "c-1",
         price: "249.00",
         notes: "[DEMO] 26,000 DPI.",
+        sku: "DEMO-MOU-001",
       }),
     });
   });

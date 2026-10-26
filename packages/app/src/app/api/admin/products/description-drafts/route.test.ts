@@ -89,7 +89,7 @@ describe("POST /api/admin/products/description-drafts", () => {
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ ok: true, data: draft });
     expect(execute).toHaveBeenCalledWith(
-      { name: "Vortex", categoryId: MICE_ID, price: 24990, notes: "26,000 DPI" },
+      { name: "Vortex", categoryId: MICE_ID, price: 24990, notes: "26,000 DPI", sku: "" },
       { id: "u1", email: "owner@example.com", role: "owner" },
     );
     expect(dispose).toHaveBeenCalledOnce();
