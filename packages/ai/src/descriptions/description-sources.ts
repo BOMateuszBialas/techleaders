@@ -8,16 +8,16 @@ export type DescriptionField = (typeof DESCRIPTION_FIELDS)[number];
 /** A5: without a category, the owner's notes need at least this many characters. */
 export const MIN_NOTES_LENGTH = 20;
 
-const DEMO_TOKEN = /\[demo\]\s*/gi;
+/** The machine marker of demo products (storefront v2, OA-3): the SKU, not a text prefix. */
+export const DEMO_SKU_PREFIX = "DEMO-";
 
-/** The text without any `[DEMO]` marker (A12): the server adds the marker itself. */
-export function stripDemoMarker(text: string): string {
-  return text.replace(DEMO_TOKEN, "").trim();
-}
-
-/** A product is demo content when its description (the notes) starts with `[DEMO]` (A12, R07). */
-export function isDemoNotes(notes: string): boolean {
-  return /^\[demo\]/i.test(notes.trim());
+/**
+ * A product is demo content when its SKU is a `DEMO-` SKU (A12, R11, OA-3). The SKU is the marker
+ * because the text prefix `[DEMO] ` is no longer stored or shown. SKUs are saved in capitals, so
+ * the comparison ignores case.
+ */
+export function isDemoSku(sku: string): boolean {
+  return sku.trim().toUpperCase().startsWith(DEMO_SKU_PREFIX);
 }
 
 export type DescriptionSources = {
@@ -37,8 +37,8 @@ export type DescriptionSources = {
 
 /**
  * The sources of one draft (descriptions spec, step 3): the name, the category's name, the price
- * as a canonical `249.00 PLN` (never the pl-PL display) and the owner's notes, each without
- * `[DEMO]` markers, plus the numbers and glossary terms they hold. A price of 0.00 is a
+ * as a canonical `249.00 PLN` (never the pl-PL display) and the owner's notes, plus the numbers
+ * and glossary terms they hold. The demo flag comes from the SKU. A price of 0.00 is a
  * placeholder (#41), not a price to quote, so it counts as not set.
  */
 export function buildDescriptionSources(
@@ -47,10 +47,10 @@ export function buildDescriptionSources(
 ): DescriptionSources {
   const priceMinor = input.price !== null && input.price > 0 ? input.price : null;
   const fields: Record<DescriptionField, string> = {
-    name: stripDemoMarker(input.name),
+    name: input.name,
     category: categoryName ?? "",
     price: priceMinor === null ? "" : `${formatPriceInput(priceMinor)} PLN`,
-    notes: stripDemoMarker(input.notes),
+    notes: input.notes,
   };
   const numbers = new Set<string>();
   const mentions = new Set<string>();
@@ -63,7 +63,7 @@ export function buildDescriptionSources(
   return {
     fields,
     priceMinor,
-    demo: isDemoNotes(input.notes),
+    demo: isDemoSku(input.sku),
     fieldsUsed: DESCRIPTION_FIELDS.filter((field) => fields[field] !== ""),
     insufficient:
       fields.name === "" || (fields.category === "" && fields.notes.length < MIN_NOTES_LENGTH),

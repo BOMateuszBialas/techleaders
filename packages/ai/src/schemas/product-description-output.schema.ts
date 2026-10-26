@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-/** A6: 80–1 190 characters, which leaves room for the `[DEMO] ` prefix within 1 200. */
+/** A6: 80–1 190 characters, within the 1 200 the UI promises. */
 export const DESCRIPTION_MIN_LENGTH = 80;
 export const DESCRIPTION_MAX_LENGTH = 1190;
 export const DESCRIPTION_MAX_PARAGRAPHS = 3;
