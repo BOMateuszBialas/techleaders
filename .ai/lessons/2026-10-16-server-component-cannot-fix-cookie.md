@@ -1,0 +1,3 @@
+# 2026-10-16 — A Server Component cannot fix a cookie; shell-quoted Python can eat escapes
+
+The cart page corrects a stale cart (sold-out line, quantity above stock) in what it renders, but cookies can be set only in Server Actions and Route Handlers, so the stored cookie stays stale until the next cart action; design read paths to be idempotent over a stale cookie and say so in the UI copy. Separately, a Python edit run through a Bash heredoc turned the TypeScript escape `\n` inside a string into a real newline (a syntax error in a test); write code that contains backslash escapes with the Edit/Write tools.

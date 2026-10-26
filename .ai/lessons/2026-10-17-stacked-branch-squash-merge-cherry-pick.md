@@ -1,0 +1,3 @@
+# 2026-10-17 — A branch stacked on a squash-merged PR: replay only its own commits
+
+`feat/demo-store-phase-2` was built on `feat/admin-orders-phase-1` (and later merged it in); once #50 was squash-merged, a plain rebase or merge of `origin/main` would replay or conflict on the already-landed Phase 1 commits. Keep a backup branch, `git reset --hard origin/main`, then `git cherry-pick` only the stacked branch's own commits (skip the merge commit), and check `git diff --stat origin/main` shows only the new phase. Re-run the whole gate afterwards: the other phases' tests (here the dashboard e2e) now run against the new code.

@@ -43,6 +43,7 @@ function toProductRecord(product: Product): CatalogProductRecord {
     currency: product.currency,
     stockQuantity: product.stockQuantity,
     imageUrl: product.imageUrl ?? null,
+    technicalSpecs: product.technicalSpecs,
     status: product.status,
     featured: product.featured,
     category: category ? { slug: category.slug, name: category.name } : null,

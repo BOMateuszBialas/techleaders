@@ -40,6 +40,7 @@ const product: CatalogProductDetail = {
   category: null,
   availability: "in_stock",
   imageUrl: null,
+  technicalSpecs: [],
 };
 
 beforeEach(() => {

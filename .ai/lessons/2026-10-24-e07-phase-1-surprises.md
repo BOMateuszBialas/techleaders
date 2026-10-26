@@ -1,0 +1,7 @@
+# 2026-10-24 — E07 Phase 1 surprises: Next answers 308 before a route allowlist; a form fallback must not drop request-time fields; a returned mock is a Vitest teardown
+
+- Next.js 16 normalises a trailing slash or a doubled slash (`/api/customer-auth/update-user/`, `//update-user`) with a **308 to the canonical path** before the route handler runs, so a method-and-path allowlist never sees those variants; the redirect target is judged like any other request. Test path variants over real HTTP (e2e), not only in the route's unit test.
+- A `<Suspense>` fallback that renders the same form as the streamed content, but without a request-time hidden field (`from=checkout` from `searchParams`), can be filled and submitted before the stream lands; agent-browser did exactly that. Make the fallback a placeholder, and have e2e wait for text only the streamed form shows.
+- `beforeEach(() => handler.mockClear())` returns the mock, and Vitest calls a function returned from `beforeEach` as the teardown: the mock ran with no arguments and failed every test with a confusing `TypeError`. Use a block body.
+- Tailwind's `not-sr-only` sets `white-space: normal`; a label revealed with `sm:not-sr-only` wraps unless it also gets `sm:whitespace-nowrap`.
+- The PreToolUse hook also flagged shell commands containing `deps?.env.X` and the regex `.*?` as `.env` file access; write such test code with the Write/Edit tools (as the Storybook lesson below says).

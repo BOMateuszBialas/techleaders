@@ -1,4 +1,4 @@
-import { PRODUCT_STATUSES, SUPPORTED_CURRENCIES } from "@commerceos/core";
+import { PRODUCT_STATUSES, SUPPORTED_CURRENCIES, type TechnicalSpec } from "@commerceos/core";
 import { defineEntity, p, type InferEntity } from "@mikro-orm/core";
 import { CategorySchema } from "../categories/category.entity";
 
@@ -17,6 +17,12 @@ export const ProductSchema = defineEntity({
     sku: p.string().length(64).nullable().unique(),
     stockQuantity: p.integer().default(0).check("stock_quantity >= 0"),
     imageUrl: p.string().length(2048).nullable(),
+    /**
+     * Technical data rows `{ label, value }` (storefront v2 spec, Phase 3, Q10). The database
+     * checks only the type; the shape (at most 12 rows, label and value lengths) is the core
+     * schema `technicalSpecsSchema`. Set by the seeder for the products it creates only.
+     */
+    technicalSpecs: p.json<TechnicalSpec[]>().defaultRaw("'[]'"),
     status: p.enum(PRODUCT_STATUSES).default("draft").index(),
     /** Shown in the home page's featured slider when published (storefront spec G9). */
     featured: p.boolean().default(false).index(),
@@ -30,6 +36,12 @@ export const ProductSchema = defineEntity({
       .onCreate(() => new Date())
       .onUpdate(() => new Date()),
   },
+  checks: [
+    {
+      name: "products_technical_specs_check",
+      expression: "jsonb_typeof(technical_specs) = 'array'",
+    },
+  ],
 });
 
 export type Product = InferEntity<typeof ProductSchema>;
