@@ -201,7 +201,7 @@ function Catalog({ state }: { state: string }) {
     return (
       <Empty>
         <EmptyHeader>
-          <EmptyTitle>No products match "mouse pad 900".</EmptyTitle>
+          <EmptyTitle>No products match &quot;mouse pad 900&quot;.</EmptyTitle>
           <EmptyDescription>Check the spelling or clear the search.</EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
