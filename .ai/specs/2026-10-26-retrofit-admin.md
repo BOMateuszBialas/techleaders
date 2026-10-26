@@ -1,7 +1,7 @@
 # Retrofit the admin area to the design system (lesson 08, area 3)
 
 - Backlog: none yet. File the phases with `om-backlog` after the owner approves this spec.
-- Status: **draft for owner review (design-only PR; no application code changed)**. Written on 2026-10-26 against `origin/main` at `59cfc48`. The owner's decisions it relies on are recorded in `.ai/design/POSTEP.md` (sections "Decyzje zatwierdzone przez właściciela", "Etap 2, partia 1–4", "Decyzje właściciela (2026-10-25)") and `.ai/design/tokeny.md` (section 8, 2026-10-24).
+- Status: **ready for the owner to merge (design-only PR; no application code changed; owner approved OA-1 to OA-9 and all recommended options on 2026-10-26)**. Written on 2026-10-26 against `origin/main` at `59cfc48`. The owner's decisions it relies on are recorded in `.ai/design/POSTEP.md` (sections "Decyzje zatwierdzone przez właściciela", "Etap 2, partia 1–4", "Decyzje właściciela (2026-10-25)") and `.ai/design/tokeny.md` (section 8, 2026-10-24).
 - Risk: **risk-high** for the implementation (the shell `layout.tsx` wraps every admin page; the order and category destructive flows change; SDLC: "shared contract surfaces, or broad cross-cutting edits"). Every phase is its own `risk-high` PR, so the owner merges it (agent merge policy) and no self-QA is allowed.
 - Design authority: `.ai/design/tokeny.md` (sections 1b, 1c, 3 admin density, 4 admin text styles, 7 rules 2, 4, 5, 10, 12, 13, 14), `.ai/design/referencje.md` (R04.1 to R04.3, K7), `.ai/design/audyt.md` (decisions 3 and 5), `.ai/design/POSTEP.md` (batches 1–4 B-items), `packages/app/stories/design-system/WhatIsMissing.mdx` (section 2 rows for E03/E04, section 4 P list), `ENGINEERING_STANDARDS.md`, `SDLC.md`, `AGENTS.md` ("Security and validation", admin guard rules, "Admin forms are a hook-free view").
 - Implemented specs changed by this retrofit (doc updates only, in the phase that changes the behaviour text): `.ai/specs/implemented/2026-10-16-orders-dashboard-demo-store.md` (UI/UX "Cancel / refund confirmation", line 255) and `.ai/specs/implemented/2026-10-15-admin-catalog-management.md` (G1 and the delete flow).
@@ -402,17 +402,17 @@ npm run check:tokens
 
 ## 📝 Owner approvals needed
 
-| # | Approval | Source or status | Phase |
-|---|---|---|---|
-| OA-1 | Dark admin sidebar (C3) | Decided in `tokeny.md` 1b (R04.1, accepted 2026-10-24). Confirm that the admin shell is retrofitted now | 1 |
-| OA-2 | Alert dialog for cancel and refund (C1) and the orders spec row change | Decided: Q5 (2026-10-25). Confirm the spec row change | 5 |
-| OA-3 | Alert dialog for deleting an empty category (C2) and the catalog spec G1 change | Decided: Q6 (2026-10-25). Confirm the spec change and the disabled trigger for a used category (Q3) | 3 |
-| OA-4 | Status badge map (D5, C6) | Tokeny rule 10 (P2 accepted, 2026-10-24). Confirm the `shipped` treatment (outline with strong text) | 5 |
-| OA-5 | Copy: empty states without `npm run db:seed` (C5, WhatIsMissing P11), the empty import copy, the dialog titles, descriptions and buttons ("Keep order", "Cancel order", "Record refund", "Delete category") | P11 is open in the WhatIsMissing P list; the dialog button names follow B4.14 | 2, 3, 4, 5 |
-| OA-6 | Stock history as a table (C4) and its e2e selector change | Recommended (B3.5). Confirm | 4 |
-| OA-7 | Admin sign-in in this retrofit (Q7) | Not in the scope list; recommended in phase 6 | 6 |
-| OA-8 | Product "Featured" checkbox from a native input to the DS `Checkbox` (B2.8 decision Q2) and its id handling | Decided in batch 2 (Q2, Base UI). Confirm for the admin | 3 |
-| OA-9 | Any DS change needed while building the admin (for example the `cn` fix, P21) | Not planned. A DS change is a separate PR with its own approval | any |
+| # | Approval | Recommended option (approved) | Owner status | Phase |
+|---|---|---|---|---|
+| OA-1 | Dark admin sidebar (C3) | Apply the dark sidebar now, from `tokeny.md` 1b (R04.1) | **Owner-approved 2026-10-26** with the recommended option | 1 |
+| OA-2 | Alert dialog for cancel and refund (C1) and the orders spec row change | Alert dialog in both cases; `confirm=yes` kept; orders spec row 255 updated | **Owner-approved 2026-10-26** with the recommended option | 5 |
+| OA-3 | Alert dialog for deleting an empty category (C2), catalog spec G1 change, and the disabled trigger for a used category (Q3) | Alert dialog for empty categories; trigger disabled for a used category, refusal text kept; catalog spec G1 updated | **Owner-approved 2026-10-26** with the recommended option | 3 |
+| OA-4 | Status badge map (D5, C6) | D5 map, with `shipped` as outline with strong text | **Owner-approved 2026-10-26** with the recommended option | 5 |
+| OA-5 | Copy: empty states without `npm run db:seed` (C5, WhatIsMissing P11), the empty import copy, the dialog titles, descriptions and buttons ("Keep order", "Cancel order", "Record refund", "Delete category") | Plain next step with no developer command; dialog button names per B4.14 | **Owner-approved 2026-10-26** with the recommended option (final wording as drafted in the spec) | 2, 3, 4, 5 |
+| OA-6 | Stock history as a table (C4) and its e2e selector change | `Table` for stock history | **Owner-approved 2026-10-26** with the recommended option | 4 |
+| OA-7 | Admin sign-in in this retrofit (Q7) | Include in phase 6 | **Owner-approved 2026-10-26** with the recommended option (P10 copy goes with it) | 6 |
+| OA-8 | Product "Featured" checkbox from a native input to the DS `Checkbox` (B2.8 decision Q2) and its id handling | DS `Checkbox` (Base UI), id passed as B2.8 describes | **Owner-approved 2026-10-26** with the recommended option | 3 |
+| OA-9 | Any DS change needed while building the admin (for example the `cn` fix, P21) | Not planned; any DS change is a separate PR with its own approval | **Owner-approved 2026-10-26** with the recommended option (no DS change in this retrofit) | any |
 
 ## 📋 P list (WhatIsMissing section 4): recommendation for each item
 
@@ -447,6 +447,9 @@ The owner accepts or rejects each P item. The recommendation for each item is be
 ## 📝 Review log
 
 - 2026-10-26: spec written by the agent from the design docs listed above; the baseline is `origin/main` at `59cfc48`. Not yet reviewed by a second model family (course rule before phase 1 starts).
+- 2026-10-26: **owner decision.** OA-1 to OA-9 approved, each with its recommended option (see the OA table): OA-1 dark sidebar; OA-2 and OA-3 Alert dialogs, with the used-category trigger disabled; OA-4 status badge map; OA-5 copy without the seed command; OA-6 stock history as a table; OA-7 sign-in in phase 6; OA-8 DS Checkbox; OA-9 no DS change in this retrofit.
+- 2026-10-26: **owner decision.** The recommended options for Open questions Q1–Q10 are approved: Q1 `AdminNavLink` client component for `aria-current`; Q2 empty dashboard period with a link to Products; Q3 used-category delete trigger disabled, refusal kept; Q4 no no-JS fallback for the destructive dialogs, recorded as a known limit; Q5 scroll region on phones; Q6 no axe run added (Storybook `a11y` stays the gate); Q7 sign-in in phase 6; Q8 sentence case kept; Q9 `not-found` text kept, link becomes `TextLink`; Q10 stock history as `Table`.
+- 2026-10-26: **status** moved to ready for the owner to merge. The P list recommendations are the agent's; the owner's acceptance of the P items is not recorded here and is left to the owner's merge review.
 
 ## What could not be verified
 
