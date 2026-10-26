@@ -1,4 +1,5 @@
 import { describe, expect, inject, it } from "vitest";
+import { z } from "zod";
 import { useBrowser } from "./support/browser-test";
 
 /** Published featured products of the demo seed, sorted by name (spec G9, G16). */
@@ -36,7 +37,10 @@ describe("storefront home page (Phase 1b)", () => {
 
     expect(await browser().title()).toBe("CommerceOS");
     const elements = Object.values((await browser().snapshot()).refs);
-    expect(elements).toContainEqual({ role: "heading", name: "Gear up for your next match" });
+    expect(elements).toContainEqual({
+      role: "heading",
+      name: "Gear for every desk and every match",
+    });
     expect(elements).toContainEqual({ role: "link", name: "Shop all products" });
     expect(elements).toContainEqual({ role: "navigation", name: "Main" });
     expect(elements).toContainEqual({ role: "link", name: "Shop all" });
@@ -132,6 +136,66 @@ describe("storefront home page (Phase 1b)", () => {
       await browser().click('header details a[href="/products?category=keyboards"]');
       await browser().waitForUrl("**/products?category=keyboards");
       await browser().waitForText("Strike 60 Keyboard");
+    } finally {
+      await browser().setViewport(1280, 720);
+    }
+  });
+
+  it("shows the promo banners, a low-stock banner and category tiles with counts (Phase 4)", async () => {
+    await browser().open("/");
+    await browser().waitForText("Vortex Wireless Mouse");
+
+    const elements = Object.values((await browser().snapshot()).refs);
+    for (const name of ["Build your setup", "Audio for calls", "Low stock", "Categories"]) {
+      expect(elements).toContainEqual(expect.objectContaining({ role: "heading", name }));
+    }
+    const main = await browser().text("main");
+    expect(main).toContain("Mousepads for every desk setup.");
+    expect(main).toContain("Gaming headsets for PC and consoles.");
+    expect(main).toMatch(/: \d+ left/);
+    expect(main).toContain("Example policy: delivery in 1–3 working days, 14-day returns.");
+
+    // Tiles omit a category with no published product (the [E2E] drafts-only and empty ones).
+    const tiles = await browser().text('section[aria-labelledby="home-categories"]');
+    expect(tiles).toContain("Mice");
+    expect(tiles).toMatch(/\d+ products?/);
+    expect(tiles).not.toContain("[E2E] Empty category");
+    expect(tiles).not.toContain("[E2E] Drafts only");
+  });
+
+  it("follows a promo banner's call to action to a filtered listing", async () => {
+    await browser().open("/");
+    await browser().clickRole("link", "Browse desk gear");
+    await browser().waitForUrl("**/products?category=mousepads");
+
+    expect(new URL(await browser().url()).searchParams.get("category")).toBe("mousepads");
+  });
+
+  it("lists best sellers by name only, from the seeded paid orders", async () => {
+    await browser().open("/");
+    await browser().waitForText("Vortex Wireless Mouse");
+
+    const best = await browser().text('section[aria-labelledby="home-best"]');
+    expect(best).toContain("Best sellers");
+    expect(best).not.toMatch(/\d+\s*(units|sold|pcs)/i);
+    expect(best).not.toMatch(/demo/i);
+  });
+
+  it("has one h1 and no sideways scroll at 320 px (storefront v2, A30)", async () => {
+    await browser().setViewport(320, 640);
+    try {
+      await browser().open("/");
+      await browser().waitForText("Vortex Wireless Mouse");
+      const measured = z
+        .object({ h1: z.number(), scrollWidth: z.number(), innerWidth: z.number() })
+        .parse(
+          await browser().evaluate(
+            "({ h1: document.querySelectorAll('h1').length, scrollWidth: document.documentElement.scrollWidth, innerWidth: window.innerWidth })",
+          ),
+        );
+      expect(measured.innerWidth).toBe(320);
+      expect(measured.h1).toBe(1);
+      expect(measured.scrollWidth).toBe(measured.innerWidth);
     } finally {
       await browser().setViewport(1280, 720);
     }
