@@ -49,8 +49,8 @@ describe("storefront cart (E02-S01)", () => {
     expect(await browser().text('[data-testid="cart-subtotal"]')).toMatch(/747,00\s*zł/);
     expect(await browser().text(CART_LINK)).toMatch(/Cart\s*3/);
 
-    // Remove is a link-style button (retrofit Phase 1, B1.16): its role is `link` in the cart page.
-    await browser().clickRole("link", "Remove Vortex Wireless Mouse");
+    // Remove is a `<button>` styled as a link (retrofit Phase 1, B1.16): its role stays `button`.
+    await browser().clickRole("button", "Remove Vortex Wireless Mouse");
     await browser().waitForText("Your cart is empty.");
     expect(await browser().text(CART_LINK)).toMatch(/Cart\s*0/);
   });

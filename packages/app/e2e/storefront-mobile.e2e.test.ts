@@ -123,9 +123,8 @@ describe("cart at 320 px", () => {
   it("keeps the cart drawer within the viewport, with a 44 px Remove", async () => {
     await browser().open("/products/vortex-wireless-mouse");
     await browser().waitForText("Vortex Wireless Mouse");
+    // A successful add opens the drawer (storefront v2, Q6): it is already open here.
     await browser().clickRole("button", "Add to cart");
-    await browser().waitForText("Added to cart.");
-    await browser().click('header a[href="/cart"]');
     await browser().waitForText("Subtotal");
     const measured = z
       .object({
@@ -136,10 +135,11 @@ describe("cart at 320 px", () => {
       })
       .parse(
         await browser().evaluate(
-          "(() => { const dialog = document.querySelector('[role=dialog]'); const remove = [...document.querySelectorAll('button')].find((b) => (b.getAttribute('aria-label') || '').startsWith('Remove')); return { scrollWidth: document.documentElement.scrollWidth, innerWidth: window.innerWidth, remove: remove ? remove.getBoundingClientRect().height : 0, dialogRight: dialog ? dialog.getBoundingClientRect().right : 0 }; })()",
+          "(() => { const dialog = document.querySelector('[role=dialog]'); const remove = [...document.querySelectorAll('button')].find((b) => (b.getAttribute('aria-label') || '').startsWith('Remove')); return { scrollWidth: document.documentElement.scrollWidth, innerWidth: window.innerWidth, remove: remove ? remove.getBoundingClientRect().height : 0, dialogRight: dialog ? dialog.offsetLeft + dialog.offsetWidth : 0 }; })()",
         ),
       );
     expect(measured.scrollWidth).toBe(measured.innerWidth);
+    // offsetLeft and offsetWidth ignore the slide-in transform, which getBoundingClientRect does not.
     expect(measured.dialogRight).toBeLessThanOrEqual(measured.innerWidth);
     expect(measured.remove).toBeGreaterThanOrEqual(44);
   });
