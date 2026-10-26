@@ -1,7 +1,9 @@
 import type { ReactNode } from "react";
+import { cn } from "cn";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { DEMO_NOTICE } from "./fixtures";
+import { cartCount, useCart } from "./cart";
 
 export type ScreenProps = { state: string; layout: string };
 
@@ -14,7 +16,7 @@ export type ScreenDef = {
   render: (p: ScreenProps) => ReactNode;
 };
 
-/** Demo marking on every shopper and admin screen (R03, R07). */
+/** Demo marking on every admin screen (R07, spec D08). The storefront no longer carries it (owner decision 1). */
 export function DemoStrip() {
   return (
     <div className="bg-demo-surface text-demo rounded-control px-related py-related type-small">
@@ -23,25 +25,63 @@ export function DemoStrip() {
   );
 }
 
-export function ShopperFrame({ children, cartCount = 0 }: { children: ReactNode; cartCount?: number }) {
+/**
+ * Neutral placeholder for a photo that the owner has not picked yet (owner decision 4). Flat grey
+ * box, dashed border, the subject written in text. It is an image role with a label, so a screen
+ * reader hears what the picture will show.
+ */
+export function ImagePlaceholder({ label, className, decorative }: { label: string; className?: string; decorative?: boolean }) {
   return (
-    <div className="flex min-h-full flex-col">
+    <div
+      {...(decorative ? { "aria-hidden": true } : { role: "img", "aria-label": `Image placeholder: ${label}` })}
+      className={cn(
+        "flex items-center justify-center rounded-card border border-dashed border-border bg-muted p-related text-center type-small text-muted-foreground",
+        className,
+      )}
+    >
+      {label}
+    </div>
+  );
+}
+
+function CartButton() {
+  const cart = useCart();
+  return (
+    <button
+      type="button"
+      aria-haspopup="dialog"
+      aria-expanded={cart.open}
+      onClick={() => cart.setOpen(true)}
+      className="rounded-control text-frame-foreground underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:outline-solid outline-none"
+    >
+      Cart ({cartCount(cart.lines)})
+    </button>
+  );
+}
+
+/** The frame is the container for the `@md:` / `@3xl:` / `@5xl:` rules of the store screens (lesson: the container is the parent). */
+export function ShopperFrame({ children }: { children: ReactNode }) {
+  return (
+    <div className="@container flex min-h-full flex-col">
       <header className="bg-frame text-frame-foreground px-gutter py-panel flex flex-wrap items-center justify-between gap-related">
         <a href="#s01" className="font-heading type-h2 text-frame-foreground no-underline">
           CommerceOS
         </a>
         <nav aria-label="Store" className="flex flex-wrap items-center gap-group-item type-small">
           <a href="#s02" className="text-frame-foreground">Shop all</a>
-          <a href="#s04" className="text-frame-foreground">Cart ({cartCount})</a>
+          <CartButton />
           <a href="#s11" className="text-frame-foreground">My orders</a>
         </nav>
       </header>
-      <div className="px-gutter pt-panel">
-        <DemoStrip />
-      </div>
       <main className="flex flex-1 flex-col gap-group px-gutter py-panel">{children}</main>
       <footer className="bg-frame text-frame-muted-foreground px-gutter py-panel type-small">
-        Demo store footer. No real company, address or contact details.
+        <div className="flex flex-col gap-related">
+          <p>
+            <span className="text-frame-foreground">Fictional company:</span> Kwadrat Peryferii Sp. z o.o.
+            (invented name for this prototype).
+          </p>
+          <p>Address, tax number and contact details are left out on purpose.</p>
+        </div>
       </footer>
     </div>
   );

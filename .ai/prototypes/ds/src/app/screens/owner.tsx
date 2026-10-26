@@ -315,8 +315,8 @@ function CopilotAsk({ state }: { state: string }) {
   );
 }
 
-/* s18 Copilot answer, layouts A / B / C (mapa-ekranow.md §3) */
-function CopilotAnswer({ state, layout }: { state: string; layout: string }) {
+/* s18 Copilot answer, layout A only (owner decision, 2026-10-26; B and C removed) */
+function CopilotAnswer({ state }: { state: string }) {
   const sourceLine: Record<string, [string, "info" | "warning" | "demo"]> = {
     ai: ["Source: AI-generated (model: demo-model-1). Checked against store data.", "info"],
     "not-configured": ["Source: rule-based insights. AI is not configured for this store.", "info"],
@@ -392,47 +392,6 @@ function CopilotAnswer({ state, layout }: { state: string; layout: string }) {
     </Card>
   );
 
-  if (layout === "B")
-    return (
-      <div className="flex flex-col gap-group">
-        <PageHead title="Commerce Copilot: answer" />
-        {sourceBanner}
-        {period}
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Recommendation</TableHead>
-              <TableHead>Priority</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {recommendations.map((r) => (
-              <TableRow key={r.id}>
-                <TableCell><a href={`#${r.id}`}>{r.title}</a></TableCell>
-                <TableCell>{r.priority}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        {recommendations.map(card)}
-      </div>
-    );
-  if (layout === "C")
-    return (
-      <div className="flex flex-col gap-group">
-        <PageHead title="Commerce Copilot: answer" />
-        {sourceBanner}
-        {period}
-        <Tabs defaultValue="R1">
-          <TabsList aria-label="Recommendations">
-            {recommendations.map((r) => (
-              <TabsTrigger key={r.id} value={r.id}>{r.id}</TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
-        {recommendations.slice(0, 1).map(card)}
-      </div>
-    );
   return (
     <div className="flex flex-col gap-group">
       <PageHead title="Commerce Copilot: answer" />
@@ -504,7 +463,7 @@ export const ownerScreens: ScreenDef[] = [
   owner("s15", "Orders", ["list", "empty", "loading", "error"], (p) => <OwnerFrame current="s15"><OrdersList state={p.state} /></OwnerFrame>),
   owner("s16", "Order detail", ["paid", "pending", "terminal", "conflict", "not-found"], (p) => <OwnerFrame current="s15"><OrderDetail state={p.state} /></OwnerFrame>),
   owner("s17", "Copilot question", ["default", "empty-question-error", "waiting", "rate-limited", "unavailable"], (p) => <OwnerFrame current="s17"><CopilotAsk state={p.state} /></OwnerFrame>),
-  owner("s18", "Copilot answer", ["ai", "not-configured", "timed-out", "daily-limit", "failed-checks", "refusal", "outside-list", "empty-store", "unavailable"], (p) => <OwnerFrame current="s17"><CopilotAnswer state={p.state} layout={p.layout} /></OwnerFrame>, ["A", "B", "C"]),
+  owner("s18", "Copilot answer", ["ai", "not-configured", "timed-out", "daily-limit", "failed-checks", "refusal", "outside-list", "empty-store", "unavailable"], (p) => <OwnerFrame current="s17"><CopilotAnswer state={p.state} /></OwnerFrame>),
   owner("s19", "Recommendation decisions", ["saved", "empty", "completed", "dismissed", "conflict"], (p) => <OwnerFrame current="s17"><Decisions state={p.state} /></OwnerFrame>),
 ];
 

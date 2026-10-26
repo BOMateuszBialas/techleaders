@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
+import { CartDrawer, CartProvider, initialLines, useCartState } from "./cart";
 import { galleryScreen } from "./screens/gallery";
 import { ownerScreens } from "./screens/owner";
 import { shopperScreens } from "./screens/shopper";
@@ -38,9 +39,10 @@ export function App() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [width, setWidth] = useState<Width>("1440");
   const [stateByScreen, setStateByScreen] = useState<Record<string, string>>({});
-  const [layoutByScreen, setLayoutByScreen] = useState<Record<string, string>>({});
   const frameRef = useRef<HTMLDivElement>(null);
   const [overflow, setOverflow] = useState<boolean | null>(null);
+  const cart = useCartState();
+  const { preset, setOpen } = cart;
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
@@ -50,7 +52,15 @@ export function App() {
   const notBuilt = NOT_BUILT[hash];
   const active = screen ?? screens[0];
   const state = stateByScreen[active.id] ?? active.states[0];
-  const layout = layoutByScreen[active.id] ?? active.layouts?.[0] ?? "";
+  // Layout A is the only layout of s01 and s18 (owner decision, 2026-10-26); the picker is gone.
+  const layout = "A";
+
+  // A screen change closes the cart drawer; the drawer states open it with a preset cart.
+  useEffect(() => {
+    setOpen(false);
+    if (state === "cart-open") preset(initialLines, true);
+    if (state === "cart-empty") preset([], true);
+  }, [active.id, state, preset, setOpen]);
 
   // Review aid: does the simulated width make the page scroll sideways? (Q7: 320 px is the contract.)
   useLayoutEffect(() => {
@@ -62,7 +72,9 @@ export function App() {
   const groups = ["Shopper", "Owner", "Prototype"] as const;
 
   return (
+    <CartProvider value={cart}>
     <div className="min-h-dvh bg-background text-foreground">
+      <CartDrawer />
       <div className="sticky top-0 z-40 border-b border-border bg-popover px-gutter py-related">
         <div className="flex flex-wrap items-end gap-group-item">
           <Field className="w-auto min-w-44">
@@ -97,20 +109,6 @@ export function App() {
               ))}
             </NativeSelect>
           </Field>
-          {active.layouts ? (
-            <Field className="w-auto min-w-32">
-              <FieldLabel htmlFor="rb-layout">Layout</FieldLabel>
-              <NativeSelect
-                id="rb-layout"
-                value={layout}
-                onChange={(e) => setLayoutByScreen({ ...layoutByScreen, [active.id]: e.target.value })}
-              >
-                {active.layouts.map((l) => (
-                  <NativeSelectOption key={l} value={l}>{l}</NativeSelectOption>
-                ))}
-              </NativeSelect>
-            </Field>
-          ) : null}
           <Field className="w-auto min-w-28">
             <FieldLabel htmlFor="rb-width">Width</FieldLabel>
             <NativeSelect id="rb-width" value={width} onChange={(e) => setWidth(e.target.value as Width)}>
@@ -154,5 +152,6 @@ export function App() {
         </div>
       </div>
     </div>
+    </CartProvider>
   );
 }
