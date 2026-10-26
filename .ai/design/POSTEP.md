@@ -706,3 +706,73 @@ Test agentem: przygotowany w `.ai/design/test-agentem.md`, **nie wykonany**.
 ## Następny krok
 
 Review PR etapu 4 i 5 przez właściciela: merge (risk-high, merguje właściciel) po zielonym CI. Najpierw decyzje z listy P (Storybook „What is missing”, §4). Potem retrofit (lekcja 08: Alert dialog przy kategorii i zamówieniu, megamenu w nagłówku sklepu, `ErrorState` i `error.tsx` sklepu, przepięcie formularzy na `Field`) oraz wykonanie testu agentem z `.ai/design/test-agentem.md`. Otwarte: zawijanie szerokich tabel na 320 px w stronach dokumentacji (wynik etapu 5).
+
+## Storefront v2 (2026-10-26)
+
+Scope: the prototype only (`.ai/prototypes/ds/`). Nothing in `packages/app` changed. This PR stacks on PR #112 (design/ds-react-prototype): merge #112 first.
+
+### Owner decisions (accepted 2026-10-26) and how they are built
+
+| # | Decision | Source | Built as |
+|---|---|---|---|
+| D1 | Remove the demo banner and "demo store" wording from the storefront and footer. One short note on the payment step only ("Test payment. No money is taken."). Admin keeps its labelling (D08) | owner decision 1; spec D08 for admin | `ShopperFrame` no longer shows `DemoStrip` (kept for admin). s06 has the one note. Storefront product names lost "[DEMO]". Removed: "We send nothing", "Shipping is not modelled", "No card details", "Demo prices", and the delivery address field (it implied a shipping service that does not exist, principle 6). "Place demo order" is now "Place order" |
+| D2 | Footer: fictional company block, clearly fake, no real address, tax number or contact | owner decision 2 | "Fictional company: Kwadrat Peryferii Sp. z o.o. (invented name for this prototype). Address, tax number and contact details are left out on purpose." |
+| D3 | Cart as a right-side drawer after "Add to cart"; full width on phones; line items, quantity controls, subtotal, "Checkout"; /cart stays as fallback | owner decision 3; DS docs list Drawer under "What is missing", decided by the owner | New component `CartDrawer` (see below). The header "Cart (n)" opens it too |
+| D4 | Home: hero with message and CTA, featured strip, promo banners (2 to 3, text and CTA, flat), category tiles, "why buy here" with concrete facts, best sellers. Placeholder image boxes, no photo URLs | owner decision 4; `referencje.md` R01 to R03 (one accent colour, flat surfaces) | Six sections in this order (the brief said "roughly 5" and listed six; all six kept). See the table below |
+| D5 | Product page: two columns from 1024 px; gallery with 4 keyboard thumbnails and aria labels; price in the foreground colour; tabs Description / Technical data / Delivery and returns; one column below, gallery first | owner decision 5; `tokeny.md` (price foreground, action colour only on buying) | `@5xl` container query on the frame; thumbnail buttons with `aria-pressed`; spec table (fictional values); delivery tab marked AS-01 |
+| - | Layout A is the only layout of s01 and s18; the picker is removed | owner acceptance of layout A (2026-10-26); `mapa-ekranow.md` section 5, P1 | B and C removed from `shopper.tsx` and `owner.tsx`; `App.tsx` no longer shows a layout select |
+
+Rule applied everywhere: red (`action`) only on the buying steps (Add to cart, Checkout, Place order, Confirm test payment). Shop all, promo CTAs and category links use default or outline buttons. No gradients, no glass or blur, no centred-everything layout, flat surfaces with a 1 px border (`audyt.md`).
+
+### Home sections (s01, layout A)
+
+| Section | Content | Source of each fact |
+|---|---|---|
+| 1 Hero | "Gear for every desk and every match", one line on stock, "Shop all products", placeholder photo | Copy is invented (AS-08). "Stock is shown on every product" describes the product page |
+| 2 Featured products | 3 products flagged `featured` in the fixtures | Fixture data (AS-03) |
+| 3 From the store (promo banners) | Desk setup, Audio for calls, Low stock (K7, 3 left) | Discounts are out of scope (brief), so no banner promises a price. "Low stock" comes from the stock fixture |
+| 4 Categories | Four tiles from the catalogue with product counts (computed from the fixtures), placeholder photos | Category names from the seed list |
+| 5 Why buy here | Guest checkout (R10); stock and price checked on the server at checkout (storefront spec); order reference to find an order later (confirmation spec); delivery and returns as an assumption | First three from the implemented specs; the fourth is AS-01 |
+| 6 Best sellers | Top 3 by units sold in 9 to 16 Oct (fictional) | AS-09 |
+
+### New component: `CartDrawer` (prototype only)
+
+- File: `.ai/prototypes/ds/src/app/cart.tsx`. Built on the Base UI Dialog (`@base-ui/react/dialog`, modal), with the shared overlay backdrop class from `ui/dialog.tsx`. The popup has its own class list from tokens (`bg-popover`, `border-border`, `shadow-overlay`, `p-panel`, `gap-group`, `duration-(--duration-slow)`).
+- Rules: right side at every width; `max-w-md` (28 rem) from `sm` up; full width below. Focus trap, inert page and focus return come from Base UI; Escape, the backdrop and the X close it. The slide is a transition that `motion-reduce:transition-none` turns off.
+- Content: title "Your cart (n)", one row per line (product link, line total, quantity minus and plus with aria labels, Remove), "Only N left" when the quantity reaches stock, subtotal, "Checkout" (action, to s05), "View full cart" (to s04). Empty: "Your cart is empty." and "Shop all".
+- Quantities never go above stock; a sold-out product cannot be added (its button is disabled).
+- State: one cart in a React context, prototype only. Screens s04 (cart page) and s05 (checkout) keep their fixed state views and do not read the live cart.
+- Not in the app: the app needs a spec first (see "Needs a spec" below). The DS docs' "What is missing" list still names Drawer; this decision moves it to "decided by the owner, not built in the app yet". The Storybook pages are not changed in this PR.
+
+### Assumptions (AS) in this step
+
+- **AS-01** delivery in 1 to 3 working days and returns within 14 days. Shown in "Why buy here" and in the product's delivery tab, marked. Not a store policy; shipping is out of scope.
+- **AS-08** copy for the hero, the promo banners, the short product descriptions and the description tab is invented.
+- **AS-09** "Best sellers" are the three highest `sold7d` values in the fixture (fictional). The shopper does not see the numbers.
+- **AS-10** every technical value in the spec table is fictional, including the 24-month warranty.
+- **AS-11** the footer company name is invented. It is not a real company and carries no tax number, address or contact.
+
+### Verification (2026-10-26)
+
+- `npm ci` in the worktree root and in `.ai/prototypes/ds/`; `npm run typecheck` (no errors); `npm run build` (ok).
+- `evidence/storefront-v2.mjs`: headless Chrome 155 over CDP (scratch profile outside the repo), preview on 4173. 176 checks: widths 320, 390, 768 and 1440 px, light and dark; all states of s01 and s03, default states of the other shopper screens. **0 findings**: no console errors or exceptions, no page or frame sideways scroll, one h1 in default-like states, no "demo store" wording in the storefront frame, the fictional footer, no layout picker on s01 and s18, the drawer on the right edge and full width below 448 px, and the s03 two-column layout from 1024 px. Results: `evidence/storefront-v2-results.json`; screenshots `evidence/v2-*.png` (36).
+- In headless Chrome the drawer's right edge sits at the body edge, 15 px left of the window, because the page reserves a scrollbar gutter there. The check measures against the body edge for that reason.
+- Reviewed by eye: home at 1440 light; product page with the drawer at 1440 light; product page at 320 dark (stacks, gallery first).
+
+### Open P items
+
+- **P-photo:** photos are wired into the DS prototype (storefront v2, 2026-10-26): hero, "Build your setup" and "Audio for calls" banners, Keyboard K7 and Headset H3. Credits and licence rules are in `.ai/prototypes/ds/public/photos/CREDITS.md`. Still open: the controller photo's licence and author check (the photo is not used, as there is no controller product), and the owner's check of the small marks on the mouse and mat in the hero at full size. The proposal `.ai/design/zdjecia-propozycja.md` lives on branch `design/storefront-photo-proposal` (not merged into this branch).
+- **P-drawer:** the owner should check the drawer on a real phone and with a keyboard (Tab, Escape, focus return).
+- **P-copy:** the invented copy (AS-08) needs the owner's approval before any of it goes into the app.
+- **P-policy:** the delivery and returns text (AS-01) needs a real policy, or removal.
+- **P-DEMO:** `DEMO-` SKUs and order references stay. The storefront no longer shows "[DEMO]" on product names, but the app's seed still adds it. Changing that is a spec question (D08).
+- **P4 (old):** the megamenu and the phone menu are still open (retrofit, lesson 08).
+- **P5 (old):** the owner has not yet walked the prototype in a real browser.
+
+### Needs a spec before the app can change
+
+1. The cart drawer (a new interaction: a side panel from the header and the add button; quantity and remove in the drawer; the cart page stays as a fallback). Spec under `.ai/specs/` first, then the implementation PR.
+2. The storefront home sections and the product page layout (two columns, gallery, tabs). Spec first, plus e2e.
+3. Removing "[DEMO]" from storefront product names. It changes the seeder and the demo marking rule (D08), so it needs a spec decision.
+4. The fictional footer company block. Small, but a visible content change on every page; list it in the same spec as the home page.
+5. Storefront wording: removing "demo store" wording and keeping one test-payment note on the payment step. This is a spec change as well, because the spec currently requires the demo banner on the storefront (D08 and R03 notes).

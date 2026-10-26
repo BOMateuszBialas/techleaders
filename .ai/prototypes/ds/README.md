@@ -9,15 +9,15 @@
 - The implemented components, imported from the app's source through the `@/` alias (no copies):
   all 21 components of the Storybook catalog (Alert, Alert dialog, Badge, Button, Card, Checkbox, Dialog, Disclosure, Empty, Error state, Field, Input, Label, Native select, Navigation menu, Radio group, Skeleton, Table, Tabs, Textarea, Text link). Page `Components` (`#components`).
 - The key-flow screens, built from those components (`src/app/screens/`):
-  - Shopper: s01 storefront home (layouts A, B, C), s02 catalog, s03 product, s04 cart, s05 checkout, s06 demo payment, s07 confirmation, s11 My orders, s12 account order.
+  - Shopper: s01 storefront home (layout A only; cart drawer states), s02 catalog, s03 product, s04 cart, s05 checkout, s06 demo payment, s07 confirmation, s11 My orders, s12 account order.
   - Owner: s13 sign-in, s14 dashboard (metric definitions from `packages/core/.../metric-definitions.ts`, imported through the `@core/` alias), s15 orders, s16 order detail (AlertDialog for cancel), s17 Copilot question, s18 Copilot answer (layouts A, B, C), s19 recommendation decisions.
-- A review bar (prototype only, labelled): screen, state, layout (s01 and s18), width (320, 390, 768, 1440, full), light or dark theme, and a sideways-scroll readout for the simulated width.
+- A review bar (prototype only, labelled): screen, state, width (320, 390, 768, 1440, full), light or dark theme, and a sideways-scroll readout for the simulated width.
 - Hash routes (`#s05`). Unknown ids s08, s09, s10 show a "not built in this prototype" page.
 - Tokens: `packages/app/src/app/globals.css` through `src/styles.css`. Dark theme is the `.dark` class on `<html>`, as in the app.
 
 ## Simulated data
 
-All products (gaming accessories, names marked `[DEMO]`), prices, orders, customers (`klient-a@demo.test`), dates and the Copilot answers are invented (`src/app/fixtures.ts`). The traffic figures are marked "fictional demo data". Nothing calls a network, a payment or an account service. Metric definitions are the real text from the app's core package.
+All products (gaming accessories, fictional names without `[DEMO]` on the storefront since 2026-10-26; the admin screens keep their marking), prices, orders, customers (`klient-a@demo.test`), dates and the Copilot answers are invented (`src/app/fixtures.ts`). The traffic figures are marked "fictional demo data". Nothing calls a network, a payment or an account service. Metric definitions are the real text from the app's core package.
 
 ## Dependencies (exact versions, `package.json`; lockfile in this folder)
 
@@ -59,7 +59,7 @@ The prototype reads app sources from `packages/app` and the shared tsconfig from
 - Headless browser walk over Chrome 155 (headless, remote debugging, scratch profile). The Claude in Chrome extension was not connected, so no interactive browser session was used. Scripts in `evidence/`:
   - `walk.mjs`: 17 screens (default state) × widths 320 and 1440 × light and dark: 68 checks. Result: no console errors, no exceptions, no page-level sideways scroll, no content wider than the simulated frame, theme switch correct, every default screen has an h1 (`evidence/walk-results.json`).
   - `states.mjs`: every state of every screen (168 checks) at 320 and 1440 px in light theme. Result: no issues.
-  - `layouts.mjs`: s01 and s18, layouts A, B and C, at 320 and 1440 px. Result: no overflow, no errors.
+  - `storefront-v2.mjs` (2026-10-26, replaces `layouts.mjs`, removed with the layout picker): 176 checks, widths 320, 390, 768 and 1440 px, light and dark, all states of s01 and s03 and the default states of the other shopper screens. Result: 0 findings (no console errors, no page or frame sideways scroll, one h1, no demo wording in the storefront, fictional footer, no layout picker on s01 and s18, drawer on the right and full width below 448 px, s03 two columns from 1024 px). Results: `evidence/storefront-v2-results.json`; 36 screenshots `evidence/v2-*.png`.
 - Screenshots reviewed by eye: `evidence/s01-320-light.png`, `evidence/s14-1440-light.png` (the sidebar layout was wrong at first and was fixed), `evidence/s18-320-light.png` is saved but was not reviewed by eye.
 - Fixes made during verification: four screens had no h1 (catalog, cart, status); the Copilot suggested-question buttons overflowed at 320 px; the admin sidebar did not switch to a row at 1440 px (container query on the wrong element); a favicon 404.
 
@@ -83,8 +83,31 @@ The prototype reads app sources from `packages/app` and the shared tsconfig from
 
 ## Open P items (for the owner)
 
-- P1: choose layout A, B or C for s01 and s18 (`mapa-ekranow.md` §5). The prototype shows all three; it does not choose.
+- P1: closed 2026-10-26: layout A for s01 and s18 (owner decision). B and C were removed from the prototype.
 - P2: decide whether s08, s09 and s10 (guest lookup, customer sign-up and sign-in) are built in a later prototype revision. They are listed in the map and linked from the flow, but not built here.
 - P3: the Archivo and Geist Mono font files are not in the prototype (see deviation 1).
 - P4: the store header should use the Navigation menu on desktop (retrofit, lesson 08), and the phone menu should use Disclosure (B4.28). Not done here.
 - P5: the owner has not yet reviewed this prototype in a real browser. The review step (a real person clicking, mapa-ekranow §8) is still open.
+
+## Storefront v2 (2026-10-26)
+
+Owner decisions and the rules behind them are in `../../design/POSTEP.md`, section "Storefront v2 (2026-10-26)". Summary of what changed here:
+
+- Demo notice removed from the storefront and footer. One test-payment note on the payment step (s06): "Test payment. No money is taken."
+- Footer: fictional company block (invented name, no address, tax number or contact).
+- Cart drawer: "Add to cart" and the header "Cart (n)" open a right-side drawer (full width below 448 px) with quantity controls, remove, subtotal and "Checkout". The /cart page (s04) stays as the fallback route and is still a static state view. Code: `src/app/cart.tsx` (new component, prototype only).
+- Home (s01, layout A only): hero with CTA, featured products, promo banners (no discounts), category tiles, "Why buy here", best sellers. Photos (Pexels, from `public/photos/`, credits in `public/photos/CREDITS.md`): hero = `hero-desk-curved-monitor.jpg`; promo banner "Build your setup" = `banner-build-your-setup.jpg`; promo banner "Audio for calls" = `product-headset-black.jpg` (there is no "Accessories" banner in this prototype); product card and gallery for Keyboard K7 = `product-keyboard-rgb.jpg` (state `keyboard-photo` on s03); Headset H3 card = `product-headset-black.jpg`. `product-controller-transparent.jpg` is not used: the prototype has no controller product, and its licence and author check is still open. Products without a photo (all others), the "Low stock" banner and the category tiles keep the neutral placeholder, labelled "Photo not chosen yet" where a product or banner has no photo.
+- Product page (s03): two columns from 1024 px (container `@5xl`), a gallery with 4 thumbnail buttons, and Description / Technical data / Delivery and returns tabs. Below 1024 px it stacks, gallery first.
+- Layout picker removed (s01 and s18 are layout A only).
+
+Assumptions (marked in the UI where shown; not facts about the store):
+
+- AS-01: delivery in 1–3 working days and returns within 14 days. Shown under "Why buy here" and in the product's delivery tab, marked [ASSUMPTION AS-01].
+- AS-08: product short descriptions and the product page description copy are invented.
+- AS-09: sales figures behind "Best sellers" (units in 9–16 Oct) are fictional. The shopper never sees them.
+- AS-10: every technical value (switch type, connection, weight, dimensions, warranty) is fictional.
+- Product SKUs and order references keep the `DEMO-` prefix (spec D08 marking). The storefront names no longer carry "[DEMO]".
+
+Environment note: headless Chrome here reserves a 15 px page scrollbar gutter, so the drawer's right edge sits at the body edge (305 px on a 320 px window). That is expected with a page scrollbar.
+
+Not verified: the controller photo's licence and author (not used), a hand-run keyboard walk of the drawer (focus trap and return come from Base UI and were not tested by hand), a screen reader, a real phone, the Chrome extension walk.

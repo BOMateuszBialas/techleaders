@@ -1,19 +1,33 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { ErrorState } from "@/components/ui/error-state";
-import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TextLink } from "@/components/ui/text-link";
-import { cartLines, categories, formatPln, orders, products, type Product } from "../fixtures";
-import { Notice, PageHead, ShopperFrame, type ScreenDef } from "../shared";
-
-const cartCount = cartLines.reduce((n, l) => n + l.qty, 0);
+import { useCart } from "../cart";
+import {
+  cartLines,
+  categories,
+  formatPln,
+  galleryShots,
+  heroPhoto,
+  orders,
+  products,
+  promoBanners,
+  specRows,
+  whyBuyHere,
+  type Photo,
+  type Product,
+} from "../fixtures";
+import { ImagePlaceholder, Notice, PageHead, ProductImage, ShopperFrame, type ScreenDef } from "../shared";
 
 function StockText({ stock }: { stock: number }) {
   if (stock === 0) return <Badge variant="destructive">Out of stock</Badge>;
@@ -22,8 +36,14 @@ function StockText({ stock }: { stock: number }) {
 }
 
 function ProductCard({ p }: { p: Product }) {
+  const cart = useCart();
   return (
     <Card>
+      {p.photo ? (
+        <ProductImage photo={p.photo} className="aspect-[4/3]" />
+      ) : (
+        <ImagePlaceholder label={`Photo not chosen yet: ${p.name}`} decorative className="aspect-[4/3] w-full" />
+      )}
       <CardHeader>
         <CardTitle>
           <a href="#s03" className="text-foreground no-underline hover:underline">{p.name}</a>
@@ -35,7 +55,16 @@ function ProductCard({ p }: { p: Product }) {
         <StockText stock={p.stock} />
       </CardContent>
       <CardFooter>
-        <Button variant="action" size="sm" disabled={p.stock === 0} className="w-full">
+        <Button
+          variant="action"
+          size="sm"
+          disabled={p.stock === 0}
+          className="w-full"
+          onClick={() => {
+            cart.add(p.slug);
+            cart.setOpen(true);
+          }}
+        >
           {p.stock === 0 ? "Unavailable" : "Add to cart"}
         </Button>
       </CardFooter>
@@ -44,7 +73,13 @@ function ProductCard({ p }: { p: Product }) {
 }
 
 function ProductGrid({ items }: { items: Product[] }) {
-  return <div className="grid gap-group-item sm:grid-cols-2 lg:grid-cols-3">{items.map((p) => <ProductCard key={p.slug} p={p} />)}</div>;
+  return (
+    <div className="grid gap-group-item @md:grid-cols-2 @3xl:grid-cols-3">
+      {items.map((p) => (
+        <ProductCard key={p.slug} p={p} />
+      ))}
+    </div>
+  );
 }
 
 function Loading({ rows = 3 }: { rows?: number }) {
@@ -67,9 +102,10 @@ function CatalogError({ what }: { what: string }) {
   );
 }
 
-/* s01 storefront home, layouts A / B / C (mapa-ekranow.md §3) */
-function Home({ state, layout }: { state: string; layout: string }) {
+/* s01 storefront home, layout A only (owner decision, 2026-10-26). Six sections, in this order. */
+function Home({ state }: { state: string }) {
   const featured = products.filter((p) => p.featured);
+  const bestSellers = [...products].sort((a, b) => b.sold7d - a.sold7d).slice(0, 3);
   if (state === "loading") return <Loading rows={4} />;
   if (state === "error") return <CatalogError what="The catalog" />;
   if (state === "empty-store")
@@ -77,70 +113,95 @@ function Home({ state, layout }: { state: string; layout: string }) {
       <Empty>
         <EmptyHeader>
           <EmptyTitle>No categories yet.</EmptyTitle>
-          <EmptyDescription>The demo catalog has no published products.</EmptyDescription>
+          <EmptyDescription>There are no published products to show.</EmptyDescription>
         </EmptyHeader>
       </Empty>
     );
-  const tabs = (
-    <nav aria-label="Categories" className="flex flex-wrap gap-related">
-      {categories.map((c, i) => (
-        <a
-          key={c}
-          href="#s02"
-          aria-current={i === 0 ? "page" : undefined}
-          className={
-            i === 0
-              ? "rounded-control bg-primary px-related py-related text-primary-foreground"
-              : "rounded-control border border-input px-related py-related text-foreground"
-          }
-        >
-          {c}
-        </a>
-      ))}
-    </nav>
-  );
-  const hero = (
-    <section className="flex flex-col gap-group rounded-card bg-muted p-panel">
-      <PageHead title="Gaming accessories" lead="Mice, keyboards, audio and desk gear. Every product here is demo data." />
-      <div>
-        <Button render={<a href="#s02" />} variant="default">Shop all</Button>
-      </div>
-    </section>
-  );
-  if (layout === "B")
-    return (
-      <>
-        {tabs}
+  return (
+    <div className="flex flex-col gap-group">
+      {/* 1. Hero: one message and one call to action */}
+      <section aria-label="Welcome" className="grid gap-group @3xl:grid-cols-2 @3xl:items-center">
+        <div className="flex flex-col gap-related">
+          <h1 className="font-heading type-display text-foreground">Gear for every desk and every match</h1>
+          <p className="max-w-measure type-body text-muted-foreground">
+            Mice, keyboards, headsets and desk gear. Stock is shown on every product.
+          </p>
+          <div>
+            <Button render={<a href="#s02" />} variant="default" size="lg">Shop all products</Button>
+          </div>
+        </div>
+        <ProductImage photo={heroPhoto} loading="eager" className="aspect-[4/3]" />
+      </section>
+
+      {/* 2. Featured products */}
+      <section aria-labelledby="home-featured" className="flex flex-col gap-group-item">
+        <h2 id="home-featured" className="font-heading type-h2">Featured products</h2>
         <ProductGrid items={featured} />
-      </>
-    );
-  if (layout === "C")
-    return (
-      <section className="flex flex-col gap-group">
-        <h1 className="font-heading type-h1">Featured</h1>
-        <NativeSelect aria-label="Category filter" className="max-w-xs">
-          {categories.map((c) => <NativeSelectOption key={c}>{c}</NativeSelectOption>)}
-        </NativeSelect>
-        <ul className="flex flex-col divide-y divide-border rounded-card border border-border">
-          {featured.map((p) => (
-            <li key={p.slug} className="flex flex-wrap items-center justify-between gap-related p-panel">
-              <a href="#s03" className="text-foreground">{p.name}</a>
-              <span className="flex items-center gap-related">
-                <span>{formatPln(p.priceMinor)}</span>
-                <StockText stock={p.stock} />
-              </span>
+      </section>
+
+      {/* 3. Promo banners: flat, text and one call to action each, no discounts (out of scope) */}
+      <section aria-labelledby="home-highlights" className="flex flex-col gap-group-item">
+        <h2 id="home-highlights" className="font-heading type-h2">From the store</h2>
+        <ul className="grid gap-group-item @3xl:grid-cols-3">
+          {promoBanners.map((b) => (
+            <li key={b.title} className="flex flex-col gap-related rounded-card border border-border bg-card p-panel">
+              {b.photo ? (
+                <ProductImage photo={b.photo} className="aspect-[4/3]" />
+              ) : (
+                <ImagePlaceholder label={`Photo not chosen yet: ${b.title}`} decorative className="aspect-[4/3] w-full" />
+              )}
+              <h3 className="font-medium">{b.title}</h3>
+              <p className="text-muted-foreground">{b.text}</p>
+              <div className="mt-auto pt-related">
+                <Button variant="outline" render={<a href={b.href} />}>{b.cta}</Button>
+              </div>
             </li>
           ))}
         </ul>
       </section>
-    );
-  return (
-    <>
-      {hero}
-      <h2 className="font-heading type-h2">Featured products</h2>
-      <ProductGrid items={featured} />
-      {tabs}
-    </>
+
+      {/* 4. Category tiles, from the catalogue */}
+      <section aria-labelledby="home-categories" className="flex flex-col gap-group-item">
+        <h2 id="home-categories" className="font-heading type-h2">Categories</h2>
+        <ul className="grid gap-group-item grid-cols-2 @3xl:grid-cols-4">
+          {categories
+            .filter((c) => c !== "All")
+            .map((c) => {
+              const n = products.filter((p) => p.category === c).length;
+              return (
+                <li key={c}>
+                  <a href="#s02" className="flex flex-col gap-related rounded-card p-related text-foreground no-underline hover:bg-muted">
+                    <ImagePlaceholder label={c} decorative className="aspect-[4/3] w-full" />
+                    <span className="font-medium">{c}</span>
+                    <span className="type-small text-muted-foreground">
+                      {n} {n === 1 ? "product" : "products"}
+                    </span>
+                  </a>
+                </li>
+              );
+            })}
+        </ul>
+      </section>
+
+      {/* 5. Why buy here: facts from the spec; the delivery line is an assumption (AS-01) */}
+      <section aria-labelledby="home-why" className="flex flex-col gap-group-item">
+        <h2 id="home-why" className="font-heading type-h2">Why buy here</h2>
+        <ul className="grid gap-group-item @3xl:grid-cols-2 @5xl:grid-cols-4">
+          {whyBuyHere.map((w) => (
+            <li key={w.title} className="flex flex-col gap-related border-t-2 border-border pt-related">
+              <h3 className="font-medium">{w.title}</h3>
+              <p className="type-small text-muted-foreground">{w.text}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* 6. Best sellers: the three highest units sold (fictional sales data, AS-09) */}
+      <section aria-labelledby="home-best" className="flex flex-col gap-group-item">
+        <h2 id="home-best" className="font-heading type-h2">Best sellers</h2>
+        <ProductGrid items={bestSellers} />
+      </section>
+    </div>
   );
 }
 
@@ -169,7 +230,7 @@ function Catalog({ state }: { state: string }) {
         </EmptyHeader>
       </Empty>
     );
-  const items = state === "empty-category" ? [] : products;
+  const items = products;
   return (
     <>
       <PageHead title="Products" />
@@ -191,8 +252,40 @@ function Catalog({ state }: { state: string }) {
   );
 }
 
-/* s03 product */
+/** Product photo gallery: a main image and 4 thumbnails (buttons, so the keyboard works). */
+function Gallery({ name, photo }: { name: string; photo?: Photo }) {
+  const [active, setActive] = useState(0);
+  const shot = galleryShots[active];
+  return (
+    <div className="flex flex-col gap-related">
+      {photo && active === 0 ? (
+        <ProductImage photo={photo} loading="eager" className="aspect-square object-cover" />
+      ) : (
+        <ImagePlaceholder label={`Photo ${active + 1} of ${galleryShots.length}: ${shot} view, not chosen yet`} className="aspect-square w-full" />
+      )}
+      <ul aria-label="Product images" className="grid grid-cols-4 gap-related">
+        {galleryShots.map((s, i) => (
+          <li key={s}>
+            <button
+              type="button"
+              aria-label={`Show image ${i + 1} of ${galleryShots.length}, ${s} view of ${name}`}
+              aria-pressed={i === active}
+              onClick={() => setActive(i)}
+              className="w-full rounded-control border border-border bg-muted p-related type-small text-muted-foreground outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:outline-solid aria-pressed:border-foreground aria-pressed:text-foreground"
+            >
+              {i + 1}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/* s03 product: two columns from 1024 px (container @5xl), one column below (gallery first). */
 function ProductPage({ state }: { state: string }) {
+  const cart = useCart();
+  const [qty, setQty] = useState("1");
   if (state === "not-found")
     return (
       <Empty>
@@ -204,36 +297,80 @@ function ProductPage({ state }: { state: string }) {
       </Empty>
     );
   if (state === "error") return <CatalogError what="This product" />;
-  const p = state === "out-of-stock" ? products[2] : products[0];
+  const p = state === "out-of-stock" ? products[2] : state === "keyboard-photo" ? products[1] : products[0];
   return (
-    <div className="grid gap-group @md:grid-cols-2">
-      <div aria-label="Product photo placeholder" className="flex aspect-square items-center justify-center rounded-card bg-surface-product text-muted-foreground">
-        Photo placeholder
-      </div>
-      <section className="flex flex-col gap-group">
+    <div className="grid gap-group @5xl:grid-cols-2 @5xl:items-start">
+      <Gallery name={p.name} photo={p.photo} />
+      <section aria-label="Product information" className="flex flex-col gap-group">
         <div className="flex flex-col gap-related">
           <p className="type-small text-muted-foreground">{p.category} · SKU {p.sku}</p>
           <h1 className="font-heading type-h1">{p.name}</h1>
-          <p className="font-heading type-h2">{formatPln(p.priceMinor)}</p>
+          <p className="max-w-measure type-body text-muted-foreground">{p.short}</p>
+          <p className="font-heading type-h2 text-foreground">{formatPln(p.priceMinor)}</p>
           <StockText stock={p.stock} />
         </div>
         {state === "added" ? <Notice variant="success">Added to cart.</Notice> : null}
         {state === "over-stock" ? <Notice variant="warning">Only {p.stock} left. Choose a smaller quantity.</Notice> : null}
-        <Field>
-          <FieldLabel htmlFor="qty">Quantity</FieldLabel>
-          <NativeSelect id="qty" defaultValue="1">
-            {[1, 2, 3].map((n) => <NativeSelectOption key={n}>{n}</NativeSelectOption>)}
-          </NativeSelect>
-        </Field>
-        <Button variant="action" size="lg" disabled={p.stock === 0 || state === "adding"} aria-busy={state === "adding" || undefined}>
-          {state === "adding" ? "Adding…" : p.stock === 0 ? "Out of stock" : "Add to cart"}
-        </Button>
+        <div className="flex flex-wrap items-end gap-related">
+          <Field className="w-auto min-w-24">
+            <FieldLabel htmlFor="qty">Quantity</FieldLabel>
+            <NativeSelect id="qty" value={qty} onChange={(e) => setQty(e.target.value)}>
+              {[1, 2, 3].map((n) => <NativeSelectOption key={n} value={String(n)}>{n}</NativeSelectOption>)}
+            </NativeSelect>
+          </Field>
+          <Button
+            variant="action"
+            size="lg"
+            className="grow sm:grow-0"
+            disabled={p.stock === 0 || state === "adding"}
+            aria-busy={state === "adding" || undefined}
+            onClick={() => {
+              for (let i = 0; i < Number(qty); i += 1) cart.add(p.slug);
+              cart.setOpen(true);
+            }}
+          >
+            {state === "adding" ? "Adding…" : p.stock === 0 ? "Out of stock" : "Add to cart"}
+          </Button>
+        </div>
+        <Tabs defaultValue="description">
+          <TabsList aria-label="Product details">
+            <TabsTrigger value="description">Description</TabsTrigger>
+            <TabsTrigger value="technical">Technical data</TabsTrigger>
+            <TabsTrigger value="delivery">Delivery and returns</TabsTrigger>
+          </TabsList>
+          <TabsContent value="description" className="pt-related type-body">
+            <p className="max-w-measure">
+              A wireless mouse with an optical-mechanical switch, two connection modes and a light body for long sessions at the desk.
+            </p>
+          </TabsContent>
+          <TabsContent value="technical" className="pt-related">
+            <Table>
+              <TableCaption className="text-left">All values are fictional (AS-10).</TableCaption>
+              <TableBody>
+                {specRows.map(([label, value]) => (
+                  <TableRow key={label}>
+                    <TableHead scope="row" className="w-40">{label}</TableHead>
+                    <TableCell>{value}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TabsContent>
+          <TabsContent value="delivery" className="flex flex-col gap-related pt-related type-body">
+            <p className="max-w-measure">
+              Assumed: delivery in 1–3 working days, and returns within 14 days. [ASSUMPTION AS-01]
+            </p>
+            <p className="max-w-measure type-small text-muted-foreground">
+              A placeholder until the store writes its own delivery and returns policy.
+            </p>
+          </TabsContent>
+        </Tabs>
       </section>
     </div>
   );
 }
 
-/* s04 cart */
+/* s04 cart (the fallback route; the drawer is the main cart) */
 function Cart({ state }: { state: string }) {
   if (state === "loading") return <Loading rows={2} />;
   if (state === "error") return <CatalogError what="Your cart" />;
@@ -250,47 +387,46 @@ function Cart({ state }: { state: string }) {
   const total = lines.reduce((s, l) => s + l.product.priceMinor * l.qty, 0);
   return (
     <div className="flex flex-col gap-group">
-    <PageHead title="Your cart" />
-    <div className="grid gap-group @md:grid-cols-[1fr_20rem]">
-      <section className="flex flex-col gap-group">
-        {state === "withdrawn" ? (
-          <Notice variant="info">Desk mat XL was removed from your cart because it is no longer sold.</Notice>
-        ) : null}
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Product</TableHead>
-              <TableHead>Quantity</TableHead>
-              <TableHead className="text-right">Line total</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {lines.map((l) => (
-              <TableRow key={l.product.slug}>
-                <TableCell>
-                  <a href="#s03" className="text-foreground">{l.product.name}</a>
-                  <div><StockText stock={l.product.stock} /></div>
-                </TableCell>
-                <TableCell>{l.qty}</TableCell>
-                <TableCell className="text-right">{formatPln(l.product.priceMinor * l.qty)}</TableCell>
+      <PageHead title="Your cart" />
+      <div className="grid gap-group @md:grid-cols-[1fr_20rem]">
+        <section className="flex flex-col gap-group">
+          {state === "withdrawn" ? (
+            <Notice variant="info">Desk mat XL was removed from your cart because it is no longer sold.</Notice>
+          ) : null}
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Product</TableHead>
+                <TableHead>Quantity</TableHead>
+                <TableHead className="text-right">Line total</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </section>
-      <Card>
-        <CardHeader>
-          <CardTitle>Summary</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-related">
-          <div className="flex justify-between"><span>Total</span><span className="font-medium">{formatPln(total)}</span></div>
-          <p className="type-small text-muted-foreground">Demo prices. Shipping is not modelled.</p>
-        </CardContent>
-        <CardFooter>
-          <Button variant="action" size="lg" render={<a href="#s05" />} className="w-full">Go to checkout</Button>
-        </CardFooter>
-      </Card>
-    </div>
+            </TableHeader>
+            <TableBody>
+              {lines.map((l) => (
+                <TableRow key={l.product.slug}>
+                  <TableCell>
+                    <a href="#s03" className="text-foreground">{l.product.name}</a>
+                    <div><StockText stock={l.product.stock} /></div>
+                  </TableCell>
+                  <TableCell>{l.qty}</TableCell>
+                  <TableCell className="text-right">{formatPln(l.product.priceMinor * l.qty)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </section>
+        <Card>
+          <CardHeader>
+            <CardTitle>Summary</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-related">
+            <div className="flex justify-between"><span>Total</span><span className="font-medium">{formatPln(total)}</span></div>
+          </CardContent>
+          <CardFooter>
+            <Button variant="action" size="lg" render={<a href="#s05" />} className="w-full">Checkout</Button>
+          </CardFooter>
+        </Card>
+      </div>
     </div>
   );
 }
@@ -324,16 +460,11 @@ function Checkout({ state }: { state: string }) {
           <Field data-invalid={emailError || undefined}>
             <FieldLabel htmlFor="email">Email for the order</FieldLabel>
             <Input id="email" type="email" autoComplete="email" aria-invalid={emailError || undefined} defaultValue={state === "customer" ? "klient-a@demo.test" : ""} />
-            {emailError ? <FieldError>Enter a valid email address.</FieldError> : <FieldDescription>We send nothing: this is a demo.</FieldDescription>}
+            {emailError ? <FieldError>Enter a valid email address.</FieldError> : null}
           </Field>
           <Field>
             <FieldLabel htmlFor="name">Full name</FieldLabel>
             <Input id="name" autoComplete="name" />
-          </Field>
-          <Field>
-            <FieldLabel htmlFor="addr">Delivery address (not used)</FieldLabel>
-            <Input id="addr" autoComplete="street-address" />
-            <FieldDescription>Shipping is not modelled in the demo store.</FieldDescription>
           </Field>
         </FieldGroup>
       </form>
@@ -344,17 +475,16 @@ function Checkout({ state }: { state: string }) {
         <CardContent className="flex flex-col gap-related">
           <div className="flex justify-between"><span>Items</span><span>{cartLines.reduce((n, l) => n + l.qty, 0)}</span></div>
           <div className="flex justify-between font-medium"><span>Total</span><span>{formatPln(94700)}</span></div>
-          <p className="type-small text-muted-foreground">No card details. Nothing is charged.</p>
         </CardContent>
         <CardFooter>
-          <Button variant="action" size="lg" render={<a href="#s06" />} className="w-full">Place demo order</Button>
+          <Button variant="action" size="lg" render={<a href="#s06" />} className="w-full">Place order</Button>
         </CardFooter>
       </Card>
     </div>
   );
 }
 
-/* s06 demo payment */
+/* s06 payment step: the only place with a test-payment note (owner decision 1) */
 function DemoPayment({ state }: { state: string }) {
   if (state === "not-found")
     return (
@@ -367,11 +497,11 @@ function DemoPayment({ state }: { state: string }) {
     );
   return (
     <div className="flex max-w-xl flex-col gap-group">
-      <h1 className="font-heading type-h1">Demo payment</h1>
+      <h1 className="font-heading type-h1">Pay for your order</h1>
       {state === "cancelled" ? (
         <Notice variant="warning">This order can no longer be paid.</Notice>
       ) : (
-        <Notice variant="demo" title="This is a demo payment">No card is asked for and nothing is charged.</Notice>
+        <Notice variant="info">Test payment. No money is taken.</Notice>
       )}
       <Card>
         <CardContent className="flex flex-col gap-related pt-panel">
@@ -381,7 +511,7 @@ function DemoPayment({ state }: { state: string }) {
         </CardContent>
       </Card>
       {state === "cancelled" ? null : (
-        <Button variant="action" size="lg" render={<a href="#s07" />}>Confirm demo payment (no charge)</Button>
+        <Button variant="action" size="lg" render={<a href="#s07" />}>Confirm test payment</Button>
       )}
     </div>
   );
@@ -403,7 +533,7 @@ function Confirmation({ state }: { state: string }) {
   return (
     <div className="flex max-w-xl flex-col gap-group">
       <h1 className="font-heading type-h1">Order status</h1>
-      {state === "paid" ? <Notice variant="success" title="Thank you. Demo payment received.">Your order is confirmed.</Notice> : null}
+      {state === "paid" ? <Notice variant="success" title="Thank you. Payment received.">Your order is confirmed.</Notice> : null}
       <Card>
         <CardHeader>
           <CardTitle>Order DEMO-2026-0413</CardTitle>
@@ -498,14 +628,15 @@ function shopper(title: string, id: string, states: string[], render: ScreenDef[
 }
 
 /** Wraps a shopper screen in the store frame. */
-function framed(node: ReactNode, cart = cartCount) {
-  return <ShopperFrame cartCount={cart}>{node}</ShopperFrame>;
+function framed(node: ReactNode) {
+  return <ShopperFrame>{node}</ShopperFrame>;
 }
 
+/** The drawer states come last: "cart-open" (two lines) and "cart-empty" (drawer with no lines). */
 export const shopperScreens: ScreenDef[] = [
-  shopper("Storefront home", "s01", ["default", "loading", "error", "empty-store"], (p) => framed(<Home {...p} />), ["A", "B", "C"]),
+  shopper("Storefront home", "s01", ["default", "loading", "error", "empty-store", "cart-open", "cart-empty"], (p) => framed(<Home state={p.state} />)),
   shopper("Catalog and search", "s02", ["list", "loading", "error", "no-results", "empty-category"], (p) => framed(<Catalog state={p.state} />)),
-  shopper("Product", "s03", ["default", "adding", "added", "out-of-stock", "over-stock", "not-found", "error"], (p) => framed(<ProductPage state={p.state} />)),
+  shopper("Product", "s03", ["default", "keyboard-photo", "adding", "added", "out-of-stock", "over-stock", "not-found", "error", "cart-open", "cart-empty"], (p) => framed(<ProductPage state={p.state} />)),
   shopper("Cart", "s04", ["items", "only-n-left", "withdrawn", "empty", "loading", "error"], (p) => framed(<Cart state={p.state} />)),
   shopper("Checkout", "s05", ["guest", "customer", "field-errors", "price-changed", "last-unit-sold-out", "session-read-failed", "general-error"], (p) => framed(<Checkout state={p.state} />)),
   shopper("Demo payment", "s06", ["pending", "cancelled", "not-found"], (p) => framed(<DemoPayment state={p.state} />)),
@@ -513,4 +644,3 @@ export const shopperScreens: ScreenDef[] = [
   shopper("My orders", "s11", ["list", "empty", "error", "loading"], (p) => framed(<MyOrders state={p.state} />)),
   shopper("Account order", "s12", ["own-order", "not-found"], (p) => framed(<AccountOrder state={p.state} />)),
 ];
-
