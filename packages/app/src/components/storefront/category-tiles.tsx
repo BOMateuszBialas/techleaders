@@ -22,7 +22,7 @@ export function CategoryTiles({ categories }: { categories: readonly CategoryCou
               href={productsHref(category.slug)}
               className="flex h-full flex-col gap-2 rounded-lg border p-3 hover:bg-muted focus-visible:bg-muted"
             >
-              <span className="flex aspect-[4/3] w-full items-center justify-center rounded-md border bg-muted text-sm text-muted-foreground">
+              <span className="flex aspect-video w-full items-center justify-center rounded-md border bg-muted text-sm text-muted-foreground">
                 {NO_PHOTO_LABEL}
               </span>
               <span className="font-medium">{category.name}</span>

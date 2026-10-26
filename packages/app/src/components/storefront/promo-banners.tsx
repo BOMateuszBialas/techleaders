@@ -14,7 +14,7 @@ export function PromoBannerItem({ banner }: { banner: PromoBanner }) {
           width={1600}
           height={1067}
           unoptimized
-          className="aspect-[4/3] w-full rounded-md border object-cover"
+          className="aspect-video w-full rounded-md border object-cover"
         />
       ) : null}
       <h3 className="font-medium">{banner.title}</h3>
