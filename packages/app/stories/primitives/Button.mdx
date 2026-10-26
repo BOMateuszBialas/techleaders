@@ -9,7 +9,7 @@ import { DoDont } from "./blocks/do-dont";
 
 ## 1. What it is for
 
-A button starts an action on this screen: adding a product to the cart, saving a form, changing an order status. Navigation to another page is a [Text link](?path=/docs/primitives-text-link--textlink).
+A button starts an action on this screen: adding a product to the cart, saving a form, changing an order status. Navigation inside running text is a [Text link](?path=/docs/primitives-text-link--textlink); a navigation step (main or supporting) is a link styled with `buttonVariants` (owner approval 2026-10-26, gap L2 of `.ai/design/test-agentem.md`).
 
 ## 2. When to use
 
@@ -23,13 +23,13 @@ A button starts an action on this screen: adding a product to the cart, saving a
 
 ## 3. When not to use
 
-| Instead of a button…                                   | Use                           | Why                                                        |
-| ------------------------------------------------------ | ----------------------------- | ---------------------------------------------------------- |
-| Going to another page ("Back to products", pagination) | Text link                     | A link navigates, a button acts (HTML, WAI-ARIA)           |
-| A red button in the admin                              | `default`                     | The admin has no `--action` (tokeny.md §7 rule 4)          |
-| A red button in the store header or footer             | a neutral button              | Red on the dark frame is 2.88 : 1 (tokeny.md §2, pair 61)  |
-| `action` on a product card in a list                   | `outline`, size `sm`          | At most one red button in view (rule 2; owner decision Q4) |
-| Showing an error                                       | Field error or a form message | An error is text and an icon, never a red button (rule 5)  |
+| Instead of a button…                                                      | Use                                                     | Why                                                                              |
+| ------------------------------------------------------------------------- | ------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Going to another page as a step ("Back to products", "Continue shopping") | `buttonVariants()` on a link (`secondary` or `default`) | A link navigates, a button acts; a Text link is for running text (How to choose) |
+| A red button in the admin                                                 | `default`                                               | The admin has no `--action` (tokeny.md §7 rule 4)                                |
+| A red button in the store header or footer                                | a neutral button                                        | Red on the dark frame is 2.88 : 1 (tokeny.md §2, pair 61)                        |
+| `action` on a product card in a list                                      | `outline`, size `sm`                                    | At most one red button in view (rule 2; owner decision Q4)                       |
+| Showing an error                                                          | Field error or a form message                           | An error is text and an icon, never a red button (rule 5)                        |
 
 ## 4. Anatomy
 
