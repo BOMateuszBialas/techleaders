@@ -1,0 +1,3 @@
+# 2026-10-17 — `Intl` month abbreviations differ between ICU versions; bind instants as ISO strings in raw SQL
+
+`Intl.DateTimeFormat("en-GB", { month: "short" })` printed "Sept" on Node 24 where the test expected "Sep", so a label that a test, a README or the Copilot quotes would change with the runtime. `metric-period.ts` uses `Intl` only for time-zone arithmetic (numeric parts) and a fixed month list for text. In the metric SQL, instants are bound as `toISOString()` and cast with `?::timestamptz`, so no driver or session time-zone setting can shift a period boundary; the integration fixture puts orders exactly on both boundaries of the half-open range to prove it.

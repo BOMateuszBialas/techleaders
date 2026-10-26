@@ -1,0 +1,3 @@
+# 2026-10-19 — agent-browser `fill` types into a date input in the browser locale; Zod 4 object refinements run after field failures
+
+`fillLabel("From", "2026-10-01")` on `<input type=date>` left it empty (Chrome shows `dd.mm.rrrr` in the Polish locale, and typed ISO text does not parse), so the native `required` blocked the submit and the wait timed out. In e2e, set a date input with `evaluate` (`el.value = "YYYY-MM-DD"`), which is what the picker does. Separately, a `.superRefine` on a `z.object` ran even though a field `.refine` had failed, which added a second, wrong message ("must not be after today" for a malformed date). Guard cross-field refinements against invalid fields (`dashboard-range.schema.ts`).

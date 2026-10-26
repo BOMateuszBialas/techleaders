@@ -1,0 +1,3 @@
+# 2026-10-19 — Agent edits can turn a `​` escape into the invisible character itself
+
+While writing the #75 tests, some `"​"`/`"‮"` escapes (but not `\u0085` or `\t`) landed in the files as literal zero-width and bidi characters, invisible in review, and a later Perl fix ate the backslashes (`"\u%04X"` in a Bash-quoted one-liner). After writing tests about invisible characters, run `grep -nP "[\x{200B}-\x{200F}\x{202A}-\x{202E}\x{FEFF}\x{00AD}]"` on the changed files and restore escapes with Perl using `\x5c` for the backslash. Both regex grounding checks (Copilot `findGroundingIssues` and description drafts) now share `grounding/hidden-character.ts` (#75).
