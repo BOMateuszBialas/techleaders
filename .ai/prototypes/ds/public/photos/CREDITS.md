@@ -14,8 +14,11 @@ All photos come from Pexels (https://www.pexels.com/license/). The Pexels Licens
 | category-headsets.jpg | Home category tile "Headsets" | https://www.pexels.com/photo/7858747/ (id 7858747; slug not verified, title "Young man in headphones watching a game screen in a dim room") | Ron Lach (from search listing; not verified) | 1600×2400 (portrait; crop for the tile). Shows the back of a person's head only, no face. |
 | category-mouse-pads.jpg | Category "Mouse pads" (neutral) | https://www.pexels.com/photo/36363140/ (id 36363140; title "Ergonomic wireless mouse on felt desk mat") | joshsorenson-36363140 (username from filename; not verified) | 1600×1067. The mouse has no visible logo in the frame, but the mouse body is a common wireless design; see open items. |
 | product-mouse-black.jpg | Product image "Mouse" | https://www.pexels.com/photo/31018745/ (id 31018745; title "Sleek gaming desk setup with futuristic mouse, keyboard, and digital clock, RGB lighting") | pealdesign (username from filename; not verified) | 1600×2400 (portrait). Mouse carries the model text "M2" only; no logo found at full size. |
+| category-monitors.jpg | Home category tile "Monitors" | https://www.pexels.com/photo/9128853/ (id 9128853; slug not verified, listing title "Gaming desk with neon lights in a dark room") | not captured from the listing | 1600×1067. Monitor shows a non-branded landscape; no legible logo at this size. |
+| product-monitor.jpg | Product image "Monitor" | https://www.pexels.com/photo/1933900/ (id 1933900; listing title "Dark laptop setup with red-glowing keyboard") | not captured from the listing | 1600×1067. Weaker pick: the screen shows code and the keyboard is laptop-style. No brand seen at this size. |
+| product-mouse-pad.jpg | Product image "Mouse pad" | https://www.pexels.com/photo/9128850/ (id 9128850; listing title "Keyboard and mouse with colorful ambient lighting") | not captured from the listing | 1600×2000 (portrait). Felt pad under neon light; keyboard and mouse show no legible brand at this size. |
 
-Licence for the five new rows: the Pexels License is assumed (all are Pexels free-to-use photos). The Pexels photo pages were not readable from the CLI, so each licence and photographer name still needs a check on its page before the owner signs off.
+Licence for the eight new rows: the Pexels License is assumed (all are Pexels free-to-use photos). The Pexels photo pages were not readable from the CLI, so each licence and photographer name still needs a check on its page before the owner signs off.
 
 ## Rejected after a visual check
 
@@ -59,11 +62,24 @@ Candidates checked on 2026-10-26 (full-size view of the 1600 px download) and re
 - 6236591 (gaming mouse with glowing logo, search title only, not downloaded): the title names a logo, so it was skipped.
 - 7172690 (wireless mouse with logo, search title only, not downloaded): skipped for the same reason.
 
-Searches that gave no usable Pexels result: a plain monitor on a neutral desk (all hits had a brand or were non-Pexels), a monitor stand, and a plain gaming keyboard. No monitor photo is in this folder yet.
+Second round (2026-10-26), rejected after a full-size view:
+
+- 6489043 (dark blue desk, monitor, keyboard): brand marks on the keyboard and speaker, "W" on the mouse.
+- 30469971 (PC with orange fans): "CARBON" text on the internals.
+- 4317157 (green room, gaming chair): Gamdias branding on the chair.
+- 6489045 (blue room, gaming chair): THUNDERX3 on the chair.
+- 17330221 (RGB keyboard, monitor, laptop): Zebronics and Logitech marks.
+- 28842077 (RGB keyboard, hex mat): SteelSeries and Palosmart marks.
+- 19836698 (dual monitors, PC): AORUS text on the PC; a named poster on the wall.
+- 15148324 (green room, iMac): Apple logo and a Spotify interface on screen.
+- 1635974 (dark desk, monitor): a private person's profile name on screen; dim, not gaming.
+
+Searches that gave no usable Pexels result: a monitor stand, and a plain gaming keyboard. Most monitor results had a brand or a third-party UI.
 
 ## Open after this batch
 
-- Not filled: category-keyboards.jpg (the existing product-keyboard-rgb.jpg has no brand visible at the checked size, but it was not re-checked for this tile), category-monitors.jpg, product-monitor.jpg, a monitor stand, product-mouse-pad.jpg. Monitor and stand candidates in Pexels search results mostly show a logo.
+- Not filled: category-keyboards.jpg (product-keyboard-rgb.jpg could be reused but was not re-checked for this tile) and a monitor stand. Most monitor and stand search results show a logo.
+- product-monitor.jpg is the weakest of the new picks (laptop-style keyboard, code on screen). Replace it with a plain monitor shot if one turns up.
 - category-mice.jpg and category-mouse-pads.jpg show mice with no visible logo at 1600 px. A mouse shape can still be a branded product, so the owner should look at full size before publishing.
 - The Pexels licence pages and the photographer display names were not read; the rows above use filename usernames. product-controller-transparent.jpg is still unchecked (licence and author).
 - Pexels photo pages were not readable from the CLI. Source URLs use the Pexels id form; slugs were not confirmed.
