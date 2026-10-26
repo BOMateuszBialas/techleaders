@@ -210,7 +210,7 @@ describe("CartSummary", () => {
     expect(html).toContain("A product in your cart is no longer available and was removed.");
     expect(html).toContain("747,00 zł");
     expect(html).toContain("Prices are confirmed at checkout.");
-    expect(html).toContain("OK, update my cart");
+    expect(html).toContain("Update my cart");
     // The stored cart must catch up first: its lines would not match the checkout.
     expect(html).not.toContain('href="/checkout"');
     expect(html).toContain("cookies must be enabled");

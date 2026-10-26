@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { formatMoney, type PricedCart } from "@commerceos/core";
 import type { FormAction } from "@/lib/action-state";
+import { Empty, EmptyContent, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { buttonVariants } from "@/components/ui/button";
 import { CartChanges } from "./cart-changes";
 import {
+  BROWSE_ALL_PRODUCTS_LINK,
   CHECKOUT_LINK,
   COOKIES_REQUIRED_NOTE,
   EMPTY_CART_MESSAGE,
@@ -28,12 +30,16 @@ export function CartSummary({ cart, updateAction, removeAction, acceptAction }: 
     <div className="flex flex-col gap-6">
       {cart.changed ? <CartChanges notices={cart.notices} acceptAction={acceptAction} /> : null}
       {cart.subtotal === null ? (
-        <div className="flex flex-col gap-2">
-          <p>{EMPTY_CART_MESSAGE}</p>
-          <Link href="/products" className="w-fit text-sm underline underline-offset-4">
-            Browse all products
-          </Link>
-        </div>
+        <Empty>
+          <EmptyHeader>
+            <EmptyTitle>{EMPTY_CART_MESSAGE}</EmptyTitle>
+          </EmptyHeader>
+          <EmptyContent>
+            <Link href="/products" className={buttonVariants({ variant: "outline" })}>
+              {BROWSE_ALL_PRODUCTS_LINK}
+            </Link>
+          </EmptyContent>
+        </Empty>
       ) : (
         <>
           <ul aria-label="Cart items" className="flex flex-col divide-y border-y">
@@ -56,7 +62,7 @@ export function CartSummary({ cart, updateAction, removeAction, acceptAction }: 
             <p className="text-sm text-muted-foreground">{PRICES_CONFIRMED_NOTE}</p>
             {/* Closed while the stored cart still needs the correction above. */}
             {cart.changed ? null : (
-              <Link href="/checkout" className={buttonVariants()}>
+              <Link href="/checkout" className={buttonVariants({ variant: "action" })}>
                 {CHECKOUT_LINK}
               </Link>
             )}

@@ -1,14 +1,20 @@
 import Link from "next/link";
 import { formatMoney, type PricedCart } from "@commerceos/core";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { buttonVariants } from "@/components/ui/button";
 import { DrawerBody, DrawerFooter } from "@/components/ui/drawer";
+import { Empty, EmptyContent, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
+import { ErrorState } from "@/components/ui/error-state";
 import type { FormAction } from "@/lib/action-state";
 import { CartChanges } from "./cart-changes";
 import {
   CART_UNAVAILABLE_MESSAGE,
+  CART_UNAVAILABLE_TITLE,
   CHECKOUT_LINK,
   EMPTY_CART_MESSAGE,
   PRICES_CONFIRMED_NOTE,
+  SHOP_ALL_PRODUCTS_LINK,
+  VIEW_FULL_CART_LINK,
 } from "./cart-copy";
 import { CartDrawerLine } from "./cart-drawer-line";
 
@@ -39,9 +45,15 @@ export function CartDrawerView({
   if (cart === null) {
     return (
       <DrawerBody>
-        <p role="alert" className="text-sm text-destructive">
-          {CART_UNAVAILABLE_MESSAGE}
-        </p>
+        <ErrorState
+          title={CART_UNAVAILABLE_TITLE}
+          description={CART_UNAVAILABLE_MESSAGE}
+          action={
+            <Link href="/cart" className={buttonVariants({ variant: "outline" })}>
+              {VIEW_FULL_CART_LINK}
+            </Link>
+          }
+        />
       </DrawerBody>
     );
   }
@@ -49,18 +61,22 @@ export function CartDrawerView({
     <>
       <DrawerBody>
         {notice ? (
-          <p role="status" className="text-sm font-medium text-success">
-            {notice}
-          </p>
+          <Alert variant="success" role="status">
+            <AlertDescription>{notice}</AlertDescription>
+          </Alert>
         ) : null}
         {cart.changed ? <CartChanges notices={cart.notices} acceptAction={acceptAction} /> : null}
         {cart.subtotal === null ? (
-          <div className="flex flex-col gap-related">
-            <p>{EMPTY_CART_MESSAGE}</p>
-            <Link href="/products" className="w-fit text-sm underline underline-offset-4">
-              Shop all products
-            </Link>
-          </div>
+          <Empty>
+            <EmptyHeader>
+              <EmptyTitle>{EMPTY_CART_MESSAGE}</EmptyTitle>
+            </EmptyHeader>
+            <EmptyContent>
+              <Link href="/products" className={buttonVariants({ variant: "outline" })}>
+                {SHOP_ALL_PRODUCTS_LINK}
+              </Link>
+            </EmptyContent>
+          </Empty>
         ) : (
           <ul aria-label="Cart items" className="flex flex-col divide-y border-y">
             {cart.lines.map((line) => (
@@ -90,7 +106,7 @@ export function CartDrawerView({
             </Link>
           )}
           <Link href="/cart" className="w-fit text-sm underline underline-offset-4">
-            View full cart
+            {VIEW_FULL_CART_LINK}
           </Link>
         </DrawerFooter>
       )}

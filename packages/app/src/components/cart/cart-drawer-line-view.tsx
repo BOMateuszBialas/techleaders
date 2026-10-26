@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { IconMinus, IconPlus } from "@tabler/icons-react";
 import { formatMoney, type PricedCartLine } from "@commerceos/core";
-import { FieldError, FormMessage } from "@/components/admin/form-feedback";
 import { Button } from "@/components/ui/button";
+import { FieldError } from "@/components/ui/field";
 import type { ActionState } from "@/lib/action-state";
+import { CartFormMessage } from "./cart-form-message";
 import { REMOVE_BUTTON } from "./cart-copy";
 import { lineMessage } from "./cart-line-view";
 
@@ -75,7 +76,7 @@ export function CartDrawerLineView({ line, update, remove }: CartDrawerLineViewP
           <input type="hidden" name="productId" value={line.productId} />
           <Button
             type="submit"
-            variant="ghost"
+            variant="link"
             size="sm"
             disabled={remove.pending}
             aria-label={`${REMOVE_BUTTON} ${name}`}
@@ -84,8 +85,8 @@ export function CartDrawerLineView({ line, update, remove }: CartDrawerLineViewP
           </Button>
         </form>
       </div>
-      <FieldError id={errorId} messages={update.state.fieldErrors?.quantity} />
-      <FormMessage state={lineMessage(update.state, remove.state)} />
+      <FieldError id={errorId}>{update.state.fieldErrors?.quantity?.join(" ")}</FieldError>
+      <CartFormMessage state={lineMessage(update.state, remove.state)} />
     </li>
   );
 }
