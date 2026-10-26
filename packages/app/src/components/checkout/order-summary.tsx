@@ -38,7 +38,7 @@ export function OrderSummary({
           </li>
         ))}
       </ul>
-      <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 border-t pt-3 text-sm">
+      <dl className="grid grid-cols-dl-label-amount gap-x-4 gap-y-1 border-t pt-3 text-sm">
         <dt>Subtotal</dt>
         <dd className="text-right tabular-nums">{formatMoney(subtotal)}</dd>
         <dt>Shipping</dt>

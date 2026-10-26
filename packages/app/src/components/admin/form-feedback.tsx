@@ -14,7 +14,7 @@ export function FormMessage({ state }: { state: ActionState }) {
   }
   if (state.status === "success") {
     return (
-      <p role="status" className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
+      <p role="status" className="text-sm font-medium text-success">
         {state.message}
       </p>
     );
