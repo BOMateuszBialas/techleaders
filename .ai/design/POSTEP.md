@@ -692,6 +692,17 @@ Liczby: 14 stron dokumentacji w „Design system” (8 ogólnych, 6 epików), 21
 
 Test agentem: przygotowany w `.ai/design/test-agentem.md`, **nie wykonany**.
 
+## Prototyp DS (React + Vite), krok 4 F4 (2026-10-26)
+
+- **Co jest:** `.ai/prototypes/ds/`, React + Vite, poza bramką (bez CI, coverage, lint). Komponenty z `packages/app/src/components/ui/` (wszystkie 21 z katalogu Storybooka, strona „Components”) importowane przez alias `@/` bez kopiowania; tokeny z `globals.css` przez `src/styles.css`; metryki z `metric-definitions.ts` przez alias `@core/`. Ekrany key flow: s01 (layouty A/B/C), s02–s07, s11, s12, s13–s19 (s18 w A/B/C). s08, s09, s10 niezbudowane (strona „not built”). Dane symulowane i oznaczone; bez sieci, płatności i kont.
+- **Zależności (dokładne wersje, `package.json`, lockfile w folderze):** react 19.3.0, react-dom 19.3.0, @types/react i @types/react-dom 19.3.0, @base-ui/react 1.9.0, @tabler/icons-react 3.49.0, class-variance-authority 0.7.1, cn 0.4.0, shadcn 4.21.4 (tylko CSS), tw-animate-css 1.4.0, tailwindcss i @tailwindcss/vite 4.3.3; nowe: vite 8.3.4 (aplikacja ma 8.3.5 z 2026-10-21, za świeża), @vitejs/plugin-react 6.1.1, typescript 5.9.3. Każda wersja z datą publikacji nie późniejszą niż 2026-10-12.
+- **Uruchomienie:** w `.ai/prototypes/ds/`: `npm ci`, `npm run dev` (port 5180), `npm run typecheck`, `npm run build`, `npm run preview` (4173). Root `npm install` nie jest potrzebny.
+- **Sprawdzone:** typecheck i build zielone. Przegląd headless Chrome 155 przez CDP (rozszerzenie Chrome nie było podłączone): 68 kontroli ekranów w stanie domyślnym × 320 / 1440 px × jasny / ciemny (zero błędów konsoli, zero poziomego przewijania strony i ramki, każdy domyślny ekran ma h1); 168 kontroli wszystkich stanów przy 320 i 1440 px (zero problemów); s01 i s18 w layoutach A/B/C przy 320 i 1440 px (zero problemów). Skrypty i wyniki w `evidence/`. Wizualnie oceniono dwa zrzuty (s01 320, s14 1440).
+- **Naprawione przy sprawdzaniu:** cztery ekrany bez h1, przyciski sugerowanych pytań Copilota przepełniały 320 px, pasek boczny admina nie przechodził w wiersz przy 1440 px (kontener zapytań na złym elemencie), 404 faviconu.
+- **Odstępstwa:** czcionki Archivo / Geist Mono zastąpione systemowymi (brak `next/font` i sieci); szerokość w pasku sterowania zmienia kontenery, a nie media query tokenów (gęstość liczy się od rzeczywistej szerokości okna); `next/link` zastąpiony zwykłym linkiem; w nagłówku sklepu zwykłe linki, nie megamenu; ekrany składane ręcznie, bez logiki aplikacji.
+- **Niesprawdzone:** tryb ciemny wizualnie (tylko DOM), klawiatura i czytnik ekranu, szerokości 390 i 768 px, kontrasty nowych par (brak nowych), `check:tokens`, test agentem, przegląd przez prawdziwą osobę.
+- **Otwarte P:** P1 wybór layoutu s01 i s18 (właściciel); P2 s08–s10 w kolejnej rewizji; P3 pliki czcionek; P4 megamenu w nagłówku sklepu i Disclosure na telefonie (retrofit, lekcja 08); P5 przegląd w prawdziwej przeglądarce przez właściciela.
+
 ## Następny krok
 
 Review PR etapu 4 i 5 przez właściciela: merge (risk-high, merguje właściciel) po zielonym CI. Najpierw decyzje z listy P (Storybook „What is missing”, §4). Potem retrofit (lekcja 08: Alert dialog przy kategorii i zamówieniu, megamenu w nagłówku sklepu, `ErrorState` i `error.tsx` sklepu, przepięcie formularzy na `Field`) oraz wykonanie testu agentem z `.ai/design/test-agentem.md`. Otwarte: zawijanie szerokich tabel na 320 px w stronach dokumentacji (wynik etapu 5).
