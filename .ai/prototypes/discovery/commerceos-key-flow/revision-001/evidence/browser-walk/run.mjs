@@ -1,17 +1,13 @@
 // Drives the local prototype in an installed headless Chrome over the DevTools protocol (no new packages).
-import { spawn } from 'node:child_process';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
-const CHROME = 'C:/Program Files/Google/Chrome/Application/chrome.exe';
 const PORT = 9333;
 const DIR = dirname(fileURLToPath(import.meta.url));
 const PROTO = process.argv[2];
 const EVID = process.argv[3];
-const PROFILE = join(DIR, 'chrome-profile');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-
 
 let targets;
 for (let i = 0; i < 60; i++) {
