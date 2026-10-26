@@ -1,10 +1,11 @@
 import { beforeAll, describe, expect, inject, it } from "vitest";
 import { useBrowser } from "./support/browser-test";
-import { resetCopilotQuestionBudget } from "./support/copilot-budget";
+import { clearCopilotRecommendations, resetCopilotQuestionBudget } from "./support/copilot-budget";
 import { useOwnerSession } from "./support/sign-in";
 
 const FOCUS = "What should I focus on to improve sales this week?";
 const ANSWER = 'main [data-testid="copilot-answer"]';
+const ANSWER_RECOMMENDATION = `${ANSWER} [data-testid="copilot-recommendation"]`;
 const SUMMARY = 'main [data-testid="copilot-summary"]';
 
 /**
@@ -40,6 +41,8 @@ describe("admin Copilot", () => {
   describe("signed in", () => {
     beforeAll(async () => {
       await resetCopilotQuestionBudget();
+      // "Your recommendations" lists stored cards with the same test id; earlier suites may leave some.
+      await clearCopilotRecommendations();
       await useOwnerSession(browser());
     });
 
@@ -81,7 +84,8 @@ describe("admin Copilot", () => {
       expect(await browser().text(SUMMARY)).toBe(
         "Copilot can't answer this. It needs product cost data, which this store does not record.",
       );
-      expect(await browser().count('main [data-testid="copilot-recommendation"]')).toBe(0);
+      // Scoped to the answer: the "Your recommendations" list shares this test id.
+      expect(await browser().count(ANSWER_RECOMMENDATION)).toBe(0);
     });
 
     it("lists the questions it answers for an unsupported question", async () => {
