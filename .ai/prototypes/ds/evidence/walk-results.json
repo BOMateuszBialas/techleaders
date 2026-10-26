@@ -1,0 +1,1090 @@
+[
+  {
+    "route": "s01",
+    "width": 320,
+    "theme": "light",
+    "frameOverflow": false,
+    "frameScroll": [
+      271,
+      271
+    ],
+    "docOverflow": false,
+    "heading": "Gaming accessories",
+    "dark": false,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s02",
+    "width": 320,
+    "theme": "light",
+    "frameOverflow": false,
+    "frameScroll": [
+      271,
+      271
+    ],
+    "docOverflow": false,
+    "heading": "Products",
+    "dark": false,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s03",
+    "width": 320,
+    "theme": "light",
+    "frameOverflow": false,
+    "frameScroll": [
+      271,
+      271
+    ],
+    "docOverflow": false,
+    "heading": "Wireless mouse Vortex 2 [DEMO]",
+    "dark": false,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s04",
+    "width": 320,
+    "theme": "light",
+    "frameOverflow": false,
+    "frameScroll": [
+      271,
+      271
+    ],
+    "docOverflow": false,
+    "heading": "Your cart",
+    "dark": false,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s05",
+    "width": 320,
+    "theme": "light",
+    "frameOverflow": false,
+    "frameScroll": [
+      271,
+      271
+    ],
+    "docOverflow": false,
+    "heading": "Checkout",
+    "dark": false,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s06",
+    "width": 320,
+    "theme": "light",
+    "frameOverflow": false,
+    "frameScroll": [
+      271,
+      271
+    ],
+    "docOverflow": false,
+    "heading": "Demo payment",
+    "dark": false,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s07",
+    "width": 320,
+    "theme": "light",
+    "frameOverflow": false,
+    "frameScroll": [
+      271,
+      271
+    ],
+    "docOverflow": false,
+    "heading": "Order status",
+    "dark": false,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s11",
+    "width": 320,
+    "theme": "light",
+    "frameOverflow": false,
+    "frameScroll": [
+      271,
+      271
+    ],
+    "docOverflow": false,
+    "heading": "My orders",
+    "dark": false,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s12",
+    "width": 320,
+    "theme": "light",
+    "frameOverflow": false,
+    "frameScroll": [
+      271,
+      271
+    ],
+    "docOverflow": false,
+    "heading": "Order DEMO-2026-0412",
+    "dark": false,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s13",
+    "width": 320,
+    "theme": "light",
+    "frameOverflow": false,
+    "frameScroll": [
+      286,
+      286
+    ],
+    "docOverflow": false,
+    "heading": "Admin sign-in",
+    "dark": false,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s14",
+    "width": 320,
+    "theme": "light",
+    "frameOverflow": false,
+    "frameScroll": [
+      271,
+      271
+    ],
+    "docOverflow": false,
+    "heading": "Dashboard",
+    "dark": false,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s15",
+    "width": 320,
+    "theme": "light",
+    "frameOverflow": false,
+    "frameScroll": [
+      271,
+      271
+    ],
+    "docOverflow": false,
+    "heading": "Orders",
+    "dark": false,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s16",
+    "width": 320,
+    "theme": "light",
+    "frameOverflow": false,
+    "frameScroll": [
+      271,
+      271
+    ],
+    "docOverflow": false,
+    "heading": "DEMO-2026-0412",
+    "dark": false,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s17",
+    "width": 320,
+    "theme": "light",
+    "frameOverflow": false,
+    "frameScroll": [
+      271,
+      271
+    ],
+    "docOverflow": false,
+    "heading": "Commerce Copilot",
+    "dark": false,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s18",
+    "width": 320,
+    "theme": "light",
+    "frameOverflow": false,
+    "frameScroll": [
+      271,
+      271
+    ],
+    "docOverflow": false,
+    "heading": "Commerce Copilot: answer",
+    "dark": false,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s19",
+    "width": 320,
+    "theme": "light",
+    "frameOverflow": false,
+    "frameScroll": [
+      271,
+      271
+    ],
+    "docOverflow": false,
+    "heading": "Your recommendations",
+    "dark": false,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "components",
+    "width": 320,
+    "theme": "light",
+    "frameOverflow": false,
+    "frameScroll": [
+      271,
+      271
+    ],
+    "docOverflow": false,
+    "heading": "Components",
+    "dark": false,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s01",
+    "width": 320,
+    "theme": "dark",
+    "frameOverflow": false,
+    "frameScroll": [
+      271,
+      271
+    ],
+    "docOverflow": false,
+    "heading": "Gaming accessories",
+    "dark": true,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s02",
+    "width": 320,
+    "theme": "dark",
+    "frameOverflow": false,
+    "frameScroll": [
+      271,
+      271
+    ],
+    "docOverflow": false,
+    "heading": "Products",
+    "dark": true,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s03",
+    "width": 320,
+    "theme": "dark",
+    "frameOverflow": false,
+    "frameScroll": [
+      271,
+      271
+    ],
+    "docOverflow": false,
+    "heading": "Wireless mouse Vortex 2 [DEMO]",
+    "dark": true,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s04",
+    "width": 320,
+    "theme": "dark",
+    "frameOverflow": false,
+    "frameScroll": [
+      271,
+      271
+    ],
+    "docOverflow": false,
+    "heading": "Your cart",
+    "dark": true,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s05",
+    "width": 320,
+    "theme": "dark",
+    "frameOverflow": false,
+    "frameScroll": [
+      271,
+      271
+    ],
+    "docOverflow": false,
+    "heading": "Checkout",
+    "dark": true,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s06",
+    "width": 320,
+    "theme": "dark",
+    "frameOverflow": false,
+    "frameScroll": [
+      271,
+      271
+    ],
+    "docOverflow": false,
+    "heading": "Demo payment",
+    "dark": true,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s07",
+    "width": 320,
+    "theme": "dark",
+    "frameOverflow": false,
+    "frameScroll": [
+      271,
+      271
+    ],
+    "docOverflow": false,
+    "heading": "Order status",
+    "dark": true,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s11",
+    "width": 320,
+    "theme": "dark",
+    "frameOverflow": false,
+    "frameScroll": [
+      271,
+      271
+    ],
+    "docOverflow": false,
+    "heading": "My orders",
+    "dark": true,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s12",
+    "width": 320,
+    "theme": "dark",
+    "frameOverflow": false,
+    "frameScroll": [
+      271,
+      271
+    ],
+    "docOverflow": false,
+    "heading": "Order DEMO-2026-0412",
+    "dark": true,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s13",
+    "width": 320,
+    "theme": "dark",
+    "frameOverflow": false,
+    "frameScroll": [
+      286,
+      286
+    ],
+    "docOverflow": false,
+    "heading": "Admin sign-in",
+    "dark": true,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s14",
+    "width": 320,
+    "theme": "dark",
+    "frameOverflow": false,
+    "frameScroll": [
+      271,
+      271
+    ],
+    "docOverflow": false,
+    "heading": "Dashboard",
+    "dark": true,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s15",
+    "width": 320,
+    "theme": "dark",
+    "frameOverflow": false,
+    "frameScroll": [
+      271,
+      271
+    ],
+    "docOverflow": false,
+    "heading": "Orders",
+    "dark": true,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s16",
+    "width": 320,
+    "theme": "dark",
+    "frameOverflow": false,
+    "frameScroll": [
+      271,
+      271
+    ],
+    "docOverflow": false,
+    "heading": "DEMO-2026-0412",
+    "dark": true,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s17",
+    "width": 320,
+    "theme": "dark",
+    "frameOverflow": false,
+    "frameScroll": [
+      271,
+      271
+    ],
+    "docOverflow": false,
+    "heading": "Commerce Copilot",
+    "dark": true,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s18",
+    "width": 320,
+    "theme": "dark",
+    "frameOverflow": false,
+    "frameScroll": [
+      271,
+      271
+    ],
+    "docOverflow": false,
+    "heading": "Commerce Copilot: answer",
+    "dark": true,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s19",
+    "width": 320,
+    "theme": "dark",
+    "frameOverflow": false,
+    "frameScroll": [
+      271,
+      271
+    ],
+    "docOverflow": false,
+    "heading": "Your recommendations",
+    "dark": true,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "components",
+    "width": 320,
+    "theme": "dark",
+    "frameOverflow": false,
+    "frameScroll": [
+      271,
+      271
+    ],
+    "docOverflow": false,
+    "heading": "Components",
+    "dark": true,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s01",
+    "width": 1440,
+    "theme": "light",
+    "frameOverflow": false,
+    "frameScroll": [
+      1359,
+      1359
+    ],
+    "docOverflow": false,
+    "heading": "Gaming accessories",
+    "dark": false,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s02",
+    "width": 1440,
+    "theme": "light",
+    "frameOverflow": false,
+    "frameScroll": [
+      1359,
+      1359
+    ],
+    "docOverflow": false,
+    "heading": "Products",
+    "dark": false,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s03",
+    "width": 1440,
+    "theme": "light",
+    "frameOverflow": false,
+    "frameScroll": [
+      1359,
+      1359
+    ],
+    "docOverflow": false,
+    "heading": "Wireless mouse Vortex 2 [DEMO]",
+    "dark": false,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s04",
+    "width": 1440,
+    "theme": "light",
+    "frameOverflow": false,
+    "frameScroll": [
+      1359,
+      1359
+    ],
+    "docOverflow": false,
+    "heading": "Your cart",
+    "dark": false,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s05",
+    "width": 1440,
+    "theme": "light",
+    "frameOverflow": false,
+    "frameScroll": [
+      1359,
+      1359
+    ],
+    "docOverflow": false,
+    "heading": "Checkout",
+    "dark": false,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s06",
+    "width": 1440,
+    "theme": "light",
+    "frameOverflow": false,
+    "frameScroll": [
+      1374,
+      1374
+    ],
+    "docOverflow": false,
+    "heading": "Demo payment",
+    "dark": false,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s07",
+    "width": 1440,
+    "theme": "light",
+    "frameOverflow": false,
+    "frameScroll": [
+      1374,
+      1374
+    ],
+    "docOverflow": false,
+    "heading": "Order status",
+    "dark": false,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s11",
+    "width": 1440,
+    "theme": "light",
+    "frameOverflow": false,
+    "frameScroll": [
+      1374,
+      1374
+    ],
+    "docOverflow": false,
+    "heading": "My orders",
+    "dark": false,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s12",
+    "width": 1440,
+    "theme": "light",
+    "frameOverflow": false,
+    "frameScroll": [
+      1374,
+      1374
+    ],
+    "docOverflow": false,
+    "heading": "Order DEMO-2026-0412",
+    "dark": false,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s13",
+    "width": 1440,
+    "theme": "light",
+    "frameOverflow": false,
+    "frameScroll": [
+      1374,
+      1374
+    ],
+    "docOverflow": false,
+    "heading": "Admin sign-in",
+    "dark": false,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s14",
+    "width": 1440,
+    "theme": "light",
+    "frameOverflow": false,
+    "frameScroll": [
+      1390,
+      1390
+    ],
+    "docOverflow": false,
+    "heading": "Dashboard",
+    "dark": false,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s15",
+    "width": 1440,
+    "theme": "light",
+    "frameOverflow": false,
+    "frameScroll": [
+      1390,
+      1390
+    ],
+    "docOverflow": false,
+    "heading": "Orders",
+    "dark": false,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s16",
+    "width": 1440,
+    "theme": "light",
+    "frameOverflow": false,
+    "frameScroll": [
+      1390,
+      1390
+    ],
+    "docOverflow": false,
+    "heading": "DEMO-2026-0412",
+    "dark": false,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s17",
+    "width": 1440,
+    "theme": "light",
+    "frameOverflow": false,
+    "frameScroll": [
+      1390,
+      1390
+    ],
+    "docOverflow": false,
+    "heading": "Commerce Copilot",
+    "dark": false,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s18",
+    "width": 1440,
+    "theme": "light",
+    "frameOverflow": false,
+    "frameScroll": [
+      1375,
+      1375
+    ],
+    "docOverflow": false,
+    "heading": "Commerce Copilot: answer",
+    "dark": false,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s19",
+    "width": 1440,
+    "theme": "light",
+    "frameOverflow": false,
+    "frameScroll": [
+      1390,
+      1390
+    ],
+    "docOverflow": false,
+    "heading": "Your recommendations",
+    "dark": false,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "components",
+    "width": 1440,
+    "theme": "light",
+    "frameOverflow": false,
+    "frameScroll": [
+      1359,
+      1359
+    ],
+    "docOverflow": false,
+    "heading": "Components",
+    "dark": false,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s01",
+    "width": 1440,
+    "theme": "dark",
+    "frameOverflow": false,
+    "frameScroll": [
+      1359,
+      1359
+    ],
+    "docOverflow": false,
+    "heading": "Gaming accessories",
+    "dark": true,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s02",
+    "width": 1440,
+    "theme": "dark",
+    "frameOverflow": false,
+    "frameScroll": [
+      1359,
+      1359
+    ],
+    "docOverflow": false,
+    "heading": "Products",
+    "dark": true,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s03",
+    "width": 1440,
+    "theme": "dark",
+    "frameOverflow": false,
+    "frameScroll": [
+      1359,
+      1359
+    ],
+    "docOverflow": false,
+    "heading": "Wireless mouse Vortex 2 [DEMO]",
+    "dark": true,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s04",
+    "width": 1440,
+    "theme": "dark",
+    "frameOverflow": false,
+    "frameScroll": [
+      1359,
+      1359
+    ],
+    "docOverflow": false,
+    "heading": "Your cart",
+    "dark": true,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s05",
+    "width": 1440,
+    "theme": "dark",
+    "frameOverflow": false,
+    "frameScroll": [
+      1359,
+      1359
+    ],
+    "docOverflow": false,
+    "heading": "Checkout",
+    "dark": true,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s06",
+    "width": 1440,
+    "theme": "dark",
+    "frameOverflow": false,
+    "frameScroll": [
+      1374,
+      1374
+    ],
+    "docOverflow": false,
+    "heading": "Demo payment",
+    "dark": true,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s07",
+    "width": 1440,
+    "theme": "dark",
+    "frameOverflow": false,
+    "frameScroll": [
+      1374,
+      1374
+    ],
+    "docOverflow": false,
+    "heading": "Order status",
+    "dark": true,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s11",
+    "width": 1440,
+    "theme": "dark",
+    "frameOverflow": false,
+    "frameScroll": [
+      1374,
+      1374
+    ],
+    "docOverflow": false,
+    "heading": "My orders",
+    "dark": true,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s12",
+    "width": 1440,
+    "theme": "dark",
+    "frameOverflow": false,
+    "frameScroll": [
+      1374,
+      1374
+    ],
+    "docOverflow": false,
+    "heading": "Order DEMO-2026-0412",
+    "dark": true,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s13",
+    "width": 1440,
+    "theme": "dark",
+    "frameOverflow": false,
+    "frameScroll": [
+      1374,
+      1374
+    ],
+    "docOverflow": false,
+    "heading": "Admin sign-in",
+    "dark": true,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s14",
+    "width": 1440,
+    "theme": "dark",
+    "frameOverflow": false,
+    "frameScroll": [
+      1390,
+      1390
+    ],
+    "docOverflow": false,
+    "heading": "Dashboard",
+    "dark": true,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s15",
+    "width": 1440,
+    "theme": "dark",
+    "frameOverflow": false,
+    "frameScroll": [
+      1390,
+      1390
+    ],
+    "docOverflow": false,
+    "heading": "Orders",
+    "dark": true,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s16",
+    "width": 1440,
+    "theme": "dark",
+    "frameOverflow": false,
+    "frameScroll": [
+      1390,
+      1390
+    ],
+    "docOverflow": false,
+    "heading": "DEMO-2026-0412",
+    "dark": true,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s17",
+    "width": 1440,
+    "theme": "dark",
+    "frameOverflow": false,
+    "frameScroll": [
+      1390,
+      1390
+    ],
+    "docOverflow": false,
+    "heading": "Commerce Copilot",
+    "dark": true,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s18",
+    "width": 1440,
+    "theme": "dark",
+    "frameOverflow": false,
+    "frameScroll": [
+      1375,
+      1375
+    ],
+    "docOverflow": false,
+    "heading": "Commerce Copilot: answer",
+    "dark": true,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "s19",
+    "width": 1440,
+    "theme": "dark",
+    "frameOverflow": false,
+    "frameScroll": [
+      1390,
+      1390
+    ],
+    "docOverflow": false,
+    "heading": "Your recommendations",
+    "dark": true,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  },
+  {
+    "route": "components",
+    "width": 1440,
+    "theme": "dark",
+    "frameOverflow": false,
+    "frameScroll": [
+      1359,
+      1359
+    ],
+    "docOverflow": false,
+    "heading": "Components",
+    "dark": true,
+    "status": "imulated data only. Sideways scroll: no.",
+    "errors": [],
+    "warnings": 0
+  }
+]
