@@ -164,10 +164,12 @@ describe("productInputSchema", () => {
 });
 
 describe("isAllowedImageUrl", () => {
-  it("allows https URLs and the seeded local demo images only", () => {
+  it("allows https URLs and the seeded local images only", () => {
     expect(isAllowedImageUrl("https://images.example.com/a.png")).toBe(true);
     expect(isAllowedImageUrl("/demo/products/vortex-wireless-mouse.svg")).toBe(true);
+    expect(isAllowedImageUrl("/photos/product-mouse-black.jpg")).toBe(true);
     expect(isAllowedImageUrl("/demo/products/x.exe")).toBe(false);
+    expect(isAllowedImageUrl("/photos/../secret.jpg")).toBe(false);
     expect(isAllowedImageUrl("/uploads/x.png")).toBe(false);
     expect(isAllowedImageUrl("ftp://x.test/a.png")).toBe(false);
   });
