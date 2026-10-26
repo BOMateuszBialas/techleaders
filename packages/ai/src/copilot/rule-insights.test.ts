@@ -75,7 +75,15 @@ describe("buildRuleInsights", () => {
 
   it("rule 1 says out of stock at 0 and '1 unit' for a single sale", () => {
     const { table, draft } = insights("low_stock", {
-      lowStock: lowStock([{ id: PULSE_ID, name: PULSE_ROW.name, sku: "S", stockQuantity: 0 }]),
+      lowStock: lowStock([
+        {
+          id: PULSE_ID,
+          slug: "pulse-ultralight-mouse",
+          name: PULSE_ROW.name,
+          sku: "S",
+          stockQuantity: 0,
+        },
+      ]),
       topProducts: top([{ ...PULSE_ROW, units: 1 }]),
     });
     expect(draft.recommendations[0]?.observation).toBe(
@@ -205,7 +213,13 @@ describe("buildRuleInsights", () => {
     expect(draft.recommendations.map((item) => item.priority)).toEqual(["high", "medium"]);
 
     const low = lowStock(
-      rows.map((row) => ({ id: row.productId, name: row.name, sku: null, stockQuantity: 1 })),
+      rows.map((row) => ({
+        id: row.productId,
+        slug: "lowest-stock",
+        name: row.name,
+        sku: null,
+        stockQuantity: 1,
+      })),
     );
     const capped = insights("focus", {
       sales: sales({ paidOrders: 0, revenueMinor: 0, aovMinor: null }),

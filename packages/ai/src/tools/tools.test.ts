@@ -32,7 +32,7 @@ function fakeMetrics(): StoreMetricsPort {
     ]),
     lowStockProducts: vi.fn(async () => ({
       total: 1,
-      rows: [{ id: "p-1", name: "Pulse", sku: "DEMO-MOU-002", stockQuantity: 2 }],
+      rows: [{ id: "p-1", slug: "pulse", name: "Pulse", sku: "DEMO-MOU-002", stockQuantity: 2 }],
     })),
     demoOrderCount: vi.fn(async () => 0),
   };

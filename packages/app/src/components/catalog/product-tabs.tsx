@@ -1,5 +1,5 @@
 import type { TechnicalSpec } from "@commerceos/core";
-import { DELIVERY_EXAMPLE_TEXT } from "@/components/storefront/storefront-content";
+import { EXAMPLE_DELIVERY_TEXT } from "@/components/storefront/storefront-content";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   PRODUCT_TABS_LABEL,
@@ -35,7 +35,7 @@ export function ProductTabs({
         <ProductTechnicalData specs={technicalSpecs} />
       </TabsContent>
       <TabsContent value="delivery" className="pt-related">
-        <p className="max-w-measure">{DELIVERY_EXAMPLE_TEXT}</p>
+        <p className="max-w-measure">{EXAMPLE_DELIVERY_TEXT}</p>
       </TabsContent>
     </Tabs>
   );

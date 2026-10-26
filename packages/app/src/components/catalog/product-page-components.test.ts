@@ -1,7 +1,7 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { DELIVERY_EXAMPLE_TEXT } from "@/components/storefront/storefront-content";
+import { EXAMPLE_DELIVERY_TEXT } from "@/components/storefront/storefront-content";
 import { ProductTabs } from "./product-tabs";
 import { ProductTechnicalData } from "./product-technical-data";
 
@@ -51,6 +51,6 @@ describe("ProductTabs", () => {
     expect(html).toContain("A mouse.");
     expect(html).toContain('aria-selected="true"');
     expect(html).not.toContain("Sensor");
-    expect(html).not.toContain(DELIVERY_EXAMPLE_TEXT);
+    expect(html).not.toContain(EXAMPLE_DELIVERY_TEXT);
   });
 });

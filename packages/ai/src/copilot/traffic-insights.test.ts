@@ -211,7 +211,13 @@ describe("traffic rules", () => {
 
   it("rule 4 leaves a best seller to rule 1 and ignores a product without views", () => {
     const soldOutPulse = lowStock([
-      { id: PULSE_ID, name: "Pulse Ultralight Mouse", sku: "DEMO-MOU-002", stockQuantity: 0 },
+      {
+        id: PULSE_ID,
+        slug: "pulse-ultralight-mouse",
+        name: "Pulse Ultralight Mouse",
+        sku: "DEMO-MOU-002",
+        stockQuantity: 0,
+      },
     ]);
     const { draft } = insights("focus", {
       sales: sales(),

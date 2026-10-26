@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { expect, within } from "storybook/test";
 import { TECHNICAL_DATA_EMPTY } from "@/components/catalog/product-page-copy";
 import { ProductTabs } from "@/components/catalog/product-tabs";
-import { DELIVERY_EXAMPLE_TEXT } from "@/components/storefront/storefront-content";
+import { EXAMPLE_DELIVERY_TEXT } from "@/components/storefront/storefront-content";
 
 /**
  * Storefront / Product page / Tabs. The details under the price of `/products/[slug]` (storefront
@@ -47,7 +47,7 @@ export const WithTechnicalData: TabsStory = {
     await expect(canvas.getByText("Optical, 26,000 DPI")).toBeInTheDocument();
 
     await userEvent.click(canvas.getByRole("tab", { name: "Delivery and returns" }));
-    await expect(canvas.getByText(DELIVERY_EXAMPLE_TEXT)).toBeInTheDocument();
+    await expect(canvas.getByText(EXAMPLE_DELIVERY_TEXT)).toBeInTheDocument();
     await expect(canvas.queryByText("Sensor")).toBeNull();
   },
 };
