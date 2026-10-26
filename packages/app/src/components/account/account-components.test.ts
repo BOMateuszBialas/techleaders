@@ -17,7 +17,7 @@ const render = (element: Parameters<typeof renderToStaticMarkup>[0]) =>
   renderToStaticMarkup(element).replace(/ class="[^"]*"/g, "");
 
 describe("CustomerAuthCard", () => {
-  it("renders sign-in with email and password only, the demo note and the guest way out", () => {
+  it("renders sign-in with email and password only, the sign-in limitation and the guest way out", () => {
     const html = render(
       createElement(CustomerAuthCard, {
         mode: "sign-in",
@@ -27,7 +27,8 @@ describe("CustomerAuthCard", () => {
       }),
     );
     expect(html).toContain("<h1>Sign in to your account</h1>");
-    expect(html).toContain(ACCOUNT_COPY.demoNote);
+    expect(html).toContain("Sign-in has no password reset and no email verification.");
+    expect(html).toContain(ACCOUNT_COPY.signInLimitation);
     expect(html.match(/<input /g)).toHaveLength(2);
     expect(html).toMatch(
       /<input id="customer-email" type="email"[^>]*autoComplete="email" required="" name="email"\/>/,
@@ -221,7 +222,7 @@ describe("AccountOrderDetailView (E07 A5, S03)", () => {
         },
       }),
     );
-    expect(html).toContain("Paid with: Demo payment (no money charged)");
+    expect(html).toContain("Paid with: test payment (no money taken)");
     expect(html).toContain("m. 4");
     expect(html).not.toContain("/checkout/pay/");
   });

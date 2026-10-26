@@ -5,7 +5,13 @@ import { money, type CatalogProductSummary } from "@commerceos/core";
 import { FeaturedSlider, FeaturedTabs } from "./featured-products";
 import { HeaderMenu } from "./header-menu";
 import { FooterCategoryLinks, SiteFooter } from "./site-footer";
-import { DEMO_NOTICE, featuredEmptyMessage, homeHref, STORE_TAGLINE } from "./storefront-copy";
+import {
+  FICTIONAL_COMPANY,
+  featuredEmptyMessage,
+  homeHref,
+  STORE_NAME,
+  STORE_TAGLINE,
+} from "./storefront-copy";
 
 const categories = [
   { slug: "keyboards", name: "Keyboards", description: null },
@@ -44,7 +50,7 @@ describe("HeaderMenu", () => {
 });
 
 describe("SiteFooter", () => {
-  it("shows the store line, the streamed category links, the owner sign-in and the demo notice", () => {
+  it("shows the store line, the fictional company block, the streamed category links and the owner sign-in", () => {
     const html = renderToStaticMarkup(
       createElement(SiteFooter, {
         categoryLinks: createElement(FooterCategoryLinks, { categories }),
@@ -55,8 +61,29 @@ describe("SiteFooter", () => {
     expect(html).toContain('href="/products"');
     expect(html).toContain('href="/products?category=mice"');
     expect(html).toMatch(/href="\/admin"[^>]*>Owner sign-in</);
-    expect(html).toContain(DEMO_NOTICE);
-    expect(html).toContain("© 2026 CommerceOS demo store.");
+    expect(html).toContain(FICTIONAL_COMPANY.name);
+    expect(html).toContain(FICTIONAL_COMPANY.label);
+    expect(html).toContain(`© 2026 ${STORE_NAME}`);
+  });
+
+  it("shows no demo notice and no 'demo store' wording (A1, A2)", () => {
+    const html = renderToStaticMarkup(
+      createElement(SiteFooter, {
+        categoryLinks: createElement(FooterCategoryLinks, { categories }),
+      }),
+    );
+    expect(html.toLowerCase()).not.toContain("demo store");
+    expect(html).not.toContain("Products and prices are fictional");
+  });
+
+  it("carries no address, tax number or contact in the company block (OA-8)", () => {
+    const html = renderToStaticMarkup(
+      createElement(SiteFooter, {
+        categoryLinks: createElement(FooterCategoryLinks, { categories }),
+      }),
+    );
+    expect(Object.keys(FICTIONAL_COMPANY).sort()).toEqual(["label", "name"]);
+    expect(html).not.toMatch(/NIP|REGON|KRS|tax number:|@|\+48|ul\. /i);
   });
 
   it("lists only all products without categories", () => {

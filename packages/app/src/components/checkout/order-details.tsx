@@ -5,7 +5,7 @@ import {
   COMPLETE_PAYMENT_LINK,
   ORDER_STATUS_HEADING,
   PAID_HEADING,
-  PAID_WITH_DEMO,
+  PAID_WITH_TEST,
   SAVE_REFERENCE_NOTE,
 } from "./checkout-copy";
 import { OrderStatusBadge } from "./order-forms-view";
@@ -40,7 +40,7 @@ export function OrderDetails({ order, justPaid }: { order: OrderView; justPaid: 
         total={order.total}
       />
       {order.paidAt && order.paymentProvider === "demo" ? (
-        <p className="text-sm font-medium">{PAID_WITH_DEMO}</p>
+        <p className="text-sm font-medium">{PAID_WITH_TEST}</p>
       ) : null}
       {order.status === "pending_payment" ? (
         <Link

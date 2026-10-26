@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { CustomerOrderDto } from "@commerceos/core";
-import { COMPLETE_PAYMENT_LINK, PAID_WITH_DEMO } from "@/components/checkout/checkout-copy";
+import { COMPLETE_PAYMENT_LINK, PAID_WITH_TEST } from "@/components/checkout/checkout-copy";
 import { OrderStatusBadge } from "@/components/checkout/order-forms-view";
 import { OrderSummary } from "@/components/checkout/order-summary";
 import { orderPaths } from "@/server/orders/order-paths";
@@ -9,7 +9,7 @@ import { ACCOUNT_COPY, ACCOUNT_ORDERS_PATH, formatAccountDate } from "./account-
 /**
  * One of the customer's own orders (E07 spec A5, UI/UX "/account/orders/<id>"): reference, date,
  * status, items and totals from the snapshots, the contact and shipping address given at
- * checkout. Read only: no action buttons; a pending order links to its demo payment page.
+ * checkout. Read only: no action buttons; a pending order links to its test payment page.
  */
 export function AccountOrderDetailView({ order }: { order: CustomerOrderDto }) {
   const address = order.shippingAddress;
@@ -36,7 +36,7 @@ export function AccountOrderDetailView({ order }: { order: CustomerOrderDto }) {
         total={order.total}
       />
       {order.paidAt && order.paymentProvider === "demo" ? (
-        <p className="text-sm font-medium">{PAID_WITH_DEMO}</p>
+        <p className="text-sm font-medium">{PAID_WITH_TEST}</p>
       ) : null}
       <section aria-label="Shipping address" className="flex flex-col gap-1 text-sm">
         <h2 className="font-medium">Shipping to</h2>
