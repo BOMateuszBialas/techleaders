@@ -1,0 +1,93 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Design system/How to choose" />
+
+# How to choose
+
+Pick a component by what it does, not by how it looks. Each table reads "if … use …", with an example from CommerceOS and the source of the rule. A row marked **not in the system** points to [What is missing](?path=/docs/design-system-what-is-missing--docs): use the fallback named in the row and do not build the component on the side.
+
+## Button, link, icon button, action menu
+
+| If…                                                          | Use                                                                                            | Example in CommerceOS                                                                   | Source                                  |
+| ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | --------------------------------------- |
+| the user goes to another page                                | Text link (`inline` in a sentence, `standalone` alone)                                         | "Back to products" pattern on the product page, pagination, "Continue shopping" pattern | B1.18, HTML (a link navigates)          |
+| the user opens a record from an admin table                  | Text link `resource`                                                                           | product name in Products, order reference in Orders                                     | B1.18, R04.2                            |
+| a purchase step                                              | Button `action` (red), at most one in view, never in the admin                                 | "Add to cart" on the product page, "Place order" on checkout                            | R03.1, K1, tokeny §7 rule 2, batch 1 Q4 |
+| the main action of an admin screen or a neutral store action | Button `default` (graphite)                                                                    | "Save changes", "Create product" in the product form                                    | R04.2, K7                               |
+| a supporting action next to the main one                     | Button `secondary` or `outline`                                                                | "Draft with AI" next to the product description; "Update" in the cart                   | R04.1, B1.12                            |
+| an action that deletes or cancels                            | Button `destructive` (red text and outline, never filled)                                      | "Delete category" in the confirmation                                                   | tokeny §7 rule 5, B1.15                 |
+| an action that must read as a link inside text               | Button `link`                                                                                  | "Remove" in a cart line                                                                 | B1.16                                   |
+| the action has a universal icon and no room for a word       | Button `icon` with `aria-label`                                                                | the search button in the store header (`aria-label="Search"`)                           | WCAG 4.1.2, Button page §7              |
+| a link must look like a button                               | `buttonVariants()` on `next/link`                                                              | "Checkout" link in the cart summary                                                     | Button page §10                         |
+| an object has three or more secondary actions                | **not in the system** (action menu, batch 4 Q1). Put the actions on the detail page as buttons | no admin row has row actions today (batch 4 inventory)                                  | batch 4 Q1, R04.1                       |
+
+## Radio group, select, search
+
+| If…                                                         | Use                                                                                         | Example in CommerceOS                            | Source                                           |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------ | ------------------------------------------------ |
+| one choice from two to five options the user should compare | Radio group (`FieldSet` + `FieldLegend` names it)                                           | a dashboard period (planned; today period links) | B2.12, B2.13, WAI-ARIA APG                       |
+| one choice from a longer list                               | Select (`NativeSelect`)                                                                     | product category in the admin product form       | B2.4, batch 2 Q1                                 |
+| an option needs its own content (thumbnail, two lines)      | **not in the system** (Base UI Select). Use Select with the plain name                      | –                                                | B2.4                                             |
+| the user types to find one of many records                  | **not in the system** (combobox). Use a GET search form (Input + Button) and a results list | catalog search; order lookup by reference        | audit (the search form works without JavaScript) |
+
+## Checkbox, publish control, switch
+
+| If…                                                | Use                                                                                                 | Example in CommerceOS                       | Source                                                                              |
+| -------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------- | ----------------------------------------------------------------------------------- |
+| an on/off value saved with the form's button       | Checkbox in a horizontal `Field`, with a visible label                                              | "Featured on home page" in the product form | B2.8–B2.11, batch 2 Q2                                                              |
+| the user must confirm a fact before submitting     | Today: Checkbox with `required` (cancel and refund). Target: Alert dialog                           | cancelling an order (retrofit)              | B2.8, batch 4 Q5                                                                    |
+| a publish or unpublish action that applies at once | A button that states its outcome next to it (the product publish control is a button, not a Switch) | "Publish" / "Unpublish" on the product page | publish-control-view.tsx; **Switch** is **not in the system** (see What is missing) |
+| one of several mutually exclusive values           | Radio group                                                                                         | –                                           | WAI-ARIA APG                                                                        |
+
+## Dialog, confirmation, side panel, page, popover, tooltip
+
+| If…                                                                   | Use                                                                                           | Example in CommerceOS                                                            | Source                        |
+| --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ----------------------------- |
+| an action cannot be undone                                            | Alert dialog: object name in the title, verb on the confirm button, "Cancel" first in the DOM | "Delete category" (retrofit, today a separate confirmation page), "Cancel order" | B4.14, B4.15, batch 4 Q5, Q6  |
+| a short task that does not deserve a URL and can be left at any time  | Dialog                                                                                        | "Rename category" (example only: no screen uses a dialog today)                  | B4.9–B4.12, batch 4 Q3        |
+| a task with many fields, a preview, or something worth a link         | a separate page                                                                               | product form, CSV import with preview, order detail                              | R04.1 (index → details)       |
+| more content next to the current page on a large screen               | **not in the system** (Drawer / side panel). Use a page                                       | –                                                                                | Etap 4 plan (What is missing) |
+| a short explanation the user opens on purpose                         | Disclosure (inline, works without JavaScript)                                                 | the details of a Copilot answer (today a native `<details>`, see batch 3 Q5)     | B3.26, batch 3 Q5             |
+| information needed for the decision (price, error, metric definition) | visible text on the page, never an overlay                                                    | metric definitions printed on the admin dashboard                                | orders spec A8, batch 4 Q2    |
+| a hint on hover                                                       | **not in the system** (Tooltip, Popover). Write the text next to the control                  | the reason a button is disabled                                                  | tokeny P5, WCAG 1.4.13        |
+
+## Field error, alert, toast
+
+| If…                                                         | Use                                                                             | Example in CommerceOS                                             | Source                              |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------- | ----------------------------------------------------------------- | ----------------------------------- |
+| one field is wrong                                          | `FieldError` under the field, `aria-invalid` and `aria-describedby`             | "Enter a postal code like 00-950."                                | B1.23, audit decision 5, WCAG 3.3.1 |
+| a submitted form failed or succeeded                        | Alert with `role="alert"` (error) or `role="status"` (success)                  | "Product created."; "Your cart changed"                           | B2.18, B2.24, WCAG 4.1.3            |
+| a standing note about the page                              | Alert without a role (`demo` for demo data, `warning` for a risk)               | "Demo store — this is a demo payment. No real money is charged…"  | B2.18, tokeny rule 11               |
+| a page or a section failed to load                          | Error state (fixed `role="alert"`)                                              | "The catalog is temporarily unavailable. Please try again later." | B3.24, batch 3 Q4                   |
+| the AI provider is unavailable but rule-based insights work | Alert `info` or `warning`, never Error state                                    | Copilot "Rule-based insights"                                     | B3.24, AGENTS.md (Copilot fallback) |
+| a short confirmation that disappears                        | **not in the system** (Toast). Use an inline Alert or text with `role="status"` | "Added to cart."                                                  | Etap 4 plan; batch 1 question 4     |
+| an error the user must act on                               | a field error, an Alert or an Error state, not a toast                          | –                                                                 | **P** (see the P list)              |
+
+## Skeleton, loading and waiting
+
+| If…                                                   | Use                                                             | Example in CommerceOS                                       | Source                                    |
+| ----------------------------------------------------- | --------------------------------------------------------------- | ----------------------------------------------------------- | ----------------------------------------- |
+| a part of the page streams in (`<Suspense>` fallback) | Skeleton shapes inside one `SkeletonGroup label="Loading …"`    | product grid, cart, order, dashboard metrics                | B3.16–B3.19, batch 3 Q3                   |
+| a button is waiting for the server                    | the button's own state: `aria-busy`, a "…ing" label, no spinner | "Add to cart" → "Adding…"; "Place order" → "Placing order…" | B1.6                                      |
+| a long AI request                                     | a text status with `role="status"`                              | "Analysing your store data…"                                | copilot-copy.ts, B1.6                     |
+| a spinner                                             | **not in the system**: the only loop is the skeleton pulse      | –                                                           | tokeny §5, batch 3 decisions (no spinner) |
+
+## Table, list, cards
+
+| If…                                                          | Use                                                                    | Example in CommerceOS                          | Source                |
+| ------------------------------------------------------------ | ---------------------------------------------------------------------- | ---------------------------------------------- | --------------------- |
+| records with several comparable columns (admin, "My orders") | Table, numbers right-aligned, a caption or `aria-label`                | orders, products, categories, Copilot evidence | R04.1, B3.5–B3.10     |
+| browsing products                                            | product tiles on `--surface-product` (product component)               | catalog, featured products                     | R01.3, B2.29          |
+| one topic in a panel, a few per screen                       | Card                                                                   | a dashboard metric; a sign-in form             | B2.25–B2.29           |
+| a table on a phone that would scroll sideways                | wrapping cells now; a list of cards per row after the retrofit (B3.10) | "My orders" at 390 px                          | B3.5 deviation, B3.10 |
+| a list of links or short facts                               | a plain `<ul>` with the spacing tokens                                 | footer links, order lines in the confirmation  | tokeny §3             |
+
+## Tabs and separate pages
+
+| If…                                                             | Use                                                                 | Example in CommerceOS                                               | Source                          |
+| --------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------- |
+| panels of the same object, already loaded, on one page          | `Tabs` (arrow keys move between tabs; see the P list on activation) | product details (example only)                                      | B3.11, B3.14, WAI-ARIA APG Tabs |
+| switching views that change the URL and work without JavaScript | `TabsNav` with `TabsNavLink` and `aria-current="page"`              | "Featured categories" on the home page; the period on the dashboard | B3.11, batch 3 Q1, G11          |
+| filtering a list by category                                    | filter links shaped like buttons (8 px radius), not tabs            | catalog category navigation                                         | B3.11, tokeny P4                |
+| steps of a flow (cart → checkout → payment)                     | separate pages                                                      | checkout                                                            | R02.2                           |
+| a different task or a record worth a link                       | a separate page                                                     | admin products → product detail                                     | R04.1                           |

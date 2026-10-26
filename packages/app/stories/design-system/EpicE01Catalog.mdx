@@ -1,0 +1,64 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Design system/Epics/E01 Catalog" />
+
+# Epic E01: Catalog for shoppers
+
+Backlog epic E01 (issue #8): stories E01-S01 (browse by category, see details) and E01-S02 (search and filter). This page describes the screens as they are in the app today, and what the retrofit (lesson 08) changes. Storybook shows the target components; no screen uses them yet.
+
+## Flow
+
+1. The shopper opens the home page: a short hero, the featured products by category, and "Shop all products" (K6: quick way into the catalog).
+2. The shopper opens a category or all products. The category links sit above the results.
+3. The shopper searches with the header search (a GET form) or the search form on the listing. The result page keeps the search term in the URL.
+4. The shopper opens a product: image, name, price, availability, and "Add to cart" (continues in E02).
+5. An unknown or unpublished product address shows "Product not found".
+
+## Screens and routes
+
+| Route                        | Screen            | What is on it today                                                                                                           | Source files                                                                                                                      |
+| ---------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `/`                          | home              | hero (`HERO_HEADLINE`, `HERO_DESCRIPTION`), featured products (tabs by category, and a horizontal list), "Shop all products"  | `app/(storefront)/page.tsx`, `components/storefront/featured-products.tsx`                                                        |
+| `/products`                  | listing           | heading (category or "All products"), search form, category links, a grid of product cards                                    | `app/(storefront)/products/page.tsx`, `components/catalog/catalog-results.tsx`, `catalog-search-form.tsx`, `category-nav.tsx`     |
+| `/products/[slug]`           | product page      | image, name, price (`formatMoney`), availability badge, add-to-cart control                                                   | `app/(storefront)/products/[slug]/page.tsx`, `components/catalog/product-card.tsx`, `product-image.tsx`, `availability-badge.tsx` |
+| `/products/[slug]` (missing) | not found         | "Product not found" heading                                                                                                   | `products/[slug]/not-found.tsx`                                                                                                   |
+| every page                   | header and footer | menu (category links, `<details>` on a phone, G13), search box (`aria-label="Site search"`), cart link, footer category links | `components/storefront/header-menu.tsx`, `header-search.tsx`, `site-footer.tsx`                                                   |
+
+Components used by these screens are the product components of lesson 08 (product card, image tile, availability badge, category navigation, search form, results, featured tabs and slider, header and footer). None of them is a primitive yet.
+
+## States
+
+| State                 | Today                                                             | Copy                                            | Target after the retrofit                                                             |
+| --------------------- | ----------------------------------------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------- |
+| loading               | Suspense fallbacks show grey shapes with no label                 | none                                            | `SkeletonGroup` with a label (B3.16–B3.19)                                            |
+| listing with products | grid of cards                                                     | the heading shows the scope and the search term | the same, with product tiles on one surface (B2.29)                                   |
+| empty category        | `No products in {category} yet.`                                  | `emptyListingMessage`                           | `Empty` with a next step (B3.23)                                                      |
+| no search results     | `No products match "{term}" in {category}.` and "Clear search"    | `emptyListingMessage`, `CatalogSearchForm`      | `Empty` with "Clear search" as its action                                             |
+| search too long       | "Use at most 100 characters in a search."                         | `SEARCH_TOO_LONG_MESSAGE`                       | `FieldError` under the search field                                                   |
+| catalog unavailable   | "The catalog is temporarily unavailable. Please try again later." | `CATALOG_UNAVAILABLE_MESSAGE`                   | `ErrorState` with a retry action (batch 3 Q4); the store has no `error.tsx` yet (P18) |
+| no featured products  | "No featured products yet." with a link to the catalog            | `featuredEmptyMessage`                          | `Empty`                                                                               |
+| out of stock          | "Out of stock" label and a disabled button                        | `AVAILABILITY_LABELS`, `OUT_OF_STOCK_BUTTON`    | a disabled button with its reason next to it (tokeny P5, design spec)                 |
+
+The shopper sees the same store on a phone at 320 px: the header search is 49 px wide there and shows only its placeholder (audit). The retrofit gives it a visible label or an icon button that opens the field.
+
+## Rules this epic follows
+
+- Red is not used on the listing. The purchase color starts on the product page (batch 1 Q4).
+- Product tiles are one surface on `--surface-product`, with no border around the image and no shadow (tokeny rule 7, B2.29).
+- Prices and stock come from the server; the listing never shows a computed price as final (AGENTS.md).
+- Filters and category links look like buttons with an 8 px radius, not like tabs (tokeny P4, B3.11).
+- The category menu is a megamenu from 768 px and a disclosure below (batch 4 Q12, G13).
+
+## Retrofit (lesson 08)
+
+1. Product card and image tile on `--surface-product` (one surface), availability as a `Badge` with text.
+2. Search field with a visible label; `Field` around it; the length error as `FieldError`.
+3. `Skeleton` in a `SkeletonGroup` for the listing and the featured block.
+4. `Empty` for every empty state, with the next step.
+5. `ErrorState` for the catalog failure, and an `error.tsx` for the store (P18).
+6. Featured block: `TabsNav` for the category switch (batch 3 Q1); the horizontal list gets a visible cue (P20).
+
+## P items on this page
+
+- **P18:** the store has no `error.tsx`; a database error shows the framework's default page (audit). Retrofit task, owner to approve.
+- **P20:** the horizontal list of featured products hides its fifth card with no arrow or counter (audit, step 2). Choose a grid or a visible control.

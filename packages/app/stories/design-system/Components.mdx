@@ -1,0 +1,25 @@
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+import * as ComponentsStories from "./components.stories";
+
+<Meta of={ComponentsStories} />
+
+# Components
+
+Every component of the system, live, in six groups. Each preview is the real component from `@/components/ui` with sample text in the store's voice (D10); overlays show their closed trigger. The link under each tile opens its page with the 13 sections (purpose, when and when not, anatomy, variants, states, behavior, content, responsive, API, code, do and don't, related).
+
+Switch **Theme** and **Density** in the toolbar to see the same tiles in dark mode and at the admin scale. The catalog is also a story, so its accessibility check runs in both themes in CI.
+
+<Canvas of={ComponentsStories.Catalog} sourceState="none" />
+
+## Counts
+
+| Group               | Components                                                   |
+| ------------------- | ------------------------------------------------------------ |
+| Actions             | Button, Text link                                            |
+| Forms               | Field, Input, Textarea, Label, Select, Checkbox, Radio group |
+| Status and feedback | Badge, Alert, Skeleton, Empty state, Error state             |
+| Content and layout  | Card, Table, Disclosure                                      |
+| Navigation          | Tabs, Navigation menu                                        |
+| Overlays            | Dialog, Alert dialog                                         |
+
+Product components (product tile, cart line, order status form, Copilot recommendation card) are not in this catalog: they are built from these primitives in lesson 08 and will be documented under **Product**. Until then they live in `packages/app/src/components/<area>/` (see the epic pages).

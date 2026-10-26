@@ -1,0 +1,98 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Design system/Usage and accessibility" />
+
+# Usage and accessibility
+
+The rules every screen follows. Each has a source; a rule marked **P** has none yet and is on the P list of the [What is missing](?path=/docs/design-system-what-is-missing--docs) page for the owner to decide. The target is WCAG 2.2 AA in both themes and both densities; stories fail on any axe violation (`a11y: { test: "error" }`).
+
+## Keyboard and focus
+
+| Rule                                                                                                                                                                                     | Source                                                  |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| Everything that works with a pointer works with a keyboard: Tab reaches it, Enter or Space starts it, Escape closes an overlay.                                                          | WCAG 2.1.1, 2.1.2                                       |
+| Focus is always visible: a 2 px `--ring` outline with a 2 px offset, on `:focus-visible` only. Never remove it, never use a 50% ring.                                                    | tokeny §5 and rule 13, B1.4, WCAG 2.4.7, 2.4.13         |
+| The offset is mandatory: without it the ring has 2.88 : 1 on the red button and 1.00 : 1 on the graphite one.                                                                            | tokeny pairs 59–60                                      |
+| On the dark frame and in the admin side menu the ring is `--frame-ring` / `--sidebar-ring`.                                                                                              | tokeny §5, pairs 51, 55                                 |
+| Use the native element: `<button>` for actions, `<a href>` for navigation, `<select>`, `<details>`. Never a clickable `div`.                                                             | WAI-ARIA (first rule of ARIA), HTML                     |
+| A modal dialog traps focus, starts on the first control that takes it (in a form, the first field), and returns focus to its trigger when it closes. An Alert dialog starts on "Cancel". | B4.15, WAI-ARIA APG Dialog                              |
+| A Dialog and an Alert dialog have a visible title (`DialogTitle`, `AlertDialogTitle`); an Alert dialog also has a description (`AlertDialogDescription`).                                | **P** (B4.15 proposal, WAI-ARIA APG Dialog)             |
+| A disabled button stays reachable (`focusableWhenDisabled`) and its reason is a sentence next to it, linked with `aria-describedby`.                                                     | design spec (Button section), tokeny P5, Button page §6 |
+| Tab order follows the visual order; never set a positive `tabIndex`.                                                                                                                     | WCAG 2.4.3                                              |
+
+## Forms and messages
+
+| Rule                                                                                                                                                            | Source                                     |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| Every control has a visible label (`FieldLabel`). A placeholder is an example, never the name of the field.                                                     | audit decision 5, WCAG 3.3.2               |
+| Order inside a field: label, control, hint, error. The hint and the error are linked with `aria-describedby`.                                                   | B1.26, B1.23, audit decision 5, WCAG 1.3.1 |
+| Optional fields say "(optional)" in the label; required fields carry the `required` attribute and no asterisk.                                                  | batch 1 Q2                                 |
+| A field error is text in `--destructive` with an icon and `aria-invalid` on the control.                                                                        | tokeny rule 5, B1.19, B1.23                |
+| The field keeps the `--ring` focus while it shows its error.                                                                                                    | **P**                                      |
+| One message per form: `role="alert"` for an error after an action, `role="status"` for a success, no role for a standing note. No `role="alert"` on each field. | B1.23, B2.18, WCAG 4.1.3                   |
+| After a failed submit, focus moves to the first field with an error.                                                                                            | audit decision 5, tokeny rule 13           |
+| After a failed submit the values the user typed stay in the form.                                                                                               | **P**                                      |
+| A button waiting for the server shows `aria-busy` and a "…ing" label.                                                                                           | B1.6                                       |
+| A second click on a waiting button does not submit again.                                                                                                       | **P**                                      |
+| Success is shown only after the server confirms it.                                                                                                             | **P**                                      |
+| Admin forms are a hook-free view plus a thin `useActionState` wrapper; server validation is the source of truth.                                                | AGENTS.md (Security and validation)        |
+
+Today's screens do not all follow the focus rule: checkout keeps focus on `body` after an empty submit (audit step 2). The retrofit (lesson 08) adds it.
+
+## Color
+
+| Rule                                                                                                                             | Source                             |
+| -------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| Text has at least 4.5 : 1, large text and control edges at least 3 : 1, in both themes. Every pair is counted before it is used. | WCAG 1.4.3, 1.4.11, tokeny rule 19 |
+| Status is never color alone: a badge has a word, an error has text and an icon, the active tab has an underline.                 | WCAG 1.4.1, tokeny rule 10         |
+| Red fill means buying; red text means an error. The same `red-600`, told apart by form.                                          | tokeny §8 decision 1, rule 5       |
+| The price is `--foreground` with tabular numbers, never red.                                                                     | R03.1, A01, tokeny rule 1          |
+| `--border` is decoration; a control's edge is `--input`.                                                                         | tokeny rule 12, pairs 38, 57       |
+| Demo data is `--demo`, warnings are `--warning`; never mixed.                                                                    | tokeny P3, rule 11                 |
+| `--muted-foreground` is for hints and metadata, not for text needed to act.                                                      | tokeny §1b                         |
+
+## Motion
+
+| Rule                                                                                                                                                                           | Source                               |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------ |
+| Hover and color changes take 120 ms (`--duration-fast`). Menus and popovers open in 200 ms (`--duration-base`). Dialogs open in 300 ms (`--duration-slow`).                    | tokeny §5 (P9), B4.7                 |
+| Exit times: menus and popovers 120 ms (tokeny §5 says 150 ms, but no such token exists); dialogs 200 ms.                                                                       | B4.7 (**P** for the exit values)     |
+| Every reaction to an action starts within 400 ms; a longer wait gets a skeleton or a pending button.                                                                           | tokeny §5 (Doherty threshold)        |
+| No loops and no decorative animation; the only loop is the skeleton pulse.                                                                                                     | tokeny §5                            |
+| With `prefers-reduced-motion: reduce`, animations are cut to almost zero (the skeleton pulse stops), movement is removed and overlay durations drop to 120 ms (`globals.css`). | tokeny §5, WCAG 2.3.3, `globals.css` |
+
+## Content
+
+| Rule                                                                                                 | Source                                           |
+| ---------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| Facts the product has (price, stock, status, demo label), no promises of shipping or real payment.   | R03.3, K5, AGENTS.md principle 6, tokeny rule 17 |
+| Demo data is always labelled: `[DEMO]` text, `DEMO-` references, the demo badge and alert.           | AGENTS.md principle 6, tokeny rule 11            |
+| Buttons are a verb and an object ("Delete category", "Cancel order"), never "OK" or "Yes".           | B4.14                                            |
+| An error says what happened and what to do (title and description of the Error state).               | B3.24                                            |
+| An empty state says why the place is empty and the next step ("Clear search", "Browse the catalog"). | B3.23                                            |
+| Copilot output is plain text, never HTML, and every number in it comes from a tool result.           | AGENTS.md (Commerce Copilot rules)               |
+| Running text stops at about 65 characters (`--measure-prose`).                                       | tokeny rule 15, `globals.css`                    |
+| Text is never smaller than 12 px; store body and form fields are 16 px on a phone (no iOS zoom).     | tokeny rule 9, B1.7                              |
+
+## Layout at 320, 768 and 1440 px
+
+| Rule                                                                                                                                                                     | Source                           |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------- |
+| No horizontal page scroll from 320 px. The gutter is 16 px on a phone, 24 px on a tablet and 32 px on a desktop in the store (`px-gutter`); the admin uses 16 and 24 px. | tokeny §3, WCAG 1.4.10           |
+| Spacing follows the relation, not a number: `related` (8 px), `group-item` (16 / 12 px admin), `group` (24 / 16 px), `panel` (24 / 16 px), `section` (64 / 32 px).       | tokeny §3, audit decision 3      |
+| Touch targets are at least 44 px on a phone and 24 px everywhere; below 768 px every control is 44 px tall, in the admin too.                                            | tokeny rule 16, WCAG 2.5.8, B1.2 |
+| The store is spacious (controls 40 / 44 / 48 px), the admin dense (28 / 32 / 36 px); the admin layout sets `data-density="admin"`.                                       | K7, R04.3, tokeny P15, B1.2      |
+| A table that does not fit wraps its text cells; after the retrofit it becomes a list of cards on a phone.                                                                | B3.7, B3.10                      |
+| The megamenu starts at 768 px; below, the store menu is a Disclosure.                                                                                                    | batch 4 Q12, B4.28               |
+| Check every new screen at 320, 768 and 1440 px, in both themes.                                                                                                          | Etap 4 plan (stage 5 checks)     |
+
+## Product rules the interface enforces
+
+| Rule                                                                                                                                            | Source                                        |
+| ----------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| AI advises, the merchant decides: Copilot shows recommendations with evidence and actions save, dismiss or complete; it never changes data.     | AGENTS.md principle 3                         |
+| A mock payment is never shown as live: the payment page carries a standing demo notice and the button reads "Confirm demo payment (no charge)". | AGENTS.md principle 6, cart and checkout spec |
+| The admin never shows the red purchase color; the main button is graphite.                                                                      | R04.2, tokeny rule 4                          |
+| Metric definitions are visible text next to the metric, never behind a hover or a disclosure.                                                   | orders spec A8, batch 4 Q2                    |
+| An order that is not yours is "not found", never "forbidden": the same empty page for unknown and foreign orders.                               | customer accounts spec, AGENTS.md (Security)  |
+| Prices, totals and stock on screen come from the server; the cart says "Prices are confirmed at checkout."                                      | AGENTS.md (Security), cart copy               |

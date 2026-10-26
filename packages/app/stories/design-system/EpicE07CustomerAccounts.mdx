@@ -1,0 +1,57 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Design system/Epics/E07 Customer accounts" />
+
+# Epic E07: Customer accounts (**P**)
+
+**P:** this epic is outside the stage 0 tree, which ends at E05 (the page is kept for the owner to confirm the scope; P19 on the What is missing page). The backlog has it as E07 (issue-level: customer accounts, D11): registration and sign-in, orders attached to an account, "My orders", data isolation between customers, and the role separation from the owner's admin. The page documents what the app does today.
+
+## Flow
+
+1. A customer signs up (`/account/sign-up`) or signs in (`/account/sign-in`). The demo note says: use any email address; there is no password reset and no email verification.
+2. The customer's orders are attached to the account when the customer checks out signed in. A guest checkout is unchanged.
+3. "My orders" (`/account/orders`) lists the customer's orders, newest first, up to 50.
+4. An order (`/account/orders/[id]`) shows its details. An order that is not the customer's shows the same "Order not found" page as an unknown one.
+5. The customer signs out from the header.
+
+## Screens and routes
+
+| Route                                                  | Screen        | What is on it today                                                                       | Source files                                                                             |
+| ------------------------------------------------------ | ------------- | ----------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `/account/sign-in`                                     | sign-in       | card with the form; "Sign in to your account"; "Continue as a guest" at checkout          | `app/(storefront)/account/sign-in/page.tsx`, `components/account/customer-auth-card.tsx` |
+| `/account/sign-up`                                     | sign-up       | card with the form; "Create an account"                                                   | `app/(storefront)/account/sign-up/page.tsx`                                              |
+| `/account`                                             | account home  | the header account link, sign-out                                                         | `app/(storefront)/account/page.tsx`, `account-header-link.tsx`                           |
+| `/account/orders`                                      | My orders     | table with caption "Your orders, newest first", and "Showing your 50 most recent orders." | `app/(storefront)/account/orders/page.tsx`, `components/account/account-orders-view.tsx` |
+| `/account/orders/[id]`                                 | order details | the order, "Back to My orders"                                                            | `[id]/page.tsx`, `account-order-detail-view.tsx`                                         |
+| `/account/orders/[id]` (missing or not the customer's) | not found     | "Order not found" and "This order does not exist or is not in your account."              | `[id]/not-found.tsx`, `account-order-not-found.tsx`                                      |
+| `/account` (error)                                     | account error | "Try again"                                                                               | `app/(storefront)/account/error.tsx`                                                     |
+
+## States
+
+| State                                    | Today                                                                    | Copy                                 | Target after the retrofit                                     |
+| ---------------------------------------- | ------------------------------------------------------------------------ | ------------------------------------ | ------------------------------------------------------------- |
+| no orders                                | "You have no orders yet." with "Browse the catalog"                      | `ordersEmpty`, `browseCatalog`       | `Empty` with the next step                                    |
+| orders unavailable                       | "Your orders are unavailable right now. Try again."                      | `ordersUnavailable`                  | `ErrorState` with a retry action (batch 3 Q4)                 |
+| order not found                          | "Order not found", with the hint that the order is not in the account    | `orderNotFound`, `orderNotFoundHint` | `Empty` (B3.23); the same page for unknown and foreign orders |
+| checkout as a guest after a lost session | "We could not confirm your sign-in, so you are checking out as a guest…" | `sessionLost`                        | `Alert` `warning`                                             |
+| checkout mode                            | "Buying as a guest." or "This order will appear under My orders."        | `buyingAs`, `accountOrderNote`       | visible text in the order summary                             |
+| sign-in demo note                        | the demo note under the form                                             | `demoNote`                           | `Alert` `demo` without a role (B2.18)                         |
+
+## Rules this epic follows
+
+- The customer id comes only from the session, never from the URL or a form. Account reads filter by it in the database (AGENTS.md, customer accounts).
+- A foreign or unknown order gives the same "Order not found" page and the same API 404; the page never says "forbidden" (customer accounts spec).
+- Owner and customer are separate roles with separate sign-in. An owner session does not open the account area, and a customer session does not open the admin.
+- Account dates are shown in English (`en-GB`), in the store's time zone (see Content, P12).
+- Checkout follows the mode it showed: a session-read failure never silently places a guest order (AGENTS.md).
+
+## Retrofit (lesson 08)
+
+1. Sign-in and sign-up forms on `Field`, with `FieldError` per field and the demo note as `Alert` `demo`.
+2. "My orders" as `Table` with the status as `Badge` text; on a phone, a list of cards (B3.10).
+3. `Empty` and `ErrorState` for the states above.
+
+## P items on this page
+
+- **P19:** confirm that E07 belongs in the design system's epics (it is in the backlog, not in the stage 0 tree).
+- The customer account pages use English dates while the admin uses the owner's locale (P12 on What is missing).

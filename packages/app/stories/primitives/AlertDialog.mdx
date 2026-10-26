@@ -19,12 +19,12 @@ Stopping the user for one moment before an action that cannot be undone, saying 
 
 ## 3. When not to use
 
-| Instead of an alert dialog…              | Use                                                     | Why                                                             |
-| ---------------------------------------- | ------------------------------------------------------- | --------------------------------------------------------------- |
-| A change the user can undo or edit again | nothing; just do it and confirm with a status message   | Confirmations that are always "Yes" get clicked without reading |
-| A task with fields (rename, notes)       | [Dialog](?path=/docs/primitives-dialog--docs) or a page | An alert dialog is a yes/no question, not a form                |
-| An error after an action                 | Alert with `role="alert"` on the page                   | Nothing to decide; the message must stay visible                |
-| A purchase step                          | the checkout pages                                      | The purchase flow never hides behind a modal (R02.2)            |
+| Instead of an alert dialog…              | Use                                                       | Why                                                             |
+| ---------------------------------------- | --------------------------------------------------------- | --------------------------------------------------------------- |
+| A change the user can undo or edit again | nothing; just do it and confirm with a status message     | Confirmations that are always "Yes" get clicked without reading |
+| A task with fields (rename, notes)       | [Dialog](?path=/docs/primitives-dialog--dialog) or a page | An alert dialog is a yes/no question, not a form                |
+| An error after an action                 | Alert with `role="alert"` on the page                     | Nothing to decide; the message must stay visible                |
+| A purchase step                          | the checkout pages                                        | The purchase flow never hides behind a modal (R02.2)            |
 
 ## 4. Anatomy
 

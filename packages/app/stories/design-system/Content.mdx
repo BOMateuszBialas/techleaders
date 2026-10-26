@@ -1,0 +1,103 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Design system/Content" />
+
+# Content
+
+How the interface talks. The store has one voice: plain, factual and specific (`referencje.md`: words bold and concrete; K5 chose a factual tone, in the interface language, which is English like the whole app). Copy lives next to each screen in a `*-copy.ts` file, so a string is changed once. The examples below are the strings the product shows today.
+
+## Tone
+
+**Three sentences the product says:**
+
+1. "Demo store — this is a demo payment. No real money is charged and no card details are collected." (checkout, demo payment notice)
+2. "Added to cart." (after a purchase step, announced with `role="status"`)
+3. "Prices are confirmed at checkout." (cart summary)
+
+**Three things it does not say:**
+
+1. Delivery promises ("Ships today", "Order by 17:00"). The store has no shipping; R03.3 is factual, not promotional.
+2. Ratings, reviews or claims about customers. The demo data has none (audit, step 1).
+3. That a payment is real. The only payment is the demo one, and every screen that shows it says so.
+
+Sources: R03.3, K5, AGENTS.md principle 6, tokeny rule 17, audit step 1.
+
+## Buttons
+
+A button is a verb and an object. Progress labels end with an ellipsis and stay in place of the button (B1.6).
+
+| Situation          | Label                                                           | Source                               |
+| ------------------ | --------------------------------------------------------------- | ------------------------------------ |
+| add a product      | "Add to cart" → "Adding…"                                       | cart copy, B1.6                      |
+| buy                | "Place order" → "Placing order…"                                | checkout copy                        |
+| pay in demo        | "Confirm demo payment (no charge)" → "Confirming…"              | checkout copy, AGENTS.md principle 6 |
+| save an admin form | "Save changes" (edit), "Create product" (new) → "Saving…"       | product form                         |
+| find an order      | "Find order"                                                    | checkout copy                        |
+| delete             | "Delete category" (confirm button)                              | category copy                        |
+| cancel             | "Cancel order" (status name); the confirmation names the object | order copy, B4.14                    |
+
+Never "OK", "Yes" or "Submit" on a button that changes data (B4.14). The cart's change confirmation is the one exception the product uses today: "OK, update my cart" sits under the heading "Your cart changed" (checkout copy). It is a candidate for a clearer verb in the retrofit (**P**).
+
+## Errors
+
+An error says what happened and what to do. Field errors say the correct form of the value.
+
+| Level           | Example in the product                                                    | Rule                                                                     |
+| --------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| field           | "Enter a postal code like 00-950."                                        | an example of the right value (audit, B1.23)                             |
+| page or section | "The catalog is temporarily unavailable. Please try again later."         | what happened, and what to do (Error state title and description, B3.24) |
+| Copilot         | "Copilot is temporarily unavailable." with "Rule-based insights" below it | the fallback is named, and it is not an error (B3.24)                    |
+| search          | "Use at most 100 characters in a search."                                 | the limit is stated before the user hits it                              |
+
+The weak case is "Sign-in is unavailable. Try again.", which says nothing once a retry fails (audit, step 2). The retrofit rewrites it (**P**: wording and the split between "wrong details" and "service down").
+
+## Empty states
+
+An empty state says why the place is empty and the next step (B3.23).
+
+| Kind                              | Example                                               | Next step                     |
+| --------------------------------- | ----------------------------------------------------- | ----------------------------- |
+| nothing here yet                  | "Your cart is empty."                                 | link to the catalog           |
+| nothing here yet                  | "No orders yet. Orders appear here after a checkout." | the storefront creates them   |
+| nothing here yet                  | "No products yet. Create the first one."              | "Create product"              |
+| no results for a search or filter | "Clear search" action beside the message              | clear the search              |
+| a period with no data             | "No paid orders in this period."                      | change the period (dashboard) |
+
+The empty orders list names the seed command: "To load the demo store, run `npm run db:seed`." It is a developer hint shown only while there are no orders; **P**: an owner should see a plain next step instead (P11).
+
+Empty states are left-aligned, the way all current empty states are; the centred layout of batch 3 (B3.21) is not used (**P**, P14).
+
+## Demo data
+
+Demo data is always labelled (AGENTS.md principle 6, tokeny rule 11):
+
+- text: `[DEMO]` in product names and the "Demo store" notice on the storefront;
+- references and SKUs: `DEMO-` prefix;
+- Copilot: "Fictional demo data" tag on any answer that uses the traffic data (E05-S04);
+- colour: `--demo` (never the warning color).
+
+## Numbers, money and dates
+
+These come from the code, not from taste. Do not format them by hand.
+
+| What                    | Function                                                   | What the user sees                                                                      | Notes                                                                                             |
+| ----------------------- | ---------------------------------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| money                   | `formatMoney` (`packages/core/src/domain/money.ts`)        | Intl currency format, default locale `pl-PL`, currency from the value (PLN in the demo) | the number is never parsed back from the text; prices are integer minor units                     |
+| order date and time     | `formatOrderDateTime` (`admin/orders/order-copy.ts`)       | medium date, short time, in the owner's locale and the store time zone (Europe/Warsaw)  | the admin takes the locale from `accept-language`                                                 |
+| account dates           | `formatAccountDate` (`components/account/account-copy.ts`) | the same, always `en-GB`                                                                | differs from the admin; the UI language is English (admin-authentication spec G8); see the P list |
+| percentages and changes | `changeText` (`dashboard-copy.ts`)                         | "Up 3 from 0", "No change from 12"                                                      | no percentage when the previous period had none                                                   |
+| metric definitions      | `METRIC_DEFINITIONS`                                       | visible text next to the metric, printed on `/admin`                                    | never behind a hover (orders spec A8)                                                             |
+
+**P:** the store is in English but money uses the Polish locale (decimal comma, "zł"), the admin follows the owner's browser, and account pages always use English dates. One format for the whole store is an owner decision.
+
+## Sentence case
+
+Headings and labels use sentence case as the code does ("Your cart", "Demo payment", "Find your order") (**P**: no source yet; the code is consistent with it).
+
+## Copilot wording
+
+- "Copilot suggests; you decide." and "Recommendations can be incomplete." (advisory text, AGENTS.md principle 3)
+- "Analysing your store data…" while the answer loads (`role="status"`)
+- "Copilot is temporarily unavailable." and "Rule-based insights" for the fallback
+- "You asked many questions in a short time. Try again in a few minutes." when the limit is hit
+- Output is plain text. No HTML, no markdown, and every number comes from a tool result (AGENTS.md Copilot rules)
