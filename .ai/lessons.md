@@ -11,6 +11,8 @@ Keep entries short; put longer write-ups in `.ai/lessons/YYYY-MM-DD-slug.md` and
 
 <!-- Newest first -->
 
+- **2026-10-26 — Copy a binary asset from git without the shell, and a new port field reaches every fixture**: a file that another branch already tracks can be copied byte-exact with `git show HEAD:<path> > <dest>` (the destination folder must exist; a Write creates it), and `git hash-object` on the copy must equal `git rev-parse HEAD:<path>`. Adding a required field to a port row (`LowStockRow.slug`) breaks every literal fixture in other packages; `npm run typecheck` lists them all at once, so run it before the unit tests. `check:tokens` rejects arbitrary aspect ratios (`aspect-[4/3]`); use `aspect-video` or another semantic class.
+
 - **2026-10-26 — Git Bash rewrites `ref:path` in `git show`, and Base UI focus is checked after its guards**: on Windows the Bash tool turns `git show origin/branch:.ai/...` into a Windows path (`origin\branch;...`); run it as `MSYS_NO_PATHCONV=1 git show "origin/branch:path"`. In a Base UI modal, Tab lands on a focus guard before the popup, so a focus-trap assertion must wait (`waitFor`) for the focus to settle inside the drawer.
 
 - **2026-10-26 — A text marker is not a discriminator; mark data by an identifier**: a demo marker that lives in display text (`[DEMO] ` prefix) is both shown to shoppers and read by logic (AI demo flag), so removing it from the text silently breaks the logic. Use the machine identifier (the `DEMO-` SKU) for logic and keep text clean. A data-only migration is tested by re-applying it (`migrator.down` then `up`) on rows that carry the old text, and by checking that stock, prices and statuses are unchanged.
