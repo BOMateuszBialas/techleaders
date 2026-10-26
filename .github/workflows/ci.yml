@@ -33,6 +33,8 @@ jobs:
       - run: npm run format:check
       # Design tokens: no palette classes or arbitrary values outside globals.css (tokeny.md).
       - run: npm run check:tokens
+      # Agent instructions: root AGENTS.md size budget, referenced paths, CLAUDE.md content, lessons index budget.
+      - run: npm run check:agents
       # Dry-run tests of the agent PreToolUse hook (.claude/hooks/); not under the unit coverage gate.
       - run: npm run test:hooks
       - run: npm run typecheck
