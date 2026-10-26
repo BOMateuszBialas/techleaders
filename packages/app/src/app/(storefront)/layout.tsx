@@ -9,7 +9,7 @@ import { CartLink } from "@/components/cart/cart-link";
 import { FooterCategoryLinks, SiteFooter } from "@/components/storefront/site-footer";
 import { HeaderMenu } from "@/components/storefront/header-menu";
 import { HeaderSearch } from "@/components/storefront/header-search";
-import { DEMO_NOTICE, STORE_NAME } from "@/components/storefront/storefront-copy";
+import { STORE_NAME } from "@/components/storefront/storefront-copy";
 import { readCartLines } from "@/server/cart/cart-cookie";
 import { acceptCartChanges, removeCartLine, updateCartLine } from "@/server/cart/cart.action";
 import { signOutCustomer } from "@/server/customer-auth/customer-auth.action";
@@ -18,19 +18,16 @@ import { loadCartPage } from "./cart/load-cart-page";
 import { loadStorefrontCategories } from "./load-storefront-categories";
 
 /**
- * Storefront shell shared by the home page, the listing and product pages: demo banner (R07),
- * header search box, menu (spec G13), the cart link with its count (cart spec G9), the customer
- * account link (E07 spec A21) and footer (G14). The shell itself prerenders; the category links and the cart count are read at request
- * time inside `<Suspense>`. Without categories (still loading, or the catalog is unavailable)
- * the menus keep their static links.
+ * Storefront shell shared by the home page, the listing and product pages: header search box,
+ * menu (spec G13), the cart link with its count (cart spec G9), the customer account link (E07
+ * spec A21) and footer (G14). No demo banner (storefront v2, R11). The shell itself prerenders;
+ * the category links and the cart count are read at request time inside `<Suspense>`. Without
+ * categories (still loading, or the catalog is unavailable) the menus keep their static links.
  */
 export default function StorefrontLayout({ children }: LayoutProps<"/">) {
   return (
     <CartDrawerProvider>
       <div className="flex flex-1 flex-col">
-        <p role="note" className="bg-demo-surface px-4 py-2 text-center text-sm text-demo">
-          {DEMO_NOTICE}
-        </p>
         <header className="border-b">
           <div className="mx-auto flex min-h-14 w-full max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2 sm:h-14 sm:flex-nowrap sm:py-0">
             <Link href="/" className="font-semibold tracking-tight">

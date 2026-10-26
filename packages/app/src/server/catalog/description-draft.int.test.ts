@@ -92,7 +92,7 @@ describe("DraftProductDescriptionUseCase (PostgreSQL, real container)", () => {
 
   it("drafts from a seeded product's form values, counts both buckets and writes nothing", async () => {
     const before = await productRow("vortex-wireless-mouse");
-    const provider = new ScriptedLlmProvider([() => ({ description: `[DEMO] ${DRAFT}` })]);
+    const provider = new ScriptedLlmProvider([() => ({ description: DRAFT })]);
     let result: DescriptionDraftDto;
     const scope = container.createRequestScope();
     try {
@@ -110,6 +110,7 @@ describe("DraftProductDescriptionUseCase (PostgreSQL, real container)", () => {
           categoryId: before?.category_id,
           price: formatPriceInput(Number(before?.price_minor)),
           notes: before?.description,
+          sku: before?.sku,
         }),
         OWNER,
       );
@@ -117,7 +118,8 @@ describe("DraftProductDescriptionUseCase (PostgreSQL, real container)", () => {
       await scope.dispose();
     }
 
-    expect(result).toMatchObject({ kind: "draft", text: `[DEMO] ${DRAFT}`, demoMarked: true });
+    // The DEMO- SKU marks the product as demo content; the draft shows no marker (OA-3).
+    expect(result).toMatchObject({ kind: "draft", text: DRAFT, demoMarked: true });
     // The category's name reached the model; its id did not.
     const sent = provider.requests[0]?.messages[1]?.content ?? "";
     expect(sent).toContain('"category":"Mice"');

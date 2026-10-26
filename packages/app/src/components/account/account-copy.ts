@@ -4,8 +4,8 @@ import { STORE_TIME_ZONE } from "@/components/admin/products/stock-copy";
 export const ACCOUNT_COPY = {
   signInTitle: "Sign in to your account",
   signUpTitle: "Create an account",
-  demoNote:
-    "This is a demo store: use any email address. There is no password reset and no email verification.",
+  /** A stated limitation of sign-in (OA-10), not a demo framing. */
+  signInLimitation: "Sign-in has no password reset and no email verification.",
   continueAsGuest: "Continue as a guest",
   ordersHeading: "My orders",
   ordersEmpty: "You have no orders yet.",

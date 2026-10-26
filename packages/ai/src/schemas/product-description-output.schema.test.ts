@@ -18,8 +18,8 @@ describe("productDescriptionOutputSchema", () => {
     expect(ok("x".repeat(DESCRIPTION_MAX_LENGTH + 1))).toBe(false);
   });
 
-  it("keeps a prefixed demo draft within the 1 200 the UI promises", () => {
-    expect(`[DEMO] ${"x".repeat(DESCRIPTION_MAX_LENGTH)}`.length).toBeLessThanOrEqual(1200);
+  it("keeps the longest accepted draft within the 1 200 the UI promises", () => {
+    expect(DESCRIPTION_MAX_LENGTH).toBeLessThanOrEqual(1200);
   });
 
   it("allows at most 3 paragraphs", () => {

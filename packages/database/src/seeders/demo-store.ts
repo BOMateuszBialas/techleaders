@@ -13,7 +13,7 @@ import {
  *
  * - 35 calendar days (store time zone) ending on the seed date; 3–6 orders a day; times between
  *   08:00 and 22:00 local, never after the seed instant.
- * - References `DEMO-0001…` in time order; `[DEMO]` customers with `example.com` emails.
+ * - References `DEMO-0001…` in time order; fictional customers with `example.com` emails.
  * - Status mix: older than 7 days shipped, the last 7 days processing (3–6 days old) and paid
  *   (0–2 days), two cancelled (never paid), one refunded. No `pending_payment` order (A15): an
  *   unpaid order would hold stock that a cancel returns and a re-seed never takes back.
@@ -159,7 +159,7 @@ export function storeInstant(date: string, minutes: number): Date {
 }
 
 // ---------------------------------------------------------------------------------------------
-// Fictional customers (never real people: `[DEMO]` names, reserved `example.com` domain)
+// Fictional customers (never real people: invented names, reserved `example.com` domain)
 
 const FIRST_NAMES = ["Anna", "Piotr", "Kasia", "Marek", "Ola", "Tomek", "Ewa", "Jan"];
 const SURNAMES = ["Nowak", "Lis", "Wójcik", "Zając", "Mazur", "Krawiec"];
@@ -177,7 +177,7 @@ function customer(index: number) {
   const number = String(index + 1).padStart(2, "0");
   const [city, postalCode] = CITIES[index % CITIES.length] as [string, string];
   return {
-    customerName: `[DEMO] ${FIRST_NAMES[index % FIRST_NAMES.length]} ${SURNAMES[index % SURNAMES.length]}`,
+    customerName: `${FIRST_NAMES[index % FIRST_NAMES.length]} ${SURNAMES[index % SURNAMES.length]}`,
     customerEmail: `demo.shopper${number}@example.com`,
     shippingLine1: `ul. Demo ${index + 1}`,
     shippingCity: city,

@@ -16,6 +16,7 @@ function seeded(slug: string) {
       categoryId: null,
       price: product.priceMinor,
       notes: product.description,
+      sku: product.sku,
     },
     product.category,
   );
@@ -27,7 +28,10 @@ const TITAN = seeded("titan-mmo-mouse");
 const NOVA = seeded("nova-tkl-mechanical-keyboard");
 
 function sourcesFrom(notes: string, price: number | null = null) {
-  return buildDescriptionSources({ name: "Test product", categoryId: null, price, notes }, null);
+  return buildDescriptionSources(
+    { name: "Test product", categoryId: null, price, notes, sku: "" },
+    null,
+  );
 }
 
 const codes = (issues: DescriptionIssue[]) => issues.map((issue) => issue.code);

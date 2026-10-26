@@ -63,7 +63,7 @@ export function CustomerAuthCard({ mode, action, error, fromCheckout }: Customer
         <CardTitle>
           <h1>{copy.title}</h1>
         </CardTitle>
-        <CardDescription>{ACCOUNT_COPY.demoNote}</CardDescription>
+        <CardDescription>{ACCOUNT_COPY.signInLimitation}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         {error ? (

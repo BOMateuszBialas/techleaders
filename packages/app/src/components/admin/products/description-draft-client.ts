@@ -56,7 +56,10 @@ export function formDataOf(form: HTMLFormElement): FormData {
   return new FormData(form);
 }
 
-/** The four fields a draft uses (A4): the form's current values, the description as notes. */
+/**
+ * The four fields a draft uses (A4): the form's current values, the description as notes. The
+ * SKU is sent only to tell demo content apart (a `DEMO-` SKU, storefront v2 OA-3).
+ */
 export function readDraftFields(data: FormData) {
   const text = (name: string) => {
     const value = data.get(name);
@@ -67,6 +70,7 @@ export function readDraftFields(data: FormData) {
     categoryId: text("categoryId"),
     price: text("price"),
     notes: text("description"),
+    sku: text("sku"),
   };
 }
 

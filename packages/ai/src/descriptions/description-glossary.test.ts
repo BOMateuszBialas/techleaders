@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { SEEDED_PRODUCTS } from "../evals/descriptions/seeded-products";
 import { DESCRIPTION_GLOSSARY, SPELLED_NUMBERS } from "./description-glossary";
-import { stripDemoMarker } from "./description-sources";
 import { blankSpans, findMoney, findTermSpans, normalizeText } from "./description-text";
 
 /**
@@ -113,7 +112,7 @@ describe("DESCRIPTION_GLOSSARY", () => {
   it.each(SEEDED_PRODUCTS.map((product) => [product.slug, product.description]))(
     "resolves every feature-like word of the seeded %s description to a glossary group",
     (_slug, description) => {
-      const text = normalizeText(stripDemoMarker(description));
+      const text = normalizeText(description);
       const rest = blankSpans(text, [...findTermSpans(text), ...findMoney(text)]);
       const words = rest.match(/\p{L}+/gu) ?? [];
       const unknown = words.filter((word) => !PLAIN_WORDS.has(word) && !(word in SPELLED_NUMBERS));
