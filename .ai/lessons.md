@@ -11,6 +11,8 @@ Keep entries short; put longer write-ups in `.ai/lessons/YYYY-MM-DD-slug.md` and
 
 <!-- Newest first -->
 
+- **2026-10-26 — Vite picks the nearest tsconfig, and a container query needs its container one element up**: Vite 8 in a folder outside the app read `packages/app/tsconfig.json` (it extends a workspace package) and failed the build; set `tsconfig` in `vite.config`. Typecheck of app components outside their package needs `paths` entries for `react` and `react-dom` pointing at `@types`, because TypeScript stops at the untyped JS file. `@container` and its `@md:` variant on the same element match nothing: put the container on the parent.
+
 - **2026-10-26 — Browser walk without the provider: drive an installed Chrome over CDP, and start Chrome from the shell**: when the configured browser provider is not installed and the Chrome extension is not connected, a headless Chrome (`--headless=new --remote-debugging-port`) driven by Node 24's built-in `WebSocket` runs a scripted walk with no new packages. Spawning Chrome from a Node script on Windows gave no DevTools port; start it from the shell instead. Report such a walk as a substitute, not as the provider's verification. A scratch profile folder can be left behind when a recursive delete is blocked by the hook; ask the user to remove it.
 
 - **2026-10-25 — Base UI overlays: the page under a modal is hidden, portals miss a div-scoped density, a link trigger gets `role="button"` on the server**:
