@@ -364,7 +364,7 @@ Propozycja P11 brzmiała: zostać przy lucide. **Właściciel ją odrzucił i wy
 15. **Tekst ciągły ≤ 65 znaków** (`--measure-prose`), m.in. `/orders/lookup` (audyt: 84 znaki).
 16. **Cele dotyku:** ≥ 44 px na telefonie w sklepie i adminie, ≥ 24 px wszędzie (WCAG 2.5.8), także linki w stopce i nawigacji.
 17. **Komunikaty rzeczowe o faktach, które produkt ma** (R03.3, K5): stan magazynu, cena, status zamówienia, etykieta demo. Bez obietnic wysyłki i komunikatów o realnej logistyce (AGENTS.md zasada 6).
-18. **Rama sklepu:** ciemny nagłówek i stopka, a listing, produkt, koszyk i checkout zawsze jasne (R02.1); strona główna jasna, krótki hero, potem od razu kategorie (K6).
+18. **Rama sklepu:** ciemny nagłówek i stopka, a listing, produkt, koszyk i checkout zawsze jasne (R02.1); strona główna jasna, krótki hero, potem od razu kategorie (K6). **Strona potwierdzenia zamówienia jak checkout:** jasne body, ciemny nagłówek i stopka (zatwierdzenie właściciela 2026-10-26, luka L4 z `.ai/design/test-agentem.md`).
 19. **Motyw:** klasa `.dark` na `<html>`, przełącznik plus ustawienie systemowe; każda nowa para kolorów liczona w obu motywach przed zapisem.
 20. **Copilot bez „magii AI”:** wygląd z reguł admina (R04.2): karty rekomendacji neutralne, priorytet jako badge z tekstem, bez fioletu, iskierek i gradientów (luka „Copilot”, A02/A03 nieprzyjęte jako antyreferencje, ale wynika to z decyzji 4 powyżej).
 
