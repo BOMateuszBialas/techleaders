@@ -1,0 +1,72 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Design system/Epics/E03 Owner catalog" />
+
+# Epic E03: Owner access and catalog management
+
+Backlog epic E03 (issue #10): stories E03-S01 (owner sign-in, only owners reach admin pages), E03-S02 (products and categories, with what each change affects), E03-S03 (manual stock adjustment and its effect on availability). The admin is dense and neutral (K7, R04.1, R04.2): graphite main button, color only for status, links and errors, no purchase red.
+
+## Flow
+
+1. The owner signs in at `/admin/sign-in`. Every admin page checks the session on the server; a missing session goes to sign-in.
+2. The owner lists products and categories, and opens one to edit it, or creates a new one.
+3. A product form saves name, slug, price, category, description and "Featured on home page". A published product's slug is its store address, so the form warns before a change (G5).
+4. The owner can draft a description with AI. The draft is shown as "AI draft, not saved" and replaces the description only when the owner chooses "Replace description with this draft". "Undo" and "Discard" stay available (AI advises, the owner decides).
+5. Publish and unpublish is one button on the product page. The outcome is stated next to it.
+6. The stock panel sets a new quantity with "Set stock"; the history below lists each change. A product edit never changes the stock; the stock moves only through this panel, a checkout, or the restock of a cancelled unpaid order (database conventions in AGENTS.md).
+7. Categories: list, create, edit. Deleting a category asks first; the confirmation says how many products use it.
+8. Products can be imported from a CSV file: the file is checked, a preview shows the rows, and only then "Importing…" runs. New products only; a row that matches an existing slug or SKU is skipped.
+
+## Screens and routes
+
+| Route                              | Screen              | What is on it today                                                                                   | Source files                                                                                                                               |
+| ---------------------------------- | ------------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `/admin/sign-in`                   | owner sign-in       | email and password form                                                                               | `app/admin/sign-in/page.tsx`                                                                                                               |
+| every `/admin` page                | admin shell         | dark side menu (`--sidebar`), page content, `data-density="admin"`                                    | `app/admin/(protected)/layout.tsx`                                                                                                         |
+| `/admin/products`                  | product list        | table of products with status and stock; "No products yet. Create the first one."                     | `app/admin/(protected)/products/page.tsx`, `components/admin/products/product-badges.tsx`                                                  |
+| `/admin/products/new`              | create product      | product form; stock is set only on create                                                             | `products/new/page.tsx`, `components/admin/products/product-form.tsx`, `product-form-view.tsx`                                             |
+| `/admin/products/[id]`             | edit product        | product form, publish control, stock panel, description draft panel, image preview                    | `products/[id]/page.tsx`, `publish-control-view.tsx`, `stock-panel-view.tsx`, `description-draft-panel-view.tsx`, `image-preview-view.tsx` |
+| `/admin/products/import`           | CSV import          | file field, "Check file", preview table, "Importing…"                                                 | `products/import/page.tsx`, `product-import-view.tsx`, `product-import-form.tsx`                                                           |
+| `/admin/categories`                | category list       | table; "No categories yet. Create the first one."                                                     | `categories/page.tsx`, `components/admin/categories/`                                                                                      |
+| `/admin/categories/new` and `[id]` | category form       | name, slug (with a warning), save                                                                     | `categories/new/page.tsx`, `[id]/page.tsx`, `category-form-view.tsx`                                                                       |
+| category delete                    | delete confirmation | "No products use this category. Deleting it removes it from the store navigation.", "Delete category" | `category-form-view.tsx`, `delete-category-view.tsx`                                                                                       |
+| any admin error                    | error page          | "Something went wrong", "Try again"                                                                   | `app/admin/(protected)/error.tsx`                                                                                                          |
+
+## States
+
+| State                      | Today                                                            | Copy                                                 | Target after the retrofit                                                                        |
+| -------------------------- | ---------------------------------------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| saving                     | "Saving…" on the button                                          | `Saving…`                                            | pending button with `aria-busy` (B1.6)                                                           |
+| saved                      | a status line after the redirect                                 | "Product created." (`role="status"`)                 | `Alert` `success` with `role="status"` (B2.18)                                                   |
+| validation error           | field messages from the server; one message for the form         | per field                                            | `FieldError` per field; focus on the first invalid field (audit, decision 5)                     |
+| slug warning               | "warning: a published product's slug is its store address"       | `product-slug-warning`                               | `Alert` `warning` next to the field (B2.18)                                                      |
+| draft pending              | "Drafting… this can take up to 35 seconds"                       | `PENDING_TEXT`                                       | status text with `role="status"`; the button keeps its label (B1.6)                              |
+| draft shown                | "AI draft, not saved" with the replace, undo and discard actions | `DRAFT_HEADING`                                      | `Alert` `warning`; actions as buttons (`default`, `outline`)                                     |
+| no products or categories  | "No products yet…" and "No categories yet…"                      | `EMPTY_PRODUCTS_MESSAGE`, `EMPTY_CATEGORIES_MESSAGE` | `Empty` with the "Create" action                                                                 |
+| CSV: no file chosen        | "Choose a CSV file to check."                                    | `CHOOSE_FILE_MESSAGE`                                | `FieldError` on the file field                                                                   |
+| CSV: checking or importing | "Checking…", "Importing…"                                        | `CHECKING_BUTTON`, `IMPORTING_BUTTON`                | pending buttons; one submitting form at a time (**P**)                                           |
+| stock history empty        | the history heading with no rows                                 | `STOCK_HISTORY_HEADING`                              | `Empty` with the next step                                                                       |
+| admin error                | "Something went wrong" with "Try again" and a log hint           | `error.tsx`                                          | `ErrorState` with a retry action (batch 3 Q4)                                                    |
+| delete category            | the confirmation view with a red "Delete category" button        | `delete-category-view.tsx`                           | `AlertDialog` with the category name in the title; the confirm button `destructive` (batch 4 Q6) |
+
+## Rules this epic follows
+
+- Admin buttons are graphite (`default`); "Delete category" is `destructive`, red text and outline, never filled (tokeny §7 rule 5).
+- The admin never shows the purchase red (`action`) (tokeny §7 rule 4). Red appears only as an error or a destructive confirmation.
+- The "Featured" checkbox is a `Checkbox` in a horizontal `Field`, saved with the form (batch 2 Q2).
+- The publish control is a button that states its outcome, not a switch (batch 2 decisions; see What is missing).
+- Warnings (slug, draft) use `--warning`, demo data uses `--demo`; the colors are never mixed (tokeny rule 11).
+- Every admin page is guarded on the server; hiding a link is not authorisation (AGENTS.md).
+
+## Retrofit (lesson 08)
+
+1. Product form and category form on `Field`, with `FieldError` and focus on the first invalid field (audit, decision 5).
+2. `Checkbox` for "Featured on home page" with its hint; `NativeSelect` for the category.
+3. `AlertDialog` for category deletion, with the name in the title and "Cancel" first (batch 4 Q6).
+4. `Table` for lists with right-aligned numbers and the status as `Badge` text.
+5. `Empty` for the empty lists; `ErrorState` for `error.tsx`; `Skeleton` in one labelled group for the admin loading states (today "Loading orders…" text, audit).
+6. The sidebar marks the current page with `aria-current="page"`; today it does not (audit, admin navigation).
+
+## P items on this page
+
+- None new. The admin error page's wording ("check the server logs") is shown to the owner, who is the operator; keep it, or move the advice to the operator docs (no decision needed for the stage).
