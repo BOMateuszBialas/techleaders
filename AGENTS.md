@@ -191,6 +191,7 @@ Run before every commit or PR (the gate from `.ai/agentic.config.json`; CI runs 
 ```bash
 npm run lint
 npm run format:check
+npm run check:tokens       # design tokens: no palette or arbitrary values outside globals.css
 npm run test:hooks         # dry-run tests of the agent PreToolUse hook (.claude/hooks/)
 npm run typecheck
 npm run test:coverage      # unit tests, fails below 100% coverage
