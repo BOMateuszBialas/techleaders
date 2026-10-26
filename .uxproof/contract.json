@@ -17,12 +17,8 @@
     ]
   },
   "libraries": {
-    "validation": [
-      "zod"
-    ],
-    "component-workbench": [
-      "storybook"
-    ]
+    "validation": ["zod"],
+    "component-workbench": ["storybook"]
   },
   "componentRoots": [
     {
