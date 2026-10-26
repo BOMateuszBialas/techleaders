@@ -1,0 +1,56 @@
+import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import * as DrawerStories from "./drawer.stories";
+
+<Meta of={DrawerStories} />
+
+# Drawer
+
+## 1. What it is for
+
+Looking at or changing a short list that belongs to the current page (the cart) without leaving the page. The shopper returns to exactly the place they came from.
+
+## 2. When to use
+
+- The cart, opened from the header link and after "Add to cart" (storefront v2, owner decision 3).
+- A short list with one or two actions per row and one primary action at the end.
+
+## 3. When not to use
+
+| Instead of a drawer…                       | Use                    | Why                                                                  |
+| ------------------------------------------ | ---------------------- | -------------------------------------------------------------------- |
+| A page the shopper must be able to link to | a page                 | A drawer has no URL; `/cart` stays the page (and the no-JS fallback) |
+| A quick task with one or two fields        | Dialog                 | Centred, no full-height side panel                                   |
+| A yes/no confirmation                      | Alert dialog           | Role `alertdialog`, no backdrop dismiss                              |
+| Navigation                                 | Navigation menu, links | A drawer is not a place                                              |
+
+## 4. Anatomy
+
+1. Trigger: the control that opens it (a link or a button).
+2. Backdrop: `--backdrop`, no blur; a click on it closes the drawer.
+3. Popup: role `dialog`, fixed to the right edge, full height, a 1 px left border, the overlay surface (`--popover`, the overlay shadow), `--space-panel` padding. Full width below `sm` (448 px); at most `max-w-md` from `sm`.
+4. Header: title (`DrawerTitle`, style `h2`) and an optional description.
+5. Body: the content; it scrolls while the header and the footer stay visible.
+6. Footer: the subtotal or the primary action (the only action-coloured control of the cart), then the secondary links.
+7. X: a `ghost` icon button named "Close" in the corner. It is the first focusable element, so opening the drawer focuses it.
+
+## 5. States
+
+| State          | What changes                                                       | Source    |
+| -------------- | ------------------------------------------------------------------ | --------- |
+| Opening        | backdrop fades in; the popup slides in from the right (300 ms)     | tokeny    |
+| Closing        | slides out (200 ms); focus returns to the element that opened it   | A14       |
+| Long content   | the body scrolls inside the drawer; header and footer stay visible | ui        |
+| Reduced motion | no slide, no fade (`motion-reduce:transition-none`)                | tokeny §5 |
+
+<Canvas of={DrawerStories.Playground} />
+
+## 6. Behavior and accessibility
+
+- Modal: focus is trapped while it is open, the page behind is inert and does not scroll.
+- Escape, a click on the backdrop and the X close it. Focus returns to the trigger (`finalFocus`).
+- The page behind is inert, so a status message outside the drawer is not announced; a message that must be read (for example "Added to cart.") is shown inside it.
+- Without JavaScript there is no drawer: the trigger is a real link to a page.
+
+<Canvas of={DrawerStories.FocusAndEscape} />
+
+<ArgTypes of={DrawerStories.Playground} />

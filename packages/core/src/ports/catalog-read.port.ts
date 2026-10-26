@@ -1,5 +1,6 @@
 import type { CurrencyCode } from "../domain/money";
 import type { ProductStatus } from "../domain/products/product";
+import type { TechnicalSpec } from "../validators/catalog/technical-spec.schema";
 
 /** A category as stored, mapped to plain data by the adapter (never an ORM entity). */
 export type CatalogCategoryRecord = {
@@ -19,6 +20,8 @@ export type CatalogProductRecord = {
   currency: CurrencyCode;
   stockQuantity: number;
   imageUrl: string | null;
+  /** Stored as jsonb; the core read mapper validates the shape before it reaches a shopper. */
+  technicalSpecs: TechnicalSpec[];
   status: ProductStatus;
   /** Shown in the home page's featured slider (spec G9). */
   featured: boolean;
