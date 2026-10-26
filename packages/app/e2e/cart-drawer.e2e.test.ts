@@ -27,6 +27,24 @@ describe("cart drawer (storefront v2, Phase 2)", () => {
     throw new Error(`${selector} did not reach ${count} elements`);
   }
 
+  /**
+   * Waits until the drawer has finished its slide-in: the popup sits flush with the right edge of
+   * the window and has no transform left. Clicks on it during the 300 ms slide land off screen.
+   */
+  async function waitForDrawerSettled() {
+    const settled = `(() => {
+      const drawer = document.querySelector('[role="dialog"]');
+      if (!drawer) return false;
+      const rect = drawer.getBoundingClientRect();
+      return Math.round(rect.right) === window.innerWidth && getComputedStyle(drawer).transform === "none";
+    })()`;
+    for (let attempt = 0; attempt < 50; attempt += 1) {
+      if ((await browser().evaluate(settled)) === true) return;
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+    throw new Error("the drawer did not finish opening");
+  }
+
   /** The quantity the drawer shows for a line (empty when the line is not shown). */
   async function quantityOf(name: string): Promise<string> {
     const selector = 'output[aria-label="Quantity of ' + name + '"]';
@@ -52,8 +70,7 @@ describe("cart drawer (storefront v2, Phase 2)", () => {
     await browser().waitForText(name);
     await browser().clickRole("button", "Add to cart");
     await waitForCount(DRAWER, 1);
-    // The drawer is server-rendered after the add; give its client forms time to hydrate before a click.
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    await waitForDrawerSettled();
   }
 
   it("opens after a successful add, moves focus into it, and Escape returns focus to Add to cart (A10, A14)", async () => {
@@ -111,6 +128,7 @@ describe("cart drawer (storefront v2, Phase 2)", () => {
 
     await browser().click(CART_LINK);
     await waitForCount(DRAWER, 1);
+    await waitForDrawerSettled();
     expect(new URL(await browser().url()).pathname).toBe("/products/vortex-wireless-mouse");
 
     await browser().clickRole("link", "Checkout");
@@ -121,6 +139,7 @@ describe("cart drawer (storefront v2, Phase 2)", () => {
     await browser().setViewport(320, 640);
     await addFromProductPage("vortex-wireless-mouse", VORTEX);
     await browser().waitForText("Your cart (1)");
+    await waitForDrawerSettled();
     const fit = await browser().evaluate(
       "(() => { const d = document.querySelector('[role=\"dialog\"]'); return { scroll: document.documentElement.scrollWidth, inner: window.innerWidth, width: d.getBoundingClientRect().width }; })()",
     );
