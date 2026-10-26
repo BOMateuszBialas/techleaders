@@ -5,6 +5,7 @@ import "../testing/provided-context";
 import { DEMO_CATALOG, DatabaseSeeder } from "./DatabaseSeeder";
 
 const MIGRATION = "Migration20261026120000_demo_text_prefix";
+const SKU_MIGRATION = "Migration20261026190000_demo_sku_case";
 const SEED_DATE = new Date("2026-10-26T12:00:00.000Z");
 const OWNER_REFERENCE = "CO-7K3MQ-9XZ2A-H4TPC-W8R1N";
 const OWNER_PRODUCT = "vortex-wireless-mouse";
@@ -119,5 +120,30 @@ describe("demo text prefix migration (PostgreSQL)", () => {
     await orm.migrator.down({ migrations: [MIGRATION] });
     await orm.migrator.up({ migrations: [MIGRATION] });
     expect(await textDigest()).toEqual(before);
+  });
+
+  it("also removes the prefix from demo products whose SKU is lower case or padded with spaces", async () => {
+    // The rule the code uses (`isDemoSku`: trimmed, upper-cased); the first migration matched only `DEMO-%`.
+    await query(
+      `update products set sku = 'demo-key-001', description = '[DEMO] Lower case SKU' where sku = 'DEMO-KEY-001'`,
+    );
+    await query(
+      `update products set sku = ' DEMO-MOU-002', description = '[DEMO] Padded SKU' where sku = 'DEMO-MOU-002'`,
+    );
+    try {
+      const before = await guardedState();
+
+      await orm.migrator.down({ migrations: [SKU_MIGRATION] });
+      await orm.migrator.up({ migrations: [SKU_MIGRATION] });
+
+      const rows = await query<{ description: string }>(
+        `select description from products where lower(btrim(sku)) in ('demo-key-001', 'demo-mou-002') order by description`,
+      );
+      expect(rows.map((row) => row.description)).toEqual(["Lower case SKU", "Padded SKU"]);
+      expect(await guardedState()).toEqual(before);
+    } finally {
+      await query(`update products set sku = 'DEMO-KEY-001' where sku = 'demo-key-001'`);
+      await query(`update products set sku = 'DEMO-MOU-002' where sku = ' DEMO-MOU-002'`);
+    }
   });
 });
