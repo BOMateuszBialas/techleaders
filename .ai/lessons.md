@@ -10,6 +10,8 @@ Long-term memory for LLM agents: an index. Add an entry after fixing a bug, or w
 
 <!-- Newest first -->
 
+- **2026-10-26 — A commit message read from a fixed scratch path can be a stale file: use a new file name per commit, and amend before pushing** — a `git commit -F` read an old `msg1.txt` in the scratchpad, so the commit carried another message; `git commit --amend -F` on the unpushed commit fixed it.
+
 - **2026-10-26 — A `.ts` and a `.tsx` with one basename shadow each other on import; the 100% gate needs handler tests without a DOM library** — [details](lessons/2026-10-26-product-gallery-ts-tsx-handlers.md)
 - **2026-10-26 — A new port field reaches every fixture; copy a tracked binary from git, not the shell** — [details](lessons/2026-10-26-port-field-fixtures-binary-copy.md)
 - **2026-10-26 — Git Bash rewrites `ref:path` in `git show`, and Base UI focus is checked after its guards** — [details](lessons/2026-10-26-git-bash-rewrites-ref-path.md)
