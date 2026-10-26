@@ -23,7 +23,7 @@ import { loadStorefrontCategories } from "./load-storefront-categories";
 export default function StorefrontLayout({ children }: LayoutProps<"/">) {
   return (
     <div className="flex flex-1 flex-col">
-      <p role="note" className="bg-amber-100 px-4 py-2 text-center text-sm text-amber-950">
+      <p role="note" className="bg-demo-surface px-4 py-2 text-center text-sm text-demo">
         {DEMO_NOTICE}
       </p>
       <header className="border-b">

@@ -68,7 +68,7 @@ async function CheckoutContents() {
   // What the page shows is what the order becomes: placeOrder reads the session again (A24).
   const mode = checkoutModeFor(await getCurrentCustomerId());
   return (
-    <div className="grid gap-8 md:grid-cols-[1fr_22rem]">
+    <div className="grid gap-8 md:grid-cols-checkout">
       <CheckoutForm
         action={placeOrder}
         idempotencyKey={idempotencyKey}

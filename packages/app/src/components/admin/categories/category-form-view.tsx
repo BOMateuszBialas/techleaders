@@ -61,7 +61,7 @@ export function CategoryFormView({ action, state, pending, category }: CategoryF
           {SLUG_HINT}
         </p>
         {slugHints.length > 1 ? (
-          <p id="category-slug-warning" className="text-sm text-amber-700 dark:text-amber-400">
+          <p id="category-slug-warning" className="text-sm text-warning">
             {SLUG_CHANGE_WARNING}
           </p>
         ) : null}

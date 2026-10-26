@@ -111,7 +111,7 @@ export function ProductFormView({
           {SLUG_HINT}
         </p>
         {slugHints.length > 1 ? (
-          <p id="product-slug-warning" className="text-sm text-amber-700 dark:text-amber-400">
+          <p id="product-slug-warning" className="text-sm text-warning">
             {SLUG_CHANGE_WARNING}
           </p>
         ) : null}
