@@ -82,6 +82,7 @@ export * from "./validators/auth/sign-in.schema";
 export * from "./validators/cart/cart-line.schema";
 export * from "./validators/catalog/catalog-query.schema";
 export * from "./validators/catalog/slug.schema";
+export * from "./validators/catalog/technical-spec.schema";
 export * from "./validators/copilot/ask-copilot.schema";
 export * from "./validators/copilot/recommendation-status-change.schema";
 export * from "./validators/categories/category-input.schema";

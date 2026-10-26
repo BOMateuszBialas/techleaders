@@ -28,6 +28,7 @@ export function productRecord(overrides: Partial<CatalogProductRecord> = {}): Ca
     currency: "PLN",
     stockQuantity: 8,
     imageUrl: "/demo/products/vortex-wireless-mouse.svg",
+    technicalSpecs: [],
     status: "published",
     featured: false,
     category: { slug: MICE.slug, name: MICE.name },

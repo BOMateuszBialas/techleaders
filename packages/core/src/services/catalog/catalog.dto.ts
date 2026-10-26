@@ -1,6 +1,10 @@
 import { money, type Money } from "../../domain/money";
 import { getAvailability, type Availability } from "../../domain/products/product";
 import type { CatalogCategoryRecord, CatalogProductRecord } from "../../ports/catalog-read.port";
+import {
+  technicalSpecsSchema,
+  type TechnicalSpec,
+} from "../../validators/catalog/technical-spec.schema";
 
 /** Shopper-facing data only: never `status`, `sku`, stock quantities or timestamps. */
 export type CatalogCategory = { slug: string; name: string; description: string | null };
@@ -15,7 +19,11 @@ export type CatalogProductSummary = {
   imageUrl: string | null;
 };
 
-export type CatalogProductDetail = CatalogProductSummary & { description: string };
+export type CatalogProductDetail = CatalogProductSummary & {
+  description: string;
+  /** Example values for the demo store (Q10); the page shows them with that note. */
+  technicalSpecs: TechnicalSpec[];
+};
 
 export function toCatalogCategory(record: CatalogCategoryRecord): CatalogCategory {
   return { slug: record.slug, name: record.name, description: record.description };
@@ -34,6 +42,14 @@ export function toCatalogProductSummary(record: CatalogProductRecord): CatalogPr
   };
 }
 
+/**
+ * Like `money()`, the shape check fails loudly: a stored row that breaks the schema is a data bug,
+ * not something to render.
+ */
 export function toCatalogProductDetail(record: CatalogProductRecord): CatalogProductDetail {
-  return { ...toCatalogProductSummary(record), description: record.description };
+  return {
+    ...toCatalogProductSummary(record),
+    description: record.description,
+    technicalSpecs: technicalSpecsSchema.parse(record.technicalSpecs),
+  };
 }
