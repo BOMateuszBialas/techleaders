@@ -9,7 +9,7 @@ describe("storefront product page (E01-S01)", () => {
 
   it("shows description, price, availability, category and image (AC2)", async () => {
     await browser().open("/products/vortex-wireless-mouse");
-    await browser().waitForText("[DEMO] Wireless gaming mouse");
+    await browser().waitForText("Wireless gaming mouse with a 26,000 DPI");
 
     expect(await browser().title()).toBe("Vortex Wireless Mouse · CommerceOS");
     const main = await browser().text("main");
@@ -33,7 +33,7 @@ describe("storefront product page (E01-S01)", () => {
     await browser().waitForText("Arena Fight Stick");
     await browser().clickRole("link", "Arena Fight Stick");
     await browser().waitForUrl("**/products/arena-fight-stick");
-    await browser().waitForText("[DEMO] Arcade fight stick");
+    await browser().waitForText("Arcade fight stick with a ball-top lever");
   });
 
   it("treats a draft as not found and never shows it (AC3)", async () => {

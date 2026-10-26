@@ -56,7 +56,7 @@ describe("customer A never reaches customer B's orders (E07-S04)", () => {
     await browser().fillLabel("City", "Kraków");
     await browser().fillLabel("Postal code", "30-001");
     await browser().clickRole("button", "Place order");
-    await browser().waitForText("Confirm demo payment (no charge)");
+    await browser().waitForText("Confirm test payment");
     const reference = REFERENCE.exec(await browser().text("main"))?.[0] ?? "";
     expect(reference).toMatch(REFERENCE);
 
@@ -165,11 +165,11 @@ describe("customer A never reaches customer B's orders (E07-S04)", () => {
   it("action: A posting B's reference to confirmDemoPayment is 'not found', and B's order stays unpaid", async () => {
     await browseAs("a");
     await browser().open(`/checkout/pay/${order("a").reference}`);
-    await browser().waitForText("Confirm demo payment (no charge)");
+    await browser().waitForText("Confirm test payment");
     await browser().evaluate(
       `document.querySelector('input[name="reference"]').value = ${JSON.stringify(order("b").reference)}`,
     );
-    await browser().clickRole("button", "Confirm demo payment (no charge)");
+    await browser().clickRole("button", "Confirm test payment");
     await browser().waitForText(`${NOT_FOUND}.`);
     expect(await browser().text("main")).not.toContain(order("b").product);
 
