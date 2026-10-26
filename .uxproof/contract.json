@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "generatedBy": "uxproof",
+  "framework": "next",
+  "workspace": true,
+  "styling": {
+    "system": "tailwind",
+    "tailwind": {
+      "version": "4",
+      "configFile": null
+    },
+    "tokenSources": [
+      {
+        "file": "packages\\app\\src\\app\\globals.css",
+        "tokenCount": 322
+      }
+    ]
+  },
+  "libraries": {
+    "validation": [
+      "zod"
+    ],
+    "component-workbench": [
+      "storybook"
+    ]
+  },
+  "componentRoots": [
+    {
+      "dir": "packages/app/src/components",
+      "fileCount": 86
+    },
+    {
+      "dir": "packages/app/stories/primitives",
+      "fileCount": 24
+    }
+  ],
+  "nativeEquivalents": [
+    {
+      "element": "button",
+      "component": "Button"
+    },
+    {
+      "element": "input",
+      "component": "Input"
+    },
+    {
+      "element": "textarea",
+      "component": "Textarea"
+    },
+    {
+      "element": "table",
+      "component": "Table"
+    },
+    {
+      "element": "dialog",
+      "component": "Dialog"
+    }
+  ],
+  "archetypes": [],
+  "warnings": [],
+  "counts": {
+    "tokens": 222,
+    "colorTokens": 89,
+    "components": 168,
+    "proposedColors": 0
+  }
+}
