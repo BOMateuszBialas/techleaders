@@ -44,3 +44,14 @@
 .sbdocs table th {
   overflow-wrap: anywhere;
 }
+
+/*
+ * Storybook sets white-space: nowrap on inline code. A cell or a paragraph with an identifier
+ * (a token name, a file path) then keeps its full width: a five-column table was 992 px wide at
+ * 320 px. Inline code wraps like the text around it; code blocks (pre) keep their own horizontal
+ * scroll.
+ */
+.sbdocs :not(pre) > code {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
