@@ -42,7 +42,15 @@ class FakeStoreMetrics implements StoreMetricsPort {
   ];
   low: LowStockAggregate = {
     total: 1,
-    rows: [{ id: "p-2", name: "Titan MMO Mouse", sku: "DEMO-MOU-003", stockQuantity: 0 }],
+    rows: [
+      {
+        id: "p-2",
+        slug: "titan-mmo-mouse",
+        name: "Titan MMO Mouse",
+        sku: "DEMO-MOU-003",
+        stockQuantity: 0,
+      },
+    ],
   };
   demo = 2;
 

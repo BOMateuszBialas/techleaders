@@ -233,6 +233,31 @@ describe("DatabaseCatalogRepository (PostgreSQL)", () => {
     expect(inMousepads).toEqual({ items: [], total: 0 });
   });
 
+  it("counts published products per category, zero for empty ones (storefront v2, Q12)", async () => {
+    const counts = await repository().countPublishedProductsByCategory();
+
+    expect(counts.map((count) => count.slug)).toEqual([
+      "controllers",
+      "headsets",
+      "keyboards",
+      "mice",
+      "mousepads",
+      "e2e-drafts-only",
+      "e2e-empty",
+    ]);
+    for (const count of counts) {
+      const { total } = await repository().findProducts({
+        status: "published",
+        categoryId: await categoryId(count.slug),
+        limit: 1,
+      });
+      expect(count.productCount).toBe(total);
+    }
+    expect(counts.find((count) => count.slug === "mice")?.productCount).toBe(3);
+    expect(counts.find((count) => count.slug === "e2e-drafts-only")?.productCount).toBe(0);
+    expect(counts.find((count) => count.slug === "e2e-empty")?.productCount).toBe(0);
+  });
+
   // Last in the file: it adds a published product that the listings above must not see.
   it("matches %, _ and \\ literally", async () => {
     const search = (term: string) =>

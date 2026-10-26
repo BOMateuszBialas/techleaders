@@ -49,6 +49,7 @@ type TopProductRow = {
 };
 type LowStockSqlRow = {
   id: string;
+  slug: string;
   name: string;
   sku: string | null;
   stock_quantity: number;
@@ -128,7 +129,7 @@ export class DatabaseStoreMetrics implements StoreMetricsPort {
   async lowStockProducts(threshold: number, limit: number): Promise<LowStockAggregate> {
     // `count(*) over ()` is computed before the limit: the total of every matching product.
     const rows = await this.deps.em.execute<LowStockSqlRow[]>(
-      `select id, name, sku, stock_quantity, count(*) over () as total
+      `select id, slug, name, sku, stock_quantity, count(*) over () as total
          from products
         where status = 'published' and stock_quantity <= ?
         order by stock_quantity asc, name asc, id asc
@@ -139,6 +140,7 @@ export class DatabaseStoreMetrics implements StoreMetricsPort {
       total: rows[0] ? toSafeInteger(rows[0].total, "total") : 0,
       rows: rows.map((row) => ({
         id: row.id,
+        slug: row.slug,
         name: row.name,
         sku: row.sku,
         stockQuantity: row.stock_quantity,
