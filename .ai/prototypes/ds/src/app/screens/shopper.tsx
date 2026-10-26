@@ -6,7 +6,6 @@ import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle } from "
 import { ErrorState } from "@/components/ui/error-state";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -153,7 +152,7 @@ function Catalog({ state }: { state: string }) {
     return (
       <Empty>
         <EmptyHeader>
-          <EmptyTitle>No products match "mouse pad 900".</EmptyTitle>
+          <EmptyTitle>No products match &quot;mouse pad 900&quot;.</EmptyTitle>
           <EmptyDescription>Check the spelling or clear the search.</EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
