@@ -1,5 +1,7 @@
-import { formatPriceInput, type DescriptionDraftInput } from "@commerceos/core";
+import { formatPriceInput, isDemoSku, type DescriptionDraftInput } from "@commerceos/core";
 import { findNumbers, findTermMentions, mentionKey, normalizeText } from "./description-text";
+
+export { isDemoSku };
 
 /** The four fields a draft may use, in the order the model receives them (descriptions spec A1). */
 export const DESCRIPTION_FIELDS = ["name", "category", "price", "notes"] as const;
@@ -7,18 +9,6 @@ export type DescriptionField = (typeof DESCRIPTION_FIELDS)[number];
 
 /** A5: without a category, the owner's notes need at least this many characters. */
 export const MIN_NOTES_LENGTH = 20;
-
-/** The machine marker of demo products (storefront v2, OA-3): the SKU, not a text prefix. */
-export const DEMO_SKU_PREFIX = "DEMO-";
-
-/**
- * A product is demo content when its SKU is a `DEMO-` SKU (A12, R11, OA-3). The SKU is the marker
- * because the text prefix `[DEMO] ` is no longer stored or shown. SKUs are saved in capitals, so
- * the comparison ignores case.
- */
-export function isDemoSku(sku: string): boolean {
-  return sku.trim().toUpperCase().startsWith(DEMO_SKU_PREFIX);
-}
 
 export type DescriptionSources = {
   /** Exactly what the model receives; a field that is not set is "". */
