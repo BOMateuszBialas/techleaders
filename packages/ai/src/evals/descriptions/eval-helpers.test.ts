@@ -27,7 +27,8 @@ describe("description eval helpers", () => {
       category: "Controllers",
       price: "99.00",
       notes:
-        "[DEMO] Classic-layout wired controller with a precise D-pad for platformers and emulated games.",
+        "Classic-layout wired controller with a precise D-pad for platformers and emulated games.",
+      sku: "DEMO-CON-002",
     });
     expect(() => seededEvalInput("missing")).toThrow("No seeded product missing");
   });

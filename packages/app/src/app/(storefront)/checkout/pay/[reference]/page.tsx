@@ -8,7 +8,7 @@ import {
   PAY_HEADING,
 } from "@/components/checkout/checkout-copy";
 import { PayForm } from "@/components/checkout/order-forms";
-import { DemoPaymentBanner } from "@/components/checkout/order-forms-view";
+import { PaymentTestNote } from "@/components/checkout/order-forms-view";
 import { OrderSummary } from "@/components/checkout/order-summary";
 import { confirmDemoPayment } from "@/server/orders/order.action";
 import { TOO_MANY_LOOKUPS_MESSAGE } from "@/server/orders/order-lookup-limit";
@@ -17,19 +17,19 @@ import { loadOrderPage } from "../../../orders/load-order-page";
 
 /** The URL carries a bearer reference: never indexed, never sent on as a referrer (spec UI/UX). */
 export const metadata: Metadata = {
-  title: "Demo payment",
+  title: "Test payment",
   robots: { index: false, follow: false },
   referrer: "no-referrer",
 };
 
 type PayPageProps = PageProps<"/checkout/pay/[reference]">;
 
-/** The demo payment step (cart spec A9, G4): a banner, the summary and one button. */
+/** The test payment step (cart spec A9, G4, R11): one note, the summary and one button. */
 export default function PayPage({ params }: PayPageProps) {
   return (
     <>
       <h1 className="text-3xl font-semibold tracking-tight">{PAY_HEADING}</h1>
-      <DemoPaymentBanner />
+      <PaymentTestNote />
       <Suspense
         fallback={
           <div aria-label="Loading order" className="h-48 animate-pulse rounded bg-muted" />

@@ -8,7 +8,9 @@ const readCartLines = vi.fn();
 vi.mock("@/server/container", () => ({
   createRequestScope: () => ({ cradle: { getCartUseCase: { execute: getCart } }, dispose }),
 }));
-vi.mock("@/server/cart/cart-cookie", () => ({ readCartLines: () => readCartLines() }));
+vi.mock("@/server/cart/cart-cookie", () => ({
+  readCartLines: (options?: unknown) => readCartLines(options),
+}));
 
 const { loadCartPage } = await import("./load-cart-page");
 
@@ -27,5 +29,13 @@ describe("loadCartPage", () => {
     expect(await loadCartPage()).toEqual({ kind: "ok", data: cart });
     expect(getCart).toHaveBeenCalledWith({ lines });
     expect(dispose).toHaveBeenCalledOnce();
+  });
+
+  it("passes the logging option to the cookie read (the drawer does not log an invalid cookie)", async () => {
+    readCartLines.mockResolvedValue([]);
+    getCart.mockResolvedValue(priceCart([], []));
+
+    await loadCartPage({ logInvalid: false });
+    expect(readCartLines).toHaveBeenCalledWith({ logInvalid: false });
   });
 });

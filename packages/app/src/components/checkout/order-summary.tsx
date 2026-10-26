@@ -5,7 +5,7 @@ export type SummaryItem = { name: string; unitPrice: Money; quantity: number; li
 
 /**
  * Items and totals, all from the server (cart spec R04): the checkout shows the cart priced
- * from the catalog, the order pages the stored snapshots. Shipping 0 reads "free (demo store)"
+ * from the catalog, the order pages the stored snapshots. Shipping 0 reads "free"
  * (G5); there is no tax line.
  */
 export function OrderSummary({

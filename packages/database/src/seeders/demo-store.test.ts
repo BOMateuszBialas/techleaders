@@ -210,9 +210,9 @@ describe("generateDemoStore", () => {
     }
   });
 
-  it("marks every customer as fictional", () => {
+  it("marks every customer as fictional by the reserved example.com email, with no [DEMO] text", () => {
     for (const order of store.orders) {
-      expect(order.customerName).toMatch(/^\[DEMO] /);
+      expect(order.customerName).not.toMatch(/\[DEMO]/);
       expect(order.customerEmail).toMatch(/^demo\.shopper\d{2}@example\.com$/);
       expect(order.shippingLine1).toMatch(/^ul\. Demo \d+$/);
       expect(order.shippingPostalCode).toMatch(/^\d{2}-\d{3}$/);

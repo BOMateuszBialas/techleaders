@@ -34,11 +34,7 @@ import {
   type ProductDescriptionOutput,
 } from "../schemas/product-description-output.schema";
 import type { DescriptionDraftDto, DescriptionUnavailableReason } from "./description-draft.dto";
-import {
-  buildDescriptionSources,
-  stripDemoMarker,
-  type DescriptionSources,
-} from "./description-sources";
+import { buildDescriptionSources, type DescriptionSources } from "./description-sources";
 
 /** Per owner: 5 drafts per 10 minutes (descriptions spec A2). */
 export const DRAFT_LIMIT = 5;
@@ -58,8 +54,6 @@ export const DRAFT_DEADLINE_MS = 30_000;
 /** The second attempt runs only when at least this much of the deadline remains. */
 export const DRAFT_MIN_RETRY_MS = 10_000;
 export const DRAFT_MAX_OUTPUT_TOKENS = 1_500;
-
-export const DEMO_PREFIX = "[DEMO] ";
 
 export type DraftProductDescriptionDeps = {
   llmProvider: LlmProviderPort;
@@ -194,13 +188,13 @@ export class DraftProductDescriptionUseCase {
       }
 
       trace.usage = addLlmUsage(trace.usage, output.usage);
-      const text = stripDemoMarker(output.data.description);
+      const text = output.data.description;
       const issues = findDescriptionIssues(text, sources);
       if (issues.length === 0) {
         trace.model = output.model;
         return {
           kind: "draft",
-          text: sources.demo ? `${DEMO_PREFIX}${text}` : text,
+          text,
           model: output.model,
           promptVersion: PRODUCT_DESCRIPTION_PROMPT_VERSION,
           fieldsUsed: sources.fieldsUsed,

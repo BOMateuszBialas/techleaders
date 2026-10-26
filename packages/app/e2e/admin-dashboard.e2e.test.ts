@@ -78,7 +78,7 @@ describe("admin dashboard", () => {
     expect(await browser().text(RANGE)).toBe(sevenDays);
   });
 
-  it('counts a storefront order in "Paid orders" once its demo payment is confirmed (AC4)', async () => {
+  it('counts a storefront order in "Paid orders" once its test payment is confirmed (AC4)', async () => {
     await openDashboard();
     const before = await paidOrders();
 
@@ -99,7 +99,7 @@ describe("admin dashboard", () => {
     await browser().fillLabel("City", "Kraków");
     await browser().fillLabel("Postal code", "30-001");
     await browser().clickRole("button", "Place order");
-    await browser().waitForText("Confirm demo payment (no charge)");
+    await browser().waitForText("Confirm test payment");
     const payPage = new URL(await browser().url()).pathname;
 
     // Placed but unpaid: not a paid order yet.
@@ -107,9 +107,9 @@ describe("admin dashboard", () => {
     expect(await paidOrders()).toBe(before);
 
     await browser().open(payPage);
-    await browser().waitForText("Confirm demo payment (no charge)");
-    await browser().clickRole("button", "Confirm demo payment (no charge)");
-    await browser().waitForText("Thank you — demo payment received");
+    await browser().waitForText("Confirm test payment");
+    await browser().clickRole("button", "Confirm test payment");
+    await browser().waitForText("Thank you — test payment received");
 
     await openDashboard();
     expect(await paidOrders()).toBe(before + 1);

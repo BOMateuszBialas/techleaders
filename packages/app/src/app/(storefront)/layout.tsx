@@ -3,61 +3,86 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 import { cartItemCount } from "@commerceos/core";
 import { AccountHeaderLink } from "@/components/account/account-header-link";
+import { CartDrawer } from "@/components/cart/cart-drawer";
+import { CartDrawerProvider } from "@/components/cart/cart-drawer-context";
 import { CartLink } from "@/components/cart/cart-link";
 import { FooterCategoryLinks, SiteFooter } from "@/components/storefront/site-footer";
 import { HeaderMenu } from "@/components/storefront/header-menu";
 import { HeaderSearch } from "@/components/storefront/header-search";
-import { DEMO_NOTICE, STORE_NAME } from "@/components/storefront/storefront-copy";
+import { STORE_NAME } from "@/components/storefront/storefront-copy";
 import { readCartLines } from "@/server/cart/cart-cookie";
+import { acceptCartChanges, removeCartLine, updateCartLine } from "@/server/cart/cart.action";
 import { signOutCustomer } from "@/server/customer-auth/customer-auth.action";
 import { isCustomerSignedIn } from "@/server/customer-auth/require-customer";
+import { loadCartPage } from "./cart/load-cart-page";
 import { loadStorefrontCategories } from "./load-storefront-categories";
 
 /**
- * Storefront shell shared by the home page, the listing and product pages: demo banner (R07),
- * header search box, menu (spec G13), the cart link with its count (cart spec G9), the customer
- * account link (E07 spec A21) and footer (G14). The shell itself prerenders; the category links and the cart count are read at request
- * time inside `<Suspense>`. Without categories (still loading, or the catalog is unavailable)
- * the menus keep their static links.
+ * Storefront shell shared by the home page, the listing and product pages: header search box,
+ * menu (spec G13), the cart link with its count (cart spec G9), the customer account link (E07
+ * spec A21) and footer (G14). No demo banner (storefront v2, R11). The shell itself prerenders;
+ * the category links and the cart count are read at request time inside `<Suspense>`. Without
+ * categories (still loading, or the catalog is unavailable) the menus keep their static links.
  */
 export default function StorefrontLayout({ children }: LayoutProps<"/">) {
   return (
-    <div className="flex flex-1 flex-col">
-      <p role="note" className="bg-demo-surface px-4 py-2 text-center text-sm text-demo">
-        {DEMO_NOTICE}
-      </p>
-      <header className="border-b">
-        <div className="mx-auto flex min-h-14 w-full max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2 sm:h-14 sm:flex-nowrap sm:py-0">
-          <Link href="/" className="font-semibold tracking-tight">
-            {STORE_NAME}
-          </Link>
-          {/* On a phone the actions take their own full-width row, so the cart stays in view; from
+    <CartDrawerProvider>
+      <div className="flex flex-1 flex-col">
+        <header className="border-b">
+          <div className="mx-auto flex min-h-14 w-full max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2 sm:h-14 sm:flex-nowrap sm:py-0">
+            <Link href="/" className="font-semibold tracking-tight">
+              {STORE_NAME}
+            </Link>
+            {/* On a phone the actions take their own full-width row, so the cart stays in view; from
               `sm` the header keeps one fixed-height row, so streamed menu links never shift the page. */}
-          <div className="flex w-full items-center gap-3 sm:w-auto">
-            <HeaderSearch />
-            <Suspense fallback={<HeaderMenu categories={[]} />}>
-              <LoadedHeaderMenu />
-            </Suspense>
-            <Suspense fallback={<CartLink itemCount={null} />}>
-              <LoadedCartLink />
-            </Suspense>
-            <Suspense fallback={null}>
-              <LoadedAccountLink />
-            </Suspense>
+            <div className="flex w-full items-center gap-3 sm:w-auto">
+              <HeaderSearch />
+              <Suspense fallback={<HeaderMenu categories={[]} />}>
+                <LoadedHeaderMenu />
+              </Suspense>
+              <Suspense fallback={<CartLink itemCount={null} />}>
+                <LoadedCartLink />
+              </Suspense>
+              <Suspense fallback={null}>
+                <LoadedAccountLink />
+              </Suspense>
+            </div>
           </div>
-        </div>
-      </header>
-      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-10">
-        {children}
-      </main>
-      <SiteFooter
-        categoryLinks={
-          <Suspense fallback={<FooterCategoryLinks categories={[]} />}>
-            <LoadedFooterCategoryLinks />
-          </Suspense>
-        }
-      />
-    </div>
+        </header>
+        <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-10">
+          {children}
+        </main>
+        <SiteFooter
+          categoryLinks={
+            <Suspense fallback={<FooterCategoryLinks categories={[]} />}>
+              <LoadedFooterCategoryLinks />
+            </Suspense>
+          }
+        />
+        <Suspense fallback={null}>
+          <LoadedCartDrawer />
+        </Suspense>
+      </div>
+    </CartDrawerProvider>
+  );
+}
+
+/**
+ * The cart drawer on every storefront page (storefront v2, A10, A11): the same priced cart as
+ * `/cart`, read on the server. It is closed until the header link or "Add to cart" opens it. An
+ * unreadable cart shows the drawer's unavailable message, never a crash. It reads the cookie
+ * without logging an invalid one: every page renders it, as the header count does.
+ */
+async function LoadedCartDrawer() {
+  await connection();
+  const result = await loadCartPage({ logInvalid: false });
+  return (
+    <CartDrawer
+      cart={result.kind === "ok" ? result.data : null}
+      updateAction={updateCartLine}
+      removeAction={removeCartLine}
+      acceptAction={acceptCartChanges}
+    />
   );
 }
 

@@ -132,6 +132,11 @@ export class BrowserSession {
     await this.command(["click", selector]);
   }
 
+  /** Presses a key on the focused element, for example "Escape" (the drawer closes on it). */
+  async press(key: string): Promise<void> {
+    await this.command(["press", key]);
+  }
+
   /** Chooses the option with this value in the `<select>` matching a CSS selector. */
   async select(selector: string, value: string): Promise<void> {
     await this.command(["select", selector, value]);

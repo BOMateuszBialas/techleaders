@@ -8,9 +8,9 @@ import { fieldDefault, type ActionState } from "@/lib/action-state";
 import {
   CONFIRMING_PAYMENT,
   CONFIRM_PAYMENT_BUTTON,
-  DEMO_PAYMENT_BANNER,
   LOOKUP_BUTTON,
   LOOKUP_LABEL,
+  PAYMENT_TEST_NOTE,
   orderStatusLabel,
 } from "./checkout-copy";
 
@@ -20,14 +20,17 @@ type FormViewProps = {
   pending: boolean;
 };
 
-/** Persistent, not dismissible (spec UI/UX "/checkout/pay"): no money moves anywhere. */
-export function DemoPaymentBanner() {
+/**
+ * The one payment note (storefront v2, R11, R03): a static, visible, not dismissible `note`. No
+ * money moves anywhere.
+ */
+export function PaymentTestNote() {
   return (
     <p
-      role="status"
+      role="note"
       className="rounded-md border border-demo bg-demo-surface p-3 text-sm font-medium text-demo"
     >
-      {DEMO_PAYMENT_BANNER}
+      {PAYMENT_TEST_NOTE}
     </p>
   );
 }

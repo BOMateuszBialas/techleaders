@@ -23,12 +23,14 @@ import {
 
 const OWNER = { id: "owner-1" };
 const NOTES =
-  "[DEMO] Wireless gaming mouse with a 26,000 DPI optical sensor, 70 hours of battery life and five programmable buttons.";
+  "Wireless gaming mouse with a 26,000 DPI optical sensor, 70 hours of battery life and five programmable buttons.";
+/** A seeded demo product: its `DEMO-` SKU is the demo marker (OA-3). */
 const INPUT = descriptionDraftSchema.parse({
   name: "Vortex Wireless Mouse",
   categoryId: EVAL_CATEGORY_IDS.Mice,
   price: "249.00",
   notes: NOTES,
+  sku: "DEMO-MOU-001",
 });
 const GOOD =
   "The Vortex Wireless Mouse pairs a 26,000 DPI optical sensor with 70 hours of battery life, and its five programmable buttons keep every bind in reach.";
@@ -187,13 +189,13 @@ describe("DraftProductDescriptionUseCase", () => {
     expect(events[0]?.data.outcome).toBe("rate_limited");
   });
 
-  it("returns a grounded draft with the demo prefix, and logs no text", async () => {
+  it("returns a grounded draft with no prefix for a demo SKU, and logs no text", async () => {
     const { useCase, provider, consume, events } = setup({
-      script: [reply(`[DEMO] ${GOOD}`)],
+      script: [reply(GOOD)],
     });
     expect(await useCase.execute(INPUT, OWNER)).toEqual({
       kind: "draft",
-      text: `[DEMO] ${GOOD}`,
+      text: GOOD,
       model: SCRIPTED_MODEL,
       promptVersion: PRODUCT_DESCRIPTION_PROMPT_VERSION,
       fieldsUsed: ["name", "category", "price", "notes"],
@@ -255,10 +257,15 @@ describe("DraftProductDescriptionUseCase", () => {
     }
   });
 
-  it("returns a draft without a prefix for a product that is not demo content", async () => {
-    const { useCase } = setup({ script: [reply(GOOD)] });
-    const result = await useCase.execute({ ...INPUT, notes: NOTES.slice(7) }, OWNER);
-    expect(result).toMatchObject({ kind: "draft", text: GOOD, demoMarked: false });
+  it("marks a product as demo content by its DEMO- SKU only, never by its text", async () => {
+    const { useCase } = setup({ script: [reply(GOOD), reply(GOOD)] });
+    const own = await useCase.execute(
+      { ...INPUT, sku: "OWN-0001", notes: `[DEMO] ${NOTES}` },
+      OWNER,
+    );
+    expect(own).toMatchObject({ kind: "draft", text: GOOD, demoMarked: false });
+    const demo = await useCase.execute({ ...INPUT, sku: "demo-mou-001" }, OWNER);
+    expect(demo).toMatchObject({ kind: "draft", text: GOOD, demoMarked: true });
   });
 
   it("retries once after a grounding failure, with codes and terms but not the draft", async () => {

@@ -86,7 +86,7 @@ describe("DatabaseCategoryRepository (PostgreSQL)", () => {
     ]);
     expect(categories[3]).toMatchObject({
       name: "Mice",
-      description: "[DEMO] Gaming mice: wired, wireless and MMO.",
+      description: "Gaming mice: wired, wireless and MMO.",
     });
   });
 
@@ -128,7 +128,7 @@ describe("DatabaseCategoryRepository (PostgreSQL)", () => {
     const mice = await repository().update(await idOf("mice"), {
       name: "Mice",
       slug: "mice",
-      description: "[DEMO] Gaming mice: wired, wireless and MMO.",
+      description: "Gaming mice: wired, wireless and MMO.",
     });
     expect(mice?.productCount).toBe(4);
     expect(

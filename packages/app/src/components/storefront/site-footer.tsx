@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import type { CatalogCategory } from "@commerceos/core";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { productsHref } from "@/components/catalog/catalog-copy";
-import { DEMO_NOTICE, STORE_NAME, STORE_TAGLINE } from "./storefront-copy";
+import { FICTIONAL_COMPANY, STORE_NAME, STORE_TAGLINE } from "./storefront-copy";
 
 const LINK = "hover:text-foreground hover:underline focus-visible:underline";
 
@@ -28,10 +28,10 @@ export function FooterCategoryLinks({ categories }: { categories: CatalogCategor
 }
 
 /**
- * Storefront footer (spec G14): store name and one line about it, category links, the owner
- * sign-in link (moved here from the header), the demo notice (R07) and the copyright. There
- * are no placeholder pages such as About or Contact. `categoryLinks` is streamed in by the
- * layout, because categories are read at request time.
+ * Storefront footer (spec G14): store name and one line about it, the fictional company block
+ * (storefront v2, R11), category links, the owner sign-in link (moved here from the header) and
+ * the copyright. There are no placeholder pages such as About or Contact. `categoryLinks` is
+ * streamed in by the layout, because categories are read at request time.
  */
 export function SiteFooter({ categoryLinks }: { categoryLinks: ReactNode }) {
   return (
@@ -40,6 +40,10 @@ export function SiteFooter({ categoryLinks }: { categoryLinks: ReactNode }) {
         <div className="flex flex-col gap-2">
           <p className="font-semibold text-foreground">{STORE_NAME}</p>
           <p>{STORE_TAGLINE}</p>
+          <div className="mt-2 flex flex-col gap-1 text-xs">
+            <p className="font-semibold text-foreground">{FICTIONAL_COMPANY.name}</p>
+            <p>{FICTIONAL_COMPANY.label}</p>
+          </div>
         </div>
         <nav aria-label="Footer categories" className="flex flex-col gap-2">
           <p className="font-semibold text-foreground">Shop</p>
@@ -54,8 +58,7 @@ export function SiteFooter({ categoryLinks }: { categoryLinks: ReactNode }) {
         </div>
       </div>
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-1 border-t px-4 py-4 text-xs text-muted-foreground">
-        <p>{DEMO_NOTICE}</p>
-        <p>© 2026 {STORE_NAME} demo store.</p>
+        <p>© 2026 {STORE_NAME}</p>
       </div>
     </footer>
   );

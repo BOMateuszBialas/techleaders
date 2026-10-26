@@ -117,30 +117,43 @@ describe("checkDescriptionResult", () => {
     });
   });
 
-  it("fails demo marking both ways", async () => {
-    const demo = await drafted(caseById("demo-product"));
+  it("fails demo marking: the flag follows the DEMO- SKU, and no [DEMO] marker is shown (OA-3)", async () => {
+    const demoCase = caseById("demo-product");
+    const demo = await drafted(demoCase);
     if (demo.result.kind !== "draft") throw new Error("The demo case drafts");
-    const unmarked = { ...demo.result, text: demo.result.text.replace("[DEMO] ", "") };
-    const demoCheck = checkDescriptionResult(
-      caseById("demo-product"),
-      "live",
-      unmarked,
-      [],
-      {},
-    ).find((property) => property.property === "demo_marked");
-    expect(demoCheck?.detail).toBe("a demo product's draft is not marked [DEMO] exactly once");
+    const unflagged = { ...demo.result, demoMarked: false };
+    const unflaggedCheck = checkDescriptionResult(demoCase, "live", unflagged, [], {}).find(
+      (property) => property.property === "demo_marked",
+    );
+    expect(unflaggedCheck?.passed).toBe(false);
+    expect(unflaggedCheck?.detail).toBe(
+      "the draft's demo flag does not follow the product's DEMO- SKU",
+    );
 
-    const plain = await drafted(caseById("grounded-mouse"));
+    const marked = { ...demo.result, text: `[DEMO] ${demo.result.text}` };
+    const markedCheck = checkDescriptionResult(demoCase, "live", marked, [], {}).find(
+      (property) => property.property === "demo_marked",
+    );
+    expect(markedCheck?.passed).toBe(false);
+    expect(markedCheck?.detail).toBe("the shown draft carries a [DEMO] marker");
+  });
+
+  it("passes demo marking for a product without a DEMO- SKU and an unflagged draft", async () => {
+    const plainCase = caseById("grounded-mouse");
+    const own = { ...plainCase, input: { ...plainCase.input, sku: "OWN-0001" } };
+    const plain = await drafted(own);
     if (plain.result.kind !== "draft") throw new Error("The mouse case drafts");
-    const marked = { ...plain.result, demoMarked: true };
-    const plainCheck = checkDescriptionResult(
-      caseById("grounded-mouse"),
-      "live",
-      marked,
-      [],
-      {},
-    ).find((property) => property.property === "demo_marked");
-    expect(plainCheck?.detail).toBe("a draft of a non-demo product carries [DEMO]");
+    expect(plain.result.demoMarked).toBe(false);
+    const check = checkDescriptionResult(own, "live", plain.result, [], {}).find(
+      (property) => property.property === "demo_marked",
+    );
+    expect(check?.passed).toBe(true);
+
+    const flagged = { ...plain.result, demoMarked: true };
+    const flaggedCheck = checkDescriptionResult(own, "live", flagged, [], {}).find(
+      (property) => property.property === "demo_marked",
+    );
+    expect(flaggedCheck?.passed).toBe(false);
   });
 
   it("fails an unavailable result that carries text", () => {

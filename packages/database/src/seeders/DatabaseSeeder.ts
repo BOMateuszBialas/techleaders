@@ -11,9 +11,9 @@ import { generateDemoStore, type DemoStoreProduct } from "./demo-store";
 
 /**
  * Local development / demo seed data: a fictional gaming-accessories store (decision D10) with
- * a fictional order history and traffic (orders spec Phase 2, E04-S03; D08). All records are
- * clearly marked as demo content ("[DEMO]" in descriptions and customer names, "DEMO-" SKUs and
- * order references).
+ * a fictional order history and traffic (orders spec Phase 2, E04-S03; D08). The machine markers
+ * are the demo data's labels: "DEMO-" SKUs and order references (storefront v2, R11). Seeded text
+ * carries no "[DEMO]" prefix; the demo products and orders are still identified by those markers.
  *
  * Repeatable (orders spec A18):
  * - The catalog is **insert-only**: categories and products missing by slug are created; rows
@@ -37,7 +37,7 @@ type SeedProduct = {
   status?: ProductStatus;
   /** Shown in the home page's featured slider when published. Defaults to false. */
   featured?: boolean;
-  /** Shopper-facing text, stored with a "[DEMO]" prefix. Defaults to a generic line. */
+  /** Shopper-facing text, stored as given (no "[DEMO]" prefix). Defaults to a generic line. */
   description?: string;
   /** A local path under `packages/app/public`, e.g. `/demo/products/<slug>.svg`. */
   imageUrl?: string;
@@ -45,19 +45,19 @@ type SeedProduct = {
 export type SeedCatalog = { categories: readonly SeedCategory[]; products: readonly SeedProduct[] };
 
 const demoCategories = [
-  { slug: "mice", name: "Mice", description: "[DEMO] Gaming mice: wired, wireless and MMO." },
+  { slug: "mice", name: "Mice", description: "Gaming mice: wired, wireless and MMO." },
   {
     slug: "keyboards",
     name: "Keyboards",
-    description: "[DEMO] Mechanical gaming keyboards in every size.",
+    description: "Mechanical gaming keyboards in every size.",
   },
   {
     slug: "headsets",
     name: "Headsets",
-    description: "[DEMO] Gaming headsets for PC and consoles.",
+    description: "Gaming headsets for PC and consoles.",
   },
-  { slug: "controllers", name: "Controllers", description: "[DEMO] Gamepads and fight sticks." },
-  { slug: "mousepads", name: "Mousepads", description: "[DEMO] Cloth, speed and glass mousepads." },
+  { slug: "controllers", name: "Controllers", description: "Gamepads and fight sticks." },
+  { slug: "mousepads", name: "Mousepads", description: "Cloth, speed and glass mousepads." },
 ] as const;
 
 const demoProducts = [
@@ -274,7 +274,7 @@ export async function seedCatalog(
       return [
         {
           ...product,
-          description: `[DEMO] ${text}`,
+          description: text,
           currency: "PLN" as const,
           status: status ?? ("published" as const),
           featured: featured ?? false,

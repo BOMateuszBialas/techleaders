@@ -119,7 +119,7 @@ export function checkDescriptionResult(
   }
 
   if (result.kind === "draft") {
-    // What is shown passes the checks again, and a demo product is marked exactly once.
+    // What is shown passes the checks again, and the demo flag follows the DEMO- SKU (OA-3).
     const { category, ...fields } = evalCase.input;
     const sources = buildDescriptionSources(
       { ...fields, categoryId: null, price: Math.round(Number(fields.price) * 100) || null },
@@ -133,15 +133,15 @@ export function checkDescriptionResult(
         `the shown draft fails the checks: ${[...new Set(issues)].join(", ")}`,
       ),
     );
+    const flagFollowsSku = result.demoMarked === sources.demo;
+    const carriesMarker = /\[DEMO\]/i.test(result.text);
     properties.push(
       check(
         "demo_marked",
-        result.demoMarked === sources.demo &&
-          result.text.startsWith("[DEMO] ") === sources.demo &&
-          (result.text.match(/\[DEMO\]/g)?.length ?? 0) === (sources.demo ? 1 : 0),
-        sources.demo
-          ? "a demo product's draft is not marked [DEMO] exactly once"
-          : "a draft of a non-demo product carries [DEMO]",
+        flagFollowsSku && !carriesMarker,
+        flagFollowsSku
+          ? "the shown draft carries a [DEMO] marker"
+          : "the draft's demo flag does not follow the product's DEMO- SKU",
       ),
     );
   } else {
