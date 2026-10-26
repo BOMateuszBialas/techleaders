@@ -27,13 +27,24 @@ describe("cart drawer (storefront v2, Phase 2)", () => {
     throw new Error(`${selector} did not reach ${count} elements`);
   }
 
+  /** The quantity the drawer shows for a line (empty when the line is not shown). */
+  async function quantityOf(name: string): Promise<string> {
+    const selector = 'output[aria-label="Quantity of ' + name + '"]';
+    const value = await browser().evaluate(
+      `document.querySelector(${JSON.stringify(selector)})?.textContent ?? ""`,
+    );
+    return String(value);
+  }
+
   /** Polls the drawer line's quantity until the server has re-rendered it (a check). */
   async function waitForQuantity(name: string, quantity: string) {
     for (let attempt = 0; attempt < 50; attempt += 1) {
-      if ((await browser().text(`output[aria-label="Quantity of ${name}"]`)) === quantity) return;
+      if ((await quantityOf(name)) === quantity) return;
       await new Promise((resolve) => setTimeout(resolve, 200));
     }
-    throw new Error(`quantity of ${name} is not ${quantity}`);
+    throw new Error(
+      `quantity of ${name} is not ${quantity}; drawer: ${await browser().text('[role="dialog"]')}`,
+    );
   }
 
   async function addFromProductPage(slug: string, name: string) {
@@ -41,6 +52,8 @@ describe("cart drawer (storefront v2, Phase 2)", () => {
     await browser().waitForText(name);
     await browser().clickRole("button", "Add to cart");
     await waitForCount(DRAWER, 1);
+    // The drawer is server-rendered after the add; give its client forms time to hydrate before a click.
+    await new Promise((resolve) => setTimeout(resolve, 1500));
   }
 
   it("opens after a successful add, moves focus into it, and Escape returns focus to Add to cart (A10, A14)", async () => {
@@ -50,9 +63,9 @@ describe("cart drawer (storefront v2, Phase 2)", () => {
     expect(await browser().count('[role="dialog"] a[href="/checkout"]')).toBe(1);
 
     const focused = await browser().evaluate(
-      "document.activeElement && document.activeElement.getAttribute('aria-label')",
+      "document.activeElement && (document.activeElement.tagName + ' ' + (document.activeElement.getAttribute('aria-label') || document.activeElement.textContent.slice(0, 40)))",
     );
-    expect(focused).toBe("Close");
+    expect(focused).toBe("BUTTON Close");
 
     await browser().press("Escape");
     await waitForCount(DRAWER, 0);
@@ -81,7 +94,7 @@ describe("cart drawer (storefront v2, Phase 2)", () => {
     await waitForQuantity(PULSE, "3");
     await browser().clickRole("button", `Increase quantity of ${PULSE}`);
     await browser().waitForText("Only 3 left in stock.");
-    expect(await browser().text(`output[aria-label="Quantity of ${PULSE}"]`)).toBe("3");
+    expect(await quantityOf(PULSE)).toBe("3");
   });
 
   it("removes a line from the drawer and shows the empty state (A13)", async () => {

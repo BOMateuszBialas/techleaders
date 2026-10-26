@@ -5,11 +5,7 @@ import { Dialog as DrawerPrimitive } from "@base-ui/react/dialog";
 import { IconX } from "@tabler/icons-react";
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
-import {
-  overlayBackdropClassName,
-  overlayHeaderClassName,
-  overlayViewportClassName,
-} from "@/components/ui/dialog";
+import { overlayBackdropClassName, overlayHeaderClassName } from "@/components/ui/dialog";
 
 /**
  * Drawer (storefront v2, owner decision 3; spec 2026-10-26-storefront-design-implementation,
@@ -51,33 +47,32 @@ function DrawerContent({
   showCloseButton?: boolean;
 }) {
   return (
+    // No positioning viewport: the popup is fixed to the edges, so it is full width below sm.
     <DrawerPrimitive.Portal data-slot="drawer-portal">
       <DrawerPrimitive.Backdrop data-slot="drawer-overlay" className={overlayBackdropClassName} />
-      <DrawerPrimitive.Viewport data-slot="drawer-viewport" className={overlayViewportClassName}>
-        <DrawerPrimitive.Popup
-          data-slot="drawer-content"
-          data-close-button={showCloseButton ? "" : undefined}
-          className={cn(drawerPopupClassName, "group/drawer relative", className)}
-          {...props}
-        >
-          {showCloseButton ? (
-            <DrawerPrimitive.Close
-              data-slot="drawer-close"
-              render={
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  className="absolute top-related right-related"
-                />
-              }
-            >
-              <IconX aria-hidden="true" />
-              <span className="sr-only">Close</span>
-            </DrawerPrimitive.Close>
-          ) : null}
-          {children}
-        </DrawerPrimitive.Popup>
-      </DrawerPrimitive.Viewport>
+      <DrawerPrimitive.Popup
+        data-slot="drawer-content"
+        data-close-button={showCloseButton ? "" : undefined}
+        className={cn(drawerPopupClassName, "group/drawer", className)}
+        {...props}
+      >
+        {showCloseButton ? (
+          <DrawerPrimitive.Close
+            data-slot="drawer-close"
+            render={
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="absolute top-related right-related"
+              />
+            }
+          >
+            <IconX aria-hidden="true" />
+            <span className="sr-only">Close</span>
+          </DrawerPrimitive.Close>
+        ) : null}
+        {children}
+      </DrawerPrimitive.Popup>
     </DrawerPrimitive.Portal>
   );
 }

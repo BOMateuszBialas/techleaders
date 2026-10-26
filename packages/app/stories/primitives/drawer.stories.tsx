@@ -121,8 +121,8 @@ export const BackdropXAndKeepShopping: Story = {
     const trigger = canvas.getByRole("button", { name: "Open cart" });
     await userEvent.click(trigger);
     await screen.findByRole("dialog");
-    const viewport = document.querySelector("[data-slot=drawer-viewport]");
-    if (viewport) await userEvent.click(viewport);
+    const backdrop = document.querySelector("[data-slot=drawer-overlay]");
+    if (backdrop) await userEvent.click(backdrop);
     await closed();
 
     await userEvent.click(trigger);
