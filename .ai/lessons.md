@@ -11,6 +11,8 @@ Keep entries short; put longer write-ups in `.ai/lessons/YYYY-MM-DD-slug.md` and
 
 <!-- Newest first -->
 
+- **2026-10-26 — Git Bash rewrites `ref:path` in `git show`, and Base UI focus is checked after its guards**: on Windows the Bash tool turns `git show origin/branch:.ai/...` into a Windows path (`origin\branch;...`); run it as `MSYS_NO_PATHCONV=1 git show "origin/branch:path"`. In a Base UI modal, Tab lands on a focus guard before the popup, so a focus-trap assertion must wait (`waitFor`) for the focus to settle inside the drawer.
+
 - **2026-10-26 — Drawers, scrollbar gutters and container queries in the prototype**: a Base UI modal drawer (`fixed inset-y-0 right-0`) sits at the body edge, not the window edge, when the page reserves a scrollbar gutter (`scrollbar-gutter: stable`, 15 px in headless Chrome); measure the drawer against `document.body` in a walk, not against `innerWidth`. Shopper `@md:` / `@3xl:` / `@5xl:` rules need `@container` on the frame root, not on the elements that carry them; without it they never match and the layouts stay one column.
 - **2026-10-26 — Vite picks the nearest tsconfig, and a container query needs its container one element up**: Vite 8 in a folder outside the app read `packages/app/tsconfig.json` (it extends a workspace package) and failed the build; set `tsconfig` in `vite.config`. Typecheck of app components outside their package needs `paths` entries for `react` and `react-dom` pointing at `@types`, because TypeScript stops at the untyped JS file. `@container` and its `@md:` variant on the same element match nothing: put the container on the parent.
 
