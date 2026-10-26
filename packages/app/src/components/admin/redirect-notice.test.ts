@@ -84,7 +84,7 @@ describe("RedirectNotice", () => {
     expect(
       renderToStaticMarkup(createElement(RedirectNotice, { message: "Product created." })),
     ).toBe(
-      `<p id="${REDIRECT_NOTICE_ID}" role="status" class="text-sm font-medium text-emerald-700 dark:text-emerald-400">Product created.</p>`,
+      `<p id="${REDIRECT_NOTICE_ID}" role="status" class="text-sm font-medium text-success">Product created.</p>`,
     );
   });
 });

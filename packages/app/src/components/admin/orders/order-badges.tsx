@@ -23,7 +23,7 @@ export function OrderStatusBadge({ status }: { status: OrderStatus }) {
 /** Marks a seeded `DEMO-` order (orders spec A13, R07). */
 export function DemoBadge() {
   return (
-    <Badge variant="outline" className="border-amber-500 text-amber-700 dark:text-amber-400">
+    <Badge variant="outline" className="border-demo bg-demo-surface text-demo">
       {DEMO_BADGE}
     </Badge>
   );

@@ -25,7 +25,7 @@ export function DemoPaymentBanner() {
   return (
     <p
       role="status"
-      className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm font-medium text-amber-950"
+      className="rounded-md border border-demo bg-demo-surface p-3 text-sm font-medium text-demo"
     >
       {DEMO_PAYMENT_BANNER}
     </p>
