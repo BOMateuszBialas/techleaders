@@ -74,14 +74,16 @@ describe("seedCatalog (insert-only, A18)", () => {
       featured: true,
       currency: "PLN",
       imageUrl: "/demo/products/vortex-wireless-mouse.svg",
-      description: expect.stringMatching(/^\[DEMO] Wireless gaming mouse/),
+      description: expect.stringMatching(/^Wireless gaming mouse/),
     });
   });
 
-  it("marks every demo record as demo data", () => {
-    for (const category of DEMO_CATALOG.categories)
-      expect(category.description).toMatch(/^\[DEMO]/);
+  it("marks every demo product with a DEMO- SKU and carries no [DEMO] text (R11)", () => {
     for (const product of DEMO_CATALOG.products) expect(product.sku).toMatch(/^DEMO-/);
+    for (const category of DEMO_CATALOG.categories)
+      expect(category.description).not.toMatch(/\[DEMO]/);
+    for (const product of DEMO_CATALOG.products)
+      expect(product.description ?? "").not.toMatch(/\[DEMO]/);
   });
 
   it("is a gaming-accessories store with an out-of-stock product (decision D10)", () => {
@@ -126,7 +128,7 @@ describe("seedCatalog (insert-only, A18)", () => {
       status: "draft",
       featured: false,
       imageUrl: null,
-      description: "[DEMO] Draft pad. Seed data for local development.",
+      description: "Draft pad. Seed data for local development.",
     });
   });
 
