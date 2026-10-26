@@ -74,10 +74,10 @@ This run cannot see the owner's session, so no live number is claimed. The owner
 
 | Measurement | Before (main) | After (this PR) |
 |---|---|---|
-| `/context`: total tokens at session start | _owner to fill_ | _owner to fill_ |
-| `/context`: memory files (CLAUDE.md, AGENTS.md) | _owner to fill_ | _owner to fill_ |
-| `/context`: skills (names and descriptions) | _owner to fill_ | _owner to fill_ |
-| `/context`: MCP tools (definitions) | _owner to fill_ | _owner to fill_ |
+| `/context`: total tokens at session start | 49.4k of 1m (5%) | _owner to fill after merge_ |
+| `/context`: memory files (CLAUDE.md, AGENTS.md) | 13.6k tokens, 3 files | _owner to fill after merge_ |
+| `/context`: skills (names and descriptions) | 10k tokens, 87 skills | _owner to fill after merge_ |
+| `/context`: MCP tools (definitions) | 654 tokens, 63 tools (MCP server instructions: 717 tokens) | _owner to fill after merge_ |
 | Same task, one session each: tokens used | _owner to fill_ | _owner to fill_ |
 
 Optional: Context Scope (the course tool) for the session history. The course recommends `/context` only; use it unless the Context Scope is already installed.
