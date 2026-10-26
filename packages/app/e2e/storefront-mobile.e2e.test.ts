@@ -81,3 +81,66 @@ describe("storefront at 390 px", () => {
     expect((await layout()).cartRight).toBeLessThanOrEqual(measured.innerWidth);
   });
 });
+
+/**
+ * The cart page and the cart drawer at 320 px (retrofit Phase 1, A-items and T16): no sideways
+ * scroll, and the buttons a shopper presses on a phone are at least 44 px tall.
+ */
+describe("cart at 320 px", () => {
+  const browser = useBrowser();
+
+  beforeAll(async () => {
+    await browser().setViewport(320, 640);
+  });
+
+  it("keeps the cart page within the viewport, with 44 px Update, Remove and Checkout", async () => {
+    await browser().open("/products/vortex-wireless-mouse");
+    await browser().waitForText("Vortex Wireless Mouse");
+    await browser().clickRole("button", "Add to cart");
+    await browser().waitForText("Added to cart.");
+
+    await browser().open("/cart");
+    await browser().waitForText("Prices are confirmed at checkout.");
+    const measured = z
+      .object({
+        scrollWidth: z.number(),
+        innerWidth: z.number(),
+        update: z.number(),
+        remove: z.number(),
+        checkout: z.number(),
+      })
+      .parse(
+        await browser().evaluate(
+          "(() => { const find = (sel, test) => [...document.querySelectorAll(sel)].find(test); const h = (el) => (el ? el.getBoundingClientRect().height : 0); return { scrollWidth: document.documentElement.scrollWidth, innerWidth: window.innerWidth, update: h(find('button', (b) => b.textContent.trim() === 'Update')), remove: h(find('button', (b) => (b.getAttribute('aria-label') || '').startsWith('Remove'))), checkout: h(find('a', (a) => a.textContent.trim() === 'Checkout')) }; })()",
+        ),
+      );
+    expect(measured.scrollWidth).toBe(measured.innerWidth);
+    expect(measured.update).toBeGreaterThanOrEqual(44);
+    expect(measured.remove).toBeGreaterThanOrEqual(44);
+    expect(measured.checkout).toBeGreaterThanOrEqual(44);
+  });
+
+  it("keeps the cart drawer within the viewport, with a 44 px Remove", async () => {
+    await browser().open("/products/vortex-wireless-mouse");
+    await browser().waitForText("Vortex Wireless Mouse");
+    // A successful add opens the drawer (storefront v2, Q6): it is already open here.
+    await browser().clickRole("button", "Add to cart");
+    await browser().waitForText("Subtotal");
+    const measured = z
+      .object({
+        scrollWidth: z.number(),
+        innerWidth: z.number(),
+        remove: z.number(),
+        dialogRight: z.number(),
+      })
+      .parse(
+        await browser().evaluate(
+          "(() => { const dialog = document.querySelector('[role=dialog]'); const remove = [...document.querySelectorAll('button')].find((b) => (b.getAttribute('aria-label') || '').startsWith('Remove')); return { scrollWidth: document.documentElement.scrollWidth, innerWidth: window.innerWidth, remove: remove ? remove.getBoundingClientRect().height : 0, dialogRight: dialog ? dialog.offsetLeft + dialog.offsetWidth : 0 }; })()",
+        ),
+      );
+    expect(measured.scrollWidth).toBe(measured.innerWidth);
+    // offsetLeft and offsetWidth ignore the slide-in transform, which getBoundingClientRect does not.
+    expect(measured.dialogRight).toBeLessThanOrEqual(measured.innerWidth);
+    expect(measured.remove).toBeGreaterThanOrEqual(44);
+  });
+});

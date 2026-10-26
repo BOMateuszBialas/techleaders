@@ -10,7 +10,7 @@ Backlog epic E02 (issue #9): stories E02-S01 (manage a cart), E02-S02 (checkout 
 
 1. The shopper adds a product on the product page. The button shows "Adding…" while the server answers, then "Added to cart." (`role="status"`).
 2. The cart (`/cart`) lists the lines. The shopper changes a quantity ("Update") or removes a line ("Remove", with the product name in its accessible name). The cart summary shows the subtotal, "Prices are confirmed at checkout." and the "Checkout" link.
-3. If the server changed a line (price, stock), the cart shows "Your cart changed" with the changes and "OK, update my cart" before checkout continues.
+3. If the server changed a line (price, stock), the cart shows "Your cart changed" with the changes and "Update my cart" before checkout continues.
 4. Checkout (`/checkout`) asks for the delivery and contact fields. Errors come back from the server and show as one message and per field.
 5. "Place order" creates the order with the server's prices and stock. The shopper goes to the demo payment page (`/checkout/pay/[reference]`).
 6. The demo payment page carries a standing demo notice. "Confirm demo payment (no charge)" marks the order paid in demo mode.
@@ -36,7 +36,7 @@ Backlog epic E02 (issue #9): stories E02-S01 (manage a cart), E02-S02 (checkout 
 | adding to cart               | "Adding…" on the button                                                        | `ADDING_TO_CART`                                                | the button's pending state with `aria-busy` (B1.6)                          |
 | added                        | "Added to cart." below the button                                              | `ADDED_TO_CART_MESSAGE`                                         | an inline `Alert` `success` with `role="status"` (batch 2 Q4 for Alert)     |
 | empty cart                   | "Your cart is empty." with a link to the catalog                               | `EMPTY_CART_MESSAGE`                                            | `Empty` with the next step                                                  |
-| cart changed by the server   | "Your cart changed" list with "OK, update my cart"                             | `CART_CHANGES_HEADING`, `ACCEPT_CART_CHANGES_BUTTON`            | `Alert` with `role="status"`; the button label is in P9                     |
+| cart changed by the server   | "Your cart changed" list with "Update my cart"                                 | `CART_CHANGES_HEADING`, `ACCEPT_CART_CHANGES_BUTTON`            | `Alert` `warning` with `role="status"` (built in Phase 1)                   |
 | cart or checkout unavailable | "The cart is temporarily unavailable…", "Checkout is temporarily unavailable…" | `CART_UNAVAILABLE_MESSAGE`, `CHECKOUT_UNAVAILABLE_MESSAGE`      | `ErrorState` with a retry action (batch 3 Q4)                               |
 | checkout errors              | one `role="alert"` message at the top, and each field's message                | field messages (for example "Enter a postal code like 00-950.") | `FieldError` per field, focus on the first error (B1.23, tokeny rule 13)    |
 | placing the order            | "Placing order…"                                                               | `PLACING_ORDER`                                                 | pending button (B1.6)                                                       |
@@ -57,13 +57,15 @@ Money on this flow is the server's value, shown with `formatMoney`. The shipping
 
 ## Retrofit (lesson 08)
 
-1. `Field` around every checkout control, `FieldError` per field, focus to the first invalid field (audit, step 2).
-2. The cart-changed list and the add-to-cart confirmation become `Alert`s with the right role (B2.18).
-3. `action` on Place order and Confirm demo payment only (B1.12); "Remove" as a `link` button (B1.16).
-4. `Empty` for the cart and the not-found order; `ErrorState` for the unavailable states (batch 3 Q4).
-5. The demo notice as `Alert` `demo` without a role (B2.18); the payment status as `Badge` with text (P2 mapping).
+Spec `.ai/specs/2026-10-26-retrofit-checkout-cart.md`. Phase 1 (cart, drawer, header link, add to cart) is built; Phases 2 to 4 are open.
+
+1. Built (Phase 1): the add-to-cart confirmation is an `Alert` `success` with `role="status"`; the cart-changed list is an `Alert` `warning` with `role="status"` (OA-3); the line and drawer messages are `Alert`s (`alert` for errors, `status` for success, B2.18).
+2. Open (Phase 2): `Field` around every checkout control, `FieldError` per field, focus to the first invalid field (audit, step 2).
+3. Built (Phase 1): `action` on Add to cart (product page) and Checkout; Remove is a `link` button (B1.16). Open (Phase 3): Place order and Confirm demo payment.
+4. Built (Phase 1): `Empty` for the cart and the drawer; `ErrorState` for the unavailable cart (OA-5). Open: the order pages (Phase 3) and the store error page (Phase 4).
+5. Open (Phase 3): the demo notice as `Alert` `demo` without a role (B2.18); the payment status as `Badge` with text (P2 mapping).
 
 ## P items on this page
 
-- **P9:** "OK, update my cart" is a weak label for a change the shopper did not ask for; a clearer verb is a copy change to approve.
+- **P9:** the cart-changed button now reads "Update my cart" (OA-1, approved; built in Phase 1).
 - **P12:** money is formatted in the Polish locale in an English UI (see Content).

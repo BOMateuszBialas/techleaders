@@ -116,6 +116,7 @@ describe("cart drawer (storefront v2, Phase 2)", () => {
 
   it("removes a line from the drawer and shows the empty state (A13)", async () => {
     await addFromProductPage("vortex-wireless-mouse", VORTEX);
+    // Remove is a `<button>` styled as a link (retrofit Phase 1, B1.16): its role stays `button`.
     await browser().clickRole("button", `Remove ${VORTEX}`);
     await browser().waitForText("Your cart is empty.");
     expect(await browser().text(CART_LINK)).toMatch(/Cart\s*0/);

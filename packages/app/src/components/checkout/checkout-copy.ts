@@ -11,7 +11,8 @@ export const REVIEW_CART_LINK = "Review your cart";
 export const CHECKOUT_UNAVAILABLE_MESSAGE =
   "Checkout is temporarily unavailable. Please try again later.";
 export const CART_CHANGES_HEADING = "Your cart changed";
-export const ACCEPT_CART_CHANGES_BUTTON = "OK, update my cart";
+/** OA-1 (retrofit Phase 1): "OK, update my cart" said nothing about what changes (WhatIsMissing P9). */
+export const ACCEPT_CART_CHANGES_BUTTON = "Update my cart";
 
 /**
  * R03, D03 and R11: the one payment note on the payment step. It names the mode (a test payment)

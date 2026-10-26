@@ -31,19 +31,5 @@ export function FieldError({ id, messages }: { id: string; messages: string[] | 
   ) : null;
 }
 
-/**
- * Accessibility attributes for an input: `aria-invalid` when it has errors, and
- * `aria-describedby` pointing at its hints and its error message.
- */
-export function fieldA11y(
-  errorId: string,
-  messages: string[] | undefined,
-  hintIds: string[] = [],
-): { "aria-invalid": boolean; "aria-describedby": string | undefined } {
-  const invalid = messages !== undefined && messages.length > 0;
-  const describedBy = [...hintIds, ...(invalid ? [errorId] : [])];
-  return {
-    "aria-invalid": invalid,
-    "aria-describedby": describedBy.length > 0 ? describedBy.join(" ") : undefined,
-  };
-}
+// The helper moved to `lib/field-a11y.ts` (retrofit Phase 1); re-exported so admin imports stay.
+export { fieldA11y } from "@/lib/field-a11y";

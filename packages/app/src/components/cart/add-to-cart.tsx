@@ -14,7 +14,10 @@ import { openDrawerAfterAdd } from "./cart-drawer-state";
 export function AddToCart({
   action,
   ...props
-}: { action: FormAction } & Pick<AddToCartViewProps, "productId" | "available" | "withQuantity">) {
+}: { action: FormAction } & Pick<
+  AddToCartViewProps,
+  "productId" | "available" | "withQuantity" | "variant" | "size"
+>) {
   const drawer = useCartDrawer();
   const [state, formAction, pending] = useActionState(
     drawer ? openDrawerAfterAdd(action, drawer.dispatch) : action,

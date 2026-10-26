@@ -1,9 +1,12 @@
+import type { ComponentProps } from "react";
 import { CART_LIMITS } from "@commerceos/core";
-import { FieldError, FormMessage, fieldA11y } from "@/components/admin/form-feedback";
 import { Button } from "@/components/ui/button";
+import { FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { fieldDefault, type ActionState } from "@/lib/action-state";
+import { fieldA11y } from "@/lib/field-a11y";
+import { CartFormMessage } from "./cart-form-message";
 import {
   ADD_TO_CART_BUTTON,
   ADDING_TO_CART,
@@ -20,6 +23,12 @@ export type AddToCartViewProps = {
   available: boolean;
   /** The product page shows a quantity input; a product card adds one (spec G8). */
   withQuantity: boolean;
+  /**
+   * The submit button's colour and size (retrofit Phase 1, owner Q4): `action` on the product
+   * page (the purchase step), `outline` `sm` in a product card. Defaults to the default button.
+   */
+  variant?: ComponentProps<typeof Button>["variant"];
+  size?: ComponentProps<typeof Button>["size"];
 };
 
 /**
@@ -37,6 +46,8 @@ export function AddToCartView({
   productId,
   available,
   withQuantity,
+  variant,
+  size,
 }: AddToCartViewProps) {
   if (!available) {
     return (
@@ -66,15 +77,15 @@ export function AddToCartView({
             className="w-24"
             {...fieldA11y(errorId, errors.quantity)}
           />
-          <FieldError id={errorId} messages={errors.quantity} />
+          <FieldError id={errorId}>{errors.quantity?.join(" ")}</FieldError>
         </div>
       ) : null}
       <div>
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" variant={variant} size={size} disabled={pending} aria-busy={pending}>
           {pending ? ADDING_TO_CART : ADD_TO_CART_BUTTON}
         </Button>
       </div>
-      <FormMessage state={state} />
+      <CartFormMessage state={state} />
     </form>
   );
 }

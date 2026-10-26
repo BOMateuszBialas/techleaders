@@ -66,6 +66,7 @@ async function ProductDetails({ params }: { params: ProductPageProps["params"] }
           productId={product.id}
           available={product.availability === "in_stock"}
           withQuantity
+          variant="action"
         />
         {product.category ? (
           <p className="text-sm text-muted-foreground">

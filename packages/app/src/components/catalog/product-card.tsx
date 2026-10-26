@@ -32,6 +32,8 @@ export function ProductCard({ product }: { product: CatalogProductSummary }) {
           productId={product.id}
           available={product.availability === "in_stock"}
           withQuantity={false}
+          variant="outline"
+          size="sm"
         />
       </div>
     </article>

@@ -319,7 +319,7 @@ describe("CartChanges and the not-found pages", () => {
     );
     expect(html).toContain("Your cart changed");
     expect(html).toContain("Titan MMO Mouse is no longer available");
-    expect(html).toContain("OK, update my cart");
+    expect(html).toContain("Update my cart");
   });
 
   it("answers the same 'not found' on the order and the payment page", () => {
