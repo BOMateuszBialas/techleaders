@@ -24,7 +24,9 @@ export default defineConfig({
   test: {
     coverage: {
       provider: "v8",
-      include: ["packages/*/src/**/*.{ts,tsx}"],
+      // scripts/agents/ holds the repo's agent-instruction check (`npm run check:agents`); its
+      // entry point scripts/check-agents.ts only wires the disk to it.
+      include: ["packages/*/src/**/*.{ts,tsx}", "scripts/agents/**/*.ts"],
       // Every exclusion needs a reason, and must be covered by another test layer
       // where it holds behaviour (ENGINEERING_STANDARDS.md, "Repository decisions").
       exclude: [
@@ -58,7 +60,7 @@ export default defineConfig({
         ...shared,
         test: {
           name: "unit",
-          include: ["packages/*/src/**/*.test.ts"],
+          include: ["packages/*/src/**/*.test.ts", "scripts/**/*.test.ts"],
           exclude: ["**/*.int.test.ts", "**/*.e2e.test.ts", "**/node_modules/**"],
           environment: "node",
         },

@@ -1,0 +1,3 @@
+# 2026-10-25 — `cn` does not merge the project's token classes
+
+`cn("rounded-control", "rounded-card")`, `cn("h-control-md", "h-control-sm")` and `cn("p-3", "p-panel")` keep both classes, because `cn` (like tailwind-merge) only knows Tailwind's default scales; the winner is the CSS order, not the `className` order. A caller's override of a token class in a `ui/*` component may silently do nothing. Check overrides in a story (`getComputedStyle`), give a default that must be overridable zero specificity (`[:where(&)]:rounded-control`, `ui/skeleton.tsx`), or configure `createCn` from `cn/config` with the token groups (not done yet; a separate change).

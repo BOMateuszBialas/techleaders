@@ -1,0 +1,3 @@
+# 2026-10-16 — A server action's `refresh()` keeps the URL the page was requested with; the e2e sign-in limit is shared
+
+After `history.replaceState` dropped `?notice=created`, a later save's `refresh()` still rendered the notice, so the admin notice now also hides itself on the next form submit (`retireRedirectNotice`). Separately, every e2e sign-in counts against Better Auth's limit of 20 per minute (no trusted IP header in tests): two extra sign-ins made `admin.e2e.test.ts` time out at sign-in. New e2e tests reuse the owner session (a trailing `describe` without `clearCookies`), and a second browser gets the owner's cookies with `BrowserSession.shareCookiesWith` instead of signing in. agent-browser tabs were unreliable here (`tab close <label>` did not find the tab).
