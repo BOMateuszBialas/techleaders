@@ -122,6 +122,12 @@
 
   /* Card header with an action on the right (B2.28): `grid-cols-card-header`. */
   --grid-template-columns-card-header: 1fr auto;
+  /* Checkout: form and order summary side by side from md (`md:grid-cols-checkout`). */
+  --grid-template-columns-checkout: 1fr 22rem;
+  /* Definition lists: key column sized to its text (`grid-cols-dl-key-value` and the others). */
+  --grid-template-columns-dl-key-value: auto 1fr;
+  --grid-template-columns-dl-key-amount: auto auto;
+  --grid-template-columns-dl-label-amount: 1fr auto;
 }
 
 /* ---------------------------------------------------------------------------------------------

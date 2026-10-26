@@ -89,7 +89,7 @@ export function DescriptionDraftPanelView({
             </h3>
             <p className="text-sm break-words whitespace-pre-line">{state.text}</p>
             <p className="text-xs text-muted-foreground">{basedOnText(state.fieldsUsed)}</p>
-            <p className="text-sm text-amber-700 dark:text-amber-400">{DRAFT_WARNING}</p>
+            <p className="text-sm text-warning">{DRAFT_WARNING}</p>
             <div className="flex flex-wrap gap-2">
               <Button type="button" disabled={pending} onClick={onApply}>
                 {REPLACE_LABEL}

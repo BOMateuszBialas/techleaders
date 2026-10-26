@@ -12,11 +12,7 @@ import { REDIRECT_NOTICE_ID, retireRedirectNotice } from "./redirect-notice-url"
 export function RedirectNotice({ message }: { message: string }) {
   useEffect(retireRedirectNotice, []);
   return (
-    <p
-      id={REDIRECT_NOTICE_ID}
-      role="status"
-      className="text-sm font-medium text-emerald-700 dark:text-emerald-400"
-    >
+    <p id={REDIRECT_NOTICE_ID} role="status" className="text-sm font-medium text-success">
       {message}
     </p>
   );

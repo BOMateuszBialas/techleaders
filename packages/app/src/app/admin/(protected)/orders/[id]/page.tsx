@@ -77,7 +77,7 @@ async function OrderDetails({ params }: Pick<OrderPageProps, "params">) {
           {order.isDemo ? <DemoBadge /> : null}
           <OrderOriginBadge placedWithAccount={order.placedWithAccount} />
         </div>
-        <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
+        <dl className="grid grid-cols-dl-key-value gap-x-4 gap-y-1 text-sm">
           <dt className="text-muted-foreground">Placed</dt>
           <dd>{at(order.createdAt)}</dd>
           <dt className="text-muted-foreground">Paid</dt>
@@ -86,7 +86,7 @@ async function OrderDetails({ params }: Pick<OrderPageProps, "params">) {
           <dd>{at(order.updatedAt)}</dd>
         </dl>
         {order.isDemo ? (
-          <p className="rounded-md border border-amber-500/50 bg-amber-50 p-3 text-sm dark:bg-amber-950/30">
+          <p className="rounded-md border border-demo/50 bg-demo-surface p-3 text-sm">
             {DEMO_ORDER_NOTE}
           </p>
         ) : null}
@@ -191,7 +191,7 @@ function OrderItems({ order }: { order: AdminOrderView }) {
           ))}
         </TableBody>
       </Table>
-      <dl className="ml-auto grid grid-cols-[auto_auto] gap-x-6 gap-y-1 text-sm">
+      <dl className="ml-auto grid grid-cols-dl-key-amount gap-x-6 gap-y-1 text-sm">
         <dt>Subtotal</dt>
         <dd className="text-right tabular-nums">{formatMoney(order.subtotal)}</dd>
         <dt>Shipping</dt>
