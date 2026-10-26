@@ -1,0 +1,3 @@
+# 2026-10-18 — A per-evaluation cache key cannot tell a sibling server layer from a hot reload (#59)
+
+In `next dev` each server layer (route handlers, pages) evaluates `container.ts` separately, and Turbopack bakes the layer into the bundled code (`[app-route]`, `[app-rsc]` in import names), so neither a `Symbol` per evaluation nor a hash of class sources is shared between layers. Ordering is: a process-wide generation counter on `globalThis`; the newest evaluation owns the container, older ones reuse it, and a replaced container is disposed after a grace period so in-flight requests keep their pools. Verify such fixes with a temporary log in a real `next dev`, alternating page and API requests and then editing a file.

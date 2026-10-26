@@ -75,8 +75,20 @@ function dashboard(overrides: Partial<Dashboard> = {}): Dashboard {
       threshold: 5,
       total: 12,
       rows: [
-        { id: "p-2", name: "Titan MMO Mouse", sku: "DEMO-MOU-003", stockQuantity: 0 },
-        { id: "p-3", name: "Arena Fight Stick", sku: null, stockQuantity: 2 },
+        {
+          id: "p-2",
+          slug: "titan-mmo-mouse",
+          name: "Titan MMO Mouse",
+          sku: "DEMO-MOU-003",
+          stockQuantity: 0,
+        },
+        {
+          id: "p-3",
+          slug: "arena-fight-stick",
+          name: "Arena Fight Stick",
+          sku: null,
+          stockQuantity: 2,
+        },
       ],
     },
     demoOrderCount: 0,

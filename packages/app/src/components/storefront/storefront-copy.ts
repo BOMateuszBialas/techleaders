@@ -16,12 +16,6 @@ export const FICTIONAL_COMPANY = {
   label: "Fictional company. No address, tax number or contact.",
 } as const;
 
-export const HERO_HEADLINE = "Gear up for your next match";
-
-/** The hero copy is replaced by the approved copy in Phase 4 (Q14); the demo sentence is removed now. */
-export const HERO_DESCRIPTION =
-  "Fast mice, clicky keyboards, clear headsets and responsive controllers, picked for players who care about every frame.";
-
 /** Link to the home page, optionally with a featured-products category tab (spec G11). */
 export function homeHref(categorySlug?: string): string {
   return categorySlug ? `/?category=${encodeURIComponent(categorySlug)}` : "/";

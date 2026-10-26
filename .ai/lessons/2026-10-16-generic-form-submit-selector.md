@@ -1,0 +1,3 @@
+# 2026-10-16 — A generic `form button[type=submit]` selector hits the header search; a race can fail before the row lock
+
+In the checkout e2e, `click('form button[type="submit"]')` submitted the storefront header's search form (first in the DOM) instead of the checkout; scope selectors to `main` or use `clickRole`. In the last-unit race, the losing request often fails at the cart re-check (the winner already committed) rather than at the conditional `UPDATE`, so test the row-lock path by calling the repository directly and accept either conflict at the use-case level. Also: a stale cookie the page cannot rewrite needs an explicit one-click server action (`acceptCartChanges`), or a flow that compares cookie and page can loop forever.

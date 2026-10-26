@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { cn } from "cn";
-import { isLocalDemoImage } from "./catalog-copy";
+import { isLocalDemoImage, NO_PHOTO_LABEL } from "./catalog-copy";
 
 type ProductImageProps = {
   imageUrl: string | null;
@@ -22,15 +22,13 @@ export function ProductImage({ imageUrl, name, size, className }: ProductImagePr
   if (!imageUrl) {
     return (
       <div
-        role="img"
-        aria-label={`No image for ${name}`}
         className={cn(
           FRAME,
           "flex items-center justify-center text-sm text-muted-foreground",
           className,
         )}
       >
-        No image
+        {NO_PHOTO_LABEL}
       </div>
     );
   }

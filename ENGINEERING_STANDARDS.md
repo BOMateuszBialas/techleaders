@@ -5,7 +5,7 @@
 **Planning horizon:** Five-week MVP  
 **Purpose:** Define practical, enforceable engineering conventions for the codebase and coding agents.
 
-These standards adapt the course's engineering-standard document to CommerceOS. Product-specific examples, entities, routes, and workflows refer to the e-commerce MVP. The root `AGENTS.md` remains the source of truth for product scope and delivery priorities; this document defines day-to-day implementation standards.
+The spec (`.ai/specs/2026-10-13-commerceos-mvp.md`) is the source of truth for product scope and delivery priorities; this document defines day-to-day implementation standards.
 
 When principles conflict, prefer the smallest explicit solution that protects correctness, security, and the five-week delivery goal. Do not add abstractions merely because they might be useful someday.
 
@@ -40,28 +40,14 @@ Use the same concept names across database entities, core services, validation s
 
 Use the agreed monorepo as a **modular monolith**, not a microservices system.
 
-Expected packages:
-
-- `packages/app` — Next.js application, App Router pages, API route handlers, storefront, admin dashboard, and UI components.
-- `packages/core` — domain rules, application services/use cases, shared Zod schemas, typed application errors, ports, and domain/application events where needed.
-- `packages/database` — MikroORM configuration, entities, migrations, repositories, seed scripts, and database-specific code.
-- `packages/ai` — Commerce Copilot provider adapter, prompt/context assembly, bounded tool definitions, structured-output validation, and AI evaluation utilities.
-- `packages/config` — shared configuration only when multiple packages genuinely need it.
-
-The exact package layout may follow existing repository conventions, but do not create extra packages without a clear use case.
+The package list and its rules are in the root `AGENTS.md` (Packages and boundaries) and in each package's `AGENTS.md`.
 
 ### Allowed dependency direction
 
-- `app → core`
-- `app → ai`
-- `app → database` only for composition/bootstrap wiring where required; ordinary route/page code must not issue ORM queries directly.
-- `core → database` is **not allowed**. Core uses repository contracts/ports where persistence needs to be abstracted.
-- `core` must not import `next` or `react`.
-- `ai` may depend on core contracts/types but must not bypass application services to access arbitrary database records.
-- `database` must not depend on `app`.
-- `config` must remain dependency-light and must not import application features.
+The full table is in "Repository decisions" below and is enforced by ESLint. Two rules the table does not state:
 
-If the implementation uses a slightly different dependency direction for practical reasons, document it in the README and enforce one consistent direction with TypeScript project references, package exports, or ESLint restrictions where feasible.
+- `app → database` only for composition/bootstrap wiring where required; ordinary route/page code must not issue ORM queries directly.
+- `ai` may depend on core contracts/types but must not bypass application services to access arbitrary database records.
 
 ### Concept folders
 
@@ -92,7 +78,6 @@ The purpose of shared patterns is to avoid each feature inventing a different wa
 
 Create or reuse a small shared HTTP layer in `packages/core` or `packages/app` according to the chosen dependency direction:
 
-- **Typed application errors:** `AppError` base and a small set of errors such as `NotFoundError`, `UnauthorizedError`, `ForbiddenError`, `ValidationError`, and `ConflictError`.
 - **Route wrapper:** a shared `apiHandler` can translate known application errors into consistent HTTP status codes and JSON responses, log unexpected errors safely, and prevent stack traces from reaching clients.
 - **CRUD helper:** add a `makeCrudRoute`-style helper only if multiple routes genuinely share the same simple CRUD shape. Workflow endpoints such as checkout, payment confirmation, order cancellation, and stock adjustment should remain explicit use cases rather than being forced into generic CRUD.
 - **Authentication/authorization helpers:** centralize session requirements and resource-access checks where a real auth system is implemented.
@@ -234,14 +219,8 @@ Prefer checking factual grounding and required properties over exact generated w
 
 Use these principles to guide actual implementation decisions, not as a reason to add layers for their own sake.
 
-- **SRP:** a file should have one clear reason to change. Entities describe persistence shape; services enforce business rules; route handlers handle HTTP wiring.
 - **DRY:** reuse real repeated logic such as validation, response parsing, or error mapping. Do not create abstractions for two unrelated lines merely because they look similar.
-- **Separation of concerns:** persistence, business logic, HTTP, presentation, and AI provider integration stay within their intended boundaries.
-- **Dependency inversion:** core workflows depend on contracts for replaceable external systems, not directly on vendor SDKs.
-- **Explicit over implicit:** register dependencies and important workflows visibly; avoid magic discovery.
 - **YAGNI:** do not implement multi-tenancy, RBAC, queues, multi-warehouse stock, a theme builder, or a generic plugin system during this MVP.
-- **Composition over inheritance:** prefer small services and functions composed together over deep base-class hierarchies.
-- **Fail closed:** errors in authorization must deny access, not accidentally allow it.
 - **Idempotency:** payment confirmations, webhooks, and retryable order operations must not create duplicate orders, double-decrement stock, or apply a state transition twice.
 - **Correctness over feature count:** when time is limited, reduce scope before removing validation, authorization, transactions, tests, or AI grounding.
 
@@ -250,7 +229,6 @@ Use these principles to guide actual implementation decisions, not as a reason t
 - Use strict TypeScript. Avoid `any`; narrow `unknown` at runtime instead of disabling type checks.
 - Prefer clear, self-documenting names. Comments should explain non-obvious reasons, not restate the code.
 - Three similar lines can be clearer than a premature abstraction; repeated branching logic should be extracted when it forms a real shared pattern.
-- Every function should operate at one level of abstraction and do one job.
 - Prefer early returns to deeply nested conditionals.
 - Handle error, empty, and null cases where they occur.
 - No empty `catch` blocks. Handle the error, log safe contextual details, or rethrow.
@@ -354,7 +332,7 @@ Do not create an empty concept folder or speculative abstraction. Do not refacto
 
 ## 15. Guiding rule
 
-**Build a coherent, correct, testable product before adding breadth.** Prefer a bounded and measurable AI workflow over a complex autonomous agent. Prefer real evidence over confident speculation. Prefer a simple architecture with clear boundaries over enterprise-style scaffolding. The result should be a portfolio-quality MVP that can be extended after the five-week course project.
+**Build a coherent, correct, testable product before adding breadth.** Prefer a bounded and measurable AI workflow over a complex autonomous agent, real evidence over confident speculation, and a simple architecture with clear boundaries over enterprise-style scaffolding.
 
 ---
 

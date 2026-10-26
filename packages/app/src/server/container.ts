@@ -40,6 +40,7 @@ import {
   ListCatalogCategoriesUseCase,
   ListCatalogProductsUseCase,
   ListCategoriesUseCase,
+  ListCategoryCountsUseCase,
   ListCustomerOrdersUseCase,
   ListCopilotRecommendationsUseCase,
   ListFeaturedProductsUseCase,
@@ -133,6 +134,7 @@ export type Cradle = {
   getSystemHealthUseCase: GetSystemHealthUseCase;
   catalogRepository: CatalogReadPort;
   listCatalogCategoriesUseCase: ListCatalogCategoriesUseCase;
+  listCategoryCountsUseCase: ListCategoryCountsUseCase;
   listCatalogProductsUseCase: ListCatalogProductsUseCase;
   getCatalogProductUseCase: GetCatalogProductUseCase;
   listFeaturedProductsUseCase: ListFeaturedProductsUseCase;
@@ -222,6 +224,7 @@ function buildContainer(): AwilixContainer<Cradle> {
     // Storefront catalog: the adapter uses the request's EntityManager, so it and its use cases are scoped.
     catalogRepository: asClass(DatabaseCatalogRepository).scoped(),
     listCatalogCategoriesUseCase: asClass(ListCatalogCategoriesUseCase).scoped(),
+    listCategoryCountsUseCase: asClass(ListCategoryCountsUseCase).scoped(),
     listCatalogProductsUseCase: asClass(ListCatalogProductsUseCase).scoped(),
     getCatalogProductUseCase: asClass(GetCatalogProductUseCase).scoped(),
     listFeaturedProductsUseCase: asClass(ListFeaturedProductsUseCase).scoped(),

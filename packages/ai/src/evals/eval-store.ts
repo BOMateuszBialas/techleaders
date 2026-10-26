@@ -45,8 +45,20 @@ export function evalStore(kind: EvalStoreKind): StoreMetricsPort {
     lowStockProducts: async () => ({
       total: 2,
       rows: [
-        { id: EVAL_IDS.titan, name: "Titan MMO Mouse", sku: "DEMO-MOU-003", stockQuantity: 0 },
-        { id: EVAL_IDS.pulse, name: pulseName, sku: "DEMO-MOU-002", stockQuantity: 3 },
+        {
+          id: EVAL_IDS.titan,
+          slug: "titan-mmo-mouse",
+          name: "Titan MMO Mouse",
+          sku: "DEMO-MOU-003",
+          stockQuantity: 0,
+        },
+        {
+          id: EVAL_IDS.pulse,
+          slug: "pulse-ultralight-mouse",
+          name: pulseName,
+          sku: "DEMO-MOU-002",
+          stockQuantity: 3,
+        },
       ],
     }),
     demoOrderCount: async () => 31,

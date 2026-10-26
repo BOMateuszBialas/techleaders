@@ -1,5 +1,6 @@
 import type { CurrencyCode } from "../domain/money";
 import type { ProductStatus } from "../domain/products/product";
+import type { TechnicalSpec } from "../validators/catalog/technical-spec.schema";
 
 /** A category as stored, mapped to plain data by the adapter (never an ORM entity). */
 export type CatalogCategoryRecord = {
@@ -7,6 +8,13 @@ export type CatalogCategoryRecord = {
   slug: string;
   name: string;
   description: string | null;
+};
+
+/** A category with how many published products it holds (0 when none). */
+export type CatalogCategoryCountRecord = {
+  slug: string;
+  name: string;
+  productCount: number;
 };
 
 /** A product as stored, with its category (null when it has none). */
@@ -19,6 +27,8 @@ export type CatalogProductRecord = {
   currency: CurrencyCode;
   stockQuantity: number;
   imageUrl: string | null;
+  /** Stored as jsonb; the core read mapper validates the shape before it reaches a shopper. */
+  technicalSpecs: TechnicalSpec[];
   status: ProductStatus;
   /** Shown in the home page's featured slider (spec G9). */
   featured: boolean;
@@ -59,4 +69,6 @@ export interface CatalogReadPort {
    * shopper may buy.
    */
   findProductsByIds(ids: readonly string[]): Promise<CatalogProductRecord[]>;
+  /** Every category with its number of published products, sorted by name (0 when none). */
+  countPublishedProductsByCategory(): Promise<CatalogCategoryCountRecord[]>;
 }

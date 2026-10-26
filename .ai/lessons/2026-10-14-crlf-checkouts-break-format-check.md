@@ -1,0 +1,3 @@
+# 2026-10-14 — CRLF checkouts break `format:check` on Windows
+
+Git for Windows defaults to `core.autocrlf=true`, so a checkout had CRLF line endings and `npm run format:check` (Prettier `endOfLine: lf`) failed on about 85 files locally, while CI on Linux passed the same commit. `.gitattributes` now has `* text=auto eol=lf`, which pins every checkout to LF; the index was already LF. Existing clones keep CRLF files until re-checkout. Fix one with `git rm --cached -r . && git reset --hard` (commit or stash work first). When a local gate fails but CI passes, check line endings (`git ls-files --eol`) before blaming the code.
