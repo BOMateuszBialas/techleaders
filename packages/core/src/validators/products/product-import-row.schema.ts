@@ -1,4 +1,5 @@
 import type { CsvRecord } from "../../domain/imports/csv";
+import { isDemoSku } from "../../domain/products/demo-sku";
 import { PRODUCT_STATUSES } from "../../domain/products/product";
 import { ValidationError } from "../../errors/app-error";
 import { createProductInputSchema, type CreateProductInput } from "./product-input.schema";
@@ -61,7 +62,6 @@ const FORMULA_PREFIX = /^[=+\-@]/;
 /** Control and invisible format characters (zero-width, bidi, soft hyphen, BOM): refused. */
 const INVISIBLE_CHARACTER = /[\p{Cc}\p{Cf}]/u;
 const DEMO_TEXT_MARKER = /\[demo\]/i;
-const DEMO_SKU_PREFIX = "DEMO-";
 /** `featured` cell values → the form's checkbox value ("on" ticked, "" not). */
 const FEATURED_VALUES: Record<string, string> = {
   "": "",
@@ -148,7 +148,7 @@ function textProblems(cells: ProductImportCells): string[] {
     }
   }
   const isDemo =
-    cells.sku.toUpperCase().startsWith(DEMO_SKU_PREFIX) ||
+    isDemoSku(cells.sku) ||
     DEMO_TEXT_MARKER.test(cells.name) ||
     DEMO_TEXT_MARKER.test(cells.description);
   if (isDemo) problems.push(DEMO_MARKER_MESSAGE);
