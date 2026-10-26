@@ -18,14 +18,16 @@ import {
   categories,
   formatPln,
   galleryShots,
+  heroPhoto,
   orders,
   products,
   promoBanners,
   specRows,
   whyBuyHere,
+  type Photo,
   type Product,
 } from "../fixtures";
-import { ImagePlaceholder, Notice, PageHead, ShopperFrame, type ScreenDef } from "../shared";
+import { ImagePlaceholder, Notice, PageHead, ProductImage, ShopperFrame, type ScreenDef } from "../shared";
 
 function StockText({ stock }: { stock: number }) {
   if (stock === 0) return <Badge variant="destructive">Out of stock</Badge>;
@@ -37,6 +39,11 @@ function ProductCard({ p }: { p: Product }) {
   const cart = useCart();
   return (
     <Card>
+      {p.photo ? (
+        <ProductImage photo={p.photo} className="aspect-[4/3]" />
+      ) : (
+        <ImagePlaceholder label={`Photo not chosen yet: ${p.name}`} decorative className="aspect-[4/3] w-full" />
+      )}
       <CardHeader>
         <CardTitle>
           <a href="#s03" className="text-foreground no-underline hover:underline">{p.name}</a>
@@ -123,7 +130,7 @@ function Home({ state }: { state: string }) {
             <Button render={<a href="#s02" />} variant="default" size="lg">Shop all products</Button>
           </div>
         </div>
-        <ImagePlaceholder label="Hero photo: keyboard and mouse on a desk" className="aspect-[4/3] w-full" />
+        <ProductImage photo={heroPhoto} loading="eager" className="aspect-[4/3]" />
       </section>
 
       {/* 2. Featured products */}
@@ -138,6 +145,11 @@ function Home({ state }: { state: string }) {
         <ul className="grid gap-group-item @3xl:grid-cols-3">
           {promoBanners.map((b) => (
             <li key={b.title} className="flex flex-col gap-related rounded-card border border-border bg-card p-panel">
+              {b.photo ? (
+                <ProductImage photo={b.photo} className="aspect-[4/3]" />
+              ) : (
+                <ImagePlaceholder label={`Photo not chosen yet: ${b.title}`} decorative className="aspect-[4/3] w-full" />
+              )}
               <h3 className="font-medium">{b.title}</h3>
               <p className="text-muted-foreground">{b.text}</p>
               <div className="mt-auto pt-related">
@@ -241,12 +253,16 @@ function Catalog({ state }: { state: string }) {
 }
 
 /** Product photo gallery: a main image and 4 thumbnails (buttons, so the keyboard works). */
-function Gallery({ name }: { name: string }) {
+function Gallery({ name, photo }: { name: string; photo?: Photo }) {
   const [active, setActive] = useState(0);
   const shot = galleryShots[active];
   return (
     <div className="flex flex-col gap-related">
-      <ImagePlaceholder label={`Photo ${active + 1} of ${galleryShots.length}: ${shot} view`} className="aspect-square w-full" />
+      {photo && active === 0 ? (
+        <ProductImage photo={photo} loading="eager" className="aspect-square object-cover" />
+      ) : (
+        <ImagePlaceholder label={`Photo ${active + 1} of ${galleryShots.length}: ${shot} view, not chosen yet`} className="aspect-square w-full" />
+      )}
       <ul aria-label="Product images" className="grid grid-cols-4 gap-related">
         {galleryShots.map((s, i) => (
           <li key={s}>
@@ -281,10 +297,10 @@ function ProductPage({ state }: { state: string }) {
       </Empty>
     );
   if (state === "error") return <CatalogError what="This product" />;
-  const p = state === "out-of-stock" ? products[2] : products[0];
+  const p = state === "out-of-stock" ? products[2] : state === "keyboard-photo" ? products[1] : products[0];
   return (
     <div className="grid gap-group @5xl:grid-cols-2 @5xl:items-start">
-      <Gallery name={p.name} />
+      <Gallery name={p.name} photo={p.photo} />
       <section aria-label="Product information" className="flex flex-col gap-group">
         <div className="flex flex-col gap-related">
           <p className="type-small text-muted-foreground">{p.category} · SKU {p.sku}</p>
@@ -620,7 +636,7 @@ function framed(node: ReactNode) {
 export const shopperScreens: ScreenDef[] = [
   shopper("Storefront home", "s01", ["default", "loading", "error", "empty-store", "cart-open", "cart-empty"], (p) => framed(<Home state={p.state} />)),
   shopper("Catalog and search", "s02", ["list", "loading", "error", "no-results", "empty-category"], (p) => framed(<Catalog state={p.state} />)),
-  shopper("Product", "s03", ["default", "adding", "added", "out-of-stock", "over-stock", "not-found", "error", "cart-open", "cart-empty"], (p) => framed(<ProductPage state={p.state} />)),
+  shopper("Product", "s03", ["default", "keyboard-photo", "adding", "added", "out-of-stock", "over-stock", "not-found", "error", "cart-open", "cart-empty"], (p) => framed(<ProductPage state={p.state} />)),
   shopper("Cart", "s04", ["items", "only-n-left", "withdrawn", "empty", "loading", "error"], (p) => framed(<Cart state={p.state} />)),
   shopper("Checkout", "s05", ["guest", "customer", "field-errors", "price-changed", "last-unit-sold-out", "session-read-failed", "general-error"], (p) => framed(<Checkout state={p.state} />)),
   shopper("Demo payment", "s06", ["pending", "cancelled", "not-found"], (p) => framed(<DemoPayment state={p.state} />)),

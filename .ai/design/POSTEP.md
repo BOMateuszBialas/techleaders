@@ -761,7 +761,7 @@ Rule applied everywhere: red (`action`) only on the buying steps (Add to cart, C
 
 ### Open P items
 
-- **P-photo:** no photos chosen; placeholders everywhere. The photo proposal `.ai/design/zdjecia-propozycja.md` (branch `design/storefront-photo-proposal`) was not found in this clone (no local or remote branch with that name), so no photo was used.
+- **P-photo:** photos are wired into the DS prototype (storefront v2, 2026-10-26): hero, "Build your setup" and "Audio for calls" banners, Keyboard K7 and Headset H3. Credits and licence rules are in `.ai/prototypes/ds/public/photos/CREDITS.md`. Still open: the controller photo's licence and author check (the photo is not used, as there is no controller product), and the owner's check of the small marks on the mouse and mat in the hero at full size. The proposal `.ai/design/zdjecia-propozycja.md` lives on branch `design/storefront-photo-proposal` (not merged into this branch).
 - **P-drawer:** the owner should check the drawer on a real phone and with a keyboard (Tab, Escape, focus return).
 - **P-copy:** the invented copy (AS-08) needs the owner's approval before any of it goes into the app.
 - **P-policy:** the delivery and returns text (AS-01) needs a real policy, or removal.

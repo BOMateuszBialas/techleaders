@@ -2,6 +2,7 @@
 // Start the preview first (npm run preview, port 4173) and Chrome with --remote-debugging-port=9333
 // and a scratch profile outside the repo. Usage: node evidence/storefront-v2.mjs <outDir>
 // Drawer edge: measured against the body width (the layout width left of the page scrollbar gutter, 15 px in headless Chrome).
+// Photos (2026-10-26): every <img> must load (naturalWidth > 0, after scrolling so lazy images load) and stay inside the frame.
 // Checks, per screen, state, width (320, 390, 768, 1440) and theme (light, dark):
 //   console errors and exceptions, page-level and frame-level sideways scroll, one h1,
 //   no "demo store" wording inside the shopper frame, the fictional company footer,
@@ -27,9 +28,9 @@ const PLAN = [
   { route: "s12", states: ["own-order"] },
   { route: "s18", states: ["ai"] },
 ];
-const H1_STATES = new Set(["default", "items", "list", "guest", "pending", "own-order", "ai", "cart-open", "cart-empty", "adding", "added", "over-stock", "out-of-stock"]);
+const H1_STATES = new Set(["default", "keyboard-photo", "items", "list", "guest", "pending", "own-order", "ai", "cart-open", "cart-empty", "adding", "added", "over-stock", "out-of-stock"]);
 const SHOT_ROUTES = new Set(["s01", "s03"]);
-const SHOT_STATES = new Set(["default", "cart-open", "cart-empty"]);
+const SHOT_STATES = new Set(["default", "keyboard-photo", "cart-open", "cart-empty"]);
 
 const target = await (await fetch(`${DEBUG}/json/new?about:blank`, { method: "PUT" })).json();
 const ws = new WebSocket(target.webSocketDebuggerUrl);
@@ -80,7 +81,17 @@ const MEASURE = `(() => {
     drawer: rect(d),
     gallery: rect(g),
     info: rect(info),
+    imgs: [...document.querySelectorAll('img')].map((i) => ({ src: i.getAttribute('src'), loaded: i.complete && i.naturalWidth > 0, lazy: i.loading, rightOfFrame: f ? i.getBoundingClientRect().right > f.getBoundingClientRect().right + 1 : false })),
   };
+})()`;
+
+/* Lazy images load when they near the viewport: scroll the page once, then wait for every image. */
+const LOAD_ALL_IMAGES = `(async () => {
+  const h = Math.max(document.documentElement.scrollHeight, 900);
+  for (let y = 0; y < h; y += 300) { window.scrollTo(0, y); await new Promise((r) => setTimeout(r, 40)); }
+  window.scrollTo(0, 0);
+  await Promise.all([...document.images].map((i) => (i.complete ? null : new Promise((r) => { i.onload = i.onerror = r; }))));
+  return true;
 })()`;
 
 const setSelect = (sel, value) => `(() => {
@@ -114,6 +125,7 @@ for (const width of WIDTHS) {
         events = [];
         await evaluate(setSelect("#rb-state", st));
         await sleep(st.startsWith("cart-") ? 900 : 300);
+        await evaluate(LOAD_ALL_IMAGES);
         const m = await evaluate(MEASURE);
         const shopper = route !== "s18";
         const drawerOk = !st.startsWith("cart-") || (m.drawer && m.drawer.r === m.cw && (m.cw > 448 ? m.drawer.w <= 449 : m.drawer.w === m.cw));
@@ -127,6 +139,9 @@ for (const width of WIDTHS) {
           layoutPicker: m.layoutPicker,
           drawer: m.drawer, drawerOk, twoCol,
           errors,
+          imgs: m.imgs,
+          imgBroken: m.imgs.filter((i) => !i.loaded).length,
+          imgOverflow: m.imgs.some((i) => i.rightOfFrame),
         });
         if (SHOT_ROUTES.has(route) && SHOT_STATES.has(st) && (width === 320 || width === 1440 || (theme === "light" && (width === 390 || width === 768))) && (theme === "light" || width === 320 || width === 1440)) {
           const h = await evaluate(`Math.max(document.documentElement.scrollHeight, window.innerHeight)`);
@@ -142,12 +157,12 @@ for (const width of WIDTHS) {
 
 writeFileSync(join(OUT, "storefront-v2-results.json"), JSON.stringify({ checks: results.length, shots, results }, null, 2));
 
-const bad = results.filter((r) => r.errors.length || r.docOverflow || r.frameOverflow || (H1_STATES.has(r.state) && !r.h1) || !r.themeOk || r.layoutPicker || r.demoWording || (r.route !== "s18" && r.fictionalFooter === false) || r.drawerOk === false || r.twoCol === false);
+const bad = results.filter((r) => r.errors.length || r.docOverflow || r.frameOverflow || (H1_STATES.has(r.state) && !r.h1) || !r.themeOk || r.layoutPicker || r.demoWording || (r.route !== "s18" && r.fictionalFooter === false) || r.drawerOk === false || r.twoCol === false || r.imgBroken > 0 || r.imgOverflow);
 console.log(`checks: ${results.length}; screenshots: ${shots.length}`);
 console.log(`checks with a finding: ${bad.length}`);
 const kinds = {};
-for (const r of bad) { const k = [r.errors.length ? "errors" : "", r.docOverflow ? "docOverflow" : "", r.frameOverflow ? "frameOverflow" : "", (H1_STATES.has(r.state) && !r.h1) ? "noH1" : "", r.layoutPicker ? "layoutPicker" : "", r.demoWording ? "demoWording" : "", (r.route !== "s18" && r.fictionalFooter === false) ? "noFooter" : "", r.drawerOk === false ? "drawer" : "", r.twoCol === false ? "twoCol" : ""].filter(Boolean).join("+"); kinds[k] = (kinds[k] ?? 0) + 1; }
+for (const r of bad) { const k = [r.errors.length ? "errors" : "", r.docOverflow ? "docOverflow" : "", r.frameOverflow ? "frameOverflow" : "", (H1_STATES.has(r.state) && !r.h1) ? "noH1" : "", r.layoutPicker ? "layoutPicker" : "", r.demoWording ? "demoWording" : "", (r.route !== "s18" && r.fictionalFooter === false) ? "noFooter" : "", r.drawerOk === false ? "drawer" : "", r.twoCol === false ? "twoCol" : "", r.imgBroken > 0 ? "brokenImg" : "", r.imgOverflow ? "imgOverflow" : ""].filter(Boolean).join("+"); kinds[k] = (kinds[k] ?? 0) + 1; }
 console.log("findings by kind:", JSON.stringify(kinds));
-for (const r of bad.slice(0, 12)) console.log(JSON.stringify({ route: r.route, state: r.state, width: r.width, theme: r.theme, errors: r.errors, docOverflow: r.docOverflow, frameOverflow: r.frameOverflow, h1: r.h1, layoutPicker: r.layoutPicker, demoWording: r.demoWording, fictionalFooter: r.fictionalFooter, drawer: r.drawer, drawerOk: r.drawerOk, twoCol: r.twoCol }));
+for (const r of bad.slice(0, 12)) console.log(JSON.stringify({ route: r.route, state: r.state, width: r.width, theme: r.theme, errors: r.errors, docOverflow: r.docOverflow, frameOverflow: r.frameOverflow, h1: r.h1, layoutPicker: r.layoutPicker, demoWording: r.demoWording, fictionalFooter: r.fictionalFooter, drawer: r.drawer, drawerOk: r.drawerOk, twoCol: r.twoCol, imgs: r.imgs }));
 ws.close();
 await fetch(`${DEBUG}/json/close/${target.id}`);

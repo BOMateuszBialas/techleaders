@@ -1,40 +1,46 @@
 {
-  "checks": 176,
+  "checks": 184,
   "shots": [
     "v2-s01-default-320-light.png",
     "v2-s01-cart-open-320-light.png",
     "v2-s01-cart-empty-320-light.png",
     "v2-s03-default-320-light.png",
+    "v2-s03-keyboard-photo-320-light.png",
     "v2-s03-cart-open-320-light.png",
     "v2-s03-cart-empty-320-light.png",
     "v2-s01-default-320-dark.png",
     "v2-s01-cart-open-320-dark.png",
     "v2-s01-cart-empty-320-dark.png",
     "v2-s03-default-320-dark.png",
+    "v2-s03-keyboard-photo-320-dark.png",
     "v2-s03-cart-open-320-dark.png",
     "v2-s03-cart-empty-320-dark.png",
     "v2-s01-default-390-light.png",
     "v2-s01-cart-open-390-light.png",
     "v2-s01-cart-empty-390-light.png",
     "v2-s03-default-390-light.png",
+    "v2-s03-keyboard-photo-390-light.png",
     "v2-s03-cart-open-390-light.png",
     "v2-s03-cart-empty-390-light.png",
     "v2-s01-default-768-light.png",
     "v2-s01-cart-open-768-light.png",
     "v2-s01-cart-empty-768-light.png",
     "v2-s03-default-768-light.png",
+    "v2-s03-keyboard-photo-768-light.png",
     "v2-s03-cart-open-768-light.png",
     "v2-s03-cart-empty-768-light.png",
     "v2-s01-default-1440-light.png",
     "v2-s01-cart-open-1440-light.png",
     "v2-s01-cart-empty-1440-light.png",
     "v2-s03-default-1440-light.png",
+    "v2-s03-keyboard-photo-1440-light.png",
     "v2-s03-cart-open-1440-light.png",
     "v2-s03-cart-empty-1440-light.png",
     "v2-s01-default-1440-dark.png",
     "v2-s01-cart-open-1440-dark.png",
     "v2-s01-cart-empty-1440-dark.png",
     "v2-s03-default-1440-dark.png",
+    "v2-s03-keyboard-photo-1440-dark.png",
     "v2-s03-cart-open-1440-dark.png",
     "v2-s03-cart-empty-1440-dark.png"
   ],
@@ -54,7 +60,35 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [
+        {
+          "src": "/photos/hero-desk-curved-monitor.jpg",
+          "loaded": true,
+          "lazy": "eager",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-keyboard-rgb.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/banner-build-your-setup.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-headset-black.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        }
+      ],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -71,7 +105,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -88,7 +125,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -105,7 +145,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -128,7 +171,35 @@
       },
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [
+        {
+          "src": "/photos/hero-desk-curved-monitor.jpg",
+          "loaded": true,
+          "lazy": "eager",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-keyboard-rgb.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/banner-build-your-setup.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-headset-black.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        }
+      ],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -151,7 +222,35 @@
       },
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [
+        {
+          "src": "/photos/hero-desk-curved-monitor.jpg",
+          "loaded": true,
+          "lazy": "eager",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-keyboard-rgb.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/banner-build-your-setup.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-headset-black.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        }
+      ],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s02",
@@ -168,7 +267,23 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [
+        {
+          "src": "/photos/product-keyboard-rgb.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-headset-black.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        }
+      ],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -185,7 +300,37 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": true,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
+    },
+    {
+      "route": "s03",
+      "state": "keyboard-photo",
+      "width": 320,
+      "theme": "light",
+      "h1": "Mechanical keyboard K7",
+      "frameOverflow": false,
+      "docOverflow": false,
+      "themeOk": true,
+      "demoWording": false,
+      "fictionalFooter": true,
+      "layoutPicker": false,
+      "drawer": null,
+      "drawerOk": true,
+      "twoCol": null,
+      "errors": [],
+      "imgs": [
+        {
+          "src": "/photos/product-keyboard-rgb.jpg",
+          "loaded": true,
+          "lazy": "eager",
+          "rightOfFrame": false
+        }
+      ],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -202,7 +347,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -219,7 +367,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -236,7 +387,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -253,7 +407,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -270,7 +427,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -287,7 +447,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -310,7 +473,10 @@
       },
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -333,7 +499,10 @@
       },
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s04",
@@ -350,7 +519,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s05",
@@ -367,7 +539,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s06",
@@ -384,7 +559,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s11",
@@ -401,7 +579,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s12",
@@ -418,7 +599,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s18",
@@ -435,7 +619,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -452,7 +639,35 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [
+        {
+          "src": "/photos/hero-desk-curved-monitor.jpg",
+          "loaded": true,
+          "lazy": "eager",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-keyboard-rgb.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/banner-build-your-setup.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-headset-black.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        }
+      ],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -469,7 +684,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -486,7 +704,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -503,7 +724,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -526,7 +750,35 @@
       },
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [
+        {
+          "src": "/photos/hero-desk-curved-monitor.jpg",
+          "loaded": true,
+          "lazy": "eager",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-keyboard-rgb.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/banner-build-your-setup.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-headset-black.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        }
+      ],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -549,7 +801,35 @@
       },
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [
+        {
+          "src": "/photos/hero-desk-curved-monitor.jpg",
+          "loaded": true,
+          "lazy": "eager",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-keyboard-rgb.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/banner-build-your-setup.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-headset-black.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        }
+      ],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s02",
@@ -566,7 +846,23 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [
+        {
+          "src": "/photos/product-keyboard-rgb.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-headset-black.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        }
+      ],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -583,7 +879,37 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": true,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
+    },
+    {
+      "route": "s03",
+      "state": "keyboard-photo",
+      "width": 320,
+      "theme": "dark",
+      "h1": "Mechanical keyboard K7",
+      "frameOverflow": false,
+      "docOverflow": false,
+      "themeOk": true,
+      "demoWording": false,
+      "fictionalFooter": true,
+      "layoutPicker": false,
+      "drawer": null,
+      "drawerOk": true,
+      "twoCol": null,
+      "errors": [],
+      "imgs": [
+        {
+          "src": "/photos/product-keyboard-rgb.jpg",
+          "loaded": true,
+          "lazy": "eager",
+          "rightOfFrame": false
+        }
+      ],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -600,7 +926,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -617,7 +946,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -634,7 +966,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -651,7 +986,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -668,7 +1006,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -685,7 +1026,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -708,7 +1052,10 @@
       },
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -731,7 +1078,10 @@
       },
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s04",
@@ -748,7 +1098,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s05",
@@ -765,7 +1118,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s06",
@@ -782,7 +1138,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s11",
@@ -799,7 +1158,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s12",
@@ -816,7 +1178,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s18",
@@ -833,7 +1198,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -850,7 +1218,35 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [
+        {
+          "src": "/photos/hero-desk-curved-monitor.jpg",
+          "loaded": true,
+          "lazy": "eager",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-keyboard-rgb.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/banner-build-your-setup.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-headset-black.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        }
+      ],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -867,7 +1263,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -884,7 +1283,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -901,7 +1303,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -924,7 +1329,35 @@
       },
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [
+        {
+          "src": "/photos/hero-desk-curved-monitor.jpg",
+          "loaded": true,
+          "lazy": "eager",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-keyboard-rgb.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/banner-build-your-setup.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-headset-black.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        }
+      ],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -947,7 +1380,35 @@
       },
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [
+        {
+          "src": "/photos/hero-desk-curved-monitor.jpg",
+          "loaded": true,
+          "lazy": "eager",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-keyboard-rgb.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/banner-build-your-setup.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-headset-black.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        }
+      ],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s02",
@@ -964,7 +1425,23 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [
+        {
+          "src": "/photos/product-keyboard-rgb.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-headset-black.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        }
+      ],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -981,7 +1458,37 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": true,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
+    },
+    {
+      "route": "s03",
+      "state": "keyboard-photo",
+      "width": 390,
+      "theme": "light",
+      "h1": "Mechanical keyboard K7",
+      "frameOverflow": false,
+      "docOverflow": false,
+      "themeOk": true,
+      "demoWording": false,
+      "fictionalFooter": true,
+      "layoutPicker": false,
+      "drawer": null,
+      "drawerOk": true,
+      "twoCol": null,
+      "errors": [],
+      "imgs": [
+        {
+          "src": "/photos/product-keyboard-rgb.jpg",
+          "loaded": true,
+          "lazy": "eager",
+          "rightOfFrame": false
+        }
+      ],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -998,7 +1505,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -1015,7 +1525,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -1032,7 +1545,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -1049,7 +1565,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -1066,7 +1585,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -1083,7 +1605,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -1106,7 +1631,10 @@
       },
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -1129,7 +1657,10 @@
       },
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s04",
@@ -1146,7 +1677,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s05",
@@ -1163,7 +1697,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s06",
@@ -1180,7 +1717,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s11",
@@ -1197,7 +1737,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s12",
@@ -1214,7 +1757,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s18",
@@ -1231,7 +1777,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -1248,7 +1797,35 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [
+        {
+          "src": "/photos/hero-desk-curved-monitor.jpg",
+          "loaded": true,
+          "lazy": "eager",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-keyboard-rgb.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/banner-build-your-setup.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-headset-black.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        }
+      ],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -1265,7 +1842,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -1282,7 +1862,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -1299,7 +1882,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -1322,7 +1908,35 @@
       },
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [
+        {
+          "src": "/photos/hero-desk-curved-monitor.jpg",
+          "loaded": true,
+          "lazy": "eager",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-keyboard-rgb.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/banner-build-your-setup.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-headset-black.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        }
+      ],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -1345,7 +1959,35 @@
       },
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [
+        {
+          "src": "/photos/hero-desk-curved-monitor.jpg",
+          "loaded": true,
+          "lazy": "eager",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-keyboard-rgb.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/banner-build-your-setup.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-headset-black.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        }
+      ],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s02",
@@ -1362,7 +2004,23 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [
+        {
+          "src": "/photos/product-keyboard-rgb.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-headset-black.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        }
+      ],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -1379,7 +2037,37 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": true,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
+    },
+    {
+      "route": "s03",
+      "state": "keyboard-photo",
+      "width": 390,
+      "theme": "dark",
+      "h1": "Mechanical keyboard K7",
+      "frameOverflow": false,
+      "docOverflow": false,
+      "themeOk": true,
+      "demoWording": false,
+      "fictionalFooter": true,
+      "layoutPicker": false,
+      "drawer": null,
+      "drawerOk": true,
+      "twoCol": null,
+      "errors": [],
+      "imgs": [
+        {
+          "src": "/photos/product-keyboard-rgb.jpg",
+          "loaded": true,
+          "lazy": "eager",
+          "rightOfFrame": false
+        }
+      ],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -1396,7 +2084,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -1413,7 +2104,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -1430,7 +2124,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -1447,7 +2144,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -1464,7 +2164,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -1481,7 +2184,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -1504,7 +2210,10 @@
       },
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -1527,7 +2236,10 @@
       },
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s04",
@@ -1544,7 +2256,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s05",
@@ -1561,7 +2276,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s06",
@@ -1578,7 +2296,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s11",
@@ -1595,7 +2316,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s12",
@@ -1612,7 +2336,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s18",
@@ -1629,7 +2356,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -1646,7 +2376,35 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [
+        {
+          "src": "/photos/hero-desk-curved-monitor.jpg",
+          "loaded": true,
+          "lazy": "eager",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-keyboard-rgb.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/banner-build-your-setup.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-headset-black.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        }
+      ],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -1663,7 +2421,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -1680,7 +2441,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -1697,7 +2461,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -1720,7 +2487,35 @@
       },
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [
+        {
+          "src": "/photos/hero-desk-curved-monitor.jpg",
+          "loaded": true,
+          "lazy": "eager",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-keyboard-rgb.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/banner-build-your-setup.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-headset-black.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        }
+      ],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -1743,7 +2538,35 @@
       },
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [
+        {
+          "src": "/photos/hero-desk-curved-monitor.jpg",
+          "loaded": true,
+          "lazy": "eager",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-keyboard-rgb.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/banner-build-your-setup.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-headset-black.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        }
+      ],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s02",
@@ -1760,7 +2583,23 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [
+        {
+          "src": "/photos/product-keyboard-rgb.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-headset-black.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        }
+      ],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -1777,7 +2616,37 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": true,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
+    },
+    {
+      "route": "s03",
+      "state": "keyboard-photo",
+      "width": 768,
+      "theme": "light",
+      "h1": "Mechanical keyboard K7",
+      "frameOverflow": false,
+      "docOverflow": false,
+      "themeOk": true,
+      "demoWording": false,
+      "fictionalFooter": true,
+      "layoutPicker": false,
+      "drawer": null,
+      "drawerOk": true,
+      "twoCol": null,
+      "errors": [],
+      "imgs": [
+        {
+          "src": "/photos/product-keyboard-rgb.jpg",
+          "loaded": true,
+          "lazy": "eager",
+          "rightOfFrame": false
+        }
+      ],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -1794,7 +2663,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -1811,7 +2683,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -1828,7 +2703,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -1845,7 +2723,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -1862,7 +2743,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -1879,7 +2763,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -1902,7 +2789,10 @@
       },
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -1925,7 +2815,10 @@
       },
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s04",
@@ -1942,7 +2835,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s05",
@@ -1959,7 +2855,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s06",
@@ -1976,7 +2875,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s11",
@@ -1993,7 +2895,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s12",
@@ -2010,7 +2915,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s18",
@@ -2027,7 +2935,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -2044,7 +2955,35 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [
+        {
+          "src": "/photos/hero-desk-curved-monitor.jpg",
+          "loaded": true,
+          "lazy": "eager",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-keyboard-rgb.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/banner-build-your-setup.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-headset-black.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        }
+      ],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -2061,7 +3000,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -2078,7 +3020,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -2095,7 +3040,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -2118,7 +3066,35 @@
       },
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [
+        {
+          "src": "/photos/hero-desk-curved-monitor.jpg",
+          "loaded": true,
+          "lazy": "eager",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-keyboard-rgb.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/banner-build-your-setup.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-headset-black.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        }
+      ],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -2141,7 +3117,35 @@
       },
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [
+        {
+          "src": "/photos/hero-desk-curved-monitor.jpg",
+          "loaded": true,
+          "lazy": "eager",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-keyboard-rgb.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/banner-build-your-setup.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-headset-black.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        }
+      ],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s02",
@@ -2158,7 +3162,23 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [
+        {
+          "src": "/photos/product-keyboard-rgb.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-headset-black.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        }
+      ],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -2175,7 +3195,37 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": true,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
+    },
+    {
+      "route": "s03",
+      "state": "keyboard-photo",
+      "width": 768,
+      "theme": "dark",
+      "h1": "Mechanical keyboard K7",
+      "frameOverflow": false,
+      "docOverflow": false,
+      "themeOk": true,
+      "demoWording": false,
+      "fictionalFooter": true,
+      "layoutPicker": false,
+      "drawer": null,
+      "drawerOk": true,
+      "twoCol": null,
+      "errors": [],
+      "imgs": [
+        {
+          "src": "/photos/product-keyboard-rgb.jpg",
+          "loaded": true,
+          "lazy": "eager",
+          "rightOfFrame": false
+        }
+      ],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -2192,7 +3242,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -2209,7 +3262,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -2226,7 +3282,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -2243,7 +3302,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -2260,7 +3322,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -2277,7 +3342,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -2300,7 +3368,10 @@
       },
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -2323,7 +3394,10 @@
       },
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s04",
@@ -2340,7 +3414,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s05",
@@ -2357,7 +3434,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s06",
@@ -2374,7 +3454,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s11",
@@ -2391,7 +3474,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s12",
@@ -2408,7 +3494,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s18",
@@ -2425,7 +3514,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -2442,7 +3534,35 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [
+        {
+          "src": "/photos/hero-desk-curved-monitor.jpg",
+          "loaded": true,
+          "lazy": "eager",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-keyboard-rgb.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/banner-build-your-setup.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-headset-black.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        }
+      ],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -2459,7 +3579,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -2476,7 +3599,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -2493,7 +3619,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -2516,7 +3645,35 @@
       },
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [
+        {
+          "src": "/photos/hero-desk-curved-monitor.jpg",
+          "loaded": true,
+          "lazy": "eager",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-keyboard-rgb.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/banner-build-your-setup.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-headset-black.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        }
+      ],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -2539,7 +3696,35 @@
       },
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [
+        {
+          "src": "/photos/hero-desk-curved-monitor.jpg",
+          "loaded": true,
+          "lazy": "eager",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-keyboard-rgb.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/banner-build-your-setup.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-headset-black.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        }
+      ],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s02",
@@ -2556,7 +3741,23 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [
+        {
+          "src": "/photos/product-keyboard-rgb.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-headset-black.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        }
+      ],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -2573,7 +3774,37 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": true,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
+    },
+    {
+      "route": "s03",
+      "state": "keyboard-photo",
+      "width": 1440,
+      "theme": "light",
+      "h1": "Mechanical keyboard K7",
+      "frameOverflow": false,
+      "docOverflow": false,
+      "themeOk": true,
+      "demoWording": false,
+      "fictionalFooter": true,
+      "layoutPicker": false,
+      "drawer": null,
+      "drawerOk": true,
+      "twoCol": null,
+      "errors": [],
+      "imgs": [
+        {
+          "src": "/photos/product-keyboard-rgb.jpg",
+          "loaded": true,
+          "lazy": "eager",
+          "rightOfFrame": false
+        }
+      ],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -2590,7 +3821,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -2607,7 +3841,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -2624,7 +3861,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -2641,7 +3881,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -2658,7 +3901,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -2675,7 +3921,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -2698,7 +3947,10 @@
       },
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -2721,7 +3973,10 @@
       },
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s04",
@@ -2738,7 +3993,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s05",
@@ -2755,7 +4013,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s06",
@@ -2772,7 +4033,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s11",
@@ -2789,7 +4053,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s12",
@@ -2806,7 +4073,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s18",
@@ -2823,7 +4093,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -2840,7 +4113,35 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [
+        {
+          "src": "/photos/hero-desk-curved-monitor.jpg",
+          "loaded": true,
+          "lazy": "eager",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-keyboard-rgb.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/banner-build-your-setup.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-headset-black.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        }
+      ],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -2857,7 +4158,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -2874,7 +4178,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -2891,7 +4198,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -2914,7 +4224,35 @@
       },
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [
+        {
+          "src": "/photos/hero-desk-curved-monitor.jpg",
+          "loaded": true,
+          "lazy": "eager",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-keyboard-rgb.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/banner-build-your-setup.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-headset-black.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        }
+      ],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s01",
@@ -2937,7 +4275,35 @@
       },
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [
+        {
+          "src": "/photos/hero-desk-curved-monitor.jpg",
+          "loaded": true,
+          "lazy": "eager",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-keyboard-rgb.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/banner-build-your-setup.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-headset-black.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        }
+      ],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s02",
@@ -2954,7 +4320,23 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [
+        {
+          "src": "/photos/product-keyboard-rgb.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        },
+        {
+          "src": "/photos/product-headset-black.jpg",
+          "loaded": true,
+          "lazy": "lazy",
+          "rightOfFrame": false
+        }
+      ],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -2971,7 +4353,37 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": true,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
+    },
+    {
+      "route": "s03",
+      "state": "keyboard-photo",
+      "width": 1440,
+      "theme": "dark",
+      "h1": "Mechanical keyboard K7",
+      "frameOverflow": false,
+      "docOverflow": false,
+      "themeOk": true,
+      "demoWording": false,
+      "fictionalFooter": true,
+      "layoutPicker": false,
+      "drawer": null,
+      "drawerOk": true,
+      "twoCol": null,
+      "errors": [],
+      "imgs": [
+        {
+          "src": "/photos/product-keyboard-rgb.jpg",
+          "loaded": true,
+          "lazy": "eager",
+          "rightOfFrame": false
+        }
+      ],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -2988,7 +4400,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -3005,7 +4420,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -3022,7 +4440,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -3039,7 +4460,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -3056,7 +4480,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -3073,7 +4500,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -3096,7 +4526,10 @@
       },
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s03",
@@ -3119,7 +4552,10 @@
       },
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s04",
@@ -3136,7 +4572,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s05",
@@ -3153,7 +4592,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s06",
@@ -3170,7 +4612,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s11",
@@ -3187,7 +4632,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s12",
@@ -3204,7 +4652,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     },
     {
       "route": "s18",
@@ -3221,7 +4672,10 @@
       "drawer": null,
       "drawerOk": true,
       "twoCol": null,
-      "errors": []
+      "errors": [],
+      "imgs": [],
+      "imgBroken": 0,
+      "imgOverflow": false
     }
   ]
 }

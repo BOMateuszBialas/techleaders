@@ -96,7 +96,7 @@ Owner decisions and the rules behind them are in `../../design/POSTEP.md`, secti
 - Demo notice removed from the storefront and footer. One test-payment note on the payment step (s06): "Test payment. No money is taken."
 - Footer: fictional company block (invented name, no address, tax number or contact).
 - Cart drawer: "Add to cart" and the header "Cart (n)" open a right-side drawer (full width below 448 px) with quantity controls, remove, subtotal and "Checkout". The /cart page (s04) stays as the fallback route and is still a static state view. Code: `src/app/cart.tsx` (new component, prototype only).
-- Home (s01, layout A only): hero with CTA, featured products, promo banners (no discounts), category tiles, "Why buy here", best sellers. Photos are neutral placeholders, with no image URLs.
+- Home (s01, layout A only): hero with CTA, featured products, promo banners (no discounts), category tiles, "Why buy here", best sellers. Photos (Pexels, from `public/photos/`, credits in `public/photos/CREDITS.md`): hero = `hero-desk-curved-monitor.jpg`; promo banner "Build your setup" = `banner-build-your-setup.jpg`; promo banner "Audio for calls" = `product-headset-black.jpg` (there is no "Accessories" banner in this prototype); product card and gallery for Keyboard K7 = `product-keyboard-rgb.jpg` (state `keyboard-photo` on s03); Headset H3 card = `product-headset-black.jpg`. `product-controller-transparent.jpg` is not used: the prototype has no controller product, and its licence and author check is still open. Products without a photo (all others), the "Low stock" banner and the category tiles keep the neutral placeholder, labelled "Photo not chosen yet" where a product or banner has no photo.
 - Product page (s03): two columns from 1024 px (container `@5xl`), a gallery with 4 thumbnail buttons, and Description / Technical data / Delivery and returns tabs. Below 1024 px it stacks, gallery first.
 - Layout picker removed (s01 and s18 are layout A only).
 
@@ -110,4 +110,4 @@ Assumptions (marked in the UI where shown; not facts about the store):
 
 Environment note: headless Chrome here reserves a 15 px page scrollbar gutter, so the drawer's right edge sits at the body edge (305 px on a 320 px window). That is expected with a page scrollbar.
 
-Not verified: real photos (none chosen), a hand-run keyboard walk of the drawer (focus trap and return come from Base UI and were not tested by hand), a screen reader, a real phone, the Chrome extension walk.
+Not verified: the controller photo's licence and author (not used), a hand-run keyboard walk of the drawer (focus trap and return come from Base UI and were not tested by hand), a screen reader, a real phone, the Chrome extension walk.

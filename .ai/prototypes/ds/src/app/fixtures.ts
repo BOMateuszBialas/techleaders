@@ -7,8 +7,26 @@
 
 export const DEMO_NOTICE = "Demo store. Simulated data: no real payment, no shipping, no real account.";
 
+/** A photo from public/photos (Pexels, licence and credits in public/photos/CREDITS.md). */
+export type Photo = { src: string; alt: string; width: number; height: number };
+
+const keyboardPhoto: Photo = {
+  src: "/photos/product-keyboard-rgb.jpg",
+  alt: "Close-up of a mechanical keyboard with purple and blue RGB backlight",
+  width: 1600,
+  height: 1087,
+};
+const headsetPhoto: Photo = {
+  src: "/photos/product-headset-black.jpg",
+  alt: "Black over-ear headset with a cable, seen from above",
+  width: 1600,
+  height: 900,
+};
+
 export type Product = {
   slug: string;
+  /** Main image. Products without one show the neutral placeholder (labelled as such). */
+  photo?: Photo;
   name: string;
   category: string;
   priceMinor: number;
@@ -23,10 +41,10 @@ export type Product = {
 
 export const products: Product[] = [
   { slug: "vortex-2", name: "Wireless mouse Vortex 2", category: "Mice", priceMinor: 24900, stock: 12, featured: true, sku: "DEMO-MS-001", short: "Wireless mouse, 65 g, two modes of connection.", sold7d: 31 },
-  { slug: "k7", name: "Mechanical keyboard K7", category: "Keyboards", priceMinor: 44900, stock: 3, featured: true, sku: "DEMO-KB-007", short: "Tenkeyless keyboard with linear switches.", sold7d: 9 },
+  { slug: "k7", name: "Mechanical keyboard K7", category: "Keyboards", priceMinor: 44900, stock: 3, featured: true, sku: "DEMO-KB-007", short: "Tenkeyless keyboard with linear switches.", sold7d: 9, photo: keyboardPhoto },
   { slug: "stream-mic", name: "USB microphone Stream", category: "Audio", priceMinor: 31900, stock: 0, featured: true, sku: "DEMO-AU-003", short: "Cardioid USB microphone with a mute button.", sold7d: 0 },
   { slug: "pad-xl", name: "Desk mat XL", category: "Desk", priceMinor: 8900, stock: 40, featured: false, sku: "DEMO-DK-010", short: "Wide desk mat with a stitched edge.", sold7d: 22 },
-  { slug: "headset-h3", name: "Headset H3", category: "Audio", priceMinor: 19900, stock: 5, featured: false, sku: "DEMO-AU-005", short: "Closed-back headset with a boom microphone.", sold7d: 14 },
+  { slug: "headset-h3", name: "Headset H3", category: "Audio", priceMinor: 19900, stock: 5, featured: false, sku: "DEMO-AU-005", short: "Closed-back headset with a boom microphone.", sold7d: 14, photo: headsetPhoto },
   { slug: "grip-tape", name: "Mouse grip tape", category: "Mice", priceMinor: 2900, stock: 60, featured: false, sku: "DEMO-MS-004", short: "Sweat-resistant grip tape for mouse sides.", sold7d: 40 },
 ];
 
@@ -82,9 +100,29 @@ export const recommendations = [
 /* Storefront home content (owner decision 4). Every fact is from the spec or marked ASSUMPTION. */
 
 /** Promo banners: no discounts (discounts are out of scope in the brief). Facts come from the data. */
-export const promoBanners = [
-  { title: "Desk setup", text: "Mats and cable trays for a tidy desk.", cta: "Browse desk gear", href: "#s02" },
-  { title: "Audio for calls", text: "Headsets and microphones for voice chat.", cta: "See audio", href: "#s02" },
+export const heroPhoto: Photo = {
+  src: "/photos/hero-desk-curved-monitor.jpg",
+  alt: "Curved monitor, keyboard, mouse and headset on a desk, seen from above",
+  width: 1600,
+  height: 1067,
+};
+
+export type PromoBanner = { title: string; text: string; cta: string; href: string; photo?: Photo };
+
+export const promoBanners: PromoBanner[] = [
+  {
+    title: "Build your setup",
+    text: "Mats and cable trays for a tidy desk.",
+    cta: "Browse desk gear",
+    href: "#s02",
+    photo: {
+      src: "/photos/banner-build-your-setup.jpg",
+      alt: "Gaming mouse on a desk next to a keyboard, lit in blue and orange",
+      width: 1600,
+      height: 1067,
+    },
+  },
+  { title: "Audio for calls", text: "Headsets and microphones for voice chat.", cta: "See audio", href: "#s02", photo: headsetPhoto },
   { title: "Low stock", text: "Keyboard K7: 3 units left at the time of the prototype.", cta: "View keyboard", href: "#s03" },
 ];
 
@@ -105,5 +143,5 @@ export const specRows: [string, string][] = [
   ["Warranty", "24 months (fictional, AS-10)"],
 ];
 
-/** Product page gallery: placeholder views until the owner picks photos (P-item). */
+/** Product page gallery: the views of a product. Only the first view has a photo, when the product has one. */
 export const galleryShots = ["Front", "Side", "Top", "In hand"];

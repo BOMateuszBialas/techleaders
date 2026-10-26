@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { cn } from "cn";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { DEMO_NOTICE } from "./fixtures";
+import { DEMO_NOTICE, type Photo } from "./fixtures";
 import { cartCount, useCart } from "./cart";
 
 export type ScreenProps = { state: string; layout: string };
@@ -41,6 +41,24 @@ export function ImagePlaceholder({ label, className, decorative }: { label: stri
     >
       {label}
     </div>
+  );
+}
+
+/**
+ * A real photo in a placeholder-sized box: object-cover, width and height set so the layout does not
+ * shift while it loads. Below the fold it is lazy; the hero passes "eager".
+ */
+export function ProductImage({ photo, loading = "lazy", className }: { photo: Photo; loading?: "lazy" | "eager"; className?: string }) {
+  return (
+    <img
+      src={photo.src}
+      alt={photo.alt}
+      width={photo.width}
+      height={photo.height}
+      loading={loading}
+      decoding="async"
+      className={cn("h-auto w-full rounded-card object-cover", className)}
+    />
   );
 }
 
