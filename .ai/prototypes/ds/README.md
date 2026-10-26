@@ -50,7 +50,7 @@ npm run build          # production build to dist/
 npm run preview        # http://localhost:4173 (serves dist/)
 ```
 
-The prototype does not need the root `npm install`: `vite.config.ts` resolves the app's sources directly and dedupes shared packages to this folder's `node_modules`.
+The prototype reads app sources from `packages/app` and the shared tsconfig from `packages/config`. Vite's dependency scan needs both, so run `npm ci` once in the **repository root** first (the workspace links `@commerceos/config`), then `npm ci` in this folder. Without the root install, `npm run dev` fails with `TSCONFIG_ERROR: Failed to load tsconfig '@commerceos/config/tsconfig.base.json'`. The build alone works without it.
 
 ## Verification (what was run, 2026-10-26)
 
