@@ -8,6 +8,9 @@ import {
 export const CATALOG_UNAVAILABLE_MESSAGE =
   "The catalog is temporarily unavailable. Please try again later.";
 
+/** Shown in place of a product photo that is not mapped (storefront v2, Q8). */
+export const NO_PHOTO_LABEL = "No photo yet";
+
 /** Text labels, so availability is never conveyed by colour alone. */
 export const AVAILABILITY_LABELS: Record<Availability, string> = {
   in_stock: "In stock",

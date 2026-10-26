@@ -95,9 +95,9 @@ describe("ProductImage", () => {
     const html = renderToStaticMarkup(
       createElement(ProductImage, { imageUrl: null, name: product.name, size: 320 }),
     );
-    expect(html).toContain('role="img"');
-    expect(html).toContain('aria-label="No image for Vortex Wireless Mouse"');
-    expect(html).toContain(">No image<");
+    // Text only: the placeholder is not an image and carries no alt text (storefront v2, Q8).
+    expect(html).not.toContain("<img");
+    expect(html).toContain(">No photo yet<");
   });
 });
 
