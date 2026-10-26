@@ -6,13 +6,15 @@ import {
   PRICE_FORMAT_MESSAGE,
   PRODUCT_DESCRIPTION_MAX_LENGTH,
   PRODUCT_NAME_MAX_LENGTH,
+  PRODUCT_SKU_MAX_LENGTH,
 } from "./product-input.schema";
 
 /**
  * `POST /api/admin/products/description-drafts` (descriptions spec, API Contracts): the values
  * currently in the product form (A4), with the form's own limits. The price and the category may
  * be blank; a blank price means "not set" (`null`). The description field is sent as `notes`.
- * Nothing here is stored: the values are used only to draft a description.
+ * The SKU is sent as `sku` and marks demo content only (a `DEMO-` SKU, storefront v2 OA-3); it is
+ * not shown to the model. Nothing here is stored: the values are used only to draft a description.
  */
 export const descriptionDraftSchema = z.object({
   name: z
@@ -46,6 +48,11 @@ export const descriptionDraftSchema = z.object({
       PRODUCT_DESCRIPTION_MAX_LENGTH,
       `Use at most ${PRODUCT_DESCRIPTION_MAX_LENGTH} characters.`,
     )
+    .default(""),
+  sku: z
+    .string()
+    .trim()
+    .max(PRODUCT_SKU_MAX_LENGTH, `Use at most ${PRODUCT_SKU_MAX_LENGTH} characters.`)
     .default(""),
 });
 

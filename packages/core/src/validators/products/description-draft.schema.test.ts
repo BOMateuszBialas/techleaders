@@ -22,28 +22,32 @@ describe("descriptionDraftSchema", () => {
         name: " Vortex Wireless Mouse ",
         categoryId: ` ${MICE_ID} `,
         price: " 249,00 ",
-        notes: "  [DEMO] 26,000 DPI.  ",
+        notes: "  26,000 DPI.  ",
+        sku: " DEMO-MOU-001 ",
       }),
     ).toEqual({
       name: "Vortex Wireless Mouse",
       categoryId: MICE_ID,
       price: 24900,
-      notes: "[DEMO] 26,000 DPI.",
+      notes: "26,000 DPI.",
+      sku: "DEMO-MOU-001",
     });
   });
 
-  it("allows a blank or missing category, price and notes", () => {
+  it("allows a blank or missing category, price, notes and SKU", () => {
     expect(descriptionDraftSchema.parse({ name: "Mouse", categoryId: "", price: " " })).toEqual({
       name: "Mouse",
       categoryId: null,
       price: null,
       notes: "",
+      sku: "",
     });
     expect(descriptionDraftSchema.parse({ name: "Mouse" })).toEqual({
       name: "Mouse",
       categoryId: null,
       price: null,
       notes: "",
+      sku: "",
     });
   });
 
@@ -52,6 +56,9 @@ describe("descriptionDraftSchema", () => {
     expect(errors({ name: "x".repeat(201) })).toEqual({ name: ["Use at most 200 characters."] });
     expect(errors({ name: "Mouse", notes: "x".repeat(5001) })).toEqual({
       notes: ["Use at most 5000 characters."],
+    });
+    expect(errors({ name: "Mouse", sku: "x".repeat(65) })).toEqual({
+      sku: ["Use at most 64 characters."],
     });
     expect(errors({ name: "Mouse", price: "12.345" })).toEqual({ price: [PRICE_FORMAT_MESSAGE] });
     expect(errors({ name: "Mouse", categoryId: "mice" })).toEqual({
