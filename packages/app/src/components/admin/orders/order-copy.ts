@@ -37,7 +37,7 @@ export function orderOriginLabel(placedWithAccount: boolean): string {
 }
 export const DEMO_ORDER_NOTE =
   "Seeded demo order: the customer is fictional and no real purchase happened.";
-export const SHIPPING_FREE_LABEL = "free (demo store)";
+export const SHIPPING_FREE_LABEL = "free";
 export const DEMO_PAYMENT_LABEL = "Demo payment (no money charged)";
 export const NOT_PAID_LABEL = "Not paid";
 export const DELETED_PRODUCT_LABEL = "(deleted product)";

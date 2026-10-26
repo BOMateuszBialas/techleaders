@@ -11,7 +11,7 @@ const CARD_FIELDS =
  * payment page → confirm → confirmation → lookup. Buys one Echo Surround Headset (349,00 zł,
  * 14 in stock), which no other suite counts on.
  */
-describe("storefront purchase with the demo payment (E02-S03)", () => {
+describe("storefront purchase with the test payment (E02-S03)", () => {
   const browser = useBrowser();
   const baseUrl = inject("baseUrl");
 
@@ -43,29 +43,27 @@ describe("storefront purchase with the demo payment (E02-S03)", () => {
     await browser().fillLabel("City", "Gdańsk");
     await browser().fillLabel("Postal code", "80-827");
     await browser().clickRole("button", "Place order");
-    await browser().waitForText("Confirm demo payment (no charge)");
+    await browser().waitForText("Confirm test payment");
     return REFERENCE.exec(await browser().text("main"))?.[0] ?? "";
   }
 
-  it("pays with the demo payment and shows the confirmation (AC1, AC2, AC4)", async () => {
+  it("pays with the test payment and shows the confirmation (AC1, AC2, AC4)", async () => {
     const reference = await purchase();
     expect(reference).toMatch(REFERENCE);
 
     const pay = await browser().text("main");
-    expect(pay).toContain(
-      "Demo store — this is a demo payment. No real money is charged and no card details are collected.",
-    );
+    expect(pay).toContain("Test payment. No money is taken.");
     expect(pay).toMatch(/349,00\s*zł/);
     await expectNoCardField();
 
-    await browser().clickRole("button", "Confirm demo payment (no charge)");
-    await browser().waitForText("Thank you — demo payment received");
+    await browser().clickRole("button", "Confirm test payment");
+    await browser().waitForText("Thank you — test payment received");
     expect(new URL(await browser().url()).pathname).toBe(`/orders/${reference}`);
     const confirmation = await browser().text("main");
     expect(confirmation).toContain(reference);
     expect(confirmation).toContain("Echo Surround Headset × 1");
     expect(confirmation).toMatch(/349,00\s*zł/);
-    expect(confirmation).toContain("Paid with: Demo payment (no money charged)");
+    expect(confirmation).toContain("Paid with: test payment (no money taken)");
     expect(confirmation).toContain("Save this reference to check your order.");
     // No personal data on a page reached by a bearer reference (A8).
     expect(confirmation).not.toContain("Grace");
@@ -79,8 +77,8 @@ describe("storefront purchase with the demo payment (E02-S03)", () => {
 
   it("finds the order by reference, and answers the same for guessed and malformed ones (AC3)", async () => {
     const reference = await purchase();
-    await browser().clickRole("button", "Confirm demo payment (no charge)");
-    await browser().waitForText("Thank you — demo payment received");
+    await browser().clickRole("button", "Confirm test payment");
+    await browser().waitForText("Thank you — test payment received");
 
     await browser().open("/orders/lookup");
     await browser().waitForText("Find your order");
@@ -105,8 +103,8 @@ describe("storefront purchase with the demo payment (E02-S03)", () => {
   it("attaches a signed-in purchase to the account and shows it Paid under My orders (E07 step 14)", async () => {
     await useCustomerSession(browser(), "b");
     const reference = await purchase();
-    await browser().clickRole("button", "Confirm demo payment (no charge)");
-    await browser().waitForText("Thank you — demo payment received");
+    await browser().clickRole("button", "Confirm test payment");
+    await browser().waitForText("Thank you — test payment received");
     // The customer still sees the order page by reference: it is their own account order.
     expect(await browser().text("main")).toContain(reference);
 

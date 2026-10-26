@@ -6,18 +6,13 @@ import { IDLE_ACTION_STATE, type ActionState } from "@/lib/action-state";
 import OrderNotFound from "@/app/(storefront)/orders/[reference]/not-found";
 import PayNotFound from "@/app/(storefront)/checkout/pay/[reference]/not-found";
 import { CartChanges } from "../cart/cart-changes";
-import { DEMO_PAYMENT_BANNER, orderStatusLabel } from "./checkout-copy";
+import { orderStatusLabel, PAYMENT_TEST_NOTE } from "./checkout-copy";
 import { CheckoutForm } from "./checkout-form";
 import { CheckoutFormView } from "./checkout-form-view";
 import { CHECKOUT_SESSION_LOST, type CheckoutMode } from "./checkout-mode";
 import { OrderDetails } from "./order-details";
 import { LookupForm, PayForm } from "./order-forms";
-import {
-  DemoPaymentBanner,
-  LookupFormView,
-  OrderStatusBadge,
-  PayFormView,
-} from "./order-forms-view";
+import { LookupFormView, OrderStatusBadge, PaymentTestNote, PayFormView } from "./order-forms-view";
 import { OrderSummary } from "./order-summary";
 
 const REFERENCE = "CO-0DT7M-1EV8N-2FW9P-3GXAQ";
@@ -80,7 +75,7 @@ describe("checkout copy", () => {
 });
 
 describe("OrderSummary", () => {
-  it("lists items and totals; shipping 0 reads 'free (demo store)'", () => {
+  it("lists items and totals; shipping 0 reads 'free'", () => {
     const html = plainText(
       renderToStaticMarkup(
         createElement(OrderSummary, {
@@ -93,7 +88,8 @@ describe("OrderSummary", () => {
     );
     expect(html).toContain("Vortex Wireless Mouse × 2");
     expect(html).toContain("249,00 zł each");
-    expect(html).toContain("free (demo store)");
+    expect(html).toContain("free");
+    expect(html).not.toContain("demo");
     expect(html).toContain("498,00 zł");
     expect(html).not.toMatch(/tax|VAT/i);
   });
@@ -225,10 +221,13 @@ describe("CheckoutFormView modes (E07 A24, A16)", () => {
 });
 
 describe("payment and lookup forms", () => {
-  it("says plainly that the payment is a demo and no money moves", () => {
-    const html = renderToStaticMarkup(createElement(DemoPaymentBanner));
-    expect(html).toContain('role="status"');
-    expect(html).toContain(DEMO_PAYMENT_BANNER);
+  it("shows one note: a test payment and no money taken (A3, R03)", () => {
+    const html = renderToStaticMarkup(createElement(PaymentTestNote));
+    expect(html).toContain('role="note"');
+    expect(html).toContain("Test payment. No money is taken.");
+    expect(html).toContain(PAYMENT_TEST_NOTE);
+    // The class names carry the token names; the words the shopper reads do not say "demo".
+    expect(html).not.toMatch(/>[^<]*demo/i);
   });
 
   it("posts only the reference to pay, and shows pending and errors", () => {
@@ -241,7 +240,7 @@ describe("payment and lookup forms", () => {
       }),
     );
     expect(html).toContain(`name="reference" value="${REFERENCE}"`);
-    expect(html).toContain("Confirm demo payment (no charge)");
+    expect(html).toContain("Confirm test payment");
     expect(html.match(/<input/g)).toHaveLength(1);
     const pending = renderToStaticMarkup(
       createElement(PayFormView, {
@@ -276,7 +275,7 @@ describe("payment and lookup forms", () => {
   it("renders both through their client wrappers, and the status badge in words", () => {
     expect(
       renderToStaticMarkup(createElement(PayForm, { action: serverAction, reference: REFERENCE })),
-    ).toContain("no charge");
+    ).toContain("Confirm test payment");
     expect(renderToStaticMarkup(createElement(LookupForm, { action: serverAction }))).toContain(
       "Find order",
     );
@@ -290,15 +289,15 @@ describe("payment and lookup forms", () => {
 });
 
 describe("OrderDetails", () => {
-  it("thanks the shopper after the demo payment and says how it was paid", () => {
+  it("thanks the shopper after the test payment and says how it was paid", () => {
     const html = plainText(
       renderToStaticMarkup(createElement(OrderDetails, { order: paid, justPaid: true })),
     );
-    expect(html).toContain("Thank you — demo payment received");
+    expect(html).toContain("Thank you — test payment received");
     expect(html).toContain(REFERENCE);
-    expect(html).toContain("Paid with: Demo payment (no money charged)");
+    expect(html).toContain("Paid with: test payment (no money taken)");
     expect(html).toContain("Save this reference to check your order.");
-    expect(html).not.toContain("Complete demo payment");
+    expect(html).not.toContain("Complete test payment");
   });
 
   it("shows a pending order's status with a link back to the payment", () => {

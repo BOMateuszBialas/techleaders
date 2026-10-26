@@ -83,7 +83,7 @@ describe("demo store seed (PostgreSQL)", () => {
 
     const [window] = await query<{ first: string; last: string; customers: number }>(
       `select min(created_at)::text as first, max(created_at)::text as last,
-        count(*) filter (where customer_name not like '[DEMO] %' or customer_email not like '%@example.com')::int as customers
+        count(*) filter (where customer_email not like '%@example.com')::int as customers
         from orders`,
     );
     expect(window?.customers).toBe(0);

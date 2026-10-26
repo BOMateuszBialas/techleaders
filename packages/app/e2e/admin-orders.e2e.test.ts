@@ -46,7 +46,7 @@ describe("admin orders (E04-S01)", () => {
     await browser().fillLabel("City", "Łódź");
     await browser().fillLabel("Postal code", "90-001");
     await browser().clickRole("button", "Place order");
-    await browser().waitForText("Confirm demo payment (no charge)");
+    await browser().waitForText("Confirm test payment");
     return REFERENCE.exec(await browser().text("main"))?.[0] ?? "";
   }
 
@@ -76,8 +76,8 @@ describe("admin orders (E04-S01)", () => {
 
     const reference = await placeOrder(2);
     expect(reference).toMatch(REFERENCE);
-    await browser().clickRole("button", "Confirm demo payment (no charge)");
-    await browser().waitForText("Thank you — demo payment received");
+    await browser().clickRole("button", "Confirm test payment");
+    await browser().waitForText("Thank you — test payment received");
 
     await browser().open("/admin/orders");
     await browser().waitForText(reference);
@@ -97,7 +97,7 @@ describe("admin orders (E04-S01)", () => {
     expect(main).toContain("DEMO-CON-002");
     expect(main).toMatch(/99,00\s*zł/);
     expect(await browser().text('[data-testid="order-total"]')).toMatch(/198,00\s*zł/);
-    expect(main).toContain("free (demo store)");
+    expect(main).toContain("free");
     expect(main).toContain("Margaret Hamilton");
     expect(main).toContain("margaret@example.test");
     expect(main).toContain("ul. Piotrkowska 10");
@@ -170,7 +170,8 @@ describe("admin orders (E04-S01)", () => {
     expect(main).toContain(
       "Seeded demo order: the customer is fictional and no real purchase happened.",
     );
-    expect(main).toContain("[DEMO] ");
+    // Customer names carry no "[DEMO]" text (storefront v2, OA-2); the example.com email marks them.
+    expect(main).not.toContain("[DEMO]");
     expect(main).toMatch(/demo\.shopper\d{2}@example\.com/);
   });
 });

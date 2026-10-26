@@ -64,7 +64,8 @@ describe("storefront checkout (E02-S02)", () => {
     await openCheckout();
     const main = await browser().text("main");
     expect(main).toMatch(/249,00\s*zł/);
-    expect(main).toContain("free (demo store)");
+    expect(main).toContain("free");
+    expect(main).not.toContain("demo store");
     expect(main).toContain("Poland");
 
     await fillCustomer("not-an-email");
@@ -89,12 +90,12 @@ describe("storefront checkout (E02-S02)", () => {
     // Two quick submits of the same form: the button disables itself, and the server's
     // idempotency key covers a second request that gets through. The second click targets the
     // checkout form only: once the payment page has loaded, a generic submit selector would
-    // confirm the demo payment instead.
+    // confirm the test payment instead.
     await browser().clickRole("button", "Place order");
     await browser()
       .click('main form:has(#checkout-customerName) button[type="submit"]')
       .catch(() => {});
-    await browser().waitForText("Confirm demo payment (no charge)");
+    await browser().waitForText("Confirm test payment");
     expect(new URL(await browser().url()).pathname).toMatch(PAY_PAGE);
     expect(await browser().text("main")).toMatch(/498,00\s*zł/);
     // The cart was cleared.
