@@ -10,6 +10,8 @@ Long-term memory for LLM agents: an index. Add an entry after fixing a bug, or w
 
 <!-- Newest first -->
 
+- **2026-10-27 — A demo photo needs both the seed's `imageUrl` (new installs) and a data migration keyed by slug and SKU (existing rows), because the seeder is insert-only** — the Glide XL mousepad got `/photos/product-mouse-pad.jpg` this way; a new `CREDITS.md` row is required by `demo-photos.test.ts`.
+
 - **2026-10-27 — `usePathname` in a client component under a static layout fails `next build` unless it sits in `<Suspense>`; a constant exported from a `"use client"` file is a client reference, not a value; Storybook needs `nextjs.appDirectory: true` for a pathname parameter** — the admin nav keeps the pathname in a client list inside Suspense, with a server fallback (no `aria-current`) and the shared classes in a plain module. Run log `.ai/runs/2026-10-27-retrofit-admin-phase-1.md`.
 - **2026-10-27 — A Base UI tab's old panel stays mounted until its close completes, so an e2e read right after an arrow key can see both panels; poll the visible panels (not `hidden`, not `inert`) instead of reading `main` once** — fixed in `packages/app/e2e/product-page.e2e.test.ts`; failed only in CI, not reproduced locally
 
