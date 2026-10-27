@@ -10,6 +10,7 @@ Long-term memory for LLM agents: an index. Add an entry after fixing a bug, or w
 
 <!-- Newest first -->
 
+- **2026-10-27 — `usePathname` in a client component under a static layout fails `next build` unless it sits in `<Suspense>`; a constant exported from a `"use client"` file is a client reference, not a value; Storybook needs `nextjs.appDirectory: true` for a pathname parameter** — the admin nav keeps the pathname in a client list inside Suspense, with a server fallback (no `aria-current`) and the shared classes in a plain module. Run log `.ai/runs/2026-10-27-retrofit-admin-phase-1.md`.
 - **2026-10-27 — A Base UI tab's old panel stays mounted until its close completes, so an e2e read right after an arrow key can see both panels; poll the visible panels (not `hidden`, not `inert`) instead of reading `main` once** — fixed in `packages/app/e2e/product-page.e2e.test.ts`; failed only in CI, not reproduced locally
 
 - **2026-10-27 — A focus effect needs no coverage exclusion if the wrapper only wires it: `useEffect(effectFromTestedModule, [state])` runs the logic in a unit-tested module (the SSR tests never run effects); a worktree's `node_modules` can be a partial copy (no `.bin`, no `.d.ts`), and `npm ci` then fails with ENOTEMPTY, so `npm install` reconciles it; `test:hooks` takes about 2.5 min on Windows** — run log `.ai/runs/2026-10-27-retrofit-checkout-phase-2.md`

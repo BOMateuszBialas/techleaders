@@ -1,0 +1,21 @@
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+import * as AdminNavigationStories from "./admin-navigation.stories";
+
+<Meta of={AdminNavigationStories} />
+
+# Admin navigation
+
+## What it is for
+
+Moving between the admin sections (dashboard, orders, products, categories, Copilot) and back to the storefront. The current section is always visible and announced.
+
+## Rules
+
+- The sidebar is dark (`--sidebar`) in both themes; its text and focus use the sidebar tokens.
+- The current section has `aria-current="page"`, a 3 px `--sidebar-primary` marker and the accent background. The state is not colour alone.
+- The dashboard is current only on `/admin`; the other sections are current on their own pages and the pages under them.
+- Below 768 px the six links wrap into rows; from 768 px the sidebar is a column beside the content.
+
+<Canvas of={AdminNavigationStories.OnDashboard} />
+
+<Canvas of={AdminNavigationStories.OnNestedOrder} />
