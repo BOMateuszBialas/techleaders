@@ -144,3 +144,34 @@ describe("cart at 320 px", () => {
     expect(measured.remove).toBeGreaterThanOrEqual(44);
   });
 });
+
+/**
+ * The checkout at 320 px (retrofit Phase 2): the form and the order summary stack in one column,
+ * and the page does not scroll sideways. Nothing here places an order.
+ */
+describe("checkout at 320 px", () => {
+  const browser = useBrowser();
+
+  beforeAll(async () => {
+    await browser().setViewport(320, 640);
+  });
+
+  it("keeps the checkout form and the order summary within the viewport", async () => {
+    await browser().open("/products/vortex-wireless-mouse");
+    await browser().waitForText("Vortex Wireless Mouse");
+    await browser().clickRole("button", "Add to cart");
+    await browser().waitForText("Added to cart.");
+
+    await browser().open("/checkout");
+    await browser().waitForText("Place order");
+    await browser().waitForText("Total");
+    const measured = z
+      .object({ scrollWidth: z.number(), innerWidth: z.number() })
+      .parse(
+        await browser().evaluate(
+          "({ scrollWidth: document.documentElement.scrollWidth, innerWidth: window.innerWidth })",
+        ),
+      );
+    expect(measured.scrollWidth).toBe(measured.innerWidth);
+  });
+});

@@ -1,7 +1,8 @@
 import type { CopilotAnswerDto, CopilotAnswerRecommendation } from "@commerceos/ai";
-import { createElement } from "react";
+import { createElement, type ReactElement, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
+import { Textarea } from "@/components/ui/textarea";
 import {
   COPILOT_ANSWERS_URL,
   IDLE_COPILOT_STATE,
@@ -11,6 +12,7 @@ import {
   createAskCopilotAction,
   originText,
   periodText,
+  questionLengthText,
   type CopilotPanelState,
   type SuggestedQuestion,
 } from "./copilot-copy";
@@ -88,10 +90,29 @@ const DECLINED: CopilotAnswerDto = {
   definitions: [],
 };
 
-function render(state: CopilotPanelState, pending = false): string {
+function panelProps(state: CopilotPanelState, pending = false, questionLength = 0) {
+  return {
+    action: vi.fn(),
+    state,
+    pending,
+    questions: QUESTIONS,
+    questionLength,
+    onQuestionChange: vi.fn(),
+  };
+}
+
+function render(state: CopilotPanelState, pending = false, questionLength = 0): string {
   return renderToStaticMarkup(
-    createElement(CopilotPanelView, { action: vi.fn(), state, pending, questions: QUESTIONS }),
+    createElement(CopilotPanelView, panelProps(state, pending, questionLength)),
   );
+}
+
+/** Every element in the tree the view returns (the view is hook-free, so it can be called directly). */
+function elementsOf(node: ReactNode): ReactElement<{ children?: ReactNode; onChange?: unknown }>[] {
+  if (node === null || node === undefined || typeof node !== "object") return [];
+  if (Array.isArray(node)) return node.flatMap((child) => elementsOf(child));
+  const element = node as ReactElement<{ children?: ReactNode; onChange?: unknown }>;
+  return [element, ...elementsOf(element.props.children)];
 }
 
 function form(entries: Record<string, string>): FormData {
@@ -116,6 +137,13 @@ describe("copilot copy", () => {
     expect(originText(DECLINED)).toBeNull();
     if (!ANSWERED.period) throw new Error("fixture has a period");
     expect(periodText(ANSWERED.period)).toBe("Last 7 days: 11–17 Oct 2026 (Europe/Warsaw)");
+  });
+
+  it("writes the question counter for an empty, a one-character, a typical and a full question", () => {
+    expect(questionLengthText(0, 500)).toBe("0 of 500 characters");
+    expect(questionLengthText(1, 500)).toBe("1 of 500 characters");
+    expect(questionLengthText(120, 500)).toBe("120 of 500 characters");
+    expect(questionLengthText(500, 500)).toBe("500 of 500 characters");
   });
 });
 
@@ -199,6 +227,33 @@ describe("CopilotPanelView", () => {
     expect(html).toContain('maxLength="500"');
     expect(html).toContain("kept text");
     expect(html).not.toContain("copilot-answer");
+  });
+
+  it("binds the question label to the textarea and names the limit and the counter in its description", () => {
+    const html = render(IDLE_COPILOT_STATE, false, 120);
+    expect(html).toContain('for="copilot-question"');
+    expect(html).toContain('id="copilot-question"');
+    expect(html).toContain('aria-describedby="copilot-question-hint"');
+    expect(html).toMatch(/id="copilot-question-hint"[^>]*>Up to 500 characters, in English\./);
+    expect(html).toContain("120 of 500 characters");
+  });
+
+  it("keeps the counter out of any live region, so it is not read on each keystroke", () => {
+    const html = render({ ...IDLE_COPILOT_STATE, question: "x" }, false, 1);
+    const form = html.slice(html.indexOf("<form"), html.indexOf("</form>"));
+    expect(form).toContain("1 of 500 characters");
+    expect(form).not.toContain("aria-live");
+  });
+
+  it("reports the typed length from the textarea's change event", () => {
+    const onQuestionChange = vi.fn();
+    const tree = CopilotPanelView({ ...panelProps(IDLE_COPILOT_STATE), onQuestionChange });
+    const textarea = elementsOf(tree).find((element) => element.type === Textarea);
+    const onChange = textarea?.props.onChange as (event: {
+      currentTarget: { value: string };
+    }) => void;
+    onChange({ currentTarget: { value: "How many units?" } });
+    expect(onQuestionChange).toHaveBeenCalledWith(15);
   });
 
   it("shows the pending state and disables the buttons", () => {
