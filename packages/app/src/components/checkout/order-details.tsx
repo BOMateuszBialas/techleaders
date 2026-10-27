@@ -1,8 +1,10 @@
-import Link from "next/link";
 import type { OrderView } from "@commerceos/core";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { TextLink } from "@/components/ui/text-link";
 import { orderPaths } from "@/server/orders/order-paths";
 import {
   COMPLETE_PAYMENT_LINK,
+  LOOKUP_ANOTHER_ORDER_LINK,
   ORDER_STATUS_HEADING,
   PAID_HEADING,
   PAID_WITH_TEST,
@@ -15,7 +17,8 @@ import { OrderSummary } from "./order-summary";
  * The order page (cart spec, UI/UX "/orders/[reference]"): the reference (copy-friendly,
  * monospace), the status, items and totals, and how it was paid. Never the customer's name,
  * email or address (A8). Right after the demo payment (`justPaid`) the heading thanks the
- * shopper; a pending order links back to the payment step.
+ * shopper; a pending order links back to the payment step. The paid line is a status (retrofit
+ * Phase 3, E02 target), so it is an `Alert success` with `role="status"`.
  */
 export function OrderDetails({ order, justPaid }: { order: OrderView; justPaid: boolean }) {
   return (
@@ -40,19 +43,18 @@ export function OrderDetails({ order, justPaid }: { order: OrderView; justPaid: 
         total={order.total}
       />
       {order.paidAt && order.paymentProvider === "demo" ? (
-        <p className="text-sm font-medium">{PAID_WITH_TEST}</p>
+        <Alert variant="success" role="status">
+          <AlertDescription>{PAID_WITH_TEST}</AlertDescription>
+        </Alert>
       ) : null}
       {order.status === "pending_payment" ? (
-        <Link
-          href={orderPaths.pay(order.reference)}
-          className="w-fit text-sm font-medium underline underline-offset-4"
-        >
+        <TextLink href={orderPaths.pay(order.reference)} variant="standalone">
           {COMPLETE_PAYMENT_LINK}
-        </Link>
+        </TextLink>
       ) : null}
-      <Link href={orderPaths.lookup} className="w-fit text-sm underline underline-offset-4">
-        Look up another order
-      </Link>
+      <TextLink href={orderPaths.lookup} variant="standalone">
+        {LOOKUP_ANOTHER_ORDER_LINK}
+      </TextLink>
     </div>
   );
 }

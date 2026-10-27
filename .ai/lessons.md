@@ -11,6 +11,7 @@ Long-term memory for LLM agents: an index. Add an entry after fixing a bug, or w
 <!-- Newest first -->
 
 - **2026-10-27 — A DS Button's wrap belongs to a size, not a class override: move `whitespace-nowrap` out of the shared base into the sizes and add `sm-wrap`; a computed-style snapshot of every story shows only the intended buttons changed** — run log `.ai/runs/2026-10-27-ds-button-wrap.md`.
+- **2026-10-27 — A status mapping is a `Record` that must stay exhaustive, but a per-status emphasis is a class, so it is a branch the 100% gate counts: test both sides** — retrofit checkout Phase 3 (`order-status-badge.ts`, `shipped` strong text); run log `.ai/runs/2026-10-27-retrofit-checkout-phase-3.md`.
 - **2026-10-27 — A nullable entity column is `T | undefined` in the inferred type: `?? null` in the adapter passes `tsc` in one package but fails `next build` (strict app check), and its branch needs a test with `undefined`** — category tile photos (OA-11a/OA-4c); the schema change ships as `Migration20261027100000_category_image`, its backfill as `Migration20261027100100_demo_category_images`.
 - **2026-10-27 — A demo photo needs both the seed's `imageUrl` (new installs) and a data migration keyed by slug and SKU (existing rows), because the seeder is insert-only** — the Glide XL mousepad got `/photos/product-mouse-pad.jpg` this way; a new `CREDITS.md` row is required by `demo-photos.test.ts`.
 

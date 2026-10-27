@@ -33,7 +33,12 @@ export const PAID_WITH_TEST = "Paid with: test payment (no money taken)";
 export const COMPLETE_PAYMENT_LINK = "Complete test payment";
 /** No email is sent (spec G7): the reference is how the shopper finds the order again. */
 export const SAVE_REFERENCE_NOTE = "Save this reference to check your order.";
+/** The sr-only name of the order loading state (retrofit Phase 3, B3.16). */
+export const ORDER_LOADING_LABEL = "Loading order";
 export const ORDER_NOT_FOUND_HEADING = "No order found with this reference";
+export const ORDER_NOT_FOUND_HINT = "Check the reference and try again.";
+export const LOOKUP_ORDER_LINK = "Look up an order";
+export const LOOKUP_ANOTHER_ORDER_LINK = "Look up another order";
 export const ORDER_UNAVAILABLE_MESSAGE =
   "Orders are temporarily unavailable. Please try again later.";
 

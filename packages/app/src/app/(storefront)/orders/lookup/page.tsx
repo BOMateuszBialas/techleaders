@@ -10,7 +10,7 @@ export default function OrderLookupPage() {
   return (
     <>
       <h1 className="text-3xl font-semibold tracking-tight">{LOOKUP_HEADING}</h1>
-      <p className="text-sm text-muted-foreground">
+      <p className="max-w-prose text-sm text-muted-foreground">
         Enter the reference shown after your order. {SAVE_REFERENCE_NOTE}
       </p>
       <LookupForm action={lookupOrder} />
