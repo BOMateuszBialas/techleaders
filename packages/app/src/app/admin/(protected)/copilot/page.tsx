@@ -1,6 +1,7 @@
 import { SUGGESTED_QUESTIONS } from "@commerceos/ai";
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ADVISORY_TEXT } from "@/components/admin/copilot/copilot-copy";
 import { CopilotPanel } from "@/components/admin/copilot/copilot-panel";
 import { RecommendationStatusesProvider } from "@/components/admin/copilot/recommendation-statuses";
@@ -22,9 +23,9 @@ export default function CopilotPage({ searchParams }: PageProps<"/admin/copilot"
     <div className="flex max-w-4xl flex-col gap-6">
       <div className="flex flex-col gap-2">
         <h1 className="text-2xl font-semibold tracking-tight">Commerce Copilot</h1>
-        <p role="note" className="rounded-md border bg-muted/40 p-3 text-sm">
-          {ADVISORY_TEXT}
-        </p>
+        <Alert variant="info" role="note">
+          <AlertDescription>{ADVISORY_TEXT}</AlertDescription>
+        </Alert>
       </div>
       <Suspense fallback={<p className="text-sm text-muted-foreground">Loading Copilot…</p>}>
         <CopilotSection searchParams={searchParams} />

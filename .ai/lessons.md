@@ -10,6 +10,8 @@ Long-term memory for LLM agents: an index. Add an entry after fixing a bug, or w
 
 <!-- Newest first -->
 
+- **2026-10-27 — Parallel agents share the session scratchpad: a run log written there was overwritten by another worktree's run; log each run to its own subfolder. A DS `Button` is `whitespace-nowrap` with a fixed height, so a long label overflows at 320 px; the wrap needs a DS change (`cn` does not merge the override), and a hook-free view's change handler is tested by walking the element tree it returns** — run log `.ai/runs/2026-10-27-retrofit-copilot-phase-1.md`
+
 - **2026-10-26 — An e2e count over a shared test id picks up other suites' rows; scope it to the region under test. A shared integration DB needs a schema reset before a re-seed; a SQL `like` must match the code's trim and case rule** — run log `.ai/runs/2026-10-26-followups-demo-sku-copilot-e2e.md`
 - **2026-10-26 — A commit message read from a fixed scratch path can be a stale file: use a new file name per commit, and amend before pushing** — a `git commit -F` read an old `msg1.txt` in the scratchpad, so the commit carried another message; `git commit --amend -F` on the unpushed commit fixed it.
 
