@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { money } from "@commerceos/core";
-import { expect, fn, within } from "storybook/test";
+import { expect, fn, waitFor, within } from "storybook/test";
 import { CheckoutForm } from "@/components/checkout/checkout-form";
 import { CheckoutFormView } from "@/components/checkout/checkout-form-view";
 import {
@@ -142,8 +142,9 @@ export const FocusAfterSubmit: StoryObj<typeof CheckoutForm> = {
   ),
   play: async ({ canvas, userEvent }) => {
     await userEvent.click(canvas.getByRole("button", { name: "Place order" }));
-    await expect(canvas.getByLabelText("Full name")).toHaveFocus();
-    await expect(failingSubmit).toHaveBeenCalled();
+    // The result arrives asynchronously from useActionState, and the focus moves after it.
+    await waitFor(() => expect(canvas.getByLabelText("Full name")).toHaveFocus());
+    await waitFor(() => expect(failingSubmit).toHaveBeenCalled());
   },
 };
 
