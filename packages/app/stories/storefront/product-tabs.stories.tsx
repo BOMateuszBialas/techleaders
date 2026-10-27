@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
-import { expect, within } from "storybook/test";
+import { expect, waitFor, within } from "storybook/test";
 import { TECHNICAL_DATA_EMPTY } from "@/components/catalog/product-page-copy";
 import { ProductTabs } from "@/components/catalog/product-tabs";
 import { EXAMPLE_DELIVERY_TEXT } from "@/components/storefront/storefront-content";
@@ -48,7 +48,8 @@ export const WithTechnicalData: TabsStory = {
 
     await userEvent.click(canvas.getByRole("tab", { name: "Delivery and returns" }));
     await expect(canvas.getByText(EXAMPLE_DELIVERY_TEXT)).toBeInTheDocument();
-    await expect(canvas.queryByText("Sensor")).toBeNull();
+    // The previous panel stays mounted until its close completes (Base UI), so wait for it to go.
+    await waitFor(() => expect(canvas.queryByText("Sensor")).toBeNull());
   },
 };
 
