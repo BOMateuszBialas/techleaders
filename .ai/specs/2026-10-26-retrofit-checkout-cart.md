@@ -336,6 +336,17 @@ All "Try again" and retry actions are links to the same URL, so they work withou
 - A long product name in a cart line: `wrap-anywhere` on the name and no fixed width on the line (unchanged).
 - Dark theme: every new `Alert` uses its token pair (`success`, `warning`, `destructive`, `demo`), which the DS already checked in both themes. The `action` button is never placed in `Empty` (B3.20).
 
+## Screen IDs
+
+Screen IDs are from `.ai/design/mapa-ekranow.md` §3. The phasing below is unchanged; this note only maps each phase to the screens it touches.
+
+| Phase | Screen IDs | Note |
+|---|---|---|
+| 1 Cart, drawer, header cart link, add to cart | s04 (cart), s03 (Add to cart), s02 (product card button) | The drawer has no screen ID in the map; it opens from the header cart link on every shopper screen |
+| 2 Checkout form and order summary | s05 | |
+| 3 Payment step, confirmation, not-found, lookup, status mapping | s06, s07, s08; the status badge also shows on s11 | |
+| 4 Store error page | none of its own | `error.tsx` of the storefront covers the error states of s01–s12 (map §7, Error row) |
+
 ## Phasing summary
 
 | Phase | Scope | Risk | Owner approvals that gate it | Migration |
