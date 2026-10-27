@@ -1,34 +1,46 @@
 import { COPILOT_QUESTION_MAX_LENGTH } from "@commerceos/core";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+import { Field, FieldDescription, FieldLabel, FieldLegend, FieldSet } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
 import { CopilotAnswerView } from "./copilot-answer-view";
-import { PENDING_TEXT, type CopilotPanelState, type SuggestedQuestion } from "./copilot-copy";
+import {
+  PENDING_TEXT,
+  questionLengthText,
+  type CopilotPanelState,
+  type SuggestedQuestion,
+} from "./copilot-copy";
 import type { RecommendationStatusAction } from "./recommendation-copy";
 
 /**
  * Hook-free Copilot panel: the suggested-question buttons and a typed question in one form,
  * then the answer region (`aria-live`) with the pending state, an error or the answer.
+ * `questionLength` and `onQuestionChange` come from the wrapper, which holds the counter's state
+ * (OA-4); the counter is not in an `aria-live` region, so it is not read on each keystroke (A6).
  */
 export function CopilotPanelView({
   action,
   state,
   pending,
   questions,
+  questionLength,
+  onQuestionChange,
   statusAction,
 }: {
   action: (formData: FormData) => void;
   state: CopilotPanelState;
   pending: boolean;
   questions: SuggestedQuestion[];
+  /** Characters in the typed question (the counter). */
+  questionLength: number;
+  onQuestionChange: (length: number) => void;
   /** Saves, dismisses or completes a stored recommendation (Phase 4). */
   statusAction?: RecommendationStatusAction;
 }) {
   return (
     <div className="flex flex-col gap-6">
       <form action={action} className="flex flex-col gap-4" aria-busy={pending}>
-        <fieldset className="flex flex-col gap-2" disabled={pending}>
-          <legend className="mb-2 text-sm font-medium">Suggested questions</legend>
+        <FieldSet disabled={pending}>
+          <FieldLegend>Suggested questions</FieldLegend>
           <div className="flex flex-wrap gap-2">
             {questions.map((item) => (
               <Button
@@ -43,9 +55,9 @@ export function CopilotPanelView({
               </Button>
             ))}
           </div>
-        </fieldset>
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="copilot-question">Or ask about your store</Label>
+        </FieldSet>
+        <Field>
+          <FieldLabel htmlFor="copilot-question">Or ask about your store</FieldLabel>
           <Textarea
             id="copilot-question"
             name="question"
@@ -54,15 +66,17 @@ export function CopilotPanelView({
             readOnly={pending}
             placeholder="Which products are low on stock?"
             aria-describedby="copilot-question-hint"
+            onChange={(event) => onQuestionChange(event.currentTarget.value.length)}
           />
-          <p id="copilot-question-hint" className="text-sm text-muted-foreground">
-            Up to {COPILOT_QUESTION_MAX_LENGTH} characters, in English.
-          </p>
-          <div>
-            <Button type="submit" disabled={pending}>
-              Ask
-            </Button>
-          </div>
+          <FieldDescription id="copilot-question-hint">
+            Up to {COPILOT_QUESTION_MAX_LENGTH} characters, in English.{" "}
+            <span>{questionLengthText(questionLength, COPILOT_QUESTION_MAX_LENGTH)}</span>
+          </FieldDescription>
+        </Field>
+        <div>
+          <Button type="submit" disabled={pending}>
+            Ask
+          </Button>
         </div>
       </form>
       <div aria-live="polite">

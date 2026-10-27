@@ -59,6 +59,11 @@ export function originText(answer: CopilotAnswerDto): string | null {
     : RULE_BASED_LABEL;
 }
 
+/** The question counter under the field, e.g. "120 of 500 characters" (Q5: always visible). */
+export function questionLengthText(length: number, max: number): string {
+  return `${length} of ${max} characters`;
+}
+
 /** "Last 7 days: 11–17 Oct 2026 (Europe/Warsaw)". */
 export function periodText(period: NonNullable<CopilotAnswerDto["period"]>): string {
   return `${period.name}: ${period.label} (${period.timeZone})`;
