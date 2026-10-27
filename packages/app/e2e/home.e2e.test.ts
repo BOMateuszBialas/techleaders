@@ -113,8 +113,9 @@ describe("storefront home page (Phase 1b)", () => {
   it("shows All for an unknown or malformed category, without an error", async () => {
     for (const path of ["/?category=no-such-category", "/?category=Not%20a%20slug!"]) {
       await browser().open(path);
-      await browser().waitForText("Vortex Wireless Mouse");
+      await browser().waitForText("Nova TKL Mechanical Keyboard");
       const main = await browser().text("main");
+      expect(main).toContain("Vortex Wireless Mouse");
       expect(main).toContain("Nova TKL Mechanical Keyboard");
       expect(main).not.toContain("does not exist");
     }
