@@ -8,8 +8,9 @@ import PayNotFound from "@/app/(storefront)/checkout/pay/[reference]/not-found";
 import { CartChanges } from "../cart/cart-changes";
 import { orderStatusLabel, PAYMENT_TEST_NOTE } from "./checkout-copy";
 import { CheckoutForm } from "./checkout-form";
-import { CheckoutFormView } from "./checkout-form-view";
+import { CHECKOUT_FIELD_NAMES, CheckoutFormView } from "./checkout-form-view";
 import { CHECKOUT_SESSION_LOST, type CheckoutMode } from "./checkout-mode";
+import { CheckoutPageSkeleton, CheckoutPageUnavailable } from "./checkout-page-states";
 import { OrderDetails } from "./order-details";
 import { LookupForm, PayForm } from "./order-forms";
 import { LookupFormView, OrderStatusBadge, PaymentTestNote, PayFormView } from "./order-forms-view";
@@ -92,6 +93,8 @@ describe("OrderSummary", () => {
     expect(html).not.toContain("demo");
     expect(html).toContain("498,00 zł");
     expect(html).not.toMatch(/tax|VAT/i);
+    expect(html).toContain('data-slot="card"');
+    expect(html).toContain('aria-label="Order summary"');
   });
 
   it("shows a non-zero shipping amount as money", () => {
@@ -142,6 +145,51 @@ describe("CheckoutFormView", () => {
     expect(renderCheckout(IDLE_ACTION_STATE, true)).toContain("Placing order…");
   });
 
+  it("puts the label, control and error of each field in that order, with '(optional)' on one field", () => {
+    const html = renderCheckout({
+      status: "error",
+      message: "Check the highlighted fields.",
+      fieldErrors: { shippingCity: ["Enter a city."] },
+    });
+    const city = html.slice(html.indexOf('for="checkout-shippingCity"'));
+    expect(city.indexOf("City")).toBeLessThan(city.indexOf("<input"));
+    expect(city.indexOf("<input")).toBeLessThan(city.indexOf("Enter a city."));
+    expect(html.match(/\(optional\)/g)).toHaveLength(1);
+    expect(html.indexOf("Address line 2")).toBeLessThan(html.indexOf("(optional)"));
+    expect(html.match(/data-slot="field-error"/g)).toHaveLength(1);
+    expect(html.match(/data-slot="field"/g)).toHaveLength(CHECKOUT_FIELD_NAMES.length);
+  });
+
+  it("renders the server's message in an Alert with role alert, and the field errors once", () => {
+    const html = renderCheckout({
+      status: "error",
+      message: "Check the highlighted fields.",
+      fieldErrors: { customerEmail: ["Enter a valid email address."] },
+    });
+    expect(html).toMatch(/data-slot="alert"[^>]*data-variant="destructive"/);
+    expect(html).toMatch(/role="alert"[^>]*>(?:(?!<\/div>).)*Check the highlighted fields\./);
+    expect(html.match(/Enter a valid email address\./g)).toHaveLength(1);
+  });
+
+  it("makes Place order the purchase colour and marks it busy while pending", () => {
+    const idle = renderCheckout(IDLE_ACTION_STATE);
+    expect(idle).toMatch(/<button[^>]*bg-action[^>]*>Place order<\/button>/);
+    expect(idle).toContain('aria-busy="false"');
+    const pending = renderCheckout(IDLE_ACTION_STATE, true);
+    expect(pending).toContain('aria-busy="true"');
+    expect(pending).toMatch(/<button[^>]*disabled=""[^>]*>Placing order…<\/button>/);
+  });
+
+  it("renders the loading and unavailable states of the page", () => {
+    const loading = renderToStaticMarkup(createElement(CheckoutPageSkeleton));
+    expect(loading).toContain("Loading checkout");
+    expect(loading).toContain('role="status"');
+    const unavailable = renderToStaticMarkup(createElement(CheckoutPageUnavailable));
+    expect(unavailable).toContain("Checkout unavailable");
+    expect(unavailable).toContain('role="alert"');
+    expect(unavailable).toMatch(/<a[^>]*href="\/checkout"[^>]*>Try again<\/a>/);
+  });
+
   it("renders through its client wrapper", () => {
     const html = renderToStaticMarkup(
       createElement(CheckoutForm, {
@@ -158,7 +206,8 @@ describe("CheckoutFormView", () => {
 
 describe("CheckoutFormView modes (E07 A24, A16)", () => {
   const ACCOUNT: CheckoutMode = { kind: "account", email: "a@shop.example" };
-  const modeLine = (html: string) => /data-testid="checkout-mode">(.*?)<\/div>/.exec(html)?.[1];
+  // From the mode block to the end of the form: the block holds an `Alert`, which has its own divs.
+  const modeLine = (html: string) => html.slice(html.indexOf('data-testid="checkout-mode"'));
 
   it("shows the account mode, carries checkoutAs=account and prefills the editable email", () => {
     const html = renderCheckout(IDLE_ACTION_STATE, false, ACCOUNT);
@@ -193,8 +242,9 @@ describe("CheckoutFormView modes (E07 A24, A16)", () => {
 
   it("adds the banner when the page could not confirm the sign-in", () => {
     const html = renderCheckout(IDLE_ACTION_STATE, false, { kind: "guest", sessionError: true });
+    expect(modeLine(html)).toMatch(/<div[^>]*role="alert"[^>]*>/);
     expect(modeLine(html)).toContain(
-      '<p role="alert" class="text-destructive">We could not confirm your sign-in, so you are checking out as a guest.',
+      "We could not confirm your sign-in, so you are checking out as a guest.",
     );
     expect(html).toContain('name="checkoutAs" value="guest"');
   });

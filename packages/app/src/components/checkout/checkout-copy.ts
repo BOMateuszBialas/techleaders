@@ -10,6 +10,9 @@ export const SHIPPING_FREE = "free";
 export const REVIEW_CART_LINK = "Review your cart";
 export const CHECKOUT_UNAVAILABLE_MESSAGE =
   "Checkout is temporarily unavailable. Please try again later.";
+/** OA-5 (retrofit Phase 2): the title of the unavailable state; the retry label is "Try again". */
+export const CHECKOUT_UNAVAILABLE_TITLE = "Checkout unavailable";
+export const CHECKOUT_LOADING_LABEL = "Loading checkout";
 export const CART_CHANGES_HEADING = "Your cart changed";
 /** OA-1 (retrofit Phase 1): "OK, update my cart" said nothing about what changes (WhatIsMissing P9). */
 export const ACCEPT_CART_CHANGES_BUTTON = "Update my cart";

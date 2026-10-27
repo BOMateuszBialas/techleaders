@@ -10,6 +10,8 @@ Long-term memory for LLM agents: an index. Add an entry after fixing a bug, or w
 
 <!-- Newest first -->
 
+- **2026-10-27 — A focus effect needs no coverage exclusion if the wrapper only wires it: `useEffect(effectFromTestedModule, [state])` runs the logic in a unit-tested module (the SSR tests never run effects); a worktree's `node_modules` can be a partial copy (no `.bin`, no `.d.ts`), and `npm ci` then fails with ENOTEMPTY, so `npm install` reconciles it; `test:hooks` takes about 2.5 min on Windows** — run log `.ai/runs/2026-10-27-retrofit-checkout-phase-2.md`
+
 - **2026-10-26 — An e2e count over a shared test id picks up other suites' rows; scope it to the region under test. A shared integration DB needs a schema reset before a re-seed; a SQL `like` must match the code's trim and case rule** — run log `.ai/runs/2026-10-26-followups-demo-sku-copilot-e2e.md`
 - **2026-10-26 — A commit message read from a fixed scratch path can be a stale file: use a new file name per commit, and amend before pushing** — a `git commit -F` read an old `msg1.txt` in the scratchpad, so the commit carried another message; `git commit --amend -F` on the unpushed commit fixed it.
 
