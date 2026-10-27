@@ -10,6 +10,8 @@ Long-term memory for LLM agents: an index. Add an entry after fixing a bug, or w
 
 <!-- Newest first -->
 
+- **2026-10-27 — A DS Button's wrap belongs to a size, not a class override: move `whitespace-nowrap` out of the shared base into the sizes and add `sm-wrap`; a computed-style snapshot of every story shows only the intended buttons changed** — run log `.ai/runs/2026-10-27-ds-button-wrap.md`.
+
 - **2026-10-27 — A demo photo needs both the seed's `imageUrl` (new installs) and a data migration keyed by slug and SKU (existing rows), because the seeder is insert-only** — the Glide XL mousepad got `/photos/product-mouse-pad.jpg` this way; a new `CREDITS.md` row is required by `demo-photos.test.ts`.
 
 - **2026-10-27 — `usePathname` in a client component under a static layout fails `next build` unless it sits in `<Suspense>`; a constant exported from a `"use client"` file is a client reference, not a value; Storybook needs `nextjs.appDirectory: true` for a pathname parameter** — the admin nav keeps the pathname in a client list inside Suspense, with a server fallback (no `aria-current`) and the shared classes in a plain module. Run log `.ai/runs/2026-10-27-retrofit-admin-phase-1.md`.
