@@ -331,6 +331,19 @@ Tests and e2e:
 
 Carried from the decisions table. Open questions below are not decided by this spec.
 
+## Screen IDs
+
+Screen IDs are from `.ai/design/mapa-ekranow.md` §3. The phasing below is unchanged; this note only maps each phase to the screens it touches.
+
+| Phase | Screen IDs | Note |
+|---|---|---|
+| 1 Shell, navigation, error and session states | s14–s19 (shell of the protected pages); s14 error state | The not-found page and the session fallback have no screen ID of their own |
+| 2 Dashboard | s14 | |
+| 3 Products and categories, forms, feedback, category delete | none | The map covers the key flows only; product and category admin pages are not in it |
+| 4 Stock panel and CSV import | none | Stock and import are outside the key flows |
+| 5 Orders list, detail, status, destructive confirmation | s15, s16 | s16 cancel and refund confirmations |
+| 6 States sweep, sign-in (if approved), Storybook, close-out | s13 (sign-in, only if OA-7); loading and empty states of s14–s17 | Sweep covers every admin screen; loading uses the Q6 skeleton |
+
 ## 📋 Phasing
 
 | Phase | Title | Risk | Depends on | Files (summary) |
