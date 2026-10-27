@@ -10,8 +10,8 @@ import { HOME_HERO, PROMO_BANNERS, WHY_BUY_HERE } from "./storefront-content";
 import { WhyBuyHere } from "./why-buy-here";
 
 const categories = [
-  { slug: "mice", name: "Mice", productCount: 3 },
-  { slug: "mousepads", name: "Mousepads", productCount: 1 },
+  { slug: "mice", name: "Mice", productCount: 3, imageUrl: null },
+  { slug: "mousepads", name: "Mousepads", productCount: 1, imageUrl: null },
 ];
 
 describe("HomeHero", () => {
@@ -72,6 +72,33 @@ describe("CategoryTiles", () => {
     expect(html).toContain("1 product<");
     expect(html.match(/No photo yet/g)).toHaveLength(2);
     expect(html).not.toContain("<img");
+  });
+
+  it("shows the category photo when it has one, and the label otherwise", () => {
+    const html = renderToStaticMarkup(
+      createElement(CategoryTiles, {
+        categories: [
+          { slug: "mice", name: "Mice", productCount: 3, imageUrl: "/photos/category-mice.jpg" },
+          { slug: "mousepads", name: "Mousepads", productCount: 1, imageUrl: null },
+        ],
+      }),
+    );
+    expect(html.match(/<img/g)).toHaveLength(1);
+    expect(html).toContain('src="/photos/category-mice.jpg"');
+    expect(html).toContain('alt=""');
+    expect(html.match(/No photo yet/g)).toHaveLength(1);
+  });
+
+  it("does not show a demo SVG as a category photo (storefront photo rule)", () => {
+    const html = renderToStaticMarkup(
+      createElement(CategoryTiles, {
+        categories: [
+          { slug: "mice", name: "Mice", productCount: 3, imageUrl: "/demo/products/x.svg" },
+        ],
+      }),
+    );
+    expect(html).not.toContain("<img");
+    expect(html).toContain("No photo yet");
   });
 
   it("renders nothing when no category holds a published product", () => {
