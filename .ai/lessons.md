@@ -10,6 +10,8 @@ Long-term memory for LLM agents: an index. Add an entry after fixing a bug, or w
 
 <!-- Newest first -->
 
+- **2026-10-27 — Next 16 error boundaries get both `retry` and `reset`; the docs use `retry` (re-fetch) for a failed server render, and `reset` only re-renders the cached tree. A store `error.tsx` that calls `reset` needs the owner's confirmation before it is treated as a working "Try again"** — the approved OA-6 wording says `reset()`; the admin `error.tsx` uses `retry`. A boundary that is a hook-free wrapper is unit-tested by calling it as a function (its `error.tsx` is in coverage, not excluded).
+
 - **2026-10-27 — A DS Button's wrap belongs to a size, not a class override: move `whitespace-nowrap` out of the shared base into the sizes and add `sm-wrap`; a computed-style snapshot of every story shows only the intended buttons changed** — run log `.ai/runs/2026-10-27-ds-button-wrap.md`.
 - **2026-10-27 — A nullable entity column is `T | undefined` in the inferred type: `?? null` in the adapter passes `tsc` in one package but fails `next build` (strict app check), and its branch needs a test with `undefined`** — category tile photos (OA-11a/OA-4c); the schema change ships as `Migration20261027100000_category_image`, its backfill as `Migration20261027100100_demo_category_images`.
 - **2026-10-27 — A demo photo needs both the seed's `imageUrl` (new installs) and a data migration keyed by slug and SKU (existing rows), because the seeder is insert-only** — the Glide XL mousepad got `/photos/product-mouse-pad.jpg` this way; a new `CREDITS.md` row is required by `demo-photos.test.ts`.
