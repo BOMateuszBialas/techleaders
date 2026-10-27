@@ -10,6 +10,8 @@ Long-term memory for LLM agents: an index. Add an entry after fixing a bug, or w
 
 <!-- Newest first -->
 
+- **2026-10-27 — A nullable entity column is `T | undefined` in the inferred type: `?? null` in the adapter passes `tsc` in one package but fails `next build` (strict app check), and its branch needs a test with `undefined`** — category tile photos (OA-11a/OA-4c); the schema change ships as `Migration20261027100000_category_image`, its backfill as `Migration20261027100100_demo_category_images`.
+
 - **2026-10-27 — `usePathname` in a client component under a static layout fails `next build` unless it sits in `<Suspense>`; a constant exported from a `"use client"` file is a client reference, not a value; Storybook needs `nextjs.appDirectory: true` for a pathname parameter** — the admin nav keeps the pathname in a client list inside Suspense, with a server fallback (no `aria-current`) and the shared classes in a plain module. Run log `.ai/runs/2026-10-27-retrofit-admin-phase-1.md`.
 - **2026-10-27 — A Base UI tab's old panel stays mounted until its close completes, so an e2e read right after an arrow key can see both panels; poll the visible panels (not `hidden`, not `inert`) instead of reading `main` once** — fixed in `packages/app/e2e/product-page.e2e.test.ts`; failed only in CI, not reproduced locally
 

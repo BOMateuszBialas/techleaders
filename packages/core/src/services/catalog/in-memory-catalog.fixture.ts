@@ -11,12 +11,14 @@ export const MICE: CatalogCategoryRecord = {
   slug: "mice",
   name: "Mice",
   description: "Gaming mice",
+  imageUrl: "/photos/category-mice.jpg",
 };
 export const EMPTY: CatalogCategoryRecord = {
   id: "cat-empty",
   slug: "empty",
   name: "Empty",
   description: null,
+  imageUrl: null,
 };
 
 export function productRecord(overrides: Partial<CatalogProductRecord> = {}): CatalogProductRecord {
@@ -100,6 +102,7 @@ export class InMemoryCatalog implements CatalogReadPort {
       .map((category) => ({
         slug: category.slug,
         name: category.name,
+        imageUrl: category.imageUrl,
         productCount: this.products.filter(
           (product) =>
             product.status === "published" && this.productCategoryIds[product.slug] === category.id,

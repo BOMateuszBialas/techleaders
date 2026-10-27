@@ -8,6 +8,8 @@ export type CatalogCategoryRecord = {
   slug: string;
   name: string;
   description: string | null;
+  /** The tile photo path (OA-11a); the storefront shows it only under `/photos/`. Null when none. */
+  imageUrl: string | null;
 };
 
 /** A category with how many published products it holds (0 when none). */
@@ -15,6 +17,7 @@ export type CatalogCategoryCountRecord = {
   slug: string;
   name: string;
   productCount: number;
+  imageUrl: string | null;
 };
 
 /** A product as stored, with its category (null when it has none). */
