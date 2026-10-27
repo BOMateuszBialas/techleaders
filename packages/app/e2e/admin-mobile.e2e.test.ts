@@ -65,20 +65,31 @@ describe("admin shell at 390 px", () => {
     await browser().screenshot(`${ARTIFACTS_DIR}/admin-nav-390.png`);
   });
 
-  it("keeps Copilot evidence tables readable without sideways scrolling", async () => {
+  it("shows Copilot evidence as a list on a phone, without sideways scrolling", async () => {
     await browser().open("/admin/copilot");
     await browser().waitForText("Or ask about your store");
     await browser().clickRole("button", "Which products get views but few sales?");
     await browser().waitForText("Most viewed products in the last 7 days");
-    const overflow = z
-      .array(z.number())
+    // The table is hidden below the container breakpoint (D6, Q1), so it is checked as hidden:
+    // a hidden table has no overflow, which would pass the old check vacuously.
+    const evidence = z
+      .object({
+        pageFits: z.boolean(),
+        tableHidden: z.boolean(),
+        listShown: z.boolean(),
+        valuesInside: z.boolean(),
+      })
       .parse(
         await browser().evaluate(
-          "[...document.querySelectorAll('main [data-testid=\"copilot-answer\"] [data-slot=table-container]')].map((c) => c.scrollWidth - c.clientWidth)",
+          "(() => { const answer = document.querySelector('main [data-testid=\"copilot-answer\"]'); const table = answer.querySelector('[data-slot=table]'); const list = answer.querySelector('ul[aria-label]'); return { pageFits: document.documentElement.scrollWidth <= window.innerWidth, tableHidden: table.getClientRects().length === 0, listShown: list.getClientRects().length > 0, valuesInside: [...list.querySelectorAll('dd')].every((dd) => { const r = dd.getBoundingClientRect(); return r.left >= 0 && r.right <= window.innerWidth; }) }; })()",
         ),
       );
-    expect(overflow.length).toBeGreaterThan(0);
-    for (const extra of overflow) expect(extra).toBe(0);
+    expect(evidence).toEqual({
+      pageFits: true,
+      tableHidden: true,
+      listShown: true,
+      valuesInside: true,
+    });
     await browser().screenshot(`${ARTIFACTS_DIR}/admin-copilot-390.png`);
   });
 

@@ -18,6 +18,14 @@ export const RATE_LIMITED_TEXT =
 export const SESSION_ENDED_TEXT = "Your session has ended. Sign in again to ask Copilot.";
 export const UNAVAILABLE_TEXT = "Copilot is temporarily unavailable.";
 export const RULE_BASED_LABEL = "Rule-based insights";
+/** The notice under a rule-based answer (Phase 2, approved OA-6). */
+export const RULE_BASED_DESCRIPTION = "Showing rule-based insights from your store data.";
+/** The notice for an answer with no recommendations (Phase 2, approved OA-6; next step: check). */
+export const EMPTY_STORE_TITLE = "Not enough store data yet";
+export const EMPTY_STORE_NEXT_STEP =
+  "Try another suggested question, or check again after more store activity.";
+export const SIGN_IN_TEXT = "Sign in";
+export const SIGN_IN_HREF = "/admin/sign-in";
 
 /** Why an answer is rule-based, in the owner's words (Copilot spec, UI/UX "Answer header"). */
 export const FALLBACK_REASON_TEXT: Readonly<Record<FallbackReason, string>> = {
@@ -40,11 +48,19 @@ export const PRIORITY_TEXT = {
 /** A suggested-question button: the intent it sends and its D09 wording. */
 export type SuggestedQuestion = { intent: CopilotIntentId; question: string };
 
+/**
+ * Why a question failed: a field message under the question (400), or a notice (session ended,
+ * rate limit, unreachable service). Set with `status: "error"`.
+ */
+export type PanelFailure = "validation" | "session" | "rate_limited" | "unavailable";
+
 /** What the panel shows: the last answer or error, and the question typed, kept after submit. */
 export type CopilotPanelState = {
   status: "idle" | "answer" | "error";
   answer?: CopilotAnswerDto;
+  /** The field message for a validation failure, or the notice text for the others. */
   message?: string;
+  failure?: PanelFailure;
   question: string;
 };
 
@@ -69,15 +85,31 @@ export function periodText(period: NonNullable<CopilotAnswerDto["period"]>): str
   return `${period.name}: ${period.label} (${period.timeZone})`;
 }
 
-function errorText(status: number, result: ApiResult<CopilotAnswerDto> | null): string {
+/** The failure and its text for an HTTP status (400 to 500, Copilot spec API Contracts). */
+function failureOf(
+  status: number,
+  result: ApiResult<CopilotAnswerDto> | null,
+): { failure: PanelFailure; message: string } {
   if (status === 400 && result && !result.ok) {
     // A field message ("Type a question.") is more useful than the generic form-level one.
     const [first] = Object.values(result.error.fieldErrors ?? {}).flat();
-    return first ?? result.error.message;
+    return { failure: "validation", message: first ?? result.error.message };
   }
-  if (status === 401) return SESSION_ENDED_TEXT;
-  if (status === 429) return RATE_LIMITED_TEXT;
-  return UNAVAILABLE_TEXT;
+  if (status === 401) return { failure: "session", message: SESSION_ENDED_TEXT };
+  if (status === 429) return { failure: "rate_limited", message: RATE_LIMITED_TEXT };
+  return { failure: "unavailable", message: UNAVAILABLE_TEXT };
+}
+
+/**
+ * After a refused question (400) the focus moves to the question, the first invalid field
+ * (admin spec A-2; owner-approved OA-4). The view calls it from the textarea's ref callback, which
+ * React runs at commit (not during render), so it needs no effect and no ref in the wrapper.
+ */
+export function focusRefusedQuestion(
+  state: CopilotPanelState,
+  field: { focus: () => void } | null,
+): void {
+  if (state.status === "error" && state.failure === "validation") field?.focus();
 }
 
 async function readResult(response: Response): Promise<ApiResult<CopilotAnswerDto> | null> {
@@ -106,10 +138,10 @@ export function createAskCopilotAction(fetcher: typeof fetch) {
         body: JSON.stringify(body),
       });
     } catch {
-      return { status: "error", message: UNAVAILABLE_TEXT, question };
+      return { status: "error", failure: "unavailable", message: UNAVAILABLE_TEXT, question };
     }
     const result = await readResult(response);
     if (response.ok && result?.ok) return { status: "answer", answer: result.data, question };
-    return { status: "error", message: errorText(response.status, result), question };
+    return { status: "error", ...failureOf(response.status, result), question };
   };
 }
