@@ -452,3 +452,9 @@ Recorded, no approval needed (the owner already decided them or the rule applies
 - `.ai/design/POSTEP.md`: a "Lesson 08: retrofit checkout and cart" section per merged phase (the stage table row for stage 3 points to this spec).
 - `.ai/specs/2026-10-26-retrofit-checkout-cart.md` moves to `.ai/specs/implemented/` when all four phases are merged.
 - `.ai/lessons.md`: one entry per phase if a surprise is found (for example, the server-only rule for `Alert` roles or the SSR limit on effects).
+
+## Owner approvals
+
+- **OA-2** (focus moves to the first invalid field after a failed checkout submit, C3, D9): approved by the owner on 2026-10-27.
+- **OA-5** (new titles and the retry label on the unavailable and error states, C9): approved by the owner on 2026-10-27.
+- **OA-7** (coverage of the focus effect in `checkout-form.tsx`: no coverage exclusion; the pure helper is unit-tested and the effect is checked by a Storybook play test and the e2e focus check): approved by the owner on 2026-10-27.
