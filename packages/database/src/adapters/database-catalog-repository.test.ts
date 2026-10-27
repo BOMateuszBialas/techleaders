@@ -8,7 +8,13 @@ afterAll(async () => {
   await orm.close();
 });
 
-const mice = { id: "cat-1", slug: "mice", name: "Mice", description: "[DEMO] Gaming mice." };
+const mice = {
+  id: "cat-1",
+  slug: "mice",
+  name: "Mice",
+  description: "[DEMO] Gaming mice.",
+  imageUrl: "/photos/category-mice.jpg",
+};
 const product = {
   id: "p-1",
   slug: "vortex-wireless-mouse",
@@ -52,8 +58,16 @@ describe("DatabaseCatalogRepository", () => {
 
   it("finds a category by slug, or null", async () => {
     const { findOne, repository } = setup();
-    findOne.mockResolvedValueOnce({ ...mice, description: undefined } as never);
-    expect(await repository.findCategoryBySlug("mice")).toEqual({ ...mice, description: null });
+    findOne.mockResolvedValueOnce({
+      ...mice,
+      description: undefined,
+      imageUrl: undefined,
+    } as never);
+    expect(await repository.findCategoryBySlug("mice")).toEqual({
+      ...mice,
+      description: null,
+      imageUrl: null,
+    });
     findOne.mockResolvedValueOnce(null);
     expect(await repository.findCategoryBySlug("missing")).toBeNull();
     expect(findOne.mock.calls[1]?.[1]).toEqual({ slug: "missing" });
@@ -157,12 +171,14 @@ describe("DatabaseCatalogRepository", () => {
 
   it("counts published products per category with a single grouped query", async () => {
     const { em, repository } = setup();
-    const execute = vi
-      .spyOn(em, "execute")
-      .mockResolvedValue([{ slug: "mice", name: "Mice", product_count: 2 }] as never);
+    const execute = vi.spyOn(em, "execute").mockResolvedValue([
+      { slug: "mice", name: "Mice", image_url: "/photos/category-mice.jpg", product_count: 2 },
+      { slug: "empty", name: "Empty", image_url: null, product_count: 0 },
+    ] as never);
 
     expect(await repository.countPublishedProductsByCategory()).toEqual([
-      { slug: "mice", name: "Mice", productCount: 2 },
+      { slug: "mice", name: "Mice", productCount: 2, imageUrl: "/photos/category-mice.jpg" },
+      { slug: "empty", name: "Empty", productCount: 0, imageUrl: null },
     ]);
     const sql = String(execute.mock.calls[0]?.[0]);
     expect(sql).toContain("count(p.id) filter (where p.status = 'published')::int");

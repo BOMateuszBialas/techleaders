@@ -5,8 +5,8 @@ import { DEMO_CATALOG } from "./DatabaseSeeder";
 /** Storefront photos are served from the app's public folder (storefront v2, photo mapping). */
 const PHOTOS_DIR = new URL("../../../app/public/photos/", import.meta.url);
 
-const mappedPhotos = DEMO_CATALOG.products
-  .map((product) => product.imageUrl)
+const mappedPhotos = [...DEMO_CATALOG.products, ...DEMO_CATALOG.categories]
+  .map((item) => item.imageUrl)
   .filter((imageUrl): imageUrl is string => imageUrl?.startsWith("/photos/") === true);
 
 describe("seeded photos", () => {

@@ -28,7 +28,13 @@ import { generateDemoStore, type DemoStoreProduct } from "./demo-store";
  *   run, in one transaction, re-anchored to the seed date. Real (`CO-`) orders are never touched.
  * Catalog rows are never deleted, so rows removed from this file stay until the database is reset.
  */
-type SeedCategory = { slug: string; name: string; description: string };
+type SeedCategory = {
+  slug: string;
+  name: string;
+  description: string;
+  /** A local path under `packages/app/public`, shown on the home tile only under `/photos/`. */
+  imageUrl?: string;
+};
 type SeedProduct = {
   slug: string;
   name: string;
@@ -53,20 +59,42 @@ type SeedProduct = {
 };
 export type SeedCatalog = { categories: readonly SeedCategory[]; products: readonly SeedProduct[] };
 
+/**
+ * The category tile photos (OA-11a). The keyboard tile reuses the keyboard product photo by owner
+ * decision (see `packages/app/public/photos/CREDITS.md`). The same paths are set on existing rows
+ * by `Migration20261027100100_demo_category_images`.
+ */
 const demoCategories = [
-  { slug: "mice", name: "Mice", description: "Gaming mice: wired, wireless and MMO." },
+  {
+    slug: "mice",
+    name: "Mice",
+    description: "Gaming mice: wired, wireless and MMO.",
+    imageUrl: "/photos/category-mice.jpg",
+  },
   {
     slug: "keyboards",
     name: "Keyboards",
     description: "Mechanical gaming keyboards in every size.",
+    imageUrl: "/photos/product-keyboard-rgb.jpg",
   },
   {
     slug: "headsets",
     name: "Headsets",
     description: "Gaming headsets for PC and consoles.",
+    imageUrl: "/photos/category-headsets.jpg",
   },
-  { slug: "controllers", name: "Controllers", description: "Gamepads and fight sticks." },
-  { slug: "mousepads", name: "Mousepads", description: "Cloth, speed and glass mousepads." },
+  {
+    slug: "controllers",
+    name: "Controllers",
+    description: "Gamepads and fight sticks.",
+    imageUrl: "/photos/category-controllers.jpg",
+  },
+  {
+    slug: "mousepads",
+    name: "Mousepads",
+    description: "Cloth, speed and glass mousepads.",
+    imageUrl: "/photos/category-mouse-pads.jpg",
+  },
 ] as const;
 
 /**
@@ -274,7 +302,12 @@ export async function seedCatalog(
   if (catalog.categories.length > 0) {
     await em
       .createQueryBuilder(CategorySchema)
-      .insert(catalog.categories.map((category) => ({ ...category })))
+      .insert(
+        catalog.categories.map(({ imageUrl, ...category }) => ({
+          ...category,
+          imageUrl: imageUrl ?? null,
+        })),
+      )
       .onConflict()
       .ignore()
       .execute();

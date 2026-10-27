@@ -162,6 +162,18 @@ describe("storefront home page (Phase 1b)", () => {
     expect(tiles).toMatch(/\d+ products?/);
     expect(tiles).not.toContain("[E2E] Empty category");
     expect(tiles).not.toContain("[E2E] Drafts only");
+
+    // Each seeded demo category tile shows its photo from `categories.image_url` (OA-11a).
+    const tilePhotos = z
+      .array(z.string())
+      .parse(
+        await browser().evaluate(
+          `Array.from(document.querySelectorAll('section[aria-labelledby="home-categories"] a[href^="/products?category="] img')).map((img) => img.getAttribute('src'))`,
+        ),
+      );
+    expect(tilePhotos).toContain("/photos/category-mice.jpg");
+    expect(tilePhotos).toContain("/photos/category-headsets.jpg");
+    expect(tiles).not.toContain("No photo yet");
   });
 
   it("follows a promo banner's call to action to a filtered listing", async () => {

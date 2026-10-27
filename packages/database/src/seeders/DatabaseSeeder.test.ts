@@ -66,6 +66,12 @@ describe("seedCatalog (insert-only, A18)", () => {
 
     const [categories, products] = stub.inserts;
     expect(categories?.rows).toHaveLength(DEMO_CATALOG.categories.length);
+    expect(categories?.rows.find((row) => row.slug === "mice")).toMatchObject({
+      imageUrl: "/photos/category-mice.jpg",
+    });
+    expect(categories?.rows.find((row) => row.slug === "keyboards")).toMatchObject({
+      imageUrl: "/photos/product-keyboard-rgb.jpg",
+    });
     expect(products?.rows).toHaveLength(DEMO_CATALOG.products.length);
     expect(products?.rows[0]).toMatchObject({
       slug: "vortex-wireless-mouse",
@@ -136,6 +142,29 @@ describe("seedCatalog (insert-only, A18)", () => {
       imageUrl: null,
       description: "Draft pad. Seed data for local development.",
     });
+  });
+
+  it("seeds a category without a photo with a null image (No photo yet)", async () => {
+    const plain: SeedCatalog = {
+      categories: [{ slug: "plain", name: "Plain", description: "No photo." }],
+      products: [],
+    };
+    await seedCatalog(stub.em, plain);
+    expect(stub.inserts[0]?.rows).toEqual([
+      { slug: "plain", name: "Plain", description: "No photo.", imageUrl: null },
+    ]);
+  });
+
+  it("maps every demo category photo to a /photos/ file, and only the five demo categories have one", () => {
+    const withPhoto = DEMO_CATALOG.categories.filter((category) => category.imageUrl);
+    expect(withPhoto.map((category) => category.slug)).toEqual([
+      "mice",
+      "keyboards",
+      "headsets",
+      "controllers",
+      "mousepads",
+    ]);
+    for (const category of withPhoto) expect(category.imageUrl).toMatch(/^\/photos\/.+\.jpg$/);
   });
 
   it("skips, without crashing, a product whose category or row is missing afterwards", async () => {
