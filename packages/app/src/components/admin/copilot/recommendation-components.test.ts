@@ -355,6 +355,8 @@ describe("CopilotPanelView with stored recommendations", () => {
         state: { status: "answer", answer, question: "" },
         pending: false,
         questions: [],
+        questionLength: 0,
+        onQuestionChange: vi.fn(),
         statusAction: vi.fn(),
       }),
     );

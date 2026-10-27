@@ -76,6 +76,14 @@ describe("admin Copilot", () => {
       expect(await browser().count(`${ANSWER} a[href^="/admin/products/"]`)).toBeGreaterThan(0);
     });
 
+    it("shows the question counter as the owner types, without sending the question", async () => {
+      await openCopilot();
+      const typed = "Which products are low on stock?";
+      await browser().fillLabel("Or ask about your store", typed);
+      await browser().waitForText(`${typed.length} of 500 characters`);
+      expect(await browser().text("main")).toContain("Up to 500 characters, in English.");
+    });
+
     it("declines a margin question and names the missing cost data", async () => {
       await openCopilot();
       await browser().fillLabel("Or ask about your store", "What is my profit margin per product?");
