@@ -108,6 +108,8 @@ describe("seedCatalog (insert-only, A18)", () => {
       expect(product.imageUrl).toMatch(/^\/(demo\/products\/.+\.svg|photos\/.+\.jpg)$/);
     const mouse = DEMO_CATALOG.products.find((product) => product.slug === "vortex-wireless-mouse");
     expect(mouse?.imageUrl).toBe("/photos/product-mouse-black.jpg");
+    const glide = DEMO_CATALOG.products.find((product) => product.slug === "glide-xl-mousepad");
+    expect(glide?.imageUrl).toBe("/photos/product-mouse-pad.jpg");
   });
 
   it("features about six products across at least three categories (spec G9)", () => {

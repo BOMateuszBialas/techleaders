@@ -258,7 +258,7 @@ const demoProducts = [
     description:
       "Extended 900 x 400 mm speed-surface mousepad with stitched edges that covers the whole desk.",
     featured: true,
-    imageUrl: "/demo/products/glide-xl-mousepad.svg",
+    imageUrl: "/photos/product-mouse-pad.jpg",
   },
   {
     slug: "control-cloth-mousepad",
