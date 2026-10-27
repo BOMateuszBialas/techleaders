@@ -81,4 +81,33 @@ describe("admin shell at 390 px", () => {
     for (const extra of overflow) expect(extra).toBe(0);
     await browser().screenshot(`${ARTIFACTS_DIR}/admin-copilot-390.png`);
   });
+
+  it("marks the current section with aria-current on the nav link", async () => {
+    await browser().open("/admin/orders");
+    await browser().waitForText("Signed in as");
+    await browser().waitForText("DEMO-");
+    expect(await browser().text('nav[aria-label="Admin"] a[aria-current="page"]')).toBe("Orders");
+  });
+
+  it("puts the sidebar beside the content from 768 px", async () => {
+    await browser().setViewport(768, 1024);
+    await browser().open("/admin/orders");
+    await browser().waitForText("Signed in as");
+    await browser().waitForText("DEMO-");
+    const layout = z
+      .object({
+        asideRight: z.number(),
+        mainLeft: z.number(),
+        asideTop: z.number(),
+        mainTop: z.number(),
+      })
+      .parse(
+        await browser().evaluate(
+          "(() => { const a = document.querySelector('aside').getBoundingClientRect(); const m = document.querySelector('main').getBoundingClientRect(); return { asideRight: a.right, mainLeft: m.left, asideTop: a.top, mainTop: m.top }; })()",
+        ),
+      );
+    expect(layout.mainLeft).toBeGreaterThanOrEqual(layout.asideRight);
+    expect(layout.mainTop).toBe(layout.asideTop);
+    await browser().screenshot(`${ARTIFACTS_DIR}/admin-shell-768.png`);
+  });
 });
