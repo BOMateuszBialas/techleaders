@@ -46,6 +46,14 @@ const LAYOUT_SCRIPT = `(() => {
   };
 })()`;
 
+// The tab panels the user sees: rendered, not hidden and not inert. Base UI keeps the panel of the
+// tab that was just left mounted until its close completes, so for a moment the old panel is still
+// in the DOM next to the new one. `inert` is set on the old panel in the same render that selects
+// the new tab, so the panels the user sees are the ones that count.
+const VISIBLE_PANELS_SCRIPT = `[...document.querySelectorAll('main [role="tabpanel"]')]
+  .filter((panel) => !panel.hidden && !panel.hasAttribute("inert") && panel.getClientRects().length > 0)
+  .map((panel) => panel.textContent.trim())`;
+
 async function runOnE2eDatabase<T>(sql: string, params: unknown[] = []): Promise<T[]> {
   const pool = new Pool({ connectionString: inject("databaseUrl") });
   try {
@@ -87,6 +95,10 @@ describe("storefront product page (storefront v2, Phase 3)", () => {
 
   async function readLayout() {
     return layoutSchema.parse(await browser().evaluate(LAYOUT_SCRIPT));
+  }
+
+  async function visiblePanels(): Promise<string[]> {
+    return z.array(z.string()).parse(await browser().evaluate(VISIBLE_PANELS_SCRIPT));
   }
 
   it("shows the gallery and the details side by side from 1024 px", async () => {
@@ -132,10 +144,11 @@ describe("storefront product page (storefront v2, Phase 3)", () => {
     expect(technical).toContain("Sensor");
     expect(technical).toContain("Optical, 26,000 DPI");
 
-    // The focused tab moves with the arrow key (Base UI), and its panel follows.
+    // The focused tab moves with the arrow key (Base UI), and its panel follows. The old panel can
+    // stay mounted for a moment after the new one appears, so poll until only the delivery panel
+    // is visible.
     await browser().press("ArrowRight");
-    await browser().waitForText(DELIVERY);
-    expect(await browser().text("main")).not.toContain("Optical, 26,000 DPI");
+    await expect.poll(visiblePanels, { timeout: 5_000 }).toEqual([DELIVERY]);
   });
 
   it("shows the neutral line for a product without technical rows", async () => {

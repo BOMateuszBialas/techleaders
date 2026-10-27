@@ -79,6 +79,21 @@ describe("storefront checkout (E02-S02)", () => {
     expect(await browser().text(CART_LINK)).toMatch(/Cart\s*1/);
   });
 
+  it("moves the focus to the first invalid field after an empty submit (retrofit Phase 2, A11)", async () => {
+    await addVortex("1");
+    await openCheckout();
+    await browser().clickRole("button", "Place order");
+    await browser().waitForText("Enter your name.");
+    // The first field with an error, in the form's order: the full name.
+    expect(await browser().evaluate("document.activeElement && document.activeElement.id")).toBe(
+      "checkout-customerName",
+    );
+    // Each field message shows once; the email message is not repeated anywhere.
+    const main = await browser().text("main");
+    expect(main).toContain("Enter a valid email address.");
+    expect(main.match(/Enter a valid email address\./g)).toHaveLength(1);
+  });
+
   it("places an order priced by the server and decrements stock once, even on a double click (AC1, AC4)", async () => {
     await useOwnerSession(browser());
     const before = await adminStock("Vortex Wireless Mouse");
