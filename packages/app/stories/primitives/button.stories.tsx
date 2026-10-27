@@ -21,8 +21,9 @@ const meta = {
     },
     size: {
       control: "select",
-      options: ["sm", "default", "lg", "icon-sm", "icon", "icon-lg"],
-      description: "Height from the density tokens (`--control-h-sm|md|lg`).",
+      options: ["sm", "sm-wrap", "default", "lg", "icon-sm", "icon", "icon-lg"],
+      description:
+        "Height from the density tokens (`--control-h-sm|md|lg`). `sm-wrap` is the small size whose label wraps (suggested questions).",
       table: { defaultValue: { summary: "default" } },
     },
     disabled: {
@@ -279,5 +280,33 @@ export const LongLabelNarrow: Story = {
     const button = canvas.getByRole("button", { name: "Confirm demo payment (no charge)" });
     await expect(button.scrollWidth).toBeLessThanOrEqual(button.clientWidth);
     await expect(frame.scrollWidth).toBe(frame.clientWidth);
+  },
+};
+
+/**
+ * The `sm-wrap` size is the exception: its label wraps inside the container, so a long suggested
+ * question takes two lines at 320 px instead of running past the screen (the Copilot panel).
+ */
+export const WrapLongLabelNarrow: Story = {
+  render: () => (
+    <Narrow>
+      <Button variant="outline" size="sm-wrap">
+        What should I focus on to improve sales this week?
+      </Button>
+      <Button variant="outline" size="sm-wrap">
+        Which products are low on stock?
+      </Button>
+    </Narrow>
+  ),
+  play: async ({ canvas }) => {
+    const frame = canvas.getByTestId("narrow-frame");
+    const button = canvas.getByRole("button", {
+      name: "What should I focus on to improve sales this week?",
+    });
+    await expect(frame.scrollWidth).toBe(frame.clientWidth);
+    await expect(button.getBoundingClientRect().right).toBeLessThanOrEqual(
+      frame.getBoundingClientRect().right,
+    );
+    await expect(getComputedStyle(button).whiteSpace).toBe("normal");
   },
 };

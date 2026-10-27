@@ -10,7 +10,7 @@ import { cn } from "cn";
  * with `focusableWhenDisabled` too; `aria-busy` (loading) keeps the variant's colors.
  */
 const buttonVariants = cva(
-  "group/button inline-flex shrink-0 items-center justify-center gap-2 rounded-control border border-transparent bg-clip-padding font-medium whitespace-nowrap transition-colors outline-none select-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:outline-solid active:not-aria-[haspopup]:not-data-disabled:translate-y-px aria-busy:cursor-progress aria-invalid:border-destructive data-disabled:cursor-not-allowed not-aria-busy:data-disabled:text-muted-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-(--control-icon-size)",
+  "group/button inline-flex shrink-0 items-center justify-center gap-2 rounded-control border border-transparent bg-clip-padding font-medium transition-colors outline-none select-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring focus-visible:outline-solid active:not-aria-[haspopup]:not-data-disabled:translate-y-px aria-busy:cursor-progress aria-invalid:border-destructive data-disabled:cursor-not-allowed not-aria-busy:data-disabled:text-muted-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-(--control-icon-size)",
   {
     variants: {
       variant: {
@@ -30,12 +30,16 @@ const buttonVariants = cva(
       },
       size: {
         default:
-          "h-control-md px-(--control-px) text-(length:--type-body-size) has-data-[icon=inline-end]:pr-3 has-data-[icon=inline-start]:pl-3",
-        sm: "h-control-sm px-3 text-(length:--type-small-size) [&_svg:not([class*='size-'])]:size-4",
-        lg: "h-control-lg px-(--control-px) text-(length:--type-body-size) has-data-[icon=inline-end]:pr-3 has-data-[icon=inline-start]:pl-3",
-        icon: "size-control-md",
-        "icon-sm": "size-control-sm [&_svg:not([class*='size-'])]:size-4",
-        "icon-lg": "size-control-lg",
+          "h-control-md whitespace-nowrap px-(--control-px) text-(length:--type-body-size) has-data-[icon=inline-end]:pr-3 has-data-[icon=inline-start]:pl-3",
+        sm: "h-control-sm whitespace-nowrap px-3 text-(length:--type-small-size) [&_svg:not([class*='size-'])]:size-4",
+        // A label that may wrap (suggested questions): at least the sm height, never wider than its
+        // container, so a long label takes several lines instead of running past the screen.
+        "sm-wrap":
+          "min-h-control-sm max-w-full px-3 py-0.5 text-start text-(length:--type-small-size) [&_svg:not([class*='size-'])]:size-4",
+        lg: "h-control-lg whitespace-nowrap px-(--control-px) text-(length:--type-body-size) has-data-[icon=inline-end]:pr-3 has-data-[icon=inline-start]:pl-3",
+        icon: "size-control-md whitespace-nowrap",
+        "icon-sm": "size-control-sm whitespace-nowrap [&_svg:not([class*='size-'])]:size-4",
+        "icon-lg": "size-control-lg whitespace-nowrap",
       },
     },
     defaultVariants: {

@@ -7,6 +7,7 @@ import {
   type SuggestedQuestion,
 } from "@/components/admin/copilot/copilot-copy";
 import { CopilotPanelView } from "@/components/admin/copilot/copilot-panel-view";
+import { Narrow } from "../../primitives/blocks/state-grid";
 
 /**
  * Patterns / Copilot / Question form. Real view from `copilot-panel-view.tsx` with fixed props:
@@ -16,6 +17,15 @@ import { CopilotPanelView } from "@/components/admin/copilot/copilot-panel-view"
 const QUESTIONS: SuggestedQuestion[] = [
   { intent: "focus", question: "What should I focus on to improve sales this week?" },
   { intent: "low_stock", question: "Which products are low on stock?" },
+];
+
+const LONG_QUESTIONS: SuggestedQuestion[] = [
+  { intent: "focus", question: "What should I focus on to improve sales this week?" },
+  {
+    intent: "low_stock",
+    question:
+      "Which products are low on stock, and how many units of each are left in the warehouse now?",
+  },
 ];
 
 const TYPED =
@@ -69,6 +79,34 @@ export const Typed: Story = {
       canvas.getByRole("textbox", { name: "Or ask about your store" }),
     ).toHaveAccessibleDescription(
       `Up to 500 characters, in English. ${TYPED.length} of 500 characters`,
+    );
+  },
+};
+
+/**
+ * 320 px, the smallest phone width: the suggested-question labels wrap inside the screen. The first
+ * label is the store's real "focus" question; the second is a long one that wraps over more lines.
+ */
+export const LongQuestionsNarrow320: Story = {
+  args: { state: IDLE_COPILOT_STATE, pending: false, questionLength: 0 },
+  render: (args) => (
+    <Narrow>
+      <CopilotPanelView
+        action={() => undefined}
+        state={args.state}
+        pending={args.pending}
+        questions={LONG_QUESTIONS}
+        questionLength={args.questionLength}
+        onQuestionChange={() => undefined}
+      />
+    </Narrow>
+  ),
+  play: async ({ canvas }) => {
+    const frame = canvas.getByTestId("narrow-frame");
+    await expect(frame.scrollWidth).toBe(frame.clientWidth);
+    const button = canvas.getByRole("button", { name: LONG_QUESTIONS[0]?.question });
+    await expect(button.getBoundingClientRect().right).toBeLessThanOrEqual(
+      frame.getBoundingClientRect().right,
     );
   },
 };

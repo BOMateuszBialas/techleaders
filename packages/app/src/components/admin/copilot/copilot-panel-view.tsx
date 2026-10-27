@@ -49,7 +49,7 @@ export function CopilotPanelView({
                 name="intent"
                 value={item.intent}
                 variant="outline"
-                size="sm"
+                size="sm-wrap"
               >
                 {item.question}
               </Button>
