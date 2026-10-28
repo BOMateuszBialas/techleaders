@@ -1,7 +1,8 @@
-import Link from "next/link";
 import { Suspense } from "react";
+import { AdminNav } from "@/components/admin/admin-nav";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
+import { Skeleton, SkeletonGroup } from "@/components/ui/skeleton";
 import { signOut } from "@/server/auth/auth.action";
 import { requireAdminPage } from "@/server/auth/require-admin";
 
@@ -14,54 +15,25 @@ import { requireAdminPage } from "@/server/auth/require-admin";
 export default function AdminLayout({ children }: LayoutProps<"/admin">) {
   return (
     <div data-density="admin" className="flex flex-1 flex-col md:flex-row">
-      <aside className="flex flex-col border-b bg-muted/40 md:w-56 md:border-r md:border-b-0">
+      <aside className="flex flex-col border-b border-sidebar-border bg-sidebar text-sidebar-foreground md:w-56 md:border-r md:border-b-0">
         <div className="flex h-14 items-center px-4 font-semibold tracking-tight">
           CommerceOS Admin
         </div>
-        {/* Wraps on a phone: six links do not fit one 390 px row (#56). */}
-        <nav aria-label="Admin" className="flex flex-wrap gap-1 px-2 pb-2 text-sm md:flex-col">
-          <Link
-            href="/admin"
-            className="rounded-md px-2 py-1.5 hover:bg-muted focus-visible:bg-muted"
-          >
-            Dashboard
-          </Link>
-          <Link
-            href="/admin/orders"
-            className="rounded-md px-2 py-1.5 hover:bg-muted focus-visible:bg-muted"
-          >
-            Orders
-          </Link>
-          <Link
-            href="/admin/products"
-            className="rounded-md px-2 py-1.5 hover:bg-muted focus-visible:bg-muted"
-          >
-            Products
-          </Link>
-          <Link
-            href="/admin/categories"
-            className="rounded-md px-2 py-1.5 hover:bg-muted focus-visible:bg-muted"
-          >
-            Categories
-          </Link>
-          <Link
-            href="/admin/copilot"
-            className="rounded-md px-2 py-1.5 hover:bg-muted focus-visible:bg-muted"
-          >
-            Copilot
-          </Link>
-          <Link href="/" className="rounded-md px-2 py-1.5 hover:bg-muted focus-visible:bg-muted">
-            View storefront
-          </Link>
-        </nav>
-        <div className="mt-auto flex flex-col gap-4 border-t p-4 text-sm">
+        <AdminNav />
+        <div className="mt-auto flex flex-col gap-4 border-t border-sidebar-border p-4 text-sm">
           <ThemeToggle />
-          <Suspense fallback={<p className="text-muted-foreground">Checking session…</p>}>
+          <Suspense
+            fallback={
+              <SkeletonGroup label="Checking session" className="flex flex-col gap-2">
+                <Skeleton className="h-control-md w-full" />
+              </SkeletonGroup>
+            }
+          >
             <AdminSessionBadge />
           </Suspense>
         </div>
       </aside>
-      <main className="flex-1 p-4 md:p-8">{children}</main>
+      <main className="flex-1 p-4 md:p-6">{children}</main>
     </div>
   );
 }
@@ -70,8 +42,8 @@ async function AdminSessionBadge() {
   const admin = await requireAdminPage();
   return (
     <div className="flex flex-col gap-2">
-      <p className="truncate text-muted-foreground">
-        Signed in as <span className="font-medium text-foreground">{admin.email}</span>
+      <p className="truncate text-sidebar-muted-foreground">
+        Signed in as <span className="font-medium text-sidebar-foreground">{admin.email}</span>
       </p>
       <form action={signOut}>
         <Button type="submit" variant="outline" size="sm">

@@ -1,18 +1,18 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { money } from "@commerceos/core";
 import { CartChanges } from "@/components/cart/cart-changes";
-import {
-  CHECKOUT_HEADING,
-  CHECKOUT_UNAVAILABLE_MESSAGE,
-  REVIEW_CART_LINK,
-} from "@/components/checkout/checkout-copy";
+import { CHECKOUT_HEADING, REVIEW_CART_LINK } from "@/components/checkout/checkout-copy";
 import { CheckoutForm } from "@/components/checkout/checkout-form";
 import { checkoutModeFor } from "@/components/checkout/checkout-mode";
+import {
+  CheckoutPageSkeleton,
+  CheckoutPageUnavailable,
+} from "@/components/checkout/checkout-page-states";
 import { OrderSummary } from "@/components/checkout/order-summary";
+import { TextLink } from "@/components/ui/text-link";
 import { acceptCartChanges } from "@/server/cart/cart.action";
 import { getCurrentCustomerId } from "@/server/customer-auth/require-customer";
 import { placeOrder } from "@/server/orders/order.action";
@@ -29,11 +29,7 @@ export default function CheckoutPage() {
   return (
     <>
       <h1 className="text-3xl font-semibold tracking-tight">{CHECKOUT_HEADING}</h1>
-      <Suspense
-        fallback={
-          <div aria-label="Loading checkout" className="h-64 animate-pulse rounded bg-muted" />
-        }
-      >
+      <Suspense fallback={<CheckoutPageSkeleton />}>
         <CheckoutContents />
       </Suspense>
     </>
@@ -43,13 +39,7 @@ export default function CheckoutPage() {
 async function CheckoutContents() {
   await connection();
   const result = await loadCheckoutPage();
-  if (result.kind !== "ok") {
-    return (
-      <p role="alert" className="text-sm text-destructive">
-        {CHECKOUT_UNAVAILABLE_MESSAGE}
-      </p>
-    );
-  }
+  if (result.kind !== "ok") return <CheckoutPageUnavailable />;
   const { cart, idempotencyKey, cartFingerprint } = result.data;
   // Control flow after the loader mapped every error (never inside a try block).
   if (cart.subtotal === null && !cart.changed) redirect("/cart");
@@ -58,9 +48,9 @@ async function CheckoutContents() {
     return (
       <div className="flex flex-col gap-4">
         <CartChanges notices={cart.notices} acceptAction={acceptCartChanges} />
-        <Link href="/cart" className="w-fit text-sm underline underline-offset-4">
+        <TextLink href="/cart" variant="standalone">
           {REVIEW_CART_LINK}
-        </Link>
+        </TextLink>
       </div>
     );
   }

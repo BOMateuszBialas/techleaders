@@ -1,10 +1,11 @@
-import Link from "next/link";
 import { ACCOUNT_COPY, CUSTOMER_SIGN_IN_FROM_CHECKOUT } from "@/components/account/account-copy";
-import { FieldError, FormMessage, fieldA11y } from "@/components/admin/form-feedback";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { TextLink } from "@/components/ui/text-link";
 import { fieldDefault, type ActionState } from "@/lib/action-state";
+import { fieldA11y } from "@/lib/field-a11y";
 import {
   PLACE_ORDER_BUTTON,
   PLACING_ORDER,
@@ -41,20 +42,26 @@ type FieldSpec = {
   optional?: boolean;
 };
 
-/** Checkout fields (spec G6). Personal data: these values are never logged. */
+/**
+ * Checkout fields (spec G6). Personal data: these values are never logged. The label is the
+ * text alone; `optional` makes `FieldLabel` print "(optional)" (retrofit Phase 2, C12).
+ */
 const FIELDS: FieldSpec[] = [
   { name: "customerName", label: "Full name", autoComplete: "name" },
   { name: "customerEmail", label: "Email", autoComplete: "email", type: "email" },
   { name: "shippingLine1", label: "Address", autoComplete: "address-line1" },
   {
     name: "shippingLine2",
-    label: "Address line 2 (optional)",
+    label: "Address line 2",
     autoComplete: "address-line2",
     optional: true,
   },
   { name: "shippingCity", label: "City", autoComplete: "address-level2" },
   { name: "shippingPostalCode", label: "Postal code", autoComplete: "postal-code" },
 ];
+
+/** The checkout's field names in the form's order (the focus after a failed submit, C3). */
+export const CHECKOUT_FIELD_NAMES: readonly string[] = FIELDS.map((field) => field.name);
 
 /**
  * Who the order is placed as (E07 spec A24), right above the submit button: "Buying as <email>"
@@ -75,15 +82,13 @@ function CheckoutModeLine({ mode }: { mode: CheckoutMode }) {
   return (
     <div className="flex flex-col gap-2 text-sm" data-testid="checkout-mode">
       {mode.sessionError ? (
-        <p role="alert" className="text-destructive">
-          {ACCOUNT_COPY.sessionLost}
-        </p>
+        <Alert variant="destructive" role="alert">
+          <AlertDescription>{ACCOUNT_COPY.sessionLost}</AlertDescription>
+        </Alert>
       ) : null}
       <p>
         {ACCOUNT_COPY.buyingAsGuest}{" "}
-        <Link href={CUSTOMER_SIGN_IN_FROM_CHECKOUT} className="underline underline-offset-4">
-          {ACCOUNT_COPY.checkoutSignIn}
-        </Link>
+        <TextLink href={CUSTOMER_SIGN_IN_FROM_CHECKOUT}>{ACCOUNT_COPY.checkoutSignIn}</TextLink>
       </p>
     </div>
   );
@@ -125,8 +130,10 @@ export function CheckoutFormView({
         const id = `checkout-${field.name}`;
         const errorId = `${id}-error`;
         return (
-          <div key={field.name} className="flex flex-col gap-2">
-            <Label htmlFor={id}>{field.label}</Label>
+          <Field key={field.name}>
+            <FieldLabel htmlFor={id} optional={field.optional}>
+              {field.label}
+            </FieldLabel>
             <Input
               id={id}
               name={field.name}
@@ -136,22 +143,26 @@ export function CheckoutFormView({
               defaultValue={fieldDefault(state, field.name, stored[field.name])}
               {...fieldA11y(errorId, errors[field.name])}
             />
-            <FieldError id={errorId} messages={errors[field.name]} />
-          </div>
+            <FieldError id={errorId}>{errors[field.name]?.join(" ")}</FieldError>
+          </Field>
         );
       })}
       <p className="text-sm">
         Country: <span className="font-medium">{SHIPPING_COUNTRY_NAME}</span>
       </p>
-      {sessionLost ? null : <FormMessage state={state} />}
+      {sessionLost || state.status !== "error" ? null : (
+        <Alert variant="destructive" role="alert">
+          <AlertDescription>{state.message}</AlertDescription>
+        </Alert>
+      )}
       {isConflict ? (
-        <Link href="/cart" className="w-fit text-sm underline underline-offset-4">
+        <TextLink href="/cart" variant="standalone">
           {REVIEW_CART_LINK}
-        </Link>
+        </TextLink>
       ) : null}
       <CheckoutModeLine mode={mode} />
       <div>
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" variant="action" disabled={pending} aria-busy={pending}>
           {pending ? PLACING_ORDER : PLACE_ORDER_BUTTON}
         </Button>
       </div>

@@ -22,9 +22,14 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 const categories = [
-  { slug: "mice", name: "Mice", productCount: 3 },
-  { slug: "keyboards", name: "Keyboards", productCount: 2 },
-  { slug: "mousepads", name: "Mousepads", productCount: 1 },
+  { slug: "mice", name: "Mice", productCount: 3, imageUrl: "/photos/category-mice.jpg" },
+  {
+    slug: "keyboards",
+    name: "Keyboards",
+    productCount: 2,
+    imageUrl: "/photos/product-keyboard-rgb.jpg",
+  },
+  { slug: "mousepads", name: "Mousepads", productCount: 1, imageUrl: null },
 ];
 
 export const Hero: Story = {
@@ -80,7 +85,8 @@ export const CategoryTilesDefault: Story = {
       "/products?category=mice",
     );
     await expect(canvas.getByRole("link", { name: /Mousepads 1 product/ })).toBeInTheDocument();
-    await expect(canvas.getAllByText("No photo yet")).toHaveLength(categories.length);
+    await expect(canvas.getAllByText("No photo yet")).toHaveLength(1);
+    await expect(canvasElement.querySelectorAll("img")).toHaveLength(2);
   },
 };
 

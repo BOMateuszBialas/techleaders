@@ -8,6 +8,8 @@ export const CategorySchema = defineEntity({
     name: p.string().length(120),
     slug: p.string().length(140).unique(),
     description: p.text().nullable(),
+    /** A local `/photos/` path shown on the home category tile (OA-11a). Null: "No photo yet". */
+    imageUrl: p.string().length(2048).nullable(),
     createdAt: p
       .datetime()
       .defaultRaw("now()")

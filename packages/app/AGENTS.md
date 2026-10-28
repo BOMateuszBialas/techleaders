@@ -63,7 +63,7 @@ Read the root `AGENTS.md` first (overview, Validation, agent rules). This packag
   - Pages under `src/app/admin/(protected)/` call `requireAdminPage()`. Read the session only inside `<Suspense>`.
   - Routes under `src/app/api/admin/` use `adminApiHandler`.
   - Admin server actions (`*.action.ts`, e.g. `src/server/catalog/category.action.ts`) run every export through `runAdminAction` (`src/server/catalog/run-admin-action.ts`), which calls `requireAdmin()` before the handler, maps `AppError`s to an `ActionState` for `useActionState` forms, updates the `catalog` cache tag, and redirects only after its try/catch. An action that cannot use it calls `requireAdmin()` as its first statement. Each export gets a unit test invoked without a session (redirect to sign-in, no use case resolved).
-  - Admin forms are a hook-free **view** (rendered in every state by unit tests) plus a thin `"use client"` wrapper that only calls `useActionState` (`src/components/admin/categories/`).
+  - Admin forms are a hook-free **view** (rendered in every state by unit tests) plus a thin `"use client"` wrapper that only calls `useActionState` (`src/components/admin/categories/`). Exception (owner-approved OA-4, Copilot retrofit): the Copilot panel wrapper (`src/components/admin/copilot/copilot-panel.tsx`) also holds one `useState` for the question counter, passed to the view as props.
   - `admin-guard-inventory.test.ts` fails when one of them skips the guard.
   - Never call Better Auth (`getAuth()`) or read the session cookie directly.
 

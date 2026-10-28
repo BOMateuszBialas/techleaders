@@ -2,7 +2,13 @@ import { describe, expect, it } from "vitest";
 import { EMPTY, InMemoryCatalog, MICE, productRecord } from "./in-memory-catalog.fixture";
 import { ListCategoryCountsUseCase } from "./list-category-counts.use-case";
 
-const KEYBOARDS = { id: "cat-keyboards", slug: "keyboards", name: "Keyboards", description: null };
+const KEYBOARDS = {
+  id: "cat-keyboards",
+  slug: "keyboards",
+  name: "Keyboards",
+  description: null,
+  imageUrl: "/photos/product-keyboard-rgb.jpg",
+};
 
 const categoryIds = {
   "vortex-wireless-mouse": MICE.id,
@@ -29,8 +35,24 @@ describe("ListCategoryCountsUseCase", () => {
     const useCase = new ListCategoryCountsUseCase({ catalogRepository: catalog });
 
     expect(await useCase.execute()).toEqual([
-      { slug: "keyboards", name: "Keyboards", productCount: 1 },
-      { slug: "mice", name: "Mice", productCount: 2 },
+      {
+        slug: "keyboards",
+        name: "Keyboards",
+        productCount: 1,
+        imageUrl: "/photos/product-keyboard-rgb.jpg",
+      },
+      { slug: "mice", name: "Mice", productCount: 2, imageUrl: "/photos/category-mice.jpg" },
+    ]);
+  });
+
+  it("carries a null image for a category without a photo", async () => {
+    const catalog = new InMemoryCatalog([{ ...MICE, imageUrl: null }], [productRecord()], {
+      "vortex-wireless-mouse": MICE.id,
+    });
+    const useCase = new ListCategoryCountsUseCase({ catalogRepository: catalog });
+
+    expect(await useCase.execute()).toEqual([
+      { slug: "mice", name: "Mice", productCount: 1, imageUrl: null },
     ]);
   });
 

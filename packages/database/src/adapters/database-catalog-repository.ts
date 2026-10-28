@@ -29,6 +29,7 @@ function toCategoryRecord(category: Category): CatalogCategoryRecord {
     slug: category.slug,
     name: category.name,
     description: category.description ?? null,
+    imageUrl: category.imageUrl ?? null,
   };
 }
 
@@ -109,19 +110,20 @@ export class DatabaseCatalogRepository implements CatalogReadPort {
    */
   async countPublishedProductsByCategory(): Promise<CatalogCategoryCountRecord[]> {
     const rows = await this.deps.em.execute<
-      { slug: string; name: string; product_count: number }[]
+      { slug: string; name: string; image_url: string | null; product_count: number }[]
     >(
-      `select c.slug, c.name,
+      `select c.slug, c.name, c.image_url,
               count(p.id) filter (where p.status = 'published')::int as product_count
          from categories c
          left join products p on p.category_id = c.id
-        group by c.id, c.slug, c.name
+        group by c.id, c.slug, c.name, c.image_url
         order by c.name asc, c.slug asc`,
     );
     return rows.map((row) => ({
       slug: row.slug,
       name: row.name,
       productCount: row.product_count,
+      imageUrl: row.image_url,
     }));
   }
 }
