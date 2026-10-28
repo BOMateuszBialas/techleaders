@@ -112,7 +112,9 @@ export function priorityVariant(priority: RecommendationPriority): "default" | "
 
 /**
  * The badge of a status (D4). Colour is never the only signal: the badge text always says the
- * status (`statusText`). Done is `success`; the neutral states are `outline`.
+ * status (`statusText`). Done is `success`; the neutral states are `outline`. `new` and
+ * `dismissed` share `outline` on purpose (D4): the word in the badge tells them apart, so
+ * colour does not have to.
  */
 export function recommendationStatusVariant(
   status: RecommendationStatus,

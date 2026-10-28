@@ -4,6 +4,8 @@ import { ErrorState } from "@/components/ui/error-state";
 import { TextLink } from "@/components/ui/text-link";
 import { pageLabel } from "../orders/order-copy";
 import { RecommendationCardView } from "./copilot-answer-view";
+/** Pager links reach 44 px below 768 px (spec A3); the standalone link is 24 px. */
+const PAGER_TARGET = "max-md:min-h-11 max-md:items-center";
 import {
   EMPTY_RECOMMENDATIONS_PAGE_TEXT,
   EMPTY_RECOMMENDATIONS_TEXT,
@@ -66,10 +68,16 @@ function Body({
         ))}
       </ul>
       <nav aria-label="Recommendation pages" className="flex items-center gap-4 text-sm">
-        {page > 1 ? <TextLink href={recommendationsPageHref(page - 1)}>Newer</TextLink> : null}
+        {page > 1 ? (
+          <TextLink href={recommendationsPageHref(page - 1)} className={PAGER_TARGET}>
+            Newer
+          </TextLink>
+        ) : null}
         <span className="text-muted-foreground">{pageLabel(page, pageCount)}</span>
         {page < pageCount ? (
-          <TextLink href={recommendationsPageHref(page + 1)}>Older</TextLink>
+          <TextLink href={recommendationsPageHref(page + 1)} className={PAGER_TARGET}>
+            Older
+          </TextLink>
         ) : null}
       </nav>
     </>
