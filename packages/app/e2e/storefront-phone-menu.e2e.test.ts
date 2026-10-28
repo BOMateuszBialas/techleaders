@@ -35,7 +35,8 @@ describe("storefront category menu on a phone (P4)", () => {
   });
 
   it("opens the Categories button at 390 px and follows a category link", async () => {
-    await browser().open("/products");
+    // The home page has the "Shop all products" hero, so it is a page where the text is known.
+    await browser().open("/");
     await browser().waitForText("Shop all products");
 
     const closed = await measure();
@@ -63,7 +64,7 @@ describe("storefront category menu from 768 px (P4)", () => {
   it("shows the inline menu and hides the Categories button at 768 px and 1440 px", async () => {
     for (const width of [768, 1440]) {
       await browser().setViewport(width, 1024);
-      await browser().open("/products");
+      await browser().open("/");
       await browser().waitForText("Shop all products");
       const measured = await measure();
       expect(measured.scrollWidth, `${width} px`).toBe(measured.innerWidth);
