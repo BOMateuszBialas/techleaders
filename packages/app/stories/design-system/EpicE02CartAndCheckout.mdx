@@ -57,13 +57,13 @@ Money on this flow is the server's value, shown with `formatMoney`. The shipping
 
 ## Retrofit (lesson 08)
 
-Spec `.ai/specs/2026-10-26-retrofit-checkout-cart.md`. Phases 1 (cart, drawer, header link, add to cart) and 2 (checkout form and order summary) are built; Phases 3 and 4 are open.
+Spec `.ai/specs/2026-10-26-retrofit-checkout-cart.md`. Phases 1 (cart, drawer, header link, add to cart) and 2 (checkout form and order summary) are built; Phase 3 is built except the order pages' unavailable states (the ErrorState titles, OA-5, are not approved yet); Phase 4 is open.
 
 1. Built (Phase 1): the add-to-cart confirmation is an `Alert` `success` with `role="status"`; the cart-changed list is an `Alert` `warning` with `role="status"` (OA-3); the line and drawer messages are `Alert`s (`alert` for errors, `status` for success, B2.18).
 2. Built (Phase 2): `Field` around every checkout control, `FieldError` per field; focus moves to the first invalid field after a failed submit (OA-2, `first-invalid-field.ts`); the checkout's loading and unavailable states are `SkeletonGroup` and `ErrorState` (OA-5); the order summary is a `Card`.
-3. Built (Phase 1): `action` on Add to cart (product page) and Checkout; Remove is a `link` button (B1.16). Built (Phase 2): Place order is `action` with `aria-busy`. Open (Phase 3): Confirm demo payment.
-4. Built (Phase 1): `Empty` for the cart and the drawer; `ErrorState` for the unavailable cart (OA-5). Built (Phase 2): `ErrorState` for the unavailable checkout. Open: the order pages (Phase 3) and the store error page (Phase 4).
-5. Open (Phase 3): the demo notice as `Alert` `demo` without a role (B2.18); the payment status as `Badge` with text (P2 mapping).
+3. Built (Phase 1): `action` on Add to cart (product page) and Checkout; Remove is a `link` button (B1.16). Built (Phase 2): Place order is `action` with `aria-busy`. Built (Phase 3): Confirm test payment is `action` with `aria-busy`.
+4. Built (Phase 1): `Empty` for the cart and the drawer; `ErrorState` for the unavailable cart (OA-5). Built (Phase 2): `ErrorState` for the unavailable checkout. Built (Phase 3): `Empty` for the order not-found page; `SkeletonGroup` "Loading order" for the pay and order pages. Open (OA-5): `ErrorState` for the unavailable pay and order pages. Open: the store error page (Phase 4).
+5. Built (Phase 3): the payment note as `Alert` `demo` without a role (B2.18); the order status as a `Badge` with text and the approved mapping (`order-status-badge.ts`, OA-4); the paid line as `Alert` `success` with `role="status"`; the not-payable and limited states as `Alert` `warning`.
 
 ## P items on this page
 

@@ -175,3 +175,63 @@ describe("checkout at 320 px", () => {
     expect(measured.scrollWidth).toBe(measured.innerWidth);
   });
 });
+
+/**
+ * The payment step, the confirmation, the lookup and the not-found page at 320 px (retrofit
+ * Phase 3): no sideways scroll, and the test-payment button is at least 44 px tall. The test
+ * buys one mouse, pays it with the test payment and then opens the other pages.
+ */
+describe("payment and order pages at 320 px", () => {
+  const browser = useBrowser();
+
+  beforeAll(async () => {
+    await browser().setViewport(320, 640);
+  });
+
+  /** Whether the page fits the viewport, and the height of the named button (0 when none). */
+  async function measure(buttonName?: string): Promise<{ fits: boolean; height: number }> {
+    const label = JSON.stringify(buttonName ?? null);
+    const measured = z
+      .object({ scrollWidth: z.number(), innerWidth: z.number(), height: z.number() })
+      .parse(
+        await browser().evaluate(
+          `(() => { const label = ${label}; const button = label ? [...document.querySelectorAll('button')].find((el) => el.textContent.trim() === label) : null; return { scrollWidth: document.documentElement.scrollWidth, innerWidth: window.innerWidth, height: button ? button.getBoundingClientRect().height : 0 }; })()`,
+        ),
+      );
+    return { fits: measured.scrollWidth === measured.innerWidth, height: measured.height };
+  }
+
+  it("keeps the payment step, the order page, the lookup and the not-found page within the viewport", async () => {
+    await browser().open("/products/vortex-wireless-mouse");
+    await browser().waitForText("Vortex Wireless Mouse");
+    await browser().clickRole("button", "Add to cart");
+    await browser().waitForText("Added to cart.");
+    await browser().open("/cart");
+    await browser().waitForText("Prices are confirmed at checkout.");
+    await browser().clickRole("link", "Checkout");
+    await browser().waitForText("Place order");
+    await browser().fillLabel("Full name", "Grace Hopper");
+    await browser().fillLabel("Email", "grace@example.test");
+    await browser().fillLabel("Address", "ul. Długa 5");
+    await browser().fillLabel("City", "Gdańsk");
+    await browser().fillLabel("Postal code", "80-827");
+    await browser().clickRole("button", "Place order");
+    await browser().waitForText("Confirm test payment");
+
+    const pay = await measure("Confirm test payment");
+    expect(pay.fits, "payment step").toBe(true);
+    expect(pay.height, "Confirm test payment").toBeGreaterThanOrEqual(44);
+
+    await browser().clickRole("button", "Confirm test payment");
+    await browser().waitForText("Thank you — test payment received");
+    expect((await measure()).fits, "order page").toBe(true);
+
+    await browser().open("/orders/lookup");
+    await browser().waitForText("Find your order");
+    expect((await measure()).fits, "lookup").toBe(true);
+
+    await browser().open("/orders/CO-22222-22222-22222-22222");
+    await browser().waitForText("No order found with this reference");
+    expect((await measure()).fits, "not found").toBe(true);
+  });
+});

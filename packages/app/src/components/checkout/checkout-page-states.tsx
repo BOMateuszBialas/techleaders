@@ -7,6 +7,8 @@ import {
   CHECKOUT_LOADING_LABEL,
   CHECKOUT_UNAVAILABLE_MESSAGE,
   CHECKOUT_UNAVAILABLE_TITLE,
+  ORDER_UNAVAILABLE_MESSAGE,
+  ORDER_UNAVAILABLE_TITLE,
 } from "./checkout-copy";
 
 /** The form fields on the checkout page: the skeleton shows six input-sized blocks. */
@@ -37,6 +39,21 @@ export function CheckoutPageUnavailable() {
       description={CHECKOUT_UNAVAILABLE_MESSAGE}
       action={
         <Link href="/checkout" className={buttonVariants({ variant: "outline" })}>
+          {TRY_AGAIN_LINK}
+        </Link>
+      }
+    />
+  );
+}
+
+/** A pay or order page that cannot be read (OA-5): a retry link to the same URL, no JS needed. */
+export function OrderPageUnavailable({ retryHref }: { retryHref: string }) {
+  return (
+    <ErrorState
+      title={ORDER_UNAVAILABLE_TITLE}
+      description={ORDER_UNAVAILABLE_MESSAGE}
+      action={
+        <Link href={retryHref} className={buttonVariants({ variant: "outline" })}>
           {TRY_AGAIN_LINK}
         </Link>
       }
