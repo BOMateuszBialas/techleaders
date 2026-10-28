@@ -772,7 +772,11 @@ Not checked for #136 (run log): dark mode and 320 px by eye (the author produced
 
 ## Następny krok
 
-Retrofit admin (lekcja 08) jest zamknięty z PR-ami #136 i #143 do #154. Otwarte: usunięcie `form-feedback.tsx` (patrz tabela wyżej), zatwierdzenie tekstu logowania (P10), potem retrofit Copilota (fazy 3 i 4) i sklepu wg osobnej specyfikacji (decyzja P4 o menu telefonu). Wizualna część testu agentem z `.ai/design/test-agentem.md` (część na dokumentacji zrobiona w PR #128). Otwarte: zawijanie szerokich tabel na 320 px w stronach dokumentacji (wynik etapu 5).
+Stan po zamknięciu tygodnia 2 (2026-10-28):
+- Retrofit admin (lekcja 08), fazy 1 do 6: PR #136, #143, #151 do #154. Usunięcie `form-feedback.tsx` w #159. Tekst logowania admina (P10) zatwierdzony i wdrożony w #156; konto klienta zostaje przy starym tekście.
+- Copilot, faza 3 (karty, badge statusów, zapisana lista): #158, z recenzją Gemini (ustalenia: pager 44 px wprowadzony; dwa pozostałe nietrafne, bo `Alert` nie ma domyślnej roli, a priorytet ma już tekst „High priority").
+- Sklep, menu telefonu (P4, decyzja właściciela: przycisk „Categories" poniżej 768 px, Disclosure): #160, spec `.ai/specs/2026-10-28-storefront-phone-menu.md`.
+- Otwarte: Copilot faza 4 (stany, Storybook, dokumenty, zamknięcie), wizualna część testu agentem z `.ai/design/test-agentem.md` (część na dokumentacji zrobiona w PR #128), zawijanie szerokich tabel na 320 px w stronach dokumentacji (wynik etapu 5), ręczne QA właściciela na 320, 768 i 1024 px dla #151 do #160.
 
 ## Storefront v2 (2026-10-26)
 
