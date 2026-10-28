@@ -4,7 +4,7 @@ import { useBrowser } from "./support/browser-test";
 import { signInAsOwner } from "./support/sign-in";
 
 const PRODUCT_PAGE = /^\/admin\/products\/[0-9a-f-]{36}$/;
-const HISTORY = 'ol[aria-label="Stock history"]';
+const HISTORY = 'table[aria-label="Stock history"]';
 
 /**
  * Manual stock adjustment (admin catalog spec, Phase 2, E03-S03). The product this file
