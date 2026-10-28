@@ -109,8 +109,16 @@ export function focusRefusedQuestion(
   state: CopilotPanelState,
   field: { focus: () => void } | null,
 ): void {
-  if (state.status === "error" && state.failure === "validation") field?.focus();
+  if (state.status !== "error" || state.failure !== "validation" || !field) return;
+  // The view's ref callback is a new function on every render, so React calls it again with the
+  // same refused state while the error stays on screen. Focus only on the first call per refusal.
+  if (focusedRefusals.has(state)) return;
+  focusedRefusals.add(state);
+  field.focus();
 }
+
+/** The refused states that already took the focus (a new submit gives a new state object). */
+const focusedRefusals = new WeakSet<CopilotPanelState>();
 
 async function readResult(response: Response): Promise<ApiResult<CopilotAnswerDto> | null> {
   try {

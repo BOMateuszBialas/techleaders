@@ -1,6 +1,9 @@
 import type { CopilotAnswerDto } from "@commerceos/ai";
 import { COPILOT_FALLBACK_REASONS } from "@commerceos/core";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+import { AnswerNoticeView, FailureNoticeView } from "./copilot-fallback-view";
 import {
   FALLBACK_REASON_TEXT,
   RATE_LIMITED_TEXT,
@@ -91,6 +94,39 @@ describe("failureNotice", () => {
     ];
     for (const [failure, expected] of cases) {
       expect(failureNotice(failure)).toEqual(expected);
+    }
+  });
+});
+
+describe("notice views (S1 to S13)", () => {
+  it("renders every rule-based reason as a notice without a role, with its description", () => {
+    for (const reason of COPILOT_FALLBACK_REASONS) {
+      const notice = answerNotice({ ...ANSWERED, origin: "rules", fallbackReason: reason });
+      if (notice === null) throw new Error(`no notice for ${reason}`);
+      const html = renderToStaticMarkup(createElement(AnswerNoticeView, { notice }));
+      expect(html).not.toContain('role="alert"');
+      expect(html).toContain(notice.description);
+    }
+  });
+
+  it("renders a declined or unsupported answer as its summary notice", () => {
+    for (const kind of ["declined", "unsupported"] as const) {
+      const notice = answerNotice({ ...ANSWERED, kind, summary: "Not for this question." });
+      if (notice === null) throw new Error(`no notice for ${kind}`);
+      const html = renderToStaticMarkup(createElement(AnswerNoticeView, { notice }));
+      expect(html).toContain('data-testid="copilot-summary"');
+      expect(html).toContain("Not for this question.");
+    }
+  });
+
+  it("renders each failure as a role=alert notice, with the sign-in link only for a session", () => {
+    for (const failure of ["session", "rate_limited", "unavailable"] as const) {
+      const notice = failureNotice(failure);
+      if (notice === null) throw new Error(`no notice for ${failure}`);
+      const html = renderToStaticMarkup(createElement(FailureNoticeView, { notice }));
+      expect(html).toContain('role="alert"');
+      expect(html).toContain(notice.message);
+      expect(html.includes('href="/admin/sign-in"')).toBe(failure === "session");
     }
   });
 });

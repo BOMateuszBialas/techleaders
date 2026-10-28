@@ -351,6 +351,21 @@ describe("CopilotPanelView", () => {
     expect(focusRefusedQuestion(IDLE_COPILOT_STATE, null)).toBeUndefined();
   });
 
+  it("takes the focus once per refusal, not again on a re-render with the same state", () => {
+    const focus = vi.fn();
+    const refusal: CopilotPanelState = {
+      status: "error",
+      failure: "validation",
+      message: "x",
+      question: "",
+    };
+    focusRefusedQuestion(refusal, { focus });
+    focusRefusedQuestion(refusal, { focus });
+    expect(focus).toHaveBeenCalledTimes(1);
+    focusRefusedQuestion({ ...refusal }, { focus });
+    expect(focus).toHaveBeenCalledTimes(2);
+  });
+
   it("renders an answered question: origin, period, evidence table, demo tag and links", () => {
     const html = render({ status: "answer", answer: ANSWERED, question: "" });
     expect(html).toContain("Rule-based insights · AI is not configured");
