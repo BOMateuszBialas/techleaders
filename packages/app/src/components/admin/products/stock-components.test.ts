@@ -49,15 +49,17 @@ const rows: StockHistoryRow[] = [
     id: "adj-2",
     at: "2026-10-16T10:00:00.000Z",
     atLabel: "16 Oct 2026, 12:00",
-    change: "0 → 4",
     delta: "+4",
+    newQuantity: "4",
+    reason: "Manual change",
   },
   {
     id: "adj-1",
     at: "2026-10-16T09:30:00.000Z",
     atLabel: "16 Oct 2026, 11:30",
-    change: "8 → 0",
     delta: "-8",
+    newQuantity: "0",
+    reason: "Manual change",
   },
 ];
 
@@ -123,8 +125,9 @@ describe("stock copy", () => {
         at: "2026-10-16T09:30:00.000Z",
         // 09:30 UTC is 11:30 in Warsaw (CEST).
         atLabel: "16 Oct 2026, 11:30",
-        change: "8 → 0",
         delta: "-8",
+        newQuantity: "0",
+        reason: "Manual change",
       },
     ]);
   });
@@ -144,7 +147,10 @@ describe("StockPanelView", () => {
     expect(html).toContain("1 or more lets them buy it.");
     expect(html).toContain("Initial stock: not recorded.");
     expect(html).toContain('<time dateTime="2026-10-16T09:30:00.000Z"');
-    expect(html.indexOf("0 → 4")).toBeLessThan(html.indexOf("8 → 0"));
+    // Newest first: the 12:00 row comes before the 11:30 row.
+    expect(html.indexOf("16 Oct 2026, 12:00")).toBeLessThan(html.indexOf("16 Oct 2026, 11:30"));
+    expect(html).toMatch(/<table[^>]*aria-label="Stock history"/);
+    expect(html).toContain("New quantity");
     expect(html).toContain("+4");
     expect(html).not.toContain('role="alert"');
     expect(html).toContain(">Set stock<");

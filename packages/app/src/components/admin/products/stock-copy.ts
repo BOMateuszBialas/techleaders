@@ -81,6 +81,17 @@ export function ownerLocale(acceptLanguage: string | null): string {
   return FALLBACK_LOCALE;
 }
 
+/** The reason for every recorded change: only manual changes get a row (see STOCK_HISTORY_NOTE). */
+export const STOCK_REASON_MANUAL = "Manual change";
+
+/** The history table's column headers (OA-6, retrofit Phase 4). */
+export const STOCK_HISTORY_COLUMNS = {
+  date: "Date",
+  change: "Change",
+  newQuantity: "New quantity",
+  reason: "Reason",
+} as const;
+
 /** One history row as the panel shows it: plain strings, so the client view stays simple. */
 export type StockHistoryRow = {
   id: string;
@@ -88,8 +99,11 @@ export type StockHistoryRow = {
   at: string;
   /** The time in the owner's locale, in `STORE_TIME_ZONE`. */
   atLabel: string;
-  change: string;
+  /** The signed change, e.g. "+4" or "-8". */
   delta: string;
+  /** The stock after the change. */
+  newQuantity: string;
+  reason: string;
 };
 
 export function toStockHistoryRows(history: StockAdjustment[], locale: string): StockHistoryRow[] {
@@ -102,7 +116,8 @@ export function toStockHistoryRows(history: StockAdjustment[], locale: string): 
     id: entry.id,
     at: entry.createdAt.toISOString(),
     atLabel: format.format(entry.createdAt),
-    change: `${entry.previousQuantity} → ${entry.newQuantity}`,
     delta: formatStockDelta(entry.delta),
+    newQuantity: String(entry.newQuantity),
+    reason: STOCK_REASON_MANUAL,
   }));
 }

@@ -3,6 +3,15 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { fieldDefault, type ActionState } from "@/lib/action-state";
 import { fieldA11y } from "@/lib/field-a11y";
 import {
@@ -10,6 +19,7 @@ import {
   NEW_STOCK_LABEL,
   SET_STOCK_BUTTON,
   STOCK_HEADING,
+  STOCK_HISTORY_COLUMNS,
   STOCK_HISTORY_HEADING,
   STOCK_HISTORY_NOTE,
   stockPreview,
@@ -104,17 +114,34 @@ export function StockPanelView({ action, state, pending, product, history }: Sto
         {history.length === 0 ? (
           <p className="text-sm">{EMPTY_STOCK_HISTORY}</p>
         ) : (
-          <ol aria-label={STOCK_HISTORY_HEADING} className="flex flex-col divide-y text-sm">
-            {history.map((row) => (
-              <li key={row.id} className="flex flex-wrap items-baseline gap-x-4 py-1.5">
-                <time dateTime={row.at} className="text-muted-foreground">
-                  {row.atLabel}
-                </time>
-                <span className="font-medium">{row.change}</span>
-                <span className="tabular-nums text-muted-foreground">{row.delta}</span>
-              </li>
-            ))}
-          </ol>
+          // Phone: the table scrolls inside its own region, the page does not (B3.10).
+          <div className="overflow-x-auto">
+            <Table aria-label={STOCK_HISTORY_HEADING}>
+              <TableCaption className="sr-only">{STOCK_HISTORY_HEADING}</TableCaption>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{STOCK_HISTORY_COLUMNS.date}</TableHead>
+                  <TableHead className="text-right">{STOCK_HISTORY_COLUMNS.change}</TableHead>
+                  <TableHead className="text-right">{STOCK_HISTORY_COLUMNS.newQuantity}</TableHead>
+                  <TableHead>{STOCK_HISTORY_COLUMNS.reason}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {history.map((row) => (
+                  <TableRow key={row.id}>
+                    <TableCell>
+                      <time dateTime={row.at}>{row.atLabel}</time>
+                    </TableCell>
+                    <TableCell className="text-right font-medium tabular-nums">
+                      {row.delta}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">{row.newQuantity}</TableCell>
+                    <TableCell className="text-muted-foreground">{row.reason}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         )}
       </div>
     </section>
