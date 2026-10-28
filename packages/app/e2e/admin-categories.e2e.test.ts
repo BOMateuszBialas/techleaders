@@ -67,7 +67,7 @@ describe("admin categories", () => {
     );
 
     // The delete button of a used category is disabled; the refusal says why (OA-3).
-    await browser().waitForText("3 products still use this category.");
+    await browser().waitForText("A category that products still use cannot be deleted.");
     await browser().open("/admin/categories");
     await browser().waitForText("3 products");
     expect(await browser().text("main")).toContain("Mousepads");
