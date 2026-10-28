@@ -89,11 +89,14 @@ export function OrderStatusDialogBody({
   pending,
   order,
   transition,
+  state,
 }: {
   action: (formData: FormData) => void;
   pending: boolean;
   order: OrderStatusPanelOrder;
   transition: AdminOrderTransition;
+  /** The last result: an error stays visible here, because the open dialog covers the page. */
+  state?: ActionState;
 }) {
   const copy = confirmCopyFor(transition);
   return (
@@ -104,6 +107,7 @@ export function OrderStatusDialogBody({
           {confirmationLabel(transition, order.restockableUnits)}
         </AlertDialogDescription>
       </AlertDialogHeader>
+      {state ? <OrderStatusMessage state={state} /> : null}
       <StatusFields order={order} transition={transition} />
       <input type="hidden" name="confirm" value="yes" />
       <AlertDialogFooter>
@@ -169,6 +173,7 @@ export function OrderStatusFormView({ action, state, pending, order }: OrderStat
                         pending={pending}
                         order={order}
                         transition={transition}
+                        state={state}
                       />
                     </AlertDialogContent>
                   </AlertDialog>

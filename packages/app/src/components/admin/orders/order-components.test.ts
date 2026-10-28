@@ -271,6 +271,24 @@ describe("OrderStatusDialogBody (open confirmation)", () => {
     );
   }
 
+  it("shows a failed result inside the open dialog, where the overlay does not hide it", () => {
+    const html = renderToStaticMarkup(
+      createElement(
+        AlertDialog,
+        { open: true },
+        createElement(OrderStatusDialogBody, {
+          action,
+          pending: false,
+          order: pending,
+          transition: cancel,
+          state: { status: "error", message: "This order can no longer be cancelled." },
+        }),
+      ),
+    );
+    expect(html).toContain('role="alert"');
+    expect(html).toContain("This order can no longer be cancelled.");
+  });
+
   it("names the cancel, explains the restock and posts the hidden fields with confirm", () => {
     const html = renderDialog(pending, cancel);
     expect(html).toContain("Cancel this order?");
