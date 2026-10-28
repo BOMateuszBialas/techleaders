@@ -10,6 +10,7 @@ import {
 } from "@/components/admin/products/product-copy";
 import { PRODUCT_IMPORT_PATH } from "@/components/admin/products/product-import-copy";
 import { buttonVariants } from "@/components/ui/button";
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader } from "@/components/ui/empty";
 import {
   Table,
   TableBody,
@@ -21,6 +22,7 @@ import {
 import { requireAdminPage } from "@/server/auth/require-admin";
 import { AdminPageLoadError } from "../categories/load-categories";
 import { loadAdminProducts } from "./load-products";
+import { Skeleton, SkeletonGroup } from "@/components/ui/skeleton";
 
 export const metadata: Metadata = { title: "Products" };
 
@@ -43,7 +45,13 @@ export default function ProductsPage() {
           </Link>
         </div>
       </div>
-      <Suspense fallback={<p className="text-sm text-muted-foreground">Loading products…</p>}>
+      <Suspense
+        fallback={
+          <SkeletonGroup label="Loading products…">
+            <Skeleton className="h-24 rounded-card" />
+          </SkeletonGroup>
+        }
+      >
         <ProductList />
       </Suspense>
     </div>
@@ -57,7 +65,18 @@ async function ProductList() {
   const products = result.data;
 
   if (products.length === 0) {
-    return <p className="text-sm text-muted-foreground">{EMPTY_PRODUCTS_MESSAGE}</p>;
+    return (
+      <Empty>
+        <EmptyHeader>
+          <EmptyDescription>{EMPTY_PRODUCTS_MESSAGE}</EmptyDescription>
+        </EmptyHeader>
+        <EmptyContent>
+          <Link href={NEW_PRODUCT_PATH} className={buttonVariants()}>
+            New product
+          </Link>
+        </EmptyContent>
+      </Empty>
+    );
   }
   return (
     <Table aria-label="Products">

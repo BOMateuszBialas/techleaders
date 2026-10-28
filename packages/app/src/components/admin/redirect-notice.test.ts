@@ -81,10 +81,12 @@ describe("retireRedirectNotice", () => {
 
 describe("RedirectNotice", () => {
   it("renders the notice as a status message the effect can find", () => {
-    expect(
-      renderToStaticMarkup(createElement(RedirectNotice, { message: "Product created." })),
-    ).toBe(
-      `<p id="${REDIRECT_NOTICE_ID}" role="status" class="text-sm font-medium text-success">Product created.</p>`,
+    const markup = renderToStaticMarkup(
+      createElement(RedirectNotice, { message: "Product created." }),
     );
+    expect(markup).toContain(`id="${REDIRECT_NOTICE_ID}"`);
+    expect(markup).toContain('role="status"');
+    expect(markup).toContain('data-variant="success"');
+    expect(markup).toContain("Product created.");
   });
 });

@@ -1,0 +1,26 @@
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+import * as ProductImportPreviewStories from "./product-import-preview.stories";
+
+<Meta of={ProductImportPreviewStories} />
+
+# Import preview
+
+## What it is for
+
+Checking a CSV file of products before anything is created. The owner sees what each row will do, and the import runs only on the checked text.
+
+## Rules
+
+- Every row has an outcome as text and a badge: `create` (success), `skip` (secondary, already in the catalog, with the reason) or `error` (destructive, with each message). The outcome is never colour alone.
+- A file with any error imports nothing. The note says so, and the upload form stays available.
+- A file with nothing new to create says so, and offers no import button.
+- A file with no data rows says that the first line is the header.
+- The table has a name ("Import preview") and the count is in the button text ("Import 2 products").
+
+<Canvas of={ProductImportPreviewStories.Importable} />
+
+<Canvas of={ProductImportPreviewStories.WithErrors} />
+
+<Canvas of={ProductImportPreviewStories.NothingToImport} />
+
+<Canvas of={ProductImportPreviewStories.NoRows} />

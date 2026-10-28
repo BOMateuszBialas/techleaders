@@ -13,6 +13,7 @@ import { RedirectNotice } from "@/components/admin/redirect-notice";
 import { requireAdminPage } from "@/server/auth/require-admin";
 import { deleteCategory, updateCategory } from "@/server/catalog/category.action";
 import { AdminPageLoadError, loadAdminCategory } from "../load-categories";
+import { Skeleton, SkeletonGroup } from "@/components/ui/skeleton";
 
 export const metadata: Metadata = { title: "Category" };
 
@@ -24,7 +25,13 @@ export default function CategoryPage({ params, searchParams }: CategoryPageProps
       <Link href={CATEGORIES_PATH} className="w-fit text-sm underline underline-offset-4">
         All categories
       </Link>
-      <Suspense fallback={<p className="text-sm text-muted-foreground">Loading category…</p>}>
+      <Suspense
+        fallback={
+          <SkeletonGroup label="Loading category…">
+            <Skeleton className="h-24 rounded-card" />
+          </SkeletonGroup>
+        }
+      >
         <CategoryDetails params={params} searchParams={searchParams} />
       </Suspense>
     </div>

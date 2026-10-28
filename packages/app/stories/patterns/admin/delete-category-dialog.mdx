@@ -1,0 +1,23 @@
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+import * as DeleteCategoryStories from "./delete-category-dialog.stories";
+
+<Meta of={DeleteCategoryStories} />
+
+# Delete category dialog
+
+## What it is for
+
+Removing a category from the store navigation. A category that products still use stays; an empty one can be deleted after one explicit confirmation.
+
+## Rules
+
+- A used category says how many products use it and lists the first ones as links. Its delete button is disabled, and the reason is written above it. The server refuses the same case, so a stale page cannot bypass it.
+- An empty category opens an `AlertDialog`. Its title names the category ("Delete category Streaming?") and its description states that it cannot be undone.
+- "Cancel" is the safe button and closes without a request. The confirm button is `destructive`. Escape and the backdrop close without submitting. Focus returns to the trigger.
+- A server refusal stays inside the open dialog as an alert with `role="alert"`, because the dialog covers the page.
+
+<Canvas of={DeleteCategoryStories.Empty} />
+
+<Canvas of={DeleteCategoryStories.EmptyDialogOpen} />
+
+<Canvas of={DeleteCategoryStories.Used} />

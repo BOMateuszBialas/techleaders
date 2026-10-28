@@ -8,6 +8,7 @@ import {
   productCountLabel,
 } from "@/components/admin/categories/category-copy";
 import { buttonVariants } from "@/components/ui/button";
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader } from "@/components/ui/empty";
 import { RedirectNotice } from "@/components/admin/redirect-notice";
 import {
   Table,
@@ -19,6 +20,7 @@ import {
 } from "@/components/ui/table";
 import { requireAdminPage } from "@/server/auth/require-admin";
 import { AdminPageLoadError, loadAdminCategories } from "./load-categories";
+import { Skeleton, SkeletonGroup } from "@/components/ui/skeleton";
 
 export const metadata: Metadata = { title: "Categories" };
 
@@ -37,7 +39,13 @@ export default function CategoriesPage({ searchParams }: PageProps<"/admin/categ
           New category
         </Link>
       </div>
-      <Suspense fallback={<p className="text-sm text-muted-foreground">Loading categories…</p>}>
+      <Suspense
+        fallback={
+          <SkeletonGroup label="Loading categories…">
+            <Skeleton className="h-24 rounded-card" />
+          </SkeletonGroup>
+        }
+      >
         <CategoryList searchParams={searchParams} />
       </Suspense>
     </div>
@@ -57,7 +65,16 @@ async function CategoryList({
     <div className="flex flex-col gap-4">
       {notice ? <RedirectNotice message={notice} /> : null}
       {categories.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{EMPTY_CATEGORIES_MESSAGE}</p>
+        <Empty>
+          <EmptyHeader>
+            <EmptyDescription>{EMPTY_CATEGORIES_MESSAGE}</EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <Link href="/admin/categories/new" className={buttonVariants()}>
+              New category
+            </Link>
+          </EmptyContent>
+        </Empty>
       ) : (
         <Table>
           <TableHeader>

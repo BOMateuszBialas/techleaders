@@ -1,0 +1,24 @@
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+import * as OrderStatusActionsStories from "./order-status-actions.stories";
+
+<Meta of={OrderStatusActionsStories} />
+
+# Order status actions
+
+## What it is for
+
+Moving an order to its next status from the order page. The owner sees only the moves the order allows, and the destructive ones say what they do before they run.
+
+## Rules
+
+- A forward move (for example "Processing") is a plain default button in its own form.
+- A cancel or a refund is a destructive trigger that opens an `AlertDialog`. Its title names the change, its description states the effect ("return N items to stock" or "No money is moved").
+- The safe button is "Keep order" and closes without a change. The action button is `destructive` and submits. Escape and the backdrop close without submitting.
+- The result message sits outside the forms and dialogs, so it stays visible after the page refreshes with the new status.
+- An order with no further move says so in text; it shows no empty list.
+
+<Canvas of={OrderStatusActionsStories.Forward} />
+
+<Canvas of={OrderStatusActionsStories.CancelDialogOpen} />
+
+<Canvas of={OrderStatusActionsStories.RefundDialogOpen} />

@@ -9,6 +9,7 @@ import { SavedRecommendationsView } from "@/components/admin/copilot/saved-recom
 import { requireAdminPage } from "@/server/auth/require-admin";
 import { changeRecommendationStatus } from "@/server/copilot/recommendation.action";
 import { loadCopilotRecommendations } from "./load-copilot";
+import { Skeleton, SkeletonGroup } from "@/components/ui/skeleton";
 
 export const metadata: Metadata = { title: "Commerce Copilot" };
 
@@ -27,7 +28,13 @@ export default function CopilotPage({ searchParams }: PageProps<"/admin/copilot"
           <AlertDescription>{ADVISORY_TEXT}</AlertDescription>
         </Alert>
       </div>
-      <Suspense fallback={<p className="text-sm text-muted-foreground">Loading Copilot…</p>}>
+      <Suspense
+        fallback={
+          <SkeletonGroup label="Loading Copilot…">
+            <Skeleton className="h-24 rounded-card" />
+          </SkeletonGroup>
+        }
+      >
         <CopilotSection searchParams={searchParams} />
       </Suspense>
     </div>
