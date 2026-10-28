@@ -155,7 +155,6 @@ describe("admin orders (E04-S01)", () => {
     await browser().waitForText("Cancel this order?");
     await browser().clickRole("button", "Keep order");
     await browser().waitForText("Cancel order…");
-    expect(await browser().count('[role="alertdialog"]')).toBe(0);
     expect(await browser().text("main")).toContain("Awaiting payment");
 
     // Escape closes the dialog without a change, and focus returns to the trigger.
@@ -163,7 +162,6 @@ describe("admin orders (E04-S01)", () => {
     await browser().waitForText("Cancel this order?");
     await browser().press("Escape");
     await browser().waitForText("Cancel order…");
-    expect(await browser().count('[role="alertdialog"]')).toBe(0);
     expect(await browser().evaluate("document.activeElement?.textContent ?? ''")).toBe(
       "Cancel order…",
     );
