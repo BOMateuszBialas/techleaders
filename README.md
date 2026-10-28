@@ -116,6 +116,12 @@ Stack: Next.js 16.4 (App Router, Turbopack, Cache Components) · React 19.3 · T
 - [`AGENTS.md`](AGENTS.md) (agent rules), [`ENGINEERING_STANDARDS.md`](ENGINEERING_STANDARDS.md) (coding conventions), [`SDLC.md`](SDLC.md) (ticket flow and labels), [`CODE_REVIEW.md`](CODE_REVIEW.md), [`BACKWARD_COMPATIBILITY.md`](BACKWARD_COMPATIBILITY.md).
 - [`.ai/runs/`](.ai/runs/) logs every autonomous agent run, and [`.ai/lessons.md`](.ai/lessons.md) records what went wrong and the rule that came out of it.
 
+## Security and rollback
+
+- **Agent safety:** [`.ai/security-notes.md`](.ai/security-notes.md) records the agent's permissions, skills, MCP servers, the secret scan, the PreToolUse hook and the prompt-injection test.
+- **Project review rules:** [`.ai/skills/om-code-review/SKILL.md`](.ai/skills/om-code-review/SKILL.md) is the CommerceOS checklist that the review skill applies on top of its own rules.
+- **Rollback:** not defined yet. The app has no public deployment, so there is no release to roll back. Before the first public deploy, this section must name the previous release and the steps to return to it.
+
 ## Reference
 
 ### Prerequisites in detail
