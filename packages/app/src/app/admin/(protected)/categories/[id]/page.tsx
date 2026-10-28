@@ -69,6 +69,7 @@ async function CategoryDetails({ params, searchParams }: CategoryPageProps) {
         action={deleteCategory}
         category={{
           id: category.id,
+          name: category.name,
           productCount: category.productCount,
           products: category.products,
         }}

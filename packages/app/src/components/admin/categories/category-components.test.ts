@@ -1,6 +1,7 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
+import { AlertDialog } from "@/components/ui/alert-dialog";
 import { IDLE_ACTION_STATE, type ActionState } from "@/lib/action-state";
 import { FieldError, FormMessage, fieldA11y } from "../form-feedback";
 import {
@@ -15,7 +16,11 @@ import {
 import { CategoryForm } from "./category-form";
 import { CategoryFormView, type CategoryFormCategory } from "./category-form-view";
 import { DeleteCategoryForm } from "./delete-category-form";
-import { DeleteCategoryView } from "./delete-category-view";
+import {
+  DeleteCategoryDialogBody,
+  DeleteCategoryView,
+  type DeleteCategoryViewProps,
+} from "./delete-category-view";
 
 const action = vi.fn();
 const serverAction = vi.fn(async (state: ActionState) => state);
@@ -121,7 +126,24 @@ describe("CategoryFormView", () => {
     expect(html).toContain(">Create category<");
     expect(html).toContain("Leave blank to derive it from the name.");
     expect(html).not.toContain("old links stop working");
-    expect(html).not.toContain("role=");
+    expect(html).not.toContain('role="alert"');
+    expect(html).not.toContain('role="status"');
+  });
+
+  it("keeps the typed values of a new category after a failed submit", () => {
+    const html = renderForm({
+      status: "error",
+      message: "Check the highlighted fields.",
+      values: { name: "Streaming", slug: "", description: "" },
+    });
+    expect(html).toContain('value="Streaming"');
+    expect(html).not.toContain('name="id"');
+  });
+
+  it("labels an edit that is pending", () => {
+    const html = renderForm(IDLE_ACTION_STATE, { pending: true, category: mice });
+    expect(html).toContain(">Saving…</button>");
+    expect(html).not.toContain(">Save changes<");
   });
 
   it("disables the button while pending", () => {
@@ -134,7 +156,11 @@ describe("CategoryFormView", () => {
       {
         status: "error",
         message: "Check the highlighted fields.",
-        fieldErrors: { slug: ["This slug is already used by another category."] },
+        fieldErrors: {
+          name: ["Use at most 80 characters."],
+          slug: ["This slug is already used by another category."],
+          description: ["Keep it under the limit.", "Remove the emoji."],
+        },
         values: { name: "Mice 2", slug: "mice", description: "Typed" },
       },
       { category: mice },
@@ -143,6 +169,9 @@ describe("CategoryFormView", () => {
     expect(html).toContain("This slug is already used by another category.");
     expect(html).toContain('value="Mice 2"');
     expect(html).toContain(">Typed</textarea>");
+    expect(html).toContain("Keep it under the limit. Remove the emoji.");
+    expect(html).toContain("Use at most 80 characters.");
+    expect(html).toContain('aria-describedby="category-description-error"');
     expect(html).toMatch(/id="category-slug"[^>]*aria-invalid="true"/);
     expect(html).toContain(
       'aria-describedby="category-slug-hint category-slug-warning category-slug-error"',
@@ -172,55 +201,83 @@ describe("CategoryFormView", () => {
   });
 });
 
+/** The confirmation body needs its dialog root (Base UI context); SSR renders the root inline. */
+function renderDialogBody(props: DeleteCategoryViewProps) {
+  return renderToStaticMarkup(
+    createElement(AlertDialog, { open: true }, createElement(DeleteCategoryDialogBody, props)),
+  );
+}
+
 describe("DeleteCategoryView", () => {
   const products = Array.from({ length: 10 }, (_, index) => ({
     id: `p-${index}`,
     slug: `product-${index}`,
     name: `Product ${index}`,
   }));
+  const idle: ActionState = { status: "idle" };
 
-  it("shows usage, up to 10 names, the rest as a count, and the refusal hint", () => {
-    const html = renderToStaticMarkup(
+  function renderDelete(category: Partial<DeleteCategoryViewProps["category"]> = {}) {
+    return renderToStaticMarkup(
       createElement(DeleteCategoryView, {
         action,
-        state: IDLE_ACTION_STATE,
+        state: idle,
         pending: false,
-        category: { id: mice.id, productCount: 12, products },
+        category: { id: mice.id, name: mice.name, productCount: 0, products: [], ...category },
       }),
     );
+  }
+
+  it("shows usage, up to 10 names, the rest as a count, and a disabled trigger with the reason", () => {
+    const html = renderDelete({ productCount: 12, products });
     expect(html).toContain("Used by 12 products");
     expect(html.match(/<li>/g)).toHaveLength(10);
     expect(html).toContain("and 2 more");
     expect(html).toContain("cannot be deleted");
-    expect(html).toContain(`name="id" value="${mice.id}"`);
-    expect(html).toContain(">Delete category<");
+    expect(html).toContain('id="delete-category-refused"');
+    expect(html).toMatch(
+      /<button[^>]*disabled=""[^>]*aria-describedby="delete-category-refused"[^>]*>Delete category<\/button>/,
+    );
   });
 
-  it("explains the effect of deleting an empty category", () => {
-    const html = renderToStaticMarkup(
-      createElement(DeleteCategoryView, {
-        action,
-        state: IDLE_ACTION_STATE,
-        pending: false,
-        category: { id: mice.id, productCount: 0, products: [] },
-      }),
-    );
+  it("shows no count line when every product of a used category is listed", () => {
+    const html = renderDelete({ productCount: 2, products: products.slice(0, 2) });
+    expect(html).toContain("Used by 2 products");
+    expect(html).not.toContain("more</p>");
+  });
+
+  it("offers the confirmation trigger for an empty category and explains its effect", () => {
+    const html = renderDelete();
     expect(html).toContain("No products use this category.");
     expect(html).not.toContain("<ul");
+    expect(html).not.toContain("delete-category-refused");
+    expect(html).toMatch(/<button[^>]*>Delete category<\/button>/);
+    expect(html).not.toMatch(/<button[^>]*disabled=""[^>]*>Delete category<\/button>/);
   });
 
-  it("shows the server's refusal and the pending state", () => {
-    const html = renderToStaticMarkup(
-      createElement(DeleteCategoryView, {
-        action,
-        state: { status: "error", message: "4 products still use this category." },
-        pending: true,
-        category: { id: mice.id, productCount: 4, products: products.slice(0, 4) },
-      }),
-    );
+  it("renders the confirmation body with the category name, the hidden id and the buttons", () => {
+    const html = renderDialogBody({
+      action,
+      state: idle,
+      pending: false,
+      category: { id: mice.id, name: mice.name, productCount: 0, products: [] },
+    });
+    expect(html).toContain("Delete category Mice?");
+    expect(html).toContain("This removes the category from the store navigation.");
+    expect(html).toContain(`name="id" value="${mice.id}"`);
+    expect(html).toContain(">Cancel<");
+    expect(html).toMatch(/<button[^>]*>Delete category<\/button>/);
+    expect(html).not.toContain('role="alert"');
+  });
+
+  it("shows the server's refusal in the dialog and the pending state", () => {
+    const html = renderDialogBody({
+      action,
+      state: { status: "error", message: "Category is still in use." },
+      pending: true,
+      category: { id: mice.id, name: mice.name, productCount: 0, products: [] },
+    });
     expect(html).toContain('role="alert"');
-    expect(html).toContain("4 products still use this category.");
-    expect(html).not.toContain("more</p>");
+    expect(html).toContain("Category is still in use.");
     expect(html).toMatch(/<button[^>]*disabled=""[^>]*>Deleting…<\/button>/);
   });
 });
@@ -232,14 +289,14 @@ describe("client wrappers", () => {
     );
     expect(html).toContain('value="Mice"');
     expect(html).toContain(">Save changes<");
-    expect(html).not.toContain("role=");
+    expect(html).not.toContain('role="alert"');
   });
 
   it("render the delete form in its initial state", () => {
     const html = renderToStaticMarkup(
       createElement(DeleteCategoryForm, {
         action: serverAction,
-        category: { id: mice.id, productCount: 0, products: [] },
+        category: { id: mice.id, name: mice.name, productCount: 0, products: [] },
       }),
     );
     expect(html).toContain(">Delete category<");

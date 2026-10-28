@@ -66,7 +66,7 @@ describe("admin categories", () => {
       "Changing the slug changes the store URL; old links stop working.",
     );
 
-    await browser().clickRole("button", "Delete category");
+    // The delete button of a used category is disabled; the refusal says why (OA-3).
     await browser().waitForText("3 products still use this category.");
     await browser().open("/admin/categories");
     await browser().waitForText("3 products");
@@ -95,6 +95,8 @@ describe("admin categories", () => {
     );
     expect(await browser().text("h1")).toBe("Streaming");
 
+    await browser().clickRole("button", "Delete category");
+    await browser().waitForText("Delete category Streaming?");
     await browser().clickRole("button", "Delete category");
     await browser().waitForText("Category deleted.");
     expect(new URL(await browser().url()).pathname).toBe("/admin/categories");

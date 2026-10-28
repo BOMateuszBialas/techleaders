@@ -1,4 +1,6 @@
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import type { DraftButtonEvent, DraftPanelState } from "./description-draft-client";
 import {
   APPLIED_TEXT,
@@ -80,25 +82,28 @@ export function DescriptionDraftPanelView({
       </div>
       <div aria-live="polite" aria-busy={pending} className="flex flex-col gap-2">
         {state.kind === "ready" ? (
-          <section
-            aria-labelledby="description-draft-heading"
-            className="flex flex-col gap-2 rounded-lg border p-3"
-          >
-            <h3 id="description-draft-heading" className="text-sm font-semibold">
-              {DRAFT_HEADING}
-            </h3>
-            <p className="text-sm break-words whitespace-pre-line">{state.text}</p>
-            <p className="text-xs text-muted-foreground">{basedOnText(state.fieldsUsed)}</p>
-            <p className="text-sm text-warning">{DRAFT_WARNING}</p>
-            <div className="flex flex-wrap gap-2">
-              <Button type="button" disabled={pending} onClick={onApply}>
-                {REPLACE_LABEL}
-              </Button>
-              <Button type="button" variant="outline" disabled={pending} onClick={onDiscard}>
-                {DISCARD_LABEL}
-              </Button>
-            </div>
-          </section>
+          <Card size="sm">
+            <CardContent>
+              <section aria-labelledby="description-draft-heading" className="flex flex-col gap-2">
+                <h3 id="description-draft-heading" className="text-sm font-semibold">
+                  {DRAFT_HEADING}
+                </h3>
+                <p className="text-sm break-words whitespace-pre-line">{state.text}</p>
+                <p className="type-small text-muted-foreground">{basedOnText(state.fieldsUsed)}</p>
+                <Alert variant="warning">
+                  <AlertDescription>{DRAFT_WARNING}</AlertDescription>
+                </Alert>
+                <div className="flex flex-wrap gap-2">
+                  <Button type="button" disabled={pending} onClick={onApply}>
+                    {REPLACE_LABEL}
+                  </Button>
+                  <Button type="button" variant="outline" disabled={pending} onClick={onDiscard}>
+                    {DISCARD_LABEL}
+                  </Button>
+                </div>
+              </section>
+            </CardContent>
+          </Card>
         ) : null}
         {state.kind === "applied" ? (
           <div className="flex flex-wrap items-center gap-2">
