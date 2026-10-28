@@ -8,6 +8,9 @@ import {
   OrderOriginBadge,
   OrderStatusBadge,
 } from "@/components/admin/orders/order-badges";
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader } from "@/components/ui/empty";
+import { Skeleton, SkeletonGroup } from "@/components/ui/skeleton";
+import { TextLink } from "@/components/ui/text-link";
 import {
   EMPTY_ORDERS_MESSAGE,
   EMPTY_ORDERS_PAGE_MESSAGE,
@@ -44,7 +47,13 @@ export default function OrdersPage({ searchParams }: PageProps<"/admin/orders">)
         <h1 className="text-2xl font-semibold tracking-tight">{ORDERS_HEADING}</h1>
         <p className="text-sm text-muted-foreground">{ORDERS_INTRO}</p>
       </div>
-      <Suspense fallback={<p className="text-sm text-muted-foreground">Loading orders…</p>}>
+      <Suspense
+        fallback={
+          <SkeletonGroup label="Loading orders…">
+            <Skeleton className="h-48 rounded-card" />
+          </SkeletonGroup>
+        }
+      >
         <OrderList searchParams={searchParams} />
       </Suspense>
     </div>
@@ -58,15 +67,27 @@ async function OrderList({ searchParams }: Pick<PageProps<"/admin/orders">, "sea
   const { rows, page, pageCount, total } = result.data;
   const locale = ownerLocale((await headers()).get("accept-language"));
 
-  if (total === 0) return <p className="text-sm text-muted-foreground">{EMPTY_ORDERS_MESSAGE}</p>;
+  if (total === 0) {
+    return (
+      <Empty>
+        <EmptyHeader>
+          <EmptyDescription>{EMPTY_ORDERS_MESSAGE}</EmptyDescription>
+        </EmptyHeader>
+      </Empty>
+    );
+  }
   if (rows.length === 0) {
     return (
-      <p className="text-sm text-muted-foreground">
-        {EMPTY_ORDERS_PAGE_MESSAGE}{" "}
-        <Link href={ordersPageHref(1)} className="underline underline-offset-4">
-          {FIRST_PAGE_LINK}
-        </Link>
-      </p>
+      <Empty>
+        <EmptyHeader>
+          <EmptyDescription>{EMPTY_ORDERS_PAGE_MESSAGE}</EmptyDescription>
+        </EmptyHeader>
+        <EmptyContent>
+          <TextLink href={ordersPageHref(1)} variant="standalone">
+            {FIRST_PAGE_LINK}
+          </TextLink>
+        </EmptyContent>
+      </Empty>
     );
   }
   return (
@@ -87,12 +108,9 @@ async function OrderList({ searchParams }: Pick<PageProps<"/admin/orders">, "sea
             <TableRow key={order.id}>
               <TableCell>
                 <div className="flex flex-wrap items-center gap-2">
-                  <Link
-                    href={orderPath(order.id)}
-                    className="font-mono font-medium underline-offset-4 hover:underline"
-                  >
+                  <TextLink href={orderPath(order.id)} variant="resource" className="font-mono">
                     {order.reference}
-                  </Link>
+                  </TextLink>
                   {order.isDemo ? <DemoBadge /> : null}
                   <OrderOriginBadge placedWithAccount={order.placedWithAccount} />
                 </div>

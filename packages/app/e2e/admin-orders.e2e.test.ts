@@ -108,7 +108,7 @@ describe("admin orders (E04-S01)", () => {
     expect(main).not.toContain("Account order");
     // A paid order cannot be cancelled, only refunded (A4).
     expect(main).not.toContain("Cancel order");
-    expect(main).toContain("Mark as refunded (record only)");
+    expect(main).toContain("Record refund…");
 
     await browser().clickRole("button", "Mark as processing");
     await browser().waitForText("Order marked as processing.");
@@ -121,13 +121,22 @@ describe("admin orders (E04-S01)", () => {
     await browser().waitForText("Change status");
     main = await browser().text("main");
     expect(main).toContain("Shipped");
-    expect(main).toContain("Mark as refunded (record only)");
+    expect(main).toContain("Record refund…");
     expect(main).not.toContain("Mark as processing");
     expect(main).not.toContain("Mark as shipped");
-    expect(main).not.toContain("Cancel order");
+    expect(main).not.toContain("Cancel order…");
+
+    // The record-only refund asks in its dialog first; the status changes only on the action.
+    await browser().clickRole("button", "Record refund…");
+    await browser().waitForText("Record this order as refunded?");
+    await browser().clickRole("button", "Record refund");
+    await browser().waitForText(
+      "Order marked as refunded. This is a record only; no money was moved.",
+    );
+    await browser().waitForText("No further status changes.");
   });
 
-  it("cancels an unpaid order and returns its stock", async () => {
+  it("cancels an unpaid order through its dialog and returns its stock", async () => {
     // Keeps the owner session of the previous test.
     const before = await adminStock();
     expect(await browser().text("main")).toContain("Manual stock changes, newest first");
@@ -139,10 +148,32 @@ describe("admin orders (E04-S01)", () => {
     const main = await browser().text("main");
     expect(main).toContain("Awaiting payment");
     expect(main).toContain("Not paid");
-    expect(main).not.toContain("Mark as refunded");
+    expect(main).not.toContain("Record refund");
 
-    await browser().click("#confirm-cancelled");
-    await browser().clickRole("button", "Cancel order");
+    // "Keep order" closes the dialog and leaves the status and the stock as they were.
+    await browser().clickRole("button", "Cancel order…");
+    await browser().waitForText("Cancel this order?");
+    await browser().clickRole("button", "Keep order");
+    await browser().waitForText("Cancel order…");
+    expect(await browser().count('[role="alertdialog"]')).toBe(0);
+    expect(await browser().text("main")).toContain("Awaiting payment");
+
+    // Escape closes the dialog without a change, and focus returns to the trigger.
+    await browser().clickRole("button", "Cancel order…");
+    await browser().waitForText("Cancel this order?");
+    await browser().press("Escape");
+    await browser().waitForText("Cancel order…");
+    expect(await browser().count('[role="alertdialog"]')).toBe(0);
+    expect(await browser().evaluate("document.activeElement?.textContent ?? ''")).toBe(
+      "Cancel order…",
+    );
+    expect(await browser().text("main")).toContain("Awaiting payment");
+
+    // Keyboard only: Enter opens the dialog from the trigger, Tab moves to the action, Enter confirms.
+    await browser().press("Enter");
+    await browser().waitForText("Cancel this order?");
+    await browser().press("Tab");
+    await browser().press("Enter");
     await browser().waitForText("Order cancelled. Stock was returned for 1 item.");
     await browser().waitForText("No further status changes.");
 

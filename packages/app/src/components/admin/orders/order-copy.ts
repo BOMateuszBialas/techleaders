@@ -21,8 +21,7 @@ export function ordersPageHref(page: number): string {
 export const ORDERS_HEADING = "Orders";
 export const ORDERS_INTRO =
   "Every order, newest first. Open one to see its items and customer, and to change its status.";
-export const EMPTY_ORDERS_MESSAGE =
-  "No orders yet. Orders appear here after a checkout. To load the demo store, run `npm run db:seed`.";
+export const EMPTY_ORDERS_MESSAGE = "No orders yet. Orders appear here after a checkout.";
 export const EMPTY_ORDERS_PAGE_MESSAGE = "There are no orders on this page.";
 export const FIRST_PAGE_LINK = "Go to the first page";
 export const NEWER_LINK = "Newer";
