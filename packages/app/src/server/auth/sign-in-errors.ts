@@ -6,7 +6,8 @@
 export const SIGN_IN_ERRORS = {
   invalid: "Invalid email or password.",
   rate_limited: "Too many attempts. Try again in a minute.",
-  unavailable: "Sign-in is unavailable. Try again.",
+  unavailable:
+    "Sign-in failed. Check the email and password, then try again. If it keeps failing, the service may be down.",
 } as const;
 
 export type SignInErrorCode = keyof typeof SIGN_IN_ERRORS;

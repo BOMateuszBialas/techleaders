@@ -749,11 +749,17 @@ Spec: `.ai/specs/2026-10-26-retrofit-admin.md` (six phases, one PR each).
 | Phase | PR | Merged | Scope (spec) | Run log |
 |---|---|---|---|---|
 | 1. Shell, navigation, error and session states (risk-high) | #136 | 2026-10-27 | Dark admin sidebar on tokens; `aria-current` through `AdminNavLink`; `ErrorState` on the admin error page; `TextLink` on not-found; labelled skeleton for the session fallback; `md:p-6` main padding | `.ai/runs/2026-10-27-retrofit-admin-phase-1.md` |
-| 2. Dashboard | not merged | - | spec Phase 2 | - |
-| 3. Products and categories, forms, feedback, category delete | not merged | - | spec Phase 3 | - |
-| 4. Stock panel and CSV import | not merged | - | spec Phase 4 | - |
-| 5. Orders list, detail, status, destructive confirmation | not merged | - | spec Phase 5 | - |
-| 6. States sweep, sign-in (if approved), Storybook, close-out | not merged | - | spec Phase 6 | - |
+| 2. Dashboard | #143 | 2026-10-27 | spec Phase 2 | - |
+| 3. Products and categories, forms, feedback, category delete | #151 | 2026-10-28 | spec Phase 3 | - |
+| 4. Stock panel and CSV import (history as a table, OA-6) | #152 | 2026-10-28 | spec Phase 4 | - |
+| 5. Orders list, detail, status, destructive confirmation | #153 | 2026-10-28 | spec Phase 5 | - |
+| 6. States sweep, sign-in, admin Storybook patterns, close-out | #154 | 2026-10-28 | spec Phase 6 | - |
+
+Phases 2 to 6 were checked in CI before each merge (lint, unit tests at 100%, build, integration, e2e, Storybook in both themes). Items left after the close-out:
+- `form-feedback.tsx` is still imported by four files (category tests, the Copilot recommendation status view, the product import view, the publish control view). Move them to `Field` and `Alert`, then delete it.
+- Sign-in copy: the P10 wording is not recorded as approved, so the existing messages stay.
+- Admin page header and the metric card and period nav stories: no exported component yet.
+- Owner check on 320, 768 and 1440 px, light and dark, for the admin screens.
 
 Checks for #136 (run log):
 - `npm run lint`: 0 errors, 2 warnings in `.ai/prototypes/ds` (not touched). `typecheck`, `format:check`, `check:tokens` (273 files), `check:agents` and `test:hooks` (334/334, 9 known gaps): pass.
@@ -766,7 +772,7 @@ Not checked for #136 (run log): dark mode and 320 px by eye (the author produced
 
 ## Następny krok
 
-Review PR etapu 4 i 5 przez właściciela: merge (risk-high, merguje właściciel) po zielonym CI. Najpierw decyzje z listy P (Storybook „What is missing”, §4). Potem retrofit (lekcja 08: Alert dialog przy kategorii i zamówieniu, megamenu w nagłówku sklepu, `ErrorState` i `error.tsx` sklepu, przepięcie formularzy na `Field`) oraz wizualna część testu agentem z `.ai/design/test-agentem.md` (część na dokumentacji zrobiona w PR #128). Otwarte: zawijanie szerokich tabel na 320 px w stronach dokumentacji (wynik etapu 5).
+Retrofit admin (lekcja 08) jest zamknięty z PR-ami #136 i #143 do #154. Otwarte: usunięcie `form-feedback.tsx` (patrz tabela wyżej), zatwierdzenie tekstu logowania (P10), potem retrofit Copilota (fazy 3 i 4) i sklepu wg osobnej specyfikacji (decyzja P4 o menu telefonu). Wizualna część testu agentem z `.ai/design/test-agentem.md` (część na dokumentacji zrobiona w PR #128). Otwarte: zawijanie szerokich tabel na 320 px w stronach dokumentacji (wynik etapu 5).
 
 ## Storefront v2 (2026-10-26)
 

@@ -1,11 +1,18 @@
 import { SIGN_IN_ERRORS } from "../auth/sign-in-errors";
 
+/** The customer pages keep the text the owner's page had before P10 (not part of that approval). */
+const CUSTOMER_UNAVAILABLE_TEXT = "Sign-in is unavailable. Try again.";
+
 /**
  * Customer sign-in outcomes shown on `/account/sign-in?error=<code>` (E07 spec, API Contracts).
  * The page shows only these fixed messages, so a crafted `error` value can never inject text.
  * "invalid" never says whether the account exists. Same texts as the owner's sign-in.
  */
-export const CUSTOMER_SIGN_IN_ERRORS = SIGN_IN_ERRORS;
+export const CUSTOMER_SIGN_IN_ERRORS = {
+  ...SIGN_IN_ERRORS,
+  // P10 changes the owner's wording only; the customer page keeps its own text.
+  unavailable: CUSTOMER_UNAVAILABLE_TEXT,
+} as const;
 export type CustomerSignInErrorCode = keyof typeof CUSTOMER_SIGN_IN_ERRORS;
 
 /**
@@ -18,7 +25,7 @@ export const CUSTOMER_SIGN_UP_ERRORS = {
   refused:
     "We could not create an account with these details. If you already have an account, sign in.",
   rate_limited: SIGN_IN_ERRORS.rate_limited,
-  unavailable: SIGN_IN_ERRORS.unavailable,
+  unavailable: CUSTOMER_UNAVAILABLE_TEXT,
 } as const;
 export type CustomerSignUpErrorCode = keyof typeof CUSTOMER_SIGN_UP_ERRORS;
 
