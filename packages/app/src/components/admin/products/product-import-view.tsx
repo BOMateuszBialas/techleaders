@@ -1,9 +1,11 @@
 import type { ProductImportOutcome, ProductImportPreview } from "@commerceos/core";
 import Link from "next/link";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Empty, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
+import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Table,
   TableBody,
@@ -18,6 +20,7 @@ import {
   CHECK_ANOTHER,
   CHECK_BUTTON,
   CHECKING_BUTTON,
+  EMPTY_FILE_TITLE,
   FILE_HINT,
   FILE_LABEL,
   HAS_ERRORS_NOTE,
@@ -40,9 +43,9 @@ export type ProductImportViewProps = {
 /** The form message, referenced by the file input when it reports a file problem. */
 const FILE_ERROR_ID = "product-import-file-error";
 
-const OUTCOME_BADGES: Record<ProductImportOutcome, "secondary" | "outline" | "destructive"> = {
-  create: "secondary",
-  skip: "outline",
+const OUTCOME_BADGES: Record<ProductImportOutcome, "success" | "secondary" | "destructive"> = {
+  create: "success",
+  skip: "secondary",
   error: "destructive",
 };
 
@@ -93,10 +96,22 @@ export function ProductImportView({ action, state, pending }: ProductImportViewP
       <div id={FILE_ERROR_ID}>
         <FormMessage state={state} />
       </div>
-      {preview ? <PreviewTable preview={preview} fileName={state.fileName} /> : null}
-      {preview && preview.counts.error > 0 ? <p className="text-sm">{HAS_ERRORS_NOTE}</p> : null}
-      {preview && preview.counts.error === 0 && preview.counts.create === 0 ? (
-        <p className="text-sm">{NOTHING_TO_IMPORT_NOTE}</p>
+      {preview && preview.rows.length === 0 ? <NoRows /> : null}
+      {preview && preview.rows.length > 0 ? (
+        <PreviewTable preview={preview} fileName={state.fileName} />
+      ) : null}
+      {preview && preview.counts.error > 0 ? (
+        <Alert variant="warning">
+          <AlertDescription>{HAS_ERRORS_NOTE}</AlertDescription>
+        </Alert>
+      ) : null}
+      {preview &&
+      preview.rows.length > 0 &&
+      preview.counts.error === 0 &&
+      preview.counts.create === 0 ? (
+        <Alert variant="info">
+          <AlertDescription>{NOTHING_TO_IMPORT_NOTE}</AlertDescription>
+        </Alert>
       ) : null}
       {confirm ? (
         <div className="flex flex-wrap items-center gap-3">
@@ -105,7 +120,7 @@ export function ProductImportView({ action, state, pending }: ProductImportViewP
             <input type="hidden" name="csv" value={state.csv ?? ""} />
             <input type="hidden" name="fileName" value={state.fileName ?? ""} />
             <input type="hidden" name="fingerprint" value={confirm.fingerprint} />
-            <Button type="submit" disabled={pending}>
+            <Button type="submit" variant="default" disabled={pending}>
               {pending ? IMPORTING_BUTTON : importButtonLabel(confirm)}
             </Button>
           </form>
@@ -124,8 +139,8 @@ function UploadForm({
   return (
     <form action={action} className="flex max-w-xl flex-col gap-3">
       <input type="hidden" name="intent" value="preview" />
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="product-import-file">{FILE_LABEL}</Label>
+      <Field>
+        <FieldLabel htmlFor="product-import-file">{FILE_LABEL}</FieldLabel>
         <Input
           id="product-import-file"
           name="file"
@@ -137,16 +152,25 @@ function UploadForm({
             fileError ? `product-import-file-hint ${FILE_ERROR_ID}` : "product-import-file-hint"
           }
         />
-        <p id="product-import-file-hint" className="text-sm text-muted-foreground">
-          {FILE_HINT}
-        </p>
-      </div>
+        <FieldDescription id="product-import-file-hint">{FILE_HINT}</FieldDescription>
+      </Field>
       <div>
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" variant="default" disabled={pending}>
           {pending ? CHECKING_BUTTON : CHECK_BUTTON}
         </Button>
       </div>
     </form>
+  );
+}
+
+/** A file with a header and no data rows (OA-5 copy). */
+function NoRows() {
+  return (
+    <Empty>
+      <EmptyHeader>
+        <EmptyTitle>{EMPTY_FILE_TITLE}</EmptyTitle>
+      </EmptyHeader>
+    </Empty>
   );
 }
 
@@ -170,10 +194,12 @@ function PreviewTable({
 }) {
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-sm font-medium">
-        {fileName ? `${fileName}: ` : ""}
-        {previewSummary(preview)}
-      </p>
+      <Alert variant="info">
+        <AlertDescription>
+          {fileName ? `${fileName}: ` : ""}
+          {previewSummary(preview)}
+        </AlertDescription>
+      </Alert>
       <Table aria-label="Import preview">
         <TableHeader>
           <TableRow>

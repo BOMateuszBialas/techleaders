@@ -2,6 +2,7 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
+import { z } from "zod";
 import { useBrowser } from "./support/browser-test";
 import { useOwnerSession } from "./support/sign-in";
 
@@ -67,6 +68,36 @@ describe("admin CSV product import", () => {
       "Fix the rows with errors and check the file again. Nothing has been imported.",
     );
     expect(await browser().count('input[name="intent"][value="import"]')).toBe(0);
+  });
+
+  // Phase 4 of the admin retrofit: the preview table scrolls inside its own region on a phone and
+  // the page never scrolls sideways (B3.10). Nothing is imported here.
+  it("keeps the import preview in its own scroll region at 320 px", async () => {
+    await useOwnerSession(browser());
+    await browser().setViewport(320, 800);
+    await check(
+      csvFile(
+        "narrow.csv",
+        "name,price,sku,description\n[E2E] Import Narrow,49,E2E-IMP-004,A very long description that cannot fit into a phone-width preview row without wrapping\n",
+      ),
+    );
+    await browser().waitForText("1 row: 1 will be created, 0 skipped, 0 with errors.");
+
+    const layout = z
+      .object({
+        scrollWidth: z.number(),
+        innerWidth: z.number(),
+        regionOverflow: z.string(),
+      })
+      .parse(
+        await browser().evaluate(
+          "(() => { const table = document.querySelector('table[aria-label=\"Import preview\"]'); return { scrollWidth: document.documentElement.scrollWidth, innerWidth: window.innerWidth, regionOverflow: table ? getComputedStyle(table.parentElement).overflowX : '' }; })()",
+        ),
+      );
+    expect(layout.innerWidth).toBe(320);
+    expect(layout.scrollWidth).toBe(320);
+    expect(layout.regionOverflow).toBe("auto");
+    await browser().setViewport(1280, 800);
   });
 
   it("imports a fixed file (semicolons, BOM, quoted multi-line text) as drafts", async () => {

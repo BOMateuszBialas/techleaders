@@ -163,6 +163,12 @@ describe("StockPanelView", () => {
   it("disables the button while pending", () => {
     const html = renderPanel(IDLE_ACTION_STATE, { pending: true });
     expect(html).toMatch(/<button[^>]*disabled=""[^>]*>Setting stock…/);
+    expect(html).toMatch(/<button[^>]*aria-busy="true"/);
+  });
+
+  it("does not mark the button busy when idle", () => {
+    const html = renderPanel(IDLE_ACTION_STATE);
+    expect(html).toMatch(/<button[^>]*aria-busy="false"[^>]*>Set stock</);
   });
 
   it("shows a refused quantity under the field and keeps it", () => {

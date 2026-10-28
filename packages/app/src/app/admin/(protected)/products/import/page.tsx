@@ -11,6 +11,7 @@ import {
   TEMPLATE_LINK,
   templateHref,
 } from "@/components/admin/products/product-import-copy";
+import { Skeleton, SkeletonGroup } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -34,7 +35,13 @@ export default function ProductImportPage() {
         <h1 className="text-2xl font-semibold tracking-tight">Import products</h1>
         <p className="text-sm text-muted-foreground">{IMPORT_INTRO}</p>
       </div>
-      <Suspense fallback={<p className="text-sm text-muted-foreground">Loading import…</p>}>
+      <Suspense
+        fallback={
+          <SkeletonGroup label="Loading import">
+            <Skeleton className="h-48 rounded-card" />
+          </SkeletonGroup>
+        }
+      >
         <ImportSection />
       </Suspense>
       <section aria-labelledby="import-columns-heading" className="flex flex-col gap-2">
