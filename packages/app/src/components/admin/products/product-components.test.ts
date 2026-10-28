@@ -336,6 +336,18 @@ describe("PublishControlView", () => {
     expect(html).toContain('role="status"');
     expect(html).toMatch(/<button[^>]*disabled=""[^>]*>Unpublishing…<\/button>/);
   });
+
+  it("shows a refused change as an alert", () => {
+    const html = renderToStaticMarkup(
+      createElement(PublishControlView, {
+        action,
+        state: { status: "error", message: "Could not publish." },
+        pending: false,
+        product: draft,
+      }),
+    );
+    expect(html).toMatch(/data-variant="destructive"[^>]*role="alert"[\s\S]*Could not publish\./);
+  });
 });
 
 describe("focusFirstInvalidProductField (A-2)", () => {
