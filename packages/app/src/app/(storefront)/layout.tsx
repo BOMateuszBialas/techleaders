@@ -35,7 +35,7 @@ export default function StorefrontLayout({ children }: LayoutProps<"/">) {
             </Link>
             {/* On a phone the actions take their own full-width row, so the cart stays in view; from
               `sm` the header keeps one fixed-height row, so streamed menu links never shift the page. */}
-            <div className="flex w-full items-center gap-3 sm:w-auto">
+            <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto sm:flex-nowrap">
               <HeaderSearch />
               <Suspense fallback={<HeaderMenu categories={[]} />}>
                 <LoadedHeaderMenu />
