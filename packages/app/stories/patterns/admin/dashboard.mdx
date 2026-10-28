@@ -1,0 +1,27 @@
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+import * as DashboardStories from "./dashboard.stories";
+
+<Meta of={DashboardStories} />
+
+# Admin dashboard
+
+## What it is for
+
+The owner's first screen: the store's orders, revenue, stock and the system status, for a period the owner picks. Every number says how it is counted.
+
+## Rules
+
+- The period switch is a `TabsNav`; the active period has `aria-current="page"` and an underline, never a fill (the state is not colour alone).
+- Each metric value uses the admin display style (24/32, 600, tabular figures). Each card prints its definition under the value.
+- Demo data keeps its demo labelling: a `demo` alert, with no role, and the text unchanged.
+- An empty period says why it is empty and links to the products. It never shows a developer command.
+- A loading state is one labelled status region (`Loading metrics`), not bare text.
+- Low stock uses the `warning` badge; the product name is a resource link.
+
+<Canvas of={DashboardStories.Loaded} />
+
+<Canvas of={DashboardStories.EmptyPeriod} />
+
+<Canvas of={DashboardStories.RangeError} />
+
+<Canvas of={DashboardStories.Loading} />

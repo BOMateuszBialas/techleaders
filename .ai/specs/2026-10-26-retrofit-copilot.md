@@ -342,6 +342,17 @@ Each phase is one PR, shippable and reviewable on its own. Each one: (a) changes
 
 Carried from the decisions table. Open questions below are not decided by this spec.
 
+## Screen IDs
+
+Screen IDs are from `.ai/design/mapa-ekranow.md` §3. The phasing below is unchanged; this note only maps each phase to the screens it touches.
+
+| Phase | Screen IDs | Note |
+|---|---|---|
+| 1 Question form and advisory note | s17 | Question form, advisory banner, suggested questions, 500-character counter |
+| 2 Answer summary, fallbacks and evidence | s18 | Source and fallback states, evidence tables, refusal and empty store |
+| 3 Recommendation cards, status badges and saved list | s18 (cards); s19 (decision and saved list) | |
+| 4 States sweep, Storybook, docs and close-out | s17, s18, s19 | The "Loading Copilot" fallback is the s17 loading state |
+
 ## 📋 Phasing
 
 | Phase | Title | Risk | Depends on | Files (summary) |

@@ -12,8 +12,8 @@
 | 1. Fundamenty | **zmergowany** (PR #99); pełna bramka zielona | log `.ai/runs/2026-10-24-design-system-stage-1.md` |
 | 2. Komponenty bazowe | **zmergowany:** partie 1–4 (PR #104, #106, #107, #108) | sekcje „Etap 2, partia 1”–„Etap 2, partia 4” niżej; logi `.ai/runs/2026-10-24-design-system-stage-2-batch-1.md`, `.ai/runs/2026-10-24-design-system-stage-2-batch-2.md`, `.ai/runs/2026-10-25-design-system-stage-2-batch-3.md`, `.ai/runs/2026-10-25-design-system-stage-2-batch-4.md` |
 | 3. Komponenty produktu, wzorce, ekrany | przeniesiony do lekcji 08 (retrofit) | osobny spec |
-| 4. Strony, które uczą + `docs/design-system.md` | **zrobiony w PR** (gałąź `design/stage-4-teaching-pages`, nie zmergowany) | sekcja „Etap 4” niżej, wynik 2026-10-26 |
-| 5. Sprawdzenie i raport | **zrobiony w tym samym PR** (bramka, Storybook, przegląd 320 / 768 / 1440 px, liczby) | sekcja „Etap 5” niżej; test agentem przygotowany w `.ai/design/test-agentem.md`, nie wykonany |
+| 4. Strony, które uczą + `docs/design-system.md` | **zmergowany** (PR #110) | sekcja „Etap 4” niżej, wynik 2026-10-26 |
+| 5. Sprawdzenie i raport | **zmergowany** w PR #110 (bramka, Storybook, przegląd 320 / 768 / 1440 px, liczby) | sekcja „Etap 5” niżej; test agentem wykonany tylko na dokumentacji (PR #128), kroki wizualne nie wykonane, `.ai/design/test-agentem.md` |
 
 ## Decyzje zatwierdzone przez właściciela
 
@@ -690,7 +690,7 @@ Przyczyna: szerokie tabele MDX (pięć kolumn z długimi nazwami) mają minimaln
 
 Liczby: 14 stron dokumentacji w „Design system” (8 ogólnych, 6 epików), 21 komponentów w katalogu, 1 story katalogu (w obu motywach), 274 testy Storybooka (58 plików, obie grupy), 23 pozycje na liście P.
 
-Test agentem: przygotowany w `.ai/design/test-agentem.md`, **nie wykonany**.
+Test agentem: **wykonany na dokumentacji** (PR #128, zmergowany), wynik w `.ai/design/test-agentem.md`. Kroki wizualne (build Storybooka, serwer, motywy, szerokości, seed) **nie wykonane**.
 
 ## Prototyp DS (React + Vite), krok 4 F4 (2026-10-26)
 
@@ -700,12 +700,73 @@ Test agentem: przygotowany w `.ai/design/test-agentem.md`, **nie wykonany**.
 - **Sprawdzone:** typecheck i build zielone. Przegląd headless Chrome 155 przez CDP (rozszerzenie Chrome nie było podłączone): 68 kontroli ekranów w stanie domyślnym × 320 / 1440 px × jasny / ciemny (zero błędów konsoli, zero poziomego przewijania strony i ramki, każdy domyślny ekran ma h1); 168 kontroli wszystkich stanów przy 320 i 1440 px (zero problemów); s01 i s18 w layoutach A/B/C przy 320 i 1440 px (zero problemów). Skrypty i wyniki w `evidence/`. Wizualnie oceniono dwa zrzuty (s01 320, s14 1440).
 - **Naprawione przy sprawdzaniu:** cztery ekrany bez h1, przyciski sugerowanych pytań Copilota przepełniały 320 px, pasek boczny admina nie przechodził w wiersz przy 1440 px (kontener zapytań na złym elemencie), 404 faviconu.
 - **Odstępstwa:** czcionki Archivo / Geist Mono zastąpione systemowymi (brak `next/font` i sieci); szerokość w pasku sterowania zmienia kontenery, a nie media query tokenów (gęstość liczy się od rzeczywistej szerokości okna); `next/link` zastąpiony zwykłym linkiem; w nagłówku sklepu zwykłe linki, nie megamenu; ekrany składane ręcznie, bez logiki aplikacji.
-- **Niesprawdzone:** tryb ciemny wizualnie (tylko DOM), klawiatura i czytnik ekranu, szerokości 390 i 768 px, kontrasty nowych par (brak nowych), `check:tokens`, test agentem, przegląd przez prawdziwą osobę.
+- **Niesprawdzone:** tryb ciemny wizualnie (tylko DOM), klawiatura i czytnik ekranu, szerokości 390 i 768 px, kontrasty nowych par (brak nowych), `check:tokens`, wizualna część testu agentem (test agentem wykonano tylko na dokumentacji, PR #128), przegląd przez prawdziwą osobę.
 - **Otwarte P:** P1 wybór layoutu s01 i s18 (właściciel); P2 s08–s10 w kolejnej rewizji; P3 pliki czcionek; P4 megamenu w nagłówku sklepu i Disclosure na telefonie (retrofit, lekcja 08); P5 przegląd w prawdziwej przeglądarce przez właściciela.
+
+## Lesson 08: retrofit checkout and cart
+
+Spec: `.ai/specs/2026-10-26-retrofit-checkout-cart.md` (four phases, one PR each; phasing unchanged).
+
+| Phase | PR | Merged | Scope (spec) | Run log |
+|---|---|---|---|---|
+| 1. Cart and cart drawer (risk-medium) | #134 | 2026-10-26 | Cart page, drawer, header cart link, add to cart (product page and card), `lib/field-a11y.ts` | none in `.ai/runs/` |
+| 2. Checkout form and order summary (risk-high) | #135 | 2026-10-27 | Checkout form on `Field`, focus after a failed submit, order summary in a `Card`, loading and unavailable states | `.ai/runs/2026-10-27-retrofit-checkout-phase-2.md` |
+| 3. Payment step, confirmation, not-found, lookup (risk-high) | not merged | - | spec Phase 3 | - |
+| 4. Store error page (risk-medium) | not merged | - | spec Phase 4 | - |
+
+**Phase 1 (#134).** The repo has no run log for this phase, so the checks run for #134 are not recorded here. The scope is the spec's Phase 1 steps 1 to 10 and acceptance A1 to A8.
+
+**Phase 2 (#135).** Scope from the run log (steps 1 to 9 of the spec's Phase 2):
+- Each checkout control is a `Field` with `FieldLabel` (`optional` only on "Address line 2"), `Input` and `FieldError`; `aria-invalid` and `aria-describedby` come from `lib/field-a11y.ts`.
+- Session-lost and server errors are `Alert destructive` with `role="alert"`. Place order is `action` with `aria-busy`.
+- Focus after a failed submit: pure helper `components/checkout/first-invalid-field.ts`; `checkout-form.tsx` only wires it in one `useEffect`. Because the logic is unit-tested, no coverage exclusion was added (OA-7 not used).
+- Order summary is a `Card`; checkout loading (`SkeletonGroup` "Loading checkout") and unavailable (`ErrorState` "Checkout unavailable", retry link) states; conflict, "Review your cart" and sign-in links are `TextLink`.
+- Approvals: the run log says the repo had no approval record for OA-2, OA-5 and OA-7 at the time of the run; the user's instruction to implement Phase 2 was taken as the go-ahead. PR #141 (open) records them. The owner confirms when merging (risk-high).
+
+Checks for #135 (run log, worktree before merge):
+
+| Command | Result |
+|---|---|
+| `npm run lint` | exit 0 (2 warnings in `.ai/prototypes/ds`, not touched) |
+| `npm run format:check` | pass |
+| `npm run check:tokens` | pass (271 files) |
+| `npm run check:agents` | pass (5 agent files) |
+| `npm run test:hooks` | pass (334/334, 9 known gaps) |
+| `npm run typecheck` | pass (app, scripts, core, database, ai) |
+| `npm run test:coverage` | pass: 191 files, 2130 tests, 100% |
+| `npm run build` | pass |
+| `npm run test:integration` | pass: 22 files, 193 tests |
+| `npm run test:e2e` | pass: 25 files, 141 tests (includes the focus check and the 320 px checkout check) |
+| `npm run build-storybook` | pass |
+| `npm run test:storybook:themes` | pass: 70 files, 346 tests (light and dark) |
+
+Not checked for #135 (run log): manual 320 and 1440 px review in light and dark; screen-reader behaviour of the focus move and alert roles; a keyboard Tab-through; the 44 px height of Place order (not in the Phase 2 acceptance).
+
+## Lesson 08: retrofit admin
+
+Spec: `.ai/specs/2026-10-26-retrofit-admin.md` (six phases, one PR each).
+
+| Phase | PR | Merged | Scope (spec) | Run log |
+|---|---|---|---|---|
+| 1. Shell, navigation, error and session states (risk-high) | #136 | 2026-10-27 | Dark admin sidebar on tokens; `aria-current` through `AdminNavLink`; `ErrorState` on the admin error page; `TextLink` on not-found; labelled skeleton for the session fallback; `md:p-6` main padding | `.ai/runs/2026-10-27-retrofit-admin-phase-1.md` |
+| 2. Dashboard | not merged | - | spec Phase 2 | - |
+| 3. Products and categories, forms, feedback, category delete | not merged | - | spec Phase 3 | - |
+| 4. Stock panel and CSV import | not merged | - | spec Phase 4 | - |
+| 5. Orders list, detail, status, destructive confirmation | not merged | - | spec Phase 5 | - |
+| 6. States sweep, sign-in (if approved), Storybook, close-out | not merged | - | spec Phase 6 | - |
+
+Checks for #136 (run log):
+- `npm run lint`: 0 errors, 2 warnings in `.ai/prototypes/ds` (not touched). `typecheck`, `format:check`, `check:tokens` (273 files), `check:agents` and `test:hooks` (334/334, 9 known gaps): pass.
+- `npm run test:coverage`: pass, 192 files, 2131 tests, 100%.
+- `npm run build`: the first run failed (`usePathname` outside `Suspense` in a static layout); the nav is now a server component wrapping the client `AdminNavCurrent` in `Suspense`. The second run passed.
+- `npm run test:integration`: pass, 22 files, 193 tests. `npm run test:e2e`: pass, 25 files, 141 tests.
+- `npm run build-storybook`: pass. `npm run test:storybook:themes`: pass, 70 files, 332 tests (light and dark). The first run had 4 failures in the new story (no `appDirectory` in the Storybook setup); fixed.
+
+Not checked for #136 (run log): dark mode and 320 px by eye (the author produced 390 px and 768 px screenshots but did not open them); the session fallback skeleton uses `bg-muted`, which may read as a light block on the dark sidebar in the light theme.
 
 ## Następny krok
 
-Review PR etapu 4 i 5 przez właściciela: merge (risk-high, merguje właściciel) po zielonym CI. Najpierw decyzje z listy P (Storybook „What is missing”, §4). Potem retrofit (lekcja 08: Alert dialog przy kategorii i zamówieniu, megamenu w nagłówku sklepu, `ErrorState` i `error.tsx` sklepu, przepięcie formularzy na `Field`) oraz wykonanie testu agentem z `.ai/design/test-agentem.md`. Otwarte: zawijanie szerokich tabel na 320 px w stronach dokumentacji (wynik etapu 5).
+Review PR etapu 4 i 5 przez właściciela: merge (risk-high, merguje właściciel) po zielonym CI. Najpierw decyzje z listy P (Storybook „What is missing”, §4). Potem retrofit (lekcja 08: Alert dialog przy kategorii i zamówieniu, megamenu w nagłówku sklepu, `ErrorState` i `error.tsx` sklepu, przepięcie formularzy na `Field`) oraz wizualna część testu agentem z `.ai/design/test-agentem.md` (część na dokumentacji zrobiona w PR #128). Otwarte: zawijanie szerokich tabel na 320 px w stronach dokumentacji (wynik etapu 5).
 
 ## Storefront v2 (2026-10-26)
 

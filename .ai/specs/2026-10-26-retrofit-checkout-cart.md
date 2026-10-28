@@ -336,6 +336,17 @@ All "Try again" and retry actions are links to the same URL, so they work withou
 - A long product name in a cart line: `wrap-anywhere` on the name and no fixed width on the line (unchanged).
 - Dark theme: every new `Alert` uses its token pair (`success`, `warning`, `destructive`, `demo`), which the DS already checked in both themes. The `action` button is never placed in `Empty` (B3.20).
 
+## Screen IDs
+
+Screen IDs are from `.ai/design/mapa-ekranow.md` §3. The phasing below is unchanged; this note only maps each phase to the screens it touches.
+
+| Phase | Screen IDs | Note |
+|---|---|---|
+| 1 Cart, drawer, header cart link, add to cart | s04 (cart), s03 (Add to cart), s02 (product card button) | The drawer has no screen ID in the map; it opens from the header cart link on every shopper screen |
+| 2 Checkout form and order summary | s05 | |
+| 3 Payment step, confirmation, not-found, lookup, status mapping | s06, s07, s08; the status badge also shows on s11 | |
+| 4 Store error page | none of its own | `error.tsx` of the storefront covers the error states of s01–s12 (map §7, Error row) |
+
 ## Phasing summary
 
 | Phase | Scope | Risk | Owner approvals that gate it | Migration |
@@ -452,3 +463,9 @@ Recorded, no approval needed (the owner already decided them or the rule applies
 - `.ai/design/POSTEP.md`: a "Lesson 08: retrofit checkout and cart" section per merged phase (the stage table row for stage 3 points to this spec).
 - `.ai/specs/2026-10-26-retrofit-checkout-cart.md` moves to `.ai/specs/implemented/` when all four phases are merged.
 - `.ai/lessons.md`: one entry per phase if a surprise is found (for example, the server-only rule for `Alert` roles or the SSR limit on effects).
+
+## Owner approvals
+
+- **OA-2** (focus moves to the first invalid field after a failed checkout submit, C3, D9): approved by the owner on 2026-10-27.
+- **OA-5** (new titles and the retry label on the unavailable and error states, C9): approved by the owner on 2026-10-27.
+- **OA-7** (coverage of the focus effect in `checkout-form.tsx`: no coverage exclusion; the pure helper is unit-tested and the effect is checked by a Storybook play test and the e2e focus check): approved by the owner on 2026-10-27.
