@@ -17,6 +17,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import {
   EMPTY_LOW_STOCK,
+  EMPTY_PERIOD_ACTION,
   EMPTY_PERIOD_HINT,
   EMPTY_TOP_PRODUCTS,
   NOT_COMPARED,
@@ -35,7 +36,7 @@ import {
   periodRangeLabel,
   statusBreakdown,
 } from "./dashboard-copy";
-import { DashboardView } from "./dashboard-view";
+import { DashboardView, MetricsSkeleton, StatusSkeleton } from "./dashboard-view";
 
 const NOW = new Date("2026-10-17T10:00:00.000Z");
 const PERIOD = resolvePeriod("7d", NOW);
@@ -419,5 +420,89 @@ describe("DashboardView comparison notes", () => {
     expect(html.match(/data-testid="comparison-note"/g)).toHaveLength(2);
     expect(text(html)).toContain(TODAY_NOTE);
     expect(text(html)).toContain("The previous period includes 2 seeded demo orders (fictional).");
+  });
+});
+
+describe("DashboardView states (retrofit phase 2)", () => {
+  it("shows the period switch as a TabsNav with the active period marked and no fill", () => {
+    const html = render(dashboard());
+
+    expect(html).toContain('data-slot="tabs-nav"');
+    expect(html).toContain('aria-label="Period"');
+    expect(html).not.toContain("bg-primary");
+    const active = html.match(/<a [^>]*aria-current="page"[^>]*>Last 7 days<\/a>/);
+    expect(active).not.toBeNull();
+  });
+
+  it("prints each metric value in the display style, with a metric grid gap of 12 px", () => {
+    const html = render(dashboard());
+
+    expect(html.match(/class="type-display"/g)).toHaveLength(5);
+    expect(html).toContain("grid gap-3 sm:grid-cols-2 xl:grid-cols-4");
+  });
+
+  it("shows the demo note as a demo alert with no role, and other notes as text", () => {
+    const html = render(
+      dashboard({ demoOrderCount: 3, sales: { ...dashboard().sales, otherCurrencyOrders: 1 } }),
+    );
+
+    const demo = html.match(/<div[^>]*data-testid="dashboard-note"[^>]*>/)?.[0] ?? "";
+    expect(demo).toContain('data-variant="demo"');
+    expect(demo).not.toContain("role=");
+    expect(text(html)).toContain("Includes 3 seeded demo orders (fictional).");
+    const other = html.match(/<p[^>]*data-testid="dashboard-note"[^>]*>/)?.[0] ?? "";
+    expect(other).toContain("text-muted-foreground");
+  });
+
+  it("gives an empty period an Empty state with a link to the products, and no developer command", () => {
+    const html = render(EMPTY);
+    const body = text(html);
+
+    expect(html).toContain('data-slot="empty"');
+    expect(html).toContain('href="/admin/products"');
+    expect(body).toContain(EMPTY_PERIOD_ACTION);
+    expect(body).toContain(EMPTY_PERIOD_HINT);
+    expect(body).not.toContain("npm run");
+    expect(body).not.toContain("db:seed");
+  });
+
+  it("shows no Empty state when the period has orders", () => {
+    expect(render(dashboard())).not.toContain('data-slot="empty"');
+  });
+
+  it("marks an out-of-stock product with the warning badge", () => {
+    const html = render(dashboard());
+
+    expect(html).toMatch(/<[a-z]+[^>]*bg-warning-surface[^>]*>Out of stock<\/[a-z]+>/);
+  });
+
+  it("names the range fields with Field and reports a bad range in a destructive alert", () => {
+    const html = render(
+      dashboard({
+        rangeError: { message: "Bad range.", from: "2026-10-14", to: "2026-10-01" },
+      }),
+    );
+
+    expect(html.match(/data-slot="field"/g)).toHaveLength(2);
+    expect(html).toContain('data-variant="destructive"');
+    expect(html).toContain('id="range-error"');
+  });
+});
+
+describe("admin dashboard loading states", () => {
+  it("labels the metrics skeleton as one status region and shows no bare Loading text", () => {
+    const html = renderToStaticMarkup(createElement(MetricsSkeleton));
+
+    expect(html).toContain('role="status"');
+    expect(text(html)).toContain("Loading metrics");
+    expect(html.match(/data-slot="skeleton"/g)).toHaveLength(7);
+    expect(html).not.toContain("…");
+  });
+
+  it("labels the system status skeleton", () => {
+    const html = renderToStaticMarkup(createElement(StatusSkeleton));
+
+    expect(html).toContain('role="status"');
+    expect(text(html)).toContain("Checking system status");
   });
 });
