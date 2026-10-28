@@ -134,7 +134,9 @@ describe("ProductImportView", () => {
     expect(html).toContain('type="file"');
     expect(html).toContain('aria-invalid="true"');
     expect(html).toContain('aria-describedby="product-import-file-hint product-import-file-error"');
-    expect(html).toContain('id="product-import-file-error"><p role="alert"');
+    expect(html).toContain(
+      'id="product-import-file-error"><div data-slot="alert" data-variant="destructive"',
+    );
     expect(html).not.toContain("Import preview");
   });
 

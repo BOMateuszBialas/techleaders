@@ -1,7 +1,7 @@
 import type { AdminProduct } from "@commerceos/core";
+import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import type { ActionState } from "@/lib/action-state";
-import { FormMessage } from "../form-feedback";
 import { publishHelp, UNPUBLISH_HELP } from "./product-copy";
 
 export type PublishControlViewProps = {
@@ -30,7 +30,7 @@ export function PublishControlView({ action, state, pending, product }: PublishC
         <p id="publish-help" className="text-sm text-muted-foreground">
           {publishing ? publishHelp(product) : UNPUBLISH_HELP}
         </p>
-        <FormMessage state={state} />
+        <FormResult state={state} />
         <div>
           <Button
             type="submit"
@@ -44,4 +44,26 @@ export function PublishControlView({ action, state, pending, product }: PublishC
       </form>
     </section>
   );
+}
+
+/**
+ * The form-level result: `role="alert"` for an error, `role="status"` for a success, nothing
+ * before the first submit (spec UI/UX "States").
+ */
+function FormResult({ state }: { state: ActionState }) {
+  if (state.status === "error") {
+    return (
+      <Alert variant="destructive" role="alert">
+        {state.message}
+      </Alert>
+    );
+  }
+  if (state.status === "success") {
+    return (
+      <Alert variant="success" role="status">
+        {state.message}
+      </Alert>
+    );
+  }
+  return null;
 }
