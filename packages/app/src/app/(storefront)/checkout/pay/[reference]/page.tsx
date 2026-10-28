@@ -7,9 +7,9 @@ import { Skeleton, SkeletonGroup } from "@/components/ui/skeleton";
 import {
   NOT_PAYABLE_MESSAGE,
   ORDER_LOADING_LABEL,
-  ORDER_UNAVAILABLE_MESSAGE,
   PAY_HEADING,
 } from "@/components/checkout/checkout-copy";
+import { OrderPageUnavailable } from "@/components/checkout/checkout-page-states";
 import { PayForm } from "@/components/checkout/order-forms";
 import { PaymentTestNote } from "@/components/checkout/order-forms-view";
 import { OrderSummary } from "@/components/checkout/order-summary";
@@ -53,13 +53,8 @@ async function PayContents({ params }: { params: PayPageProps["params"] }) {
 
   // Control flow after the loader mapped every error (never inside a try block).
   if (result.kind === "not-found") notFound();
-  if (result.kind === "error") {
-    return (
-      <p role="alert" className="text-sm text-destructive">
-        {ORDER_UNAVAILABLE_MESSAGE}
-      </p>
-    );
-  }
+  if (result.kind === "error")
+    return <OrderPageUnavailable retryHref={orderPaths.pay(reference)} />;
   if (result.data.kind === "limited") {
     return (
       <Alert variant="warning" role="alert">

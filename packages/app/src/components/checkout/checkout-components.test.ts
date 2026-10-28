@@ -10,7 +10,11 @@ import { orderStatusLabel, PAYMENT_TEST_NOTE } from "./checkout-copy";
 import { CheckoutForm } from "./checkout-form";
 import { CHECKOUT_FIELD_NAMES, CheckoutFormView } from "./checkout-form-view";
 import { CHECKOUT_SESSION_LOST, type CheckoutMode } from "./checkout-mode";
-import { CheckoutPageSkeleton, CheckoutPageUnavailable } from "./checkout-page-states";
+import {
+  CheckoutPageSkeleton,
+  CheckoutPageUnavailable,
+  OrderPageUnavailable,
+} from "./checkout-page-states";
 import { OrderDetails } from "./order-details";
 import { LookupForm, PayForm } from "./order-forms";
 import { LookupFormView, OrderStatusBadge, PaymentTestNote, PayFormView } from "./order-forms-view";
@@ -188,6 +192,13 @@ describe("CheckoutFormView", () => {
     expect(unavailable).toContain("Checkout unavailable");
     expect(unavailable).toContain('role="alert"');
     expect(unavailable).toMatch(/<a[^>]*href="\/checkout"[^>]*>Try again<\/a>/);
+    const orderUnavailable = renderToStaticMarkup(
+      createElement(OrderPageUnavailable, { retryHref: `/orders/${REFERENCE}` }),
+    );
+    expect(orderUnavailable).toContain("Order unavailable");
+    expect(orderUnavailable).toContain('role="alert"');
+    expect(orderUnavailable).toContain(`href="/orders/${REFERENCE}"`);
+    expect(orderUnavailable).toMatch(/<a[^>]*>Try again<\/a>/);
   });
 
   it("renders through its client wrapper", () => {

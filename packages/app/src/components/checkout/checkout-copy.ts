@@ -39,6 +39,8 @@ export const ORDER_NOT_FOUND_HEADING = "No order found with this reference";
 export const ORDER_NOT_FOUND_HINT = "Check the reference and try again.";
 export const LOOKUP_ORDER_LINK = "Look up an order";
 export const LOOKUP_ANOTHER_ORDER_LINK = "Look up another order";
+/** OA-5 (retrofit Phase 3): the title of the order unavailable state; the retry label is "Try again". */
+export const ORDER_UNAVAILABLE_TITLE = "Order unavailable";
 export const ORDER_UNAVAILABLE_MESSAGE =
   "Orders are temporarily unavailable. Please try again later.";
 
