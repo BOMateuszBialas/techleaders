@@ -1,0 +1,19 @@
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+import * as RecommendationCardStories from "./RecommendationCard.stories";
+
+<Meta of={RecommendationCardStories} />
+
+# Recommendation card
+
+## What it is for
+
+One recommendation from Copilot, in the answer and in "Your recommendations". The owner reads what was observed, the evidence, the reasoning and the suggested action, then decides.
+
+## Rules
+
+- The priority is a word ("High priority") on a neutral badge. The status is a word ("Status: Saved") on its badge. Colour is never the only signal (D3, D4).
+- The status badge shows the status the owner has in the page, so the answer and the saved list agree.
+- Copilot suggests; the owner decides. The card changes nothing in the store: the actions only save, dismiss or complete the recommendation.
+- Model text is plain text, never HTML.
+
+<Canvas of={RecommendationCardStories.SavedWithStatus} />
