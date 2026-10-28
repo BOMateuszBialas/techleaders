@@ -10,10 +10,12 @@ import {
   SESSION_ENDED_TEXT,
   UNAVAILABLE_TEXT,
   createAskCopilotAction,
+  focusRefusedQuestion,
   originText,
   periodText,
   questionLengthText,
   type CopilotPanelState,
+  type PanelFailure,
   type SuggestedQuestion,
 } from "./copilot-copy";
 import { CopilotPanel } from "./copilot-panel";
@@ -108,10 +110,16 @@ function render(state: CopilotPanelState, pending = false, questionLength = 0): 
 }
 
 /** Every element in the tree the view returns (the view is hook-free, so it can be called directly). */
-function elementsOf(node: ReactNode): ReactElement<{ children?: ReactNode; onChange?: unknown }>[] {
+type TreeProps = {
+  children?: ReactNode;
+  onChange?: unknown;
+  ref?: (element: { focus: () => void } | null) => void;
+};
+
+function elementsOf(node: ReactNode): ReactElement<TreeProps>[] {
   if (node === null || node === undefined || typeof node !== "object") return [];
   if (Array.isArray(node)) return node.flatMap((child) => elementsOf(child));
-  const element = node as ReactElement<{ children?: ReactNode; onChange?: unknown }>;
+  const element = node as ReactElement<TreeProps>;
   return [element, ...elementsOf(element.props.children)];
 }
 
@@ -173,11 +181,12 @@ describe("createAskCopilotAction", () => {
   });
 
   it("maps every failure to a message the owner can act on", async () => {
-    const cases: [number, unknown, string][] = [
+    const cases: [number, unknown, string, PanelFailure][] = [
       [
         400,
         { ok: false, error: { code: "VALIDATION_FAILED", message: "Type a question." } },
         "Type a question.",
+        "validation",
       ],
       [
         400,
@@ -190,19 +199,35 @@ describe("createAskCopilotAction", () => {
           },
         },
         "Type a question.",
+        "validation",
       ],
-      [400, "not json", UNAVAILABLE_TEXT],
-      [401, { ok: false, error: { code: "UNAUTHORIZED", message: "x" } }, SESSION_ENDED_TEXT],
-      [429, { ok: false, error: { code: "RATE_LIMITED", message: "x" } }, RATE_LIMITED_TEXT],
-      [500, { ok: false, error: { code: "INTERNAL_ERROR", message: "x" } }, UNAVAILABLE_TEXT],
-      [200, { ok: false, error: { code: "X", message: "x" } }, UNAVAILABLE_TEXT],
+      [400, "not json", UNAVAILABLE_TEXT, "unavailable"],
+      [
+        401,
+        { ok: false, error: { code: "UNAUTHORIZED", message: "x" } },
+        SESSION_ENDED_TEXT,
+        "session",
+      ],
+      [
+        429,
+        { ok: false, error: { code: "RATE_LIMITED", message: "x" } },
+        RATE_LIMITED_TEXT,
+        "rate_limited",
+      ],
+      [
+        500,
+        { ok: false, error: { code: "INTERNAL_ERROR", message: "x" } },
+        UNAVAILABLE_TEXT,
+        "unavailable",
+      ],
+      [200, { ok: false, error: { code: "X", message: "x" } }, UNAVAILABLE_TEXT, "unavailable"],
     ];
-    for (const [status, body, message] of cases) {
+    for (const [status, body, message, failure] of cases) {
       const state = await createAskCopilotAction(respond(status, body))(
         IDLE_COPILOT_STATE,
         form({ question: "q" }),
       );
-      expect(state).toEqual({ status: "error", message, question: "q" });
+      expect(state).toEqual({ status: "error", failure, message, question: "q" });
     }
   });
 
@@ -264,10 +289,81 @@ describe("CopilotPanelView", () => {
     expect(html).toContain("disabled");
   });
 
-  it("shows an error as an alert", () => {
-    const html = render({ status: "error", message: RATE_LIMITED_TEXT, question: "" });
+  it("shows a failure as a warning alert, not a field error", () => {
+    const html = render({
+      status: "error",
+      failure: "rate_limited",
+      message: RATE_LIMITED_TEXT,
+      question: "",
+    });
     expect(html).toContain('role="alert"');
+    expect(html).toContain('data-variant="warning"');
     expect(html).toContain(RATE_LIMITED_TEXT);
+    expect(html).not.toContain("copilot-question-error");
+    expect(html).not.toContain('aria-invalid="true"');
+  });
+
+  it("shows a refused question under its field, with aria-invalid and focus target", () => {
+    const html = render({
+      status: "error",
+      failure: "validation",
+      message: "Type a question.",
+      question: "  ",
+    });
+    expect(html).toContain('id="copilot-question-error"');
+    expect(html).toContain("Type a question.");
+    expect(html).toContain('aria-invalid="true"');
+    expect(html).toContain('aria-describedby="copilot-question-hint copilot-question-error"');
+    expect(html).not.toContain('role="alert"');
+  });
+
+  it("links a session notice to the sign-in page", () => {
+    const html = render({
+      status: "error",
+      failure: "session",
+      message: SESSION_ENDED_TEXT,
+      question: "",
+    });
+    expect(html).toContain(SESSION_ENDED_TEXT);
+    expect(html).toContain('href="/admin/sign-in"');
+  });
+
+  it("moves the focus to the question after a refused one, and only then", () => {
+    const refused: CopilotPanelState = {
+      status: "error",
+      failure: "validation",
+      message: "x",
+      question: "",
+    };
+    const focus = vi.fn();
+    // The textarea's ref callback: React runs it at commit, with the element or null.
+    for (const state of [
+      refused,
+      { ...refused, failure: "unavailable" as const },
+      IDLE_COPILOT_STATE,
+    ]) {
+      const tree = CopilotPanelView({ ...panelProps(state) });
+      const focusOn = elementsOf(tree).find((element) => element.type === Textarea)?.props.ref;
+      focusOn?.({ focus });
+      focusOn?.(null);
+    }
+    expect(focus).toHaveBeenCalledTimes(1);
+    expect(focusRefusedQuestion(IDLE_COPILOT_STATE, null)).toBeUndefined();
+  });
+
+  it("takes the focus once per refusal, not again on a re-render with the same state", () => {
+    const focus = vi.fn();
+    const refusal: CopilotPanelState = {
+      status: "error",
+      failure: "validation",
+      message: "x",
+      question: "",
+    };
+    focusRefusedQuestion(refusal, { focus });
+    focusRefusedQuestion(refusal, { focus });
+    expect(focus).toHaveBeenCalledTimes(1);
+    focusRefusedQuestion({ ...refusal }, { focus });
+    expect(focus).toHaveBeenCalledTimes(2);
   });
 
   it("renders an answered question: origin, period, evidence table, demo tag and links", () => {

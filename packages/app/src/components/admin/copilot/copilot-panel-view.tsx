@@ -1,21 +1,35 @@
 import { COPILOT_QUESTION_MAX_LENGTH } from "@commerceos/core";
 import { Button } from "@/components/ui/button";
-import { Field, FieldDescription, FieldLabel, FieldLegend, FieldSet } from "@/components/ui/field";
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+  FieldLegend,
+  FieldSet,
+} from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
 import { CopilotAnswerView } from "./copilot-answer-view";
 import {
+  focusRefusedQuestion,
   PENDING_TEXT,
   questionLengthText,
   type CopilotPanelState,
   type SuggestedQuestion,
 } from "./copilot-copy";
+import { failureNotice } from "./copilot-fallback";
+import { FailureNoticeView } from "./copilot-fallback-view";
 import type { RecommendationStatusAction } from "./recommendation-copy";
+
+const HINT_ID = "copilot-question-hint";
+const ERROR_ID = "copilot-question-error";
 
 /**
  * Hook-free Copilot panel: the suggested-question buttons and a typed question in one form,
- * then the answer region (`aria-live`) with the pending state, an error or the answer.
+ * then the answer region (`aria-live`) with the pending state, a failure or the answer.
  * `questionLength` and `onQuestionChange` come from the wrapper, which holds the counter's state
  * (OA-4); the counter is not in an `aria-live` region, so it is not read on each keystroke (A6).
+ * A refused question (400) shows its message under the field and takes the focus.
  */
 export function CopilotPanelView({
   action,
@@ -36,6 +50,8 @@ export function CopilotPanelView({
   /** Saves, dismisses or completes a stored recommendation (Phase 4). */
   statusAction?: RecommendationStatusAction;
 }) {
+  const refused = state.status === "error" && state.failure === "validation";
+  const notice = state.status === "error" ? failureNotice(state.failure) : null;
   return (
     <div className="flex flex-col gap-6">
       <form action={action} className="flex flex-col gap-4" aria-busy={pending}>
@@ -65,13 +81,16 @@ export function CopilotPanelView({
             defaultValue={state.question}
             readOnly={pending}
             placeholder="Which products are low on stock?"
-            aria-describedby="copilot-question-hint"
+            aria-describedby={refused ? `${HINT_ID} ${ERROR_ID}` : HINT_ID}
+            aria-invalid={refused || undefined}
+            ref={(element) => focusRefusedQuestion(state, element)}
             onChange={(event) => onQuestionChange(event.currentTarget.value.length)}
           />
-          <FieldDescription id="copilot-question-hint">
+          <FieldDescription id={HINT_ID}>
             Up to {COPILOT_QUESTION_MAX_LENGTH} characters, in English.{" "}
             <span>{questionLengthText(questionLength, COPILOT_QUESTION_MAX_LENGTH)}</span>
           </FieldDescription>
+          {refused ? <FieldError id={ERROR_ID}>{state.message}</FieldError> : null}
         </Field>
         <div>
           <Button type="submit" disabled={pending}>
@@ -84,10 +103,8 @@ export function CopilotPanelView({
           <p role="status" className="text-sm text-muted-foreground">
             {PENDING_TEXT}
           </p>
-        ) : state.status === "error" ? (
-          <p role="alert" className="text-sm text-destructive">
-            {state.message}
-          </p>
+        ) : notice ? (
+          <FailureNoticeView notice={notice} />
         ) : state.answer ? (
           <CopilotAnswerView
             answer={state.answer}
