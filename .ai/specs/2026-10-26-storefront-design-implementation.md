@@ -45,7 +45,7 @@ The current storefront (`packages/app/src/app/(storefront)/`) carries the demo f
 - A real delivery, returns or shipping policy. The delivery text is an example with a label (Q7). Shipping stays out of scope (N02, cart spec A11).
 - Admin editing of technical data, gallery images or photos. Those belong to the admin catalog spec (E03) and image upload (P1). In this spec they are seed or migration data only (Q16).
 - Image upload, remote image hosting changes and `next.config.ts` changes.
-- A new megamenu or a phone menu using Disclosure (prototype open item P4 / lesson 08). Not part of the owner's answers.
+- A new megamenu (prototype open item P4 / lesson 08). The phone menu is not in this list: the owner chose a Disclosure "Categories" button below 768 px on 2026-10-28, see `.ai/specs/2026-10-28-storefront-phone-menu.md`.
 - Customer-account, checkout-logic and pricing changes. The server stays the only source of prices and stock (see Security).
 - Real company data of any kind in the footer.
 - New public URLs. The drawer is a layer over existing pages; `/cart` keeps its URL.
