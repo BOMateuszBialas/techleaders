@@ -10,6 +10,7 @@ Long-term memory for LLM agents: an index. Add an entry after fixing a bug, or w
 
 <!-- Newest first -->
 
+- **2026-10-27 — Next 16 error boundaries get both `retry` and `reset`; the docs use `retry` (re-fetch) for a failed server render, and `reset` only re-renders the cached tree. A store `error.tsx` that calls `reset` needs the owner's confirmation before it is treated as a working "Try again"** — the approved OA-6 wording says `reset()`; the admin `error.tsx` uses `retry`. A boundary that is a hook-free wrapper is unit-tested by calling it as a function (its `error.tsx` is in coverage, not excluded).
 - **2026-10-28 — `npm audit fix` without `--force` can drop a dev tool's whole subtree: shadcn 4.23 lost its MCP dependencies while fixing undici and zod; check the removed names in the lockfile diff and re-audit** — run log `.ai/runs/2026-10-28-npm-audit-high-fixes.md`
 - **2026-10-27 — Storybook's static viewport URL param and `agent-browser viewport` did not resize the headless window, so a 320/768 px check needs the e2e measurement (`getBoundingClientRect`, `scrollWidth`) rather than a screenshot** — run log `.ai/runs/2026-10-27-retrofit-admin-phase-2.md`.
 
