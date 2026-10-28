@@ -14,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { FormMessage } from "../form-feedback";
+import type { ActionState } from "@/lib/action-state";
 import { productPath } from "./product-copy";
 import {
   CHECK_ANOTHER,
@@ -67,7 +67,7 @@ export function ProductImportView({ action, state, pending }: ProductImportViewP
   if (state.status === "success" && state.created) {
     return (
       <section className="flex flex-col gap-4">
-        <FormMessage state={state} />
+        <FormResult state={state} />
         <ul aria-label="Imported products" className="flex list-disc flex-col gap-1 pl-5 text-sm">
           {state.created.map((product) => (
             <li key={product.id}>
@@ -94,7 +94,7 @@ export function ProductImportView({ action, state, pending }: ProductImportViewP
         />
       )}
       <div id={FILE_ERROR_ID}>
-        <FormMessage state={state} />
+        <FormResult state={state} />
       </div>
       {preview && preview.rows.length === 0 ? <NoRows /> : null}
       {preview && preview.rows.length > 0 ? (
@@ -129,6 +129,28 @@ export function ProductImportView({ action, state, pending }: ProductImportViewP
       ) : null}
     </section>
   );
+}
+
+/**
+ * The form-level result: `role="alert"` for an error, `role="status"` for a success, nothing
+ * before the first submit (spec UI/UX "States").
+ */
+function FormResult({ state }: { state: ActionState }) {
+  if (state.status === "error") {
+    return (
+      <Alert variant="destructive" role="alert">
+        {state.message}
+      </Alert>
+    );
+  }
+  if (state.status === "success") {
+    return (
+      <Alert variant="success" role="status">
+        {state.message}
+      </Alert>
+    );
+  }
+  return null;
 }
 
 function UploadForm({
