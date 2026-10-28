@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { DASHBOARD_UNAVAILABLE_MESSAGE } from "@/components/admin/dashboard/dashboard-copy";
-import { DashboardView } from "@/components/admin/dashboard/dashboard-view";
+import {
+  DashboardView,
+  MetricsSkeleton,
+  StatusSkeleton,
+} from "@/components/admin/dashboard/dashboard-view";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireAdminPage } from "@/server/auth/require-admin";
@@ -18,16 +22,16 @@ export default function AdminPage({ searchParams }: PageProps<"/admin">) {
   return (
     <div className="flex max-w-6xl flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
+        <h1 className="type-h1">Dashboard</h1>
         <p className="text-sm text-muted-foreground">
           Orders, revenue and stock from this store&apos;s own data. Every number states how it is
           counted.
         </p>
       </div>
-      <Suspense fallback={<p className="text-sm text-muted-foreground">Loading metrics…</p>}>
+      <Suspense fallback={<MetricsSkeleton />}>
         <StoreMetrics searchParams={searchParams} />
       </Suspense>
-      <Suspense fallback={<p className="text-sm text-muted-foreground">Checking…</p>}>
+      <Suspense fallback={<StatusSkeleton />}>
         <SystemStatus />
       </Suspense>
     </div>
@@ -69,7 +73,7 @@ async function SystemStatus() {
           <ul className="flex flex-col gap-2 text-sm">
             {health.components.map((component) => (
               <li key={component.name} className="flex items-center gap-2">
-                <Badge variant={component.status === "up" ? "default" : "destructive"}>
+                <Badge variant={component.status === "up" ? "success" : "destructive"}>
                   {component.status}
                 </Badge>
                 <span className="capitalize">{component.name}</span>

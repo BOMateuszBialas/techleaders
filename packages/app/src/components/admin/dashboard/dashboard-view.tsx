@@ -1,12 +1,14 @@
 import type { Dashboard, MetricDefinition } from "@commerceos/core";
-import Link from "next/link";
 import type { ReactNode } from "react";
-import { productPath } from "@/components/admin/products/product-copy";
+import { PRODUCTS_PATH, productPath } from "@/components/admin/products/product-copy";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader } from "@/components/ui/empty";
+import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Skeleton, SkeletonGroup } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -16,9 +18,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
+import { TabsNav, TabsNavLink } from "@/components/ui/tabs";
+import { TextLink } from "@/components/ui/text-link";
 import {
   EMPTY_LOW_STOCK,
+  EMPTY_PERIOD_ACTION,
   EMPTY_PERIOD_HINT,
   EMPTY_TOP_PRODUCTS,
   NOT_COMPARED,
@@ -65,7 +69,7 @@ function MetricCard({
           <h2>{definition.label}</h2>
         </CardTitle>
         {value === undefined ? null : (
-          <p data-testid="metric-value" className="text-2xl font-semibold tabular-nums">
+          <p data-testid="metric-value" className="type-display">
             {value}
           </p>
         )}
@@ -93,8 +97,8 @@ function DateRangeForm({ dashboard }: { dashboard: Dashboard }) {
       aria-label={RANGE_FORM_LEGEND}
       className="flex flex-wrap items-end gap-2"
     >
-      <div className="flex w-full flex-col gap-1 sm:w-auto">
-        <Label htmlFor="range-from">From</Label>
+      <Field className="w-full sm:w-auto">
+        <FieldLabel htmlFor="range-from">From</FieldLabel>
         <Input
           id="range-from"
           name="from"
@@ -105,9 +109,9 @@ function DateRangeForm({ dashboard }: { dashboard: Dashboard }) {
           defaultValue={rangeError ? rangeError.from : range.firstDay}
           {...errorProps}
         />
-      </div>
-      <div className="flex w-full flex-col gap-1 sm:w-auto">
-        <Label htmlFor="range-to">To</Label>
+      </Field>
+      <Field className="w-full sm:w-auto">
+        <FieldLabel htmlFor="range-to">To</FieldLabel>
         <Input
           id="range-to"
           name="to"
@@ -118,14 +122,16 @@ function DateRangeForm({ dashboard }: { dashboard: Dashboard }) {
           defaultValue={rangeError ? rangeError.to : range.lastDay}
           {...errorProps}
         />
-      </div>
+      </Field>
       <Button type="submit" variant="outline">
         Show range
       </Button>
       {rangeError ? (
-        <p id="range-error" role="alert" className="w-full text-sm text-destructive">
-          {rangeError.message} Showing the preset period instead.
-        </p>
+        <Alert id="range-error" variant="destructive" role="alert" className="w-full">
+          <AlertDescription>
+            {rangeError.message} Showing the preset period instead.
+          </AlertDescription>
+        </Alert>
       ) : null}
     </form>
   );
@@ -133,13 +139,38 @@ function DateRangeForm({ dashboard }: { dashboard: Dashboard }) {
 
 const count = (value: number) => String(value);
 
+/** Suspense fallback for the metrics: the shape of the period nav, the cards and the tables. */
+export function MetricsSkeleton() {
+  return (
+    <SkeletonGroup label="Loading metrics" className="flex flex-col gap-6">
+      <Skeleton className="h-(--control-h-md) w-full max-w-md rounded-control" />
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {[0, 1, 2, 3].map((index) => (
+          <Skeleton key={index} className="h-32 rounded-card" />
+        ))}
+      </div>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Skeleton className="h-64 rounded-card" />
+        <Skeleton className="h-64 rounded-card" />
+      </div>
+    </SkeletonGroup>
+  );
+}
+
+/** Suspense fallback for the system status card. */
+export function StatusSkeleton() {
+  return (
+    <SkeletonGroup label="Checking system status">
+      <Skeleton className="h-24 rounded-card" />
+    </SkeletonGroup>
+  );
+}
+
 /** Hook-free dashboard body: the period switch and range form, notes and the metric cards. */
 export function DashboardView({ dashboard }: { dashboard: Dashboard }) {
   const { period, sales, orders, topProducts, lowStock, definitions, comparison } = dashboard;
-  const notes = [
-    demoOrdersNote(dashboard.demoOrderCount),
-    otherCurrencyNote(sales.otherCurrencyOrders),
-  ];
+  const demoNote = demoOrdersNote(dashboard.demoOrderCount);
+  const otherNote = otherCurrencyNote(sales.otherCurrencyOrders);
   const breakdown = statusBreakdown(dashboard);
   const countNote = lowStockCountNote(lowStock.rows.length, lowStock.total);
   const amount = (value: number) => formatAmount(value, sales.currency);
@@ -149,35 +180,39 @@ export function DashboardView({ dashboard }: { dashboard: Dashboard }) {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
         <div className="flex flex-wrap items-end gap-x-6 gap-y-3">
-          <nav aria-label="Period" className="flex flex-wrap gap-2">
+          <TabsNav aria-label="Period">
             {periodLinks(period.preset).map((link) => (
-              <Link
-                key={link.preset}
-                href={link.href}
-                aria-current={link.current ? "page" : undefined}
-                className={cn(
-                  "rounded-md border px-3 py-1.5 text-sm hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
-                  link.current && "bg-primary text-primary-foreground hover:bg-primary/90",
-                )}
-              >
+              <TabsNavLink key={link.preset} href={link.href} active={link.current}>
                 {link.label}
-              </Link>
+              </TabsNavLink>
             ))}
-          </nav>
+          </TabsNav>
           <DateRangeForm dashboard={dashboard} />
         </div>
         <p data-testid="period-range" className="text-sm text-muted-foreground">
           {periodRangeLabel(period)}
         </p>
-        {notes.map((note) =>
-          note === null ? null : (
-            <p key={note} data-testid="dashboard-note" className="text-sm text-muted-foreground">
-              {note}
-            </p>
-          ),
+        {demoNote === null ? null : (
+          <Alert variant="demo" data-testid="dashboard-note">
+            <AlertDescription>{demoNote}</AlertDescription>
+          </Alert>
+        )}
+        {otherNote === null ? null : (
+          <p data-testid="dashboard-note" className="text-sm text-muted-foreground">
+            {otherNote}
+          </p>
         )}
         {isEmptyPeriod(dashboard) ? (
-          <p className="text-sm text-muted-foreground">{EMPTY_PERIOD_HINT}</p>
+          <Empty>
+            <EmptyHeader>
+              <EmptyDescription>{EMPTY_PERIOD_HINT}</EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
+              <TextLink href={PRODUCTS_PATH} variant="standalone">
+                {EMPTY_PERIOD_ACTION}
+              </TextLink>
+            </EmptyContent>
+          </Empty>
         ) : null}
       </div>
 
@@ -193,7 +228,7 @@ export function DashboardView({ dashboard }: { dashboard: Dashboard }) {
         ))}
       </section>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           definition={definitions.ordersPlaced}
           value={String(orders.total)}
@@ -277,17 +312,14 @@ export function DashboardView({ dashboard }: { dashboard: Dashboard }) {
                 {lowStock.rows.map((row) => (
                   <TableRow key={row.id}>
                     <TableCell>
-                      <Link
-                        href={productPath(row.id)}
-                        className="font-medium underline-offset-4 hover:underline"
-                      >
+                      <TextLink href={productPath(row.id)} variant="resource">
                         {row.name}
-                      </Link>
+                      </TextLink>
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
                       {row.stockQuantity}
                       {row.stockQuantity === 0 ? (
-                        <Badge variant="outline" className="ml-2">
+                        <Badge variant="warning" className="ml-2">
                           {OUT_OF_STOCK_BADGE}
                         </Badge>
                       ) : null}

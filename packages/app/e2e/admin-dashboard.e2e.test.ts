@@ -1,5 +1,6 @@
 import { METRIC_DEFINITIONS, METRIC_IDS, resolvePeriod } from "@commerceos/core";
 import { beforeAll, describe, expect, it } from "vitest";
+import { z } from "zod";
 import { useBrowser } from "./support/browser-test";
 import { useOwnerSession } from "./support/sign-in";
 
@@ -113,5 +114,25 @@ describe("admin dashboard", () => {
 
     await openDashboard();
     expect(await paidOrders()).toBe(before + 1);
+  });
+
+  // Phase 2 of the admin retrofit: the period switch is 44 px tall on a phone and 32 px from
+  // 768 px (admin density), and the page never scrolls sideways.
+  it.each([320, 768])("fits the dashboard and its period switch at %i px", async (width) => {
+    await browser().setViewport(width, 800);
+    await openDashboard();
+
+    const layout = z
+      .object({ scrollWidth: z.number(), innerWidth: z.number(), linkHeights: z.array(z.number()) })
+      .parse(
+        await browser().evaluate(
+          "(() => ({ scrollWidth: document.documentElement.scrollWidth, innerWidth: window.innerWidth, linkHeights: [...document.querySelectorAll('main nav[aria-label=\"Period\"] a')].map((a) => a.getBoundingClientRect().height) }))()",
+        ),
+      );
+    expect(layout.innerWidth).toBe(width);
+    expect(layout.scrollWidth).toBe(width);
+    expect(layout.linkHeights).toHaveLength(2);
+    const minimum = width < 768 ? 44 : 32;
+    for (const height of layout.linkHeights) expect(height).toBeGreaterThanOrEqual(minimum);
   });
 });
