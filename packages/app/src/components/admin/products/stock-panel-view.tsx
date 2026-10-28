@@ -1,14 +1,25 @@
 import { MAX_STOCK_QUANTITY, type AdminProduct } from "@commerceos/core";
+import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { fieldDefault, type ActionState } from "@/lib/action-state";
-import { FieldError, FormMessage, fieldA11y } from "../form-feedback";
+import { fieldA11y } from "@/lib/field-a11y";
 import {
   EMPTY_STOCK_HISTORY,
   NEW_STOCK_LABEL,
   SET_STOCK_BUTTON,
   STOCK_HEADING,
+  STOCK_HISTORY_COLUMNS,
   STOCK_HISTORY_HEADING,
   STOCK_HISTORY_NOTE,
   stockPreview,
@@ -24,6 +35,28 @@ export type StockPanelViewProps = {
   product: StockPanelProduct;
   history: StockHistoryRow[];
 };
+
+/**
+ * The form-level result: `role="alert"` for an error after a submit, `role="status"` for a
+ * success, nothing before the first submit (Component decisions, form-level result).
+ */
+function StockFormResult({ state }: { state: ActionState }) {
+  if (state.status === "error") {
+    return (
+      <Alert variant="destructive" role="alert">
+        {state.message}
+      </Alert>
+    );
+  }
+  if (state.status === "success") {
+    return (
+      <Alert variant="success" role="status">
+        {state.message}
+      </Alert>
+    );
+  }
+  return null;
+}
 
 /**
  * The stock panel in one given state (spec A15, UI/UX "Stock panel"): no hooks, so a unit test
@@ -51,8 +84,8 @@ export function StockPanelView({ action, state, pending, product, history }: Sto
       <form key={current} action={action} noValidate className="flex flex-col gap-3">
         <input type="hidden" name="productId" value={product.id} />
         <input type="hidden" name="expectedQuantity" value={current} />
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="stock-new-quantity">{NEW_STOCK_LABEL}</Label>
+        <Field>
+          <FieldLabel htmlFor="stock-new-quantity">{NEW_STOCK_LABEL}</FieldLabel>
           <Input
             id="stock-new-quantity"
             name="newQuantity"
@@ -65,14 +98,12 @@ export function StockPanelView({ action, state, pending, product, history }: Sto
             defaultValue={fieldDefault(state, "newQuantity", current)}
             {...fieldA11y("stock-new-quantity-error", errors.newQuantity, ["stock-preview"])}
           />
-          <p id="stock-preview" className="text-sm text-muted-foreground">
-            {stockPreview(product.status)}
-          </p>
-          <FieldError id="stock-new-quantity-error" messages={errors.newQuantity} />
-        </div>
-        <FormMessage state={state} />
+          <FieldDescription id="stock-preview">{stockPreview(product.status)}</FieldDescription>
+          <FieldError id="stock-new-quantity-error">{errors.newQuantity?.join(" ")}</FieldError>
+        </Field>
+        <StockFormResult state={state} />
         <div>
-          <Button type="submit" disabled={pending}>
+          <Button type="submit" disabled={pending} aria-busy={pending}>
             {pending ? "Setting stock…" : SET_STOCK_BUTTON}
           </Button>
         </div>
@@ -83,17 +114,34 @@ export function StockPanelView({ action, state, pending, product, history }: Sto
         {history.length === 0 ? (
           <p className="text-sm">{EMPTY_STOCK_HISTORY}</p>
         ) : (
-          <ol aria-label={STOCK_HISTORY_HEADING} className="flex flex-col divide-y text-sm">
-            {history.map((row) => (
-              <li key={row.id} className="flex flex-wrap items-baseline gap-x-4 py-1.5">
-                <time dateTime={row.at} className="text-muted-foreground">
-                  {row.atLabel}
-                </time>
-                <span className="font-medium">{row.change}</span>
-                <span className="tabular-nums text-muted-foreground">{row.delta}</span>
-              </li>
-            ))}
-          </ol>
+          // Phone: the table scrolls inside its own region, the page does not (B3.10).
+          <div className="overflow-x-auto">
+            <Table aria-label={STOCK_HISTORY_HEADING}>
+              <TableCaption className="sr-only">{STOCK_HISTORY_HEADING}</TableCaption>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{STOCK_HISTORY_COLUMNS.date}</TableHead>
+                  <TableHead className="text-right">{STOCK_HISTORY_COLUMNS.change}</TableHead>
+                  <TableHead className="text-right">{STOCK_HISTORY_COLUMNS.newQuantity}</TableHead>
+                  <TableHead>{STOCK_HISTORY_COLUMNS.reason}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {history.map((row) => (
+                  <TableRow key={row.id}>
+                    <TableCell>
+                      <time dateTime={row.at}>{row.atLabel}</time>
+                    </TableCell>
+                    <TableCell className="text-right font-medium tabular-nums">
+                      {row.delta}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">{row.newQuantity}</TableCell>
+                    <TableCell className="text-muted-foreground">{row.reason}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         )}
       </div>
     </section>

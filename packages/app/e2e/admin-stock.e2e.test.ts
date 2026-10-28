@@ -4,7 +4,7 @@ import { useBrowser } from "./support/browser-test";
 import { signInAsOwner } from "./support/sign-in";
 
 const PRODUCT_PAGE = /^\/admin\/products\/[0-9a-f-]{36}$/;
-const HISTORY = 'ol[aria-label="Stock history"]';
+const HISTORY = 'table[aria-label="Stock history"]';
 
 /**
  * Manual stock adjustment (admin catalog spec, Phase 2, E03-S03). The product this file
@@ -80,8 +80,8 @@ describe("admin stock adjustment", () => {
       expect(main).toContain("Out of stock");
       expect(main).not.toContain("No stock changes recorded yet.");
       const history = await browser().text(HISTORY);
-      expect(history).toContain("8 → 0");
       expect(history).toContain("-8");
+      expect(history).toContain("Manual change");
       // A time in the owner's locale sits next to the change.
       expect(history).toMatch(/\d{1,2}:\d{2}/);
 
@@ -99,7 +99,7 @@ describe("admin stock adjustment", () => {
 
       // The history survives a reload.
       await openProduct(productUrl);
-      expect(await browser().text(HISTORY)).toContain("8 → 0");
+      expect(await browser().text(HISTORY)).toContain("-8");
 
       // Clean up: back to a draft, so the storefront suites see the seeded catalog only.
       await browser().clickRole("button", "Unpublish");

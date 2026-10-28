@@ -35,6 +35,7 @@ export const HAS_ERRORS_NOTE =
 export const NOTHING_TO_IMPORT_NOTE = "Every row is already in the catalog. Nothing to import.";
 export const IMPORT_CHANGED_MESSAGE =
   "The file or the catalog changed since the check, or the file cannot be imported as it is. Nothing was imported. Review the new check below.";
+export const EMPTY_FILE_TITLE = "No rows in this file. Check that the first line is the header.";
 export const IMPORT_ANOTHER = "Import another file";
 export const CHECK_ANOTHER = "Check another file";
 export const TEMPLATE_LINK = "Download template";

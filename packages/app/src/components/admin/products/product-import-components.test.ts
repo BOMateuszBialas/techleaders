@@ -4,6 +4,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import {
   CHECK_ANOTHER,
+  EMPTY_FILE_TITLE,
   HAS_ERRORS_NOTE,
   IMPORT_ANOTHER,
   IMPORT_CHANGED_MESSAGE,
@@ -116,7 +117,8 @@ describe("ProductImportView", () => {
     expect(html).toContain('accept=".csv,text/csv"');
     expect(html).toContain('name="intent" value="preview"');
     expect(html).toContain(">Check file<");
-    expect(html).not.toContain("role=");
+    expect(html).not.toContain('role="alert"');
+    expect(html).not.toContain('role="status"');
     expect(html).not.toContain("Import preview");
   });
 
@@ -199,6 +201,29 @@ describe("ProductImportView", () => {
     });
     expect(html).toContain('role="alert"');
     expect(html).toContain('name="intent" value="import"');
+  });
+
+  it("says the file has no rows when only the header is present", () => {
+    const html = render({ status: "success", preview: preview([]) });
+    expect(html).toContain(EMPTY_FILE_TITLE);
+    expect(html).not.toContain("Import preview");
+    expect(html).not.toContain(NOTHING_TO_IMPORT_NOTE);
+    expect(html).not.toContain('value="import"');
+    expect(html).toContain('type="file"');
+  });
+
+  it("shows the outcomes as badges and the notes as alerts without a role", () => {
+    const html = render({
+      status: "idle",
+      preview: ready,
+      csv: "x",
+      fileName: "products.csv",
+    });
+    expect(html).toContain('data-slot="badge"');
+    expect(html).toContain("bg-success-surface");
+    expect(html).toContain('data-variant="info"');
+    expect(html).not.toContain('role="alert"');
+    expect(html).not.toContain('role="status"');
   });
 
   it("shows the result with a link to each new product", () => {
