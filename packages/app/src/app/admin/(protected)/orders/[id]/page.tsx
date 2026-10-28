@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { Alert } from "@/components/ui/alert";
 import {
   DemoBadge,
   OrderOriginBadge,
@@ -30,6 +31,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Skeleton, SkeletonGroup } from "@/components/ui/skeleton";
 import { requireAdminPage } from "@/server/auth/require-admin";
 import { changeOrderStatus } from "@/server/orders/order-status.action";
 import { AdminPageLoadError } from "../../categories/load-categories";
@@ -45,7 +47,14 @@ export default function OrderPage({ params }: OrderPageProps) {
       <Link href={ORDERS_PATH} className="w-fit text-sm underline underline-offset-4">
         All orders
       </Link>
-      <Suspense fallback={<p className="text-sm text-muted-foreground">Loading order…</p>}>
+      <Suspense
+        fallback={
+          <SkeletonGroup label="Loading order…" className="flex flex-col gap-3">
+            <Skeleton className="h-8 w-1/2" />
+            <Skeleton className="h-4 w-1/3" />
+          </SkeletonGroup>
+        }
+      >
         <OrderDetails params={params} />
       </Suspense>
     </div>
@@ -86,9 +95,9 @@ async function OrderDetails({ params }: Pick<OrderPageProps, "params">) {
           <dd>{at(order.updatedAt)}</dd>
         </dl>
         {order.isDemo ? (
-          <p className="rounded-md border border-demo/50 bg-demo-surface p-3 text-sm">
+          <Alert variant="demo" className="text-sm">
             {DEMO_ORDER_NOTE}
-          </p>
+          </Alert>
         ) : null}
       </div>
       <OrderItems order={order} />
