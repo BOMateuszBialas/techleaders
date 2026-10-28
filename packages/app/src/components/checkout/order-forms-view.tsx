@@ -1,10 +1,11 @@
 import type { OrderStatus } from "@commerceos/core";
-import { FieldError, FormMessage, fieldA11y } from "@/components/admin/form-feedback";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { fieldDefault, type ActionState } from "@/lib/action-state";
+import { fieldA11y } from "@/lib/field-a11y";
 import {
   CONFIRMING_PAYMENT,
   CONFIRM_PAYMENT_BUTTON,
@@ -13,6 +14,7 @@ import {
   PAYMENT_TEST_NOTE,
   orderStatusLabel,
 } from "./checkout-copy";
+import { orderStatusBadgeVariant } from "./order-status-badge";
 
 type FormViewProps = {
   action: (formData: FormData) => void;
@@ -21,24 +23,29 @@ type FormViewProps = {
 };
 
 /**
- * The one payment note (storefront v2, R11, R03): a static, visible, not dismissible `note`. No
- * money moves anywhere.
+ * The one payment note (storefront v2, R11, R03): a static, visible, not dismissible note. No
+ * money moves anywhere. A standing note has no role (retrofit B2.18): it is the `demo` alert.
  */
 export function PaymentTestNote() {
   return (
-    <p
-      role="note"
-      className="rounded-md border border-demo bg-demo-surface p-3 text-sm font-medium text-demo"
-    >
-      {PAYMENT_TEST_NOTE}
-    </p>
+    <Alert variant="demo">
+      <AlertDescription>{PAYMENT_TEST_NOTE}</AlertDescription>
+    </Alert>
   );
 }
 
-/** The order's status as text (never conveyed by colour alone). */
+/**
+ * The order's status as text (never conveyed by colour alone, tokeny.md §7 rule 10). The variant
+ * comes from `orderStatusBadgeVariant`; `shipped` is an outline badge with strong text.
+ */
 export function OrderStatusBadge({ status }: { status: OrderStatus }) {
   return (
-    <Badge variant={status === "paid" ? "secondary" : "outline"}>{orderStatusLabel(status)}</Badge>
+    <Badge
+      variant={orderStatusBadgeVariant(status)}
+      className={status === "shipped" ? "font-semibold" : undefined}
+    >
+      {orderStatusLabel(status)}
+    </Badge>
   );
 }
 
@@ -52,9 +59,13 @@ export function PayFormView({
   return (
     <form action={action} className="flex flex-col gap-3">
       <input type="hidden" name="reference" value={reference} />
-      <FormMessage state={state} />
+      {state.status === "error" ? (
+        <Alert variant="destructive" role="alert">
+          <AlertDescription>{state.message}</AlertDescription>
+        </Alert>
+      ) : null}
       <div>
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" variant="action" disabled={pending} aria-busy={pending}>
           {pending ? CONFIRMING_PAYMENT : CONFIRM_PAYMENT_BUTTON}
         </Button>
       </div>
@@ -67,8 +78,8 @@ export function LookupFormView({ action, state, pending }: FormViewProps) {
   const errors = state.fieldErrors ?? {};
   return (
     <form action={action} noValidate className="flex max-w-md flex-col gap-3">
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="lookup-reference">{LOOKUP_LABEL}</Label>
+      <Field>
+        <FieldLabel htmlFor="lookup-reference">{LOOKUP_LABEL}</FieldLabel>
         <Input
           id="lookup-reference"
           name="reference"
@@ -79,8 +90,8 @@ export function LookupFormView({ action, state, pending }: FormViewProps) {
           defaultValue={fieldDefault(state, "reference")}
           {...fieldA11y("lookup-reference-error", errors.reference)}
         />
-        <FieldError id="lookup-reference-error" messages={errors.reference} />
-      </div>
+        <FieldError id="lookup-reference-error">{errors.reference?.join(" ")}</FieldError>
+      </Field>
       <div>
         <Button type="submit" disabled={pending}>
           {LOOKUP_BUTTON}

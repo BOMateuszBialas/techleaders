@@ -2,11 +2,14 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Skeleton, SkeletonGroup } from "@/components/ui/skeleton";
 import {
   NOT_PAYABLE_MESSAGE,
-  ORDER_UNAVAILABLE_MESSAGE,
+  ORDER_LOADING_LABEL,
   PAY_HEADING,
 } from "@/components/checkout/checkout-copy";
+import { OrderPageUnavailable } from "@/components/checkout/checkout-page-states";
 import { PayForm } from "@/components/checkout/order-forms";
 import { PaymentTestNote } from "@/components/checkout/order-forms-view";
 import { OrderSummary } from "@/components/checkout/order-summary";
@@ -32,7 +35,9 @@ export default function PayPage({ params }: PayPageProps) {
       <PaymentTestNote />
       <Suspense
         fallback={
-          <div aria-label="Loading order" className="h-48 animate-pulse rounded bg-muted" />
+          <SkeletonGroup label={ORDER_LOADING_LABEL}>
+            <Skeleton className="h-48 rounded-card" />
+          </SkeletonGroup>
         }
       >
         <PayContents params={params} />
@@ -48,14 +53,15 @@ async function PayContents({ params }: { params: PayPageProps["params"] }) {
 
   // Control flow after the loader mapped every error (never inside a try block).
   if (result.kind === "not-found") notFound();
-  if (result.kind === "error") {
+  if (result.kind === "error")
+    return <OrderPageUnavailable retryHref={orderPaths.pay(reference)} />;
+  if (result.data.kind === "limited") {
     return (
-      <p role="alert" className="text-sm text-destructive">
-        {ORDER_UNAVAILABLE_MESSAGE}
-      </p>
+      <Alert variant="warning" role="alert">
+        <AlertDescription>{TOO_MANY_LOOKUPS_MESSAGE}</AlertDescription>
+      </Alert>
     );
   }
-  if (result.data.kind === "limited") return <p role="alert">{TOO_MANY_LOOKUPS_MESSAGE}</p>;
 
   const { order } = result.data;
   if (order.paidAt) redirect(orderPaths.order(order.reference));
@@ -73,7 +79,9 @@ async function PayContents({ params }: { params: PayPageProps["params"] }) {
       {order.status === "pending_payment" ? (
         <PayForm action={confirmDemoPayment} reference={order.reference} />
       ) : (
-        <p role="alert">{NOT_PAYABLE_MESSAGE}</p>
+        <Alert variant="warning" role="alert">
+          <AlertDescription>{NOT_PAYABLE_MESSAGE}</AlertDescription>
+        </Alert>
       )}
     </div>
   );

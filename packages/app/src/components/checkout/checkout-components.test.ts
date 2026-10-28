@@ -10,7 +10,11 @@ import { orderStatusLabel, PAYMENT_TEST_NOTE } from "./checkout-copy";
 import { CheckoutForm } from "./checkout-form";
 import { CHECKOUT_FIELD_NAMES, CheckoutFormView } from "./checkout-form-view";
 import { CHECKOUT_SESSION_LOST, type CheckoutMode } from "./checkout-mode";
-import { CheckoutPageSkeleton, CheckoutPageUnavailable } from "./checkout-page-states";
+import {
+  CheckoutPageSkeleton,
+  CheckoutPageUnavailable,
+  OrderPageUnavailable,
+} from "./checkout-page-states";
 import { OrderDetails } from "./order-details";
 import { LookupForm, PayForm } from "./order-forms";
 import { LookupFormView, OrderStatusBadge, PaymentTestNote, PayFormView } from "./order-forms-view";
@@ -188,6 +192,13 @@ describe("CheckoutFormView", () => {
     expect(unavailable).toContain("Checkout unavailable");
     expect(unavailable).toContain('role="alert"');
     expect(unavailable).toMatch(/<a[^>]*href="\/checkout"[^>]*>Try again<\/a>/);
+    const orderUnavailable = renderToStaticMarkup(
+      createElement(OrderPageUnavailable, { retryHref: `/orders/${REFERENCE}` }),
+    );
+    expect(orderUnavailable).toContain("Order unavailable");
+    expect(orderUnavailable).toContain('role="alert"');
+    expect(orderUnavailable).toContain(`href="/orders/${REFERENCE}"`);
+    expect(orderUnavailable).toMatch(/<a[^>]*>Try again<\/a>/);
   });
 
   it("renders through its client wrapper", () => {
@@ -273,7 +284,9 @@ describe("CheckoutFormView modes (E07 A24, A16)", () => {
 describe("payment and lookup forms", () => {
   it("shows one note: a test payment and no money taken (A3, R03)", () => {
     const html = renderToStaticMarkup(createElement(PaymentTestNote));
-    expect(html).toContain('role="note"');
+    // A standing note has no role (retrofit B2.18) and is the demo alert (C8, T11).
+    expect(html).not.toContain("role=");
+    expect(html).toContain('data-variant="demo"');
     expect(html).toContain("Test payment. No money is taken.");
     expect(html).toContain(PAYMENT_TEST_NOTE);
     // The class names carry the token names; the words the shopper reads do not say "demo".
@@ -292,6 +305,8 @@ describe("payment and lookup forms", () => {
     expect(html).toContain(`name="reference" value="${REFERENCE}"`);
     expect(html).toContain("Confirm test payment");
     expect(html.match(/<input/g)).toHaveLength(1);
+    // The one purchase step is the action colour (C1, T2), and the button is not a link.
+    expect(html).toMatch(/<button[^>]*bg-action[^>]*>Confirm test payment<\/button>/);
     const pending = renderToStaticMarkup(
       createElement(PayFormView, {
         action,
@@ -301,7 +316,9 @@ describe("payment and lookup forms", () => {
       }),
     );
     expect(pending).toContain("Confirming…");
-    expect(pending).toContain("Too many lookups.");
+    expect(pending).toMatch(/<button[^>]*aria-busy="true"[^>]*disabled/);
+    // The server's error is an Alert with role alert (C4, B2.18).
+    expect(pending).toMatch(/role="alert"[^>]*>.*Too many lookups\./);
   });
 
   it("shows the lookup field and its format error", () => {
@@ -320,6 +337,10 @@ describe("payment and lookup forms", () => {
     expect(html).toContain("Order reference");
     expect(html).toContain('value="123"');
     expect(html).toContain('aria-invalid="true"');
+    // The error sits under the field and is what the input describes (B1.23).
+    expect(html).toContain('aria-describedby="lookup-reference-error"');
+    expect(html).toContain('id="lookup-reference-error"');
+    expect(html).toContain("Enter a reference like CO-XXXXX-XXXXX-XXXXX-XXXXX.");
   });
 
   it("renders both through their client wrappers, and the status badge in words", () => {
@@ -336,6 +357,16 @@ describe("payment and lookup forms", () => {
       renderToStaticMarkup(createElement(OrderStatusBadge, { status: "pending_payment" })),
     ).toContain("Awaiting payment");
   });
+
+  it("gives a shipped order an outline badge with strong text (C7), and no other status", () => {
+    const shipped = renderToStaticMarkup(createElement(OrderStatusBadge, { status: "shipped" }));
+    expect(shipped).toContain("font-semibold");
+    expect(shipped).toContain("Shipped");
+    const processing = renderToStaticMarkup(
+      createElement(OrderStatusBadge, { status: "processing" }),
+    );
+    expect(processing).not.toContain("font-semibold");
+  });
 });
 
 describe("OrderDetails", () => {
@@ -345,6 +376,8 @@ describe("OrderDetails", () => {
     );
     expect(html).toContain("Thank you — test payment received");
     expect(html).toContain(REFERENCE);
+    // The paid line is a status, not a note (E02 target): `role="status"` on the success alert.
+    expect(html).toMatch(/role="status"[^>]*>(?:(?!<\/div>).)*Paid with: test payment/);
     expect(html).toContain("Paid with: test payment (no money taken)");
     expect(html).toContain("Save this reference to check your order.");
     expect(html).not.toContain("Complete test payment");
@@ -377,6 +410,10 @@ describe("CartChanges and the not-found pages", () => {
       const html = renderToStaticMarkup(createElement(page));
       expect(html).toContain("No order found with this reference");
       expect(html).toContain('href="/orders/lookup"');
+      // An `Empty` (B3.23): one page `h1`, and an outline link, never the purchase colour.
+      expect(html.match(/<h1/g)).toHaveLength(1);
+      expect(html).toContain('data-slot="empty"');
+      expect(html).not.toContain("bg-action");
     }
   });
 });
