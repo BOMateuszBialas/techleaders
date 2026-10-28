@@ -1,0 +1,18 @@
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+import * as QuestionFormStories from "./QuestionForm.stories";
+
+<Meta of={QuestionFormStories} />
+
+# Question form
+
+## What it is for
+
+The place where the owner asks Copilot a question, or picks a suggested one.
+
+## Rules
+
+- The question is a `Field`: its label is bound to the textarea and its hint states the 500-character limit.
+- The counter is in the hint, not in a live region, so it is not read out on each keystroke.
+- A refused question (400) is a field error under the textarea.
+
+<Canvas of={QuestionFormStories.Idle} />

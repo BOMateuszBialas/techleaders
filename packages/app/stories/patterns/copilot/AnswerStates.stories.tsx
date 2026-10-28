@@ -4,11 +4,16 @@ import { expect } from "storybook/test";
 import { CopilotAnswerView } from "@/components/admin/copilot/copilot-answer-view";
 import {
   EMPTY_STORE_TITLE,
+  RATE_LIMITED_TEXT,
   SUMMARY_EVIDENCE_CAPTION,
   SESSION_ENDED_TEXT,
+  UNAVAILABLE_TEXT,
 } from "@/components/admin/copilot/copilot-copy";
-import { failureNotice } from "@/components/admin/copilot/copilot-fallback";
-import { FailureNoticeView } from "@/components/admin/copilot/copilot-fallback-view";
+import { answerNotice, failureNotice } from "@/components/admin/copilot/copilot-fallback";
+import {
+  AnswerNoticeView,
+  FailureNoticeView,
+} from "@/components/admin/copilot/copilot-fallback-view";
 import { Narrow } from "../../primitives/blocks/state-grid";
 
 /**
@@ -65,7 +70,7 @@ const DECLINED: CopilotAnswerDto = {
 
 const meta = {
   title: "Patterns/Copilot/Answer states",
-  parameters: { layout: "padded" },
+  parameters: { layout: "padded", a11y: { test: "error" } },
 } satisfies Meta;
 
 export default meta;
@@ -146,5 +151,32 @@ export const SessionEnded: Story = {
       "href",
       "/admin/sign-in",
     );
+  },
+};
+
+/**
+ * The fallback notices (S1 to S13): a rule-based answer says why the AI answer is missing (info
+ * for "not configured", warning for a provider error), and a failed question says what to do.
+ * Each notice is an `Alert`, never an `ErrorState`.
+ */
+export const FallbackNotices: Story = {
+  render: () => {
+    const timeout = answerNotice({ ...ANSWER, origin: "rules", fallbackReason: "timeout" });
+    const rateLimited = failureNotice("rate_limited");
+    const unavailable = failureNotice("unavailable");
+    if (timeout === null || rateLimited === null || unavailable === null) {
+      throw new Error("these fallbacks have a notice");
+    }
+    return (
+      <div className="flex max-w-4xl flex-col gap-3">
+        <AnswerNoticeView notice={timeout} />
+        <FailureNoticeView notice={rateLimited} />
+        <FailureNoticeView notice={unavailable} />
+      </div>
+    );
+  },
+  play: async ({ canvas }) => {
+    await expect(canvas.getByText(RATE_LIMITED_TEXT)).toBeVisible();
+    await expect(canvas.getByText(UNAVAILABLE_TEXT)).toBeVisible();
   },
 };

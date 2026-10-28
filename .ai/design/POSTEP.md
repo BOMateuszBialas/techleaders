@@ -843,3 +843,22 @@ Rule applied everywhere: red (`action`) only on the buying steps (Add to cart, C
 3. Removing "[DEMO]" from storefront product names. It changes the seeder and the demo marking rule (D08), so it needs a spec decision.
 4. The fictional footer company block. Small, but a visible content change on every page; list it in the same spec as the home page.
 5. Storefront wording: removing "demo store" wording and keeping one test-payment note on the payment step. This is a spec change as well, because the spec currently requires the demo banner on the storefront (D08 and R03 notes).
+
+## Retrofit Copilot (lesson 08)
+
+Spec: `.ai/specs/2026-10-26-retrofit-copilot.md` (design-only PR, owner approved OA-1 to OA-9 and Q1 to Q10 on 2026-10-26). Each phase is one PR; the owner merges the risk-high ones.
+
+| Phase | Scope | Risk | PR | Stage record |
+|---|---|---|---|---|
+| 1 | Question field (`Field`, counter in the hint), advisory note as `Alert` `info` | medium | #137 | `.ai/runs/2026-10-27-retrofit-copilot-phase-1.md` |
+| 2 | Answer summary, fallbacks (`Alert`), evidence as table from the breakpoint and list below it, `Disclosure` | high | #144 | `.ai/runs/2026-10-27-retrofit-copilot-phase-2.md` |
+| 3 | Recommendation cards, status badges, status result `Alert`, saved list with `ErrorState` and `Empty` | high | #158 | commit `565e2af` |
+| 4 | States sweep (`SkeletonGroup` loading label), Storybook patterns, docs and close-out | medium | this PR | this section |
+
+### Phase 4: what was checked
+
+- States sweep: the page's `Suspense` fallback is `SkeletonGroup` with a label. Grep of `components/admin/copilot` and the Copilot page finds no bare "Loading" paragraph, no `form-feedback` import and no `<details>`. The saved list failure is `ErrorState`; the empty states are `Empty`.
+- Storybook (`stories/patterns/copilot/`): `AnswerStates` (rule-based answer at 1440 px, the evidence list at 320 px, declined, empty store, session ended, fallback notices), `QuestionForm` and `RecommendationCard` (priority and status badges). Each has an `.mdx` page and `a11y: { test: "error" }`. Not built here: `npm run build-storybook` and `npm run test:storybook:themes` are for the owner's machine.
+- Unit tests: `npx vitest run packages/app/src/components/admin/copilot`, 5 files, 77 tests, all pass. No `src` code changed in this phase, so no new coverage is needed.
+- Docs: `EpicE05Copilot.mdx` states table marked built by phase, retrofit list is now a done list. `WhatIsMissing.mdx` drops the E05-S01 to E05-S03 rows (shipped). P15 and P16 stay until the owner decides them.
+- Not run in this phase: the e2e regression sweep (`npm run test:e2e`, needs Docker and a build) and the 320, 390, 768 and 1440 px screenshots. Owner check before merge.

@@ -27,18 +27,18 @@ Backlog epic E05 (issue #12): stories E05-S01 (up to three grounded, prioritised
 
 ## States
 
-| State                      | Today                                                                                                  | Copy                                                            | Target after the retrofit                                                    |
-| -------------------------- | ------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| idle                       | the question form with the advisory text                                                               | `IDLE_COPILOT_STATE`, `ADVISORY_TEXT`                           | the same                                                                     |
-| loading                    | "Analysing your store data…"                                                                           | `PENDING_TEXT`                                                  | `role="status"` text; the button shows its pending state (B1.6)              |
-| answer                     | summary, up to three cards                                                                             | `PRIORITY_TEXT`, `EVIDENCE_CAPTION`, `SUMMARY_EVIDENCE_CAPTION` | `Card`s; evidence as a `Table` (B3.10); details as `Disclosure` (batch 3 Q5) |
-| rule-based fallback        | "Rule-based insights" with the reason, for example "AI is not configured" or "The AI provider is busy" | `RULE_BASED_LABEL`, `FALLBACK_REASON_TEXT`                      | `Alert` `info` (or `warning`), never `ErrorState` (B3.24)                    |
-| provider unavailable       | "Copilot is temporarily unavailable."                                                                  | `UNAVAILABLE_TEXT`                                              | `Alert` `warning` with the fallback beside it                                |
-| rate limited               | "You asked many questions in a short time. Try again in a few minutes."                                | `RATE_LIMITED_TEXT`                                             | `Alert` `warning`                                                            |
-| session ended              | "Your session has ended. Sign in again to ask Copilot."                                                | `SESSION_ENDED_TEXT`                                            | `Alert` `warning` with a sign-in link (`TextLink`)                           |
-| recommendations not loaded | "Your recommendations could not be loaded. Try again in a moment."                                     | `recommendation-copy.ts`                                        | `ErrorState` for the saved list                                              |
-| demo traffic               | "Fictional demo data" tag                                                                              | `DEMO_DATA_TAG`                                                 | `Badge` `demo` with the text                                                 |
-| action saved               | a result line under the buttons                                                                        | `recommendation-copy.ts`                                        | `Alert` `success` with `role="status"` (B2.18)                               |
+| State                      | Today                                                                                                  | Copy                                                            | Target after the retrofit                                                                                                                                |
+| -------------------------- | ------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| idle                       | the question form with the advisory text                                                               | `IDLE_COPILOT_STATE`, `ADVISORY_TEXT`                           | Built (phase 1): the `Field` form with the advisory `Alert`                                                                                              |
+| loading                    | "Analysing your store data…"                                                                           | `PENDING_TEXT`                                                  | Built (phase 4): `SkeletonGroup` with the label "Loading Copilot…" for the page; the pending text is `role="status"`; the button shows its pending state |
+| answer                     | summary, up to three cards                                                                             | `PRIORITY_TEXT`, `EVIDENCE_CAPTION`, `SUMMARY_EVIDENCE_CAPTION` | Built (phases 2 and 3): `Card`s with the priority `Badge`; evidence as a `Table` from the breakpoint and a list below it (A11); details as `Disclosure`  |
+| rule-based fallback        | "Rule-based insights" with the reason, for example "AI is not configured" or "The AI provider is busy" | `RULE_BASED_LABEL`, `FALLBACK_REASON_TEXT`                      | Built (phase 2): `Alert` `info` or `warning` above the answer, never `ErrorState`                                                                        |
+| provider unavailable       | "Copilot is temporarily unavailable."                                                                  | `UNAVAILABLE_TEXT`                                              | Built (phase 2): `Alert` `warning` with the fallback beside it                                                                                           |
+| rate limited               | "You asked many questions in a short time. Try again in a few minutes."                                | `RATE_LIMITED_TEXT`                                             | Built (phase 2): `Alert` `warning`                                                                                                                       |
+| session ended              | "Your session has ended. Sign in again to ask Copilot."                                                | `SESSION_ENDED_TEXT`                                            | Built (phase 2): `Alert` `warning` with a sign-in `TextLink`                                                                                             |
+| recommendations not loaded | "Your recommendations could not be loaded. Try again in a moment."                                     | `recommendation-copy.ts`                                        | Built (phase 3): `ErrorState` for the saved list                                                                                                         |
+| demo traffic               | "Fictional demo data" tag                                                                              | `DEMO_DATA_TAG`                                                 | Built (phase 2): `Badge` `demo` with the text                                                                                                            |
+| action saved               | a result line under the buttons                                                                        | `recommendation-copy.ts`                                        | Built (phase 3): `Alert` `success` with `role="status"`                                                                                                  |
 
 Copilot text is plain text. Every number comes from a tool result, and the page shows the figures it used under "Figures in this summary" (AGENTS.md Copilot rules).
 
@@ -51,13 +51,12 @@ Copilot text is plain text. Every number comes from a tool result, and the page 
 - The question field shows its length limit before the owner types past it (**P**: the field uses `maxLength`; a visible counter is not built).
 - Metric definitions come from one source, the same as the dashboard (AGENTS.md metric rule).
 
-## Retrofit (lesson 08)
+## Retrofit (lesson 08): done
 
-1. `Textarea` inside `Field`, with a hint for the limit and a `FieldError` when the server refuses the question.
-2. Recommendation cards as `Card` with the priority as `Badge` text; evidence as `Table` with numbers right-aligned.
-3. `Disclosure` for "How these numbers are defined", replacing the native `<details>` (batch 3 Q5).
-4. `Alert` `info` for the fallback, `warning` for rate limits and session end; `ErrorState` only for the saved list.
-5. `SkeletonGroup` with a label for the loading answer, in place of text alone.
+1. Phase 1: `Textarea` inside `Field`, with a hint for the limit and a `FieldError` when the server refuses the question (PR #137).
+2. Phase 2: fallbacks as `Alert` (`info` or `warning`), the evidence as a table from the breakpoint and a list below it, `Disclosure` for the definitions (PR #144).
+3. Phase 3: recommendation cards as `Card` with the priority and status `Badge`s; `ErrorState` for the saved list only (PR #158).
+4. Phase 4: `SkeletonGroup` with a label for the page's loading state; the states sweep and the Storybook patterns (this PR).
 
 ## P items on this page
 

@@ -1,0 +1,27 @@
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+import * as AnswerStatesStories from "./AnswerStates.stories";
+
+<Meta of={AnswerStatesStories} />
+
+# Answer states
+
+## What it is for
+
+The answer to one question: the notice that says whether the answer came from the rules or the AI, the summary with its figures, the evidence, and the states that replace an answer (declined, empty store, session ended).
+
+## Rules
+
+- A fallback is an information state: `Alert` `info` or `warning`, never `ErrorState`. The rule-based answer still works.
+- The figures in the summary are listed under "Figures in this summary". Demo traffic carries the "Fictional demo data" tag.
+- At 320 px the evidence is a labelled list and the frame does not scroll sideways. From the container breakpoint the same rows are a table with a caption.
+- Model text is plain text.
+
+<Canvas of={AnswerStatesStories.RuleBasedWide} />
+
+## At 320 px
+
+<Canvas of={AnswerStatesStories.RuleBasedNarrow320} />
+
+## Fallback notices
+
+<Canvas of={AnswerStatesStories.FallbackNotices} />

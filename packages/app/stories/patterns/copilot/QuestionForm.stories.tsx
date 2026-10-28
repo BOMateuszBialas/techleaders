@@ -39,7 +39,7 @@ type Props = {
 
 const meta = {
   title: "Patterns/Copilot/Question form",
-  parameters: { layout: "padded" },
+  parameters: { layout: "padded", a11y: { test: "error" } },
   render: ({ state, pending, questionLength }: Props) => (
     <div className="max-w-4xl">
       <CopilotPanelView
