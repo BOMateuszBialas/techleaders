@@ -25,3 +25,10 @@ export function homeHref(categorySlug?: string): string {
 export function featuredEmptyMessage(category: CatalogCategory | null): string {
   return category ? `No featured products in ${category.name} yet.` : "No featured products yet.";
 }
+
+/** The store error page (retrofit checkout Phase 4, OA-6). No technical detail is shown. */
+export const STOREFRONT_ERROR_TITLE = "Something went wrong";
+export const STOREFRONT_ERROR_DESCRIPTION =
+  "This page could not load. Try again, or browse the catalogue.";
+export const STOREFRONT_ERROR_RETRY_LABEL = "Try again";
+export const STOREFRONT_ERROR_BROWSE_LABEL = "Browse all products";
