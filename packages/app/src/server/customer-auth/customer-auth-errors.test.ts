@@ -13,7 +13,9 @@ describe("customer auth error messages", () => {
   it("maps only the fixed sign-in codes to the owner's texts", () => {
     expect(customerSignInErrorMessage("invalid")).toBe(SIGN_IN_ERRORS.invalid);
     expect(customerSignInErrorMessage("rate_limited")).toBe(SIGN_IN_ERRORS.rate_limited);
-    expect(customerSignInErrorMessage("unavailable")).toBe(SIGN_IN_ERRORS.unavailable);
+    // P10 changes only the owner's wording; the customer page keeps its own unavailable text.
+    expect(customerSignInErrorMessage("unavailable")).toBe("Sign-in is unavailable. Try again.");
+    expect(customerSignInErrorMessage("unavailable")).not.toBe(SIGN_IN_ERRORS.unavailable);
     expect(customerSignInErrorMessage("refused")).toBeNull();
     expect(customerSignInErrorMessage("<script>")).toBeNull();
     expect(customerSignInErrorMessage("toString")).toBeNull();
