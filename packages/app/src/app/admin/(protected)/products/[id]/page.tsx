@@ -22,6 +22,7 @@ import { setProductStatus, updateProduct } from "@/server/catalog/product.action
 import { adjustStock } from "@/server/catalog/stock.action";
 import { AdminPageLoadError } from "../../categories/load-categories";
 import { loadAdminProduct } from "../load-products";
+import { Skeleton, SkeletonGroup } from "@/components/ui/skeleton";
 
 export const metadata: Metadata = { title: "Product" };
 
@@ -33,7 +34,13 @@ export default function ProductPage({ params, searchParams }: ProductPageProps) 
       <Link href={PRODUCTS_PATH} className="w-fit text-sm underline underline-offset-4">
         All products
       </Link>
-      <Suspense fallback={<p className="text-sm text-muted-foreground">Loading product…</p>}>
+      <Suspense
+        fallback={
+          <SkeletonGroup label="Loading product…">
+            <Skeleton className="h-24 rounded-card" />
+          </SkeletonGroup>
+        }
+      >
         <ProductDetails params={params} searchParams={searchParams} />
       </Suspense>
     </div>

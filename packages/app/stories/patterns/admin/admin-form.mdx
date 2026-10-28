@@ -1,0 +1,26 @@
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+import * as AdminFormStories from "./admin-form.stories";
+
+<Meta of={AdminFormStories} />
+
+# Admin form
+
+## What it is for
+
+Creating or changing one record in the admin (the category form is the reference). The owner sees what to fix, what was saved and whether a save is running.
+
+## Rules
+
+- Every field is a `Field` with a visible label. A hint or an error is linked to its input with `aria-describedby`; an invalid input has `aria-invalid`.
+- The failed submit keeps what the owner typed and marks the first field with an error.
+- The form-level result is one `Alert`: `destructive` with `role="alert"` for an error, `success` with `role="status"` for a save. Nothing is shown before the first submit.
+- While a save runs the submit button is disabled and its text says so ("Saving…"). A second click does nothing.
+- Colour is never the only signal: an error has its text and the alert role.
+
+<Canvas of={AdminFormStories.Idle} />
+
+<Canvas of={AdminFormStories.ErrorAfterSubmit} />
+
+<Canvas of={AdminFormStories.Success} />
+
+<Canvas of={AdminFormStories.Pending} />

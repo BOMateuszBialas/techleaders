@@ -5,6 +5,8 @@ import "./provided-context";
 /** Signs in through the real form as the owner created for this run. */
 export async function signInAsOwner(browser: BrowserSession, password = inject("ownerPassword")) {
   await browser.open("/admin/sign-in");
+  // The form streams in behind a Suspense boundary: wait for it before typing.
+  await browser.waitForText("Email");
   await browser.fillLabel("Email", inject("ownerEmail"));
   await browser.fillLabel("Password", password);
   await browser.clickRole("button", "Sign in");

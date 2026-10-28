@@ -8,6 +8,7 @@ import { requireAdminPage } from "@/server/auth/require-admin";
 import { createProduct } from "@/server/catalog/product.action";
 import { AdminPageLoadError } from "../../categories/load-categories";
 import { loadNewProductForm } from "../load-products";
+import { Skeleton, SkeletonGroup } from "@/components/ui/skeleton";
 
 export const metadata: Metadata = { title: "New product" };
 
@@ -23,7 +24,13 @@ export default function NewProductPage() {
           A draft stays hidden from shoppers; a published product appears in the store right away.
         </p>
       </div>
-      <Suspense fallback={<p className="text-sm text-muted-foreground">Loading form…</p>}>
+      <Suspense
+        fallback={
+          <SkeletonGroup label="Loading form…">
+            <Skeleton className="h-24 rounded-card" />
+          </SkeletonGroup>
+        }
+      >
         <NewProductForm />
       </Suspense>
     </div>

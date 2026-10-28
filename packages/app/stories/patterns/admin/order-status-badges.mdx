@@ -1,0 +1,18 @@
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+import * as OrderStatusBadgesStories from "./order-status-badges.stories";
+
+<Meta of={OrderStatusBadgesStories} />
+
+# Status badges
+
+## What it is for
+
+Showing where an order is in its lifecycle, at a glance, in the list and on the order page. Six statuses, one badge each.
+
+## Rules
+
+- Every badge has its text. The status is never colour alone.
+- Each status has one variant (D5): `paid` and `processing` differ, so the owner can tell a paid order from one in progress.
+- The demo badge (`demo` variant) marks seeded `DEMO-` orders. It is never the warning variant, and its text is not changed.
+
+<Canvas of={OrderStatusBadgesStories.AllStatuses} />
