@@ -1,10 +1,10 @@
 import type { CopilotAnswerDto } from "@commerceos/ai";
-import Link from "next/link";
 import { productPath } from "@/components/admin/products/product-copy";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Disclosure, DisclosureContent, DisclosureTrigger } from "@/components/ui/disclosure";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
+import { TextLink } from "@/components/ui/text-link";
 import {
   EMPTY_STORE_NEXT_STEP,
   EMPTY_STORE_TITLE,
@@ -20,10 +20,11 @@ import { answerNotice } from "./copilot-fallback";
 import { EvidenceView } from "./copilot-evidence-view";
 import {
   DELETED_PRODUCT_TEXT,
+  priorityVariant,
   type RecommendationCardData,
   type RecommendationStatusAction,
 } from "./recommendation-copy";
-import { RecommendationStatusForm } from "./recommendation-status-form";
+import { RecommendationStatusBadge, RecommendationStatusForm } from "./recommendation-status-form";
 
 function Limitations({ items }: { items: string[] }) {
   if (items.length === 0) return null;
@@ -41,8 +42,8 @@ function Limitations({ items }: { items: string[] }) {
 
 /**
  * One recommendation: every value comes from its evidence rows, rendered as plain text. A stored
- * recommendation (with an id) also shows its status and the owner's save, dismiss and complete
- * actions when the page passes the status action (Phase 4).
+ * recommendation (with an id) also shows its status badge in the header and the owner's save,
+ * dismiss and complete actions in the body when the page passes the status action (D12).
  */
 export function RecommendationCardView({
   recommendation,
@@ -55,9 +56,12 @@ export function RecommendationCardView({
     <Card data-testid="copilot-recommendation">
       <CardHeader>
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant={recommendation.priority === "high" ? "destructive" : "secondary"}>
+          <Badge variant={priorityVariant(recommendation.priority)}>
             {PRIORITY_TEXT[recommendation.priority]}
           </Badge>
+          {statusAction && recommendation.id ? (
+            <RecommendationStatusBadge id={recommendation.id} status={recommendation.status} />
+          ) : null}
         </div>
         <CardTitle>
           <h3>{recommendation.title}</h3>
@@ -87,9 +91,7 @@ export function RecommendationCardView({
                 {product.name === null ? (
                   <span className="text-muted-foreground">{DELETED_PRODUCT_TEXT}</span>
                 ) : (
-                  <Link href={productPath(product.id)} className="underline underline-offset-4">
-                    {product.name}
-                  </Link>
+                  <TextLink href={productPath(product.id)}>{product.name}</TextLink>
                 )}
               </span>
             ))}

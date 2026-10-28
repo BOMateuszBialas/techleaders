@@ -1,12 +1,14 @@
 "use client";
 
 import { use, useActionState, useMemo } from "react";
+import type { RecommendationStatus } from "@commerceos/core";
 import {
   IDLE_RECOMMENDATION_STATUS_STATE,
   reportingStatusAction,
   type RecommendationStatusAction,
 } from "./recommendation-copy";
 import {
+  RecommendationStatusBadgeView,
   RecommendationStatusFormView,
   type RecommendationStatusFormViewProps,
 } from "./recommendation-status-form-view";
@@ -39,4 +41,20 @@ export function RecommendationStatusForm({
       reportedStatus={statuses[recommendation.id]}
     />
   );
+}
+
+/**
+ * The status badge of a card header (D12). It shows the latest status reported on the page for
+ * this recommendation, else the one rendered, so it agrees with the form in the card body.
+ */
+export function RecommendationStatusBadge({
+  id,
+  status,
+}: {
+  id: string;
+  status: RecommendationStatus;
+}) {
+  const { statuses } = use(RecommendationStatusesContext);
+  const reported: RecommendationStatus | undefined = statuses[id];
+  return <RecommendationStatusBadgeView status={reported ?? status} />;
 }

@@ -1,16 +1,23 @@
 import type { RecommendationStatus } from "@commerceos/core";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FormMessage } from "../form-feedback";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   ACTIONS_NOTE,
   NO_FURTHER_ACTIONS,
   STATUS_BUTTON_TEXT,
+  recommendationStatusVariant,
   shownRecommendationStatus,
   statusActions,
+  statusResultTone,
   statusText,
   type RecommendationStatusState,
 } from "./recommendation-copy";
+
+/** The status badge; the card header shows it and the form below holds the actions (D12). */
+export function RecommendationStatusBadgeView({ status }: { status: RecommendationStatus }) {
+  return <Badge variant={recommendationStatusVariant(status)}>{statusText(status)}</Badge>;
+}
 
 export type RecommendationStatusFormViewProps = {
   action: (formData: FormData) => void;
@@ -44,11 +51,9 @@ export function RecommendationStatusFormView({
     reportedStatus,
   );
   const actions = statusActions(status);
+  const result = showMessage ? statusResultTone(state) : null;
   return (
     <div className="flex flex-col gap-2 border-t pt-3" data-testid="recommendation-status">
-      <div>
-        <Badge variant={status === "new" ? "outline" : "secondary"}>{statusText(status)}</Badge>
-      </div>
       {actions.length === 0 ? (
         <p className="text-sm text-muted-foreground">{NO_FURTHER_ACTIONS}</p>
       ) : (
@@ -74,7 +79,11 @@ export function RecommendationStatusFormView({
           <p className="text-xs text-muted-foreground">{ACTIONS_NOTE}</p>
         </form>
       )}
-      {showMessage ? <FormMessage state={state} /> : null}
+      {result ? (
+        <Alert variant={result.variant} role={result.role}>
+          <AlertDescription>{state.message}</AlertDescription>
+        </Alert>
+      ) : null}
     </div>
   );
 }
