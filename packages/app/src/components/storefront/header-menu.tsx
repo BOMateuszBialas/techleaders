@@ -1,7 +1,9 @@
-import { IconMenu2 } from "@tabler/icons-react";
 import Link from "next/link";
 import type { CatalogCategory } from "@commerceos/core";
 import { productsHref } from "@/components/catalog/catalog-copy";
+import { buttonVariants } from "@/components/ui/button";
+import { Disclosure, DisclosureContent, DisclosureTrigger } from "@/components/ui/disclosure";
+import { HEADER_MENU_TRIGGER_LABEL } from "./storefront-copy";
 
 type HeaderMenuProps = {
   /** Every category (spec G13: all of them; a cap is a later decision). Empty while loading. */
@@ -31,9 +33,9 @@ function MenuLinks({ categories }: HeaderMenuProps) {
 }
 
 /**
- * The header menu (spec G13): "Shop all" and one link per category. Wide screens show it
- * inline; narrow screens get a native `<details>` disclosure, so no client JavaScript is
- * needed. Only one of the two is displayed at a time.
+ * The header menu (spec G13): "Shop all" and one link per category. From 768 px the links show
+ * inline. Below 768 px they sit behind a "Categories" Disclosure button (P4, owner choice): a
+ * native `<details>`, so no client JavaScript is needed. Only one of the two is displayed at a time.
  */
 export function HeaderMenu({ categories }: HeaderMenuProps) {
   return (
@@ -43,19 +45,18 @@ export function HeaderMenu({ categories }: HeaderMenuProps) {
           <MenuLinks categories={categories} />
         </ul>
       </nav>
-      <details className="relative md:hidden">
-        <summary className="inline-flex cursor-pointer list-none items-center gap-1 rounded-md whitespace-nowrap border px-3 py-1 text-sm hover:bg-muted focus-visible:bg-muted [&::-webkit-details-marker]:hidden">
-          <IconMenu2 aria-hidden="true" className="size-4" /> Menu
-        </summary>
-        <nav
-          aria-label="Main"
-          className="absolute right-0 z-10 mt-2 w-56 rounded-md border bg-background p-3 shadow-md"
-        >
-          <ul className="flex flex-col gap-2 text-sm text-muted-foreground">
-            <MenuLinks categories={categories} />
-          </ul>
-        </nav>
-      </details>
+      <Disclosure className="relative md:hidden">
+        <DisclosureTrigger className={buttonVariants({ variant: "outline" })}>
+          {HEADER_MENU_TRIGGER_LABEL}
+        </DisclosureTrigger>
+        <DisclosureContent className="absolute right-0 z-10 mt-2">
+          <nav aria-label="Main" className="w-56 rounded-md border bg-background p-3 shadow-md">
+            <ul className="flex flex-col gap-2 text-sm text-muted-foreground">
+              <MenuLinks categories={categories} />
+            </ul>
+          </nav>
+        </DisclosureContent>
+      </Disclosure>
       {/* The cart link with its count (cart spec) goes here. No placeholder ships before it
           works (spec G22). The search box sits beside this menu in the layout. */}
     </div>

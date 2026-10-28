@@ -32,3 +32,6 @@ export const STOREFRONT_ERROR_DESCRIPTION =
   "This page could not load. Try again, or browse the catalogue.";
 export const STOREFRONT_ERROR_RETRY_LABEL = "Try again";
 export const STOREFRONT_ERROR_BROWSE_LABEL = "Browse all products";
+
+/** The phone header menu's trigger (P4, owner choice). */
+export const HEADER_MENU_TRIGGER_LABEL = "Categories";
