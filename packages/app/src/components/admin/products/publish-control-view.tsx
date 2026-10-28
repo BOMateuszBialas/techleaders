@@ -21,7 +21,7 @@ export function PublishControlView({ action, state, pending, product }: PublishC
 
   return (
     <section aria-labelledby="publish-heading" className="flex max-w-xl flex-col gap-3">
-      <h2 id="publish-heading" className="text-lg font-semibold">
+      <h2 id="publish-heading" className="type-h2">
         Store visibility
       </h2>
       <form action={action} className="flex flex-col gap-3">

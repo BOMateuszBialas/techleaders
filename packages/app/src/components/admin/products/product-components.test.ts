@@ -1,7 +1,7 @@
 import type { AdminProduct } from "@commerceos/core";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { IDLE_ACTION_STATE, type ActionState } from "@/lib/action-state";
 import { ImagePreview, markImageFailed } from "./image-preview";
 import { ImagePreviewView } from "./image-preview-view";
@@ -15,7 +15,7 @@ import {
   statusChangedMessage,
   storefrontProductHref,
 } from "./product-copy";
-import { ProductForm } from "./product-form";
+import { focusFirstInvalidProductField, ProductForm } from "./product-form";
 import { ProductFormView, type ProductFormProduct } from "./product-form-view";
 import { PublishControl } from "./publish-control";
 import { PublishControlView } from "./publish-control-view";
@@ -142,7 +142,10 @@ describe("ProductFormView", () => {
     expect(html).not.toContain("old links stop working");
     expect(html).not.toContain("<img");
     expect(html).toContain(">Create product<");
-    expect(html).not.toContain("role=");
+    // Field groups carry role="group"; no form-level result (alert or status) before a submit.
+    expect(html).not.toMatch(/role="(alert|status)"/);
+    expect(html).toMatch(/<select[^>]*id="product-status"[^>]*>/);
+    expect(html).toMatch(/<select[^>]*id="product-category"[^>]*>/);
   });
 
   it("shows an error under the Featured checkbox", () => {
@@ -152,15 +155,24 @@ describe("ProductFormView", () => {
       fieldErrors: { featured: ["Invalid input"] },
       values: { featured: "yes" },
     });
-    expect(html).toMatch(/id="product-featured"[^>]*aria-invalid="true"/);
+    // The Base UI checkbox role element carries the invalid state; the hidden input keeps the id.
+    expect(html).toMatch(/role="checkbox"[^>]*aria-invalid="true"/);
     expect(html).toContain('aria-describedby="product-featured-hint product-featured-error"');
     expect(html).toContain('id="product-featured-error"');
+    expect(html).toContain("Invalid input");
   });
 
-  it("disables the button while pending", () => {
+  it("disables the button while pending and marks it busy", () => {
     expect(renderForm(IDLE_ACTION_STATE, { pending: true })).toMatch(
-      /<button[^>]*disabled=""[^>]*>Saving…<\/button>/,
+      /<button[^>]*disabled=""[^>]*aria-busy="true"[^>]*>Saving…<\/button>/,
     );
+    expect(renderForm(IDLE_ACTION_STATE)).toMatch(/<button[^>]*aria-busy="false"[^>]*>Create/);
+  });
+
+  it("shows the error summary as an alert with the message", () => {
+    const html = renderForm({ status: "error", message: "Check the highlighted fields." });
+    expect(html).toMatch(/data-variant="destructive"[^>]*role="alert"/);
+    expect(html).toMatch(/role="alert"[\s\S]*Check the highlighted fields\./);
   });
 
   it("keeps the typed values, including Featured and the status, after a failed create", () => {
@@ -211,6 +223,10 @@ describe("ProductFormView", () => {
     expect(html).not.toContain('name="stockQuantity"');
     expect(html).not.toContain('name="status"');
     expect(html).toContain("Changing the slug changes the store URL; old links stop working.");
+    // The warning is linked from the slug field and has no live-region role of its own.
+    expect(html).toContain('aria-describedby="product-slug-hint product-slug-warning"');
+    expect(html).toMatch(/<div[^>]*data-variant="warning"[^>]*id="product-slug-warning"[^>]*>/);
+    expect(html).not.toMatch(/<div[^>]*role=[^>]*id="product-slug-warning"/);
     expect(html).toContain('src="https://images.example.com/vortex.png"');
     expect(html).toContain('role="status"');
     expect(html).toContain(">Save changes<");
@@ -250,6 +266,9 @@ describe("ImagePreviewView", () => {
     expect(html).toContain('loading="lazy"');
     expect(html).toContain('width="96"');
     expect(html).toContain('alt="Phantom"');
+    // The frame sits on the product surface, not on --muted (contrast pair 8, tokeny.md §2).
+    expect(html).toContain("bg-surface-product");
+    expect(html).not.toContain("bg-muted ");
   });
 
   it("shows a local demo image through next/image", () => {
@@ -300,6 +319,7 @@ describe("PublishControlView", () => {
       "Publish: shoppers will see it at /products/vortex and it will show as out of stock.",
     );
     expect(html).toMatch(/aria-describedby="publish-help"[^>]*>Publish<\/button>/);
+    expect(html).toContain('<h2 id="publish-heading" class="type-h2">Store visibility</h2>');
   });
 
   it("unpublishes a published product, with the pending state and the result", () => {
@@ -315,6 +335,42 @@ describe("PublishControlView", () => {
     expect(html).toContain("Unpublish: shoppers will no longer see or buy it.");
     expect(html).toContain('role="status"');
     expect(html).toMatch(/<button[^>]*disabled=""[^>]*>Unpublishing…<\/button>/);
+  });
+});
+
+describe("focusFirstInvalidProductField (A-2)", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  const errorState: ActionState = {
+    status: "error",
+    message: "Check the highlighted fields.",
+    fieldErrors: { name: ["Enter a name."] },
+  };
+
+  it("focuses the first field with aria-invalid inside the product form after a failed submit", () => {
+    const focus = vi.fn();
+    const querySelector = vi.fn(() => ({ focus }));
+    vi.stubGlobal("document", { querySelector });
+    focusFirstInvalidProductField(errorState)();
+    expect(querySelector).toHaveBeenCalledWith('#product-form [aria-invalid="true"]');
+    expect(focus).toHaveBeenCalledTimes(1);
+  });
+
+  it("leaves the focus alone when no field is invalid (a conflict or a server error)", () => {
+    const querySelector = vi.fn(() => null);
+    vi.stubGlobal("document", { querySelector });
+    focusFirstInvalidProductField({ status: "error", message: "Sold out." })();
+    expect(querySelector).toHaveBeenCalledTimes(1);
+  });
+
+  it("does nothing before a submit or after a success", () => {
+    const querySelector = vi.fn(() => null);
+    vi.stubGlobal("document", { querySelector });
+    focusFirstInvalidProductField(IDLE_ACTION_STATE)();
+    focusFirstInvalidProductField({ status: "success", message: "Saved." })();
+    expect(querySelector).not.toHaveBeenCalled();
   });
 });
 

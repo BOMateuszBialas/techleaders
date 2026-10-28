@@ -81,7 +81,7 @@ describe("admin products", () => {
       expect(await browser().text("main")).not.toContain("Stock quantity");
 
       // A featured draft says it will not show until it is published.
-      await browser().click("#product-featured");
+      await browser().click('#product-form [role="checkbox"]');
       await browser().clickRole("button", "Save changes");
       await browser().waitForText(
         "It is featured, but it will not show in the home page slider until it is published.",
@@ -105,7 +105,7 @@ describe("admin products", () => {
 
       // Untick Featured: the product leaves the home page slider.
       await openProduct(productUrl);
-      await browser().click("#product-featured");
+      await browser().click('#product-form [role="checkbox"]');
       await browser().clickRole("button", "Save changes");
       await browser().waitForText("Saved. Visible in the store and can be bought.");
       await browser().open("/");

@@ -12,7 +12,7 @@ export type ImagePreviewViewProps = {
 };
 
 const SIZE = 96;
-const FRAME = "size-24 rounded-md border bg-muted object-cover";
+const FRAME = "size-24 rounded-md border bg-surface-product object-cover";
 
 /**
  * A small preview of the stored image, so the owner sees whether the address works (spec G6,

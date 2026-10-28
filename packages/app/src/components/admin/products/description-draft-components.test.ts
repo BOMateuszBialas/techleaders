@@ -402,6 +402,13 @@ describe("DescriptionDraftPanelView", () => {
     expect(html).not.toContain("<b>");
     expect(html).toContain("whitespace-pre-line");
     expect(html).toContain("Based on: name");
+    // The panel is a Card; the sources line uses the admin small style.
+    expect(html).toContain('data-slot="card"');
+    expect(html).toContain('class="type-small text-muted-foreground">Based on: name');
+    // The warning is an Alert with no role: a standing note, not an announcement.
+    expect(html).toContain('data-slot="alert" data-variant="warning"');
+    expect(html).not.toContain('role="alert"');
+    expect(html).not.toContain('role="status"');
     expect(html).toContain(DRAFT_WARNING);
     expect(html).toContain(REPLACE_LABEL);
     expect(html).toContain("Discard");
