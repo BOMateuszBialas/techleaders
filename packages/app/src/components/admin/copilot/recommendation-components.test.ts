@@ -5,26 +5,34 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { CopilotPanelView } from "./copilot-panel-view";
 import { RecommendationCardView } from "./copilot-answer-view";
+import { allowedRecommendationTransitions } from "@commerceos/core";
 import {
   DELETED_PRODUCT_TEXT,
   EMPTY_RECOMMENDATIONS_TEXT,
   IDLE_RECOMMENDATION_STATUS_STATE,
   NO_SHARED_STATUSES,
-  RECOMMENDATIONS_UNAVAILABLE_TEXT,
+  RECOMMENDATIONS_UNAVAILABLE_DESCRIPTION,
+  RECOMMENDATIONS_UNAVAILABLE_TITLE,
   ignoreStatusReport,
+  priorityVariant,
+  recommendationStatusVariant,
   recommendationsPageHref,
   recordReportedStatus,
   reportingStatusAction,
   shownRecommendationStatus,
   statusActions,
   statusChangedMessage,
+  statusResultTone,
   statusText,
   storedOnText,
   toRecommendationCard,
   type RecommendationStatusState,
 } from "./recommendation-copy";
-import { RecommendationStatusForm } from "./recommendation-status-form";
-import { RecommendationStatusFormView } from "./recommendation-status-form-view";
+import { RecommendationStatusBadge, RecommendationStatusForm } from "./recommendation-status-form";
+import {
+  RecommendationStatusBadgeView,
+  RecommendationStatusFormView,
+} from "./recommendation-status-form-view";
 import {
   RecommendationStatusesContext,
   RecommendationStatusesProvider,
@@ -117,6 +125,31 @@ describe("recommendation copy", () => {
     expect(statusText("completed")).toBe("Status: Completed");
   });
 
+  it("badges a priority neutrally: high is default, medium and low are secondary (D3)", () => {
+    expect(priorityVariant("high")).toBe("default");
+    expect(priorityVariant("medium")).toBe("secondary");
+    expect(priorityVariant("low")).toBe("secondary");
+  });
+
+  it("badges each status with the D4 map", () => {
+    expect(recommendationStatusVariant("new")).toBe("outline");
+    expect(recommendationStatusVariant("saved")).toBe("secondary");
+    expect(recommendationStatusVariant("dismissed")).toBe("outline");
+    expect(recommendationStatusVariant("completed")).toBe("success");
+  });
+
+  it("maps a status result to an alert: error to destructive alert, success to status", () => {
+    expect(statusResultTone({ status: "error", message: "No." })).toEqual({
+      variant: "destructive",
+      role: "alert",
+    });
+    expect(statusResultTone({ status: "success", message: "Saved." })).toEqual({
+      variant: "success",
+      role: "status",
+    });
+    expect(statusResultTone(IDLE_RECOMMENDATION_STATUS_STATE)).toBeNull();
+  });
+
   it("builds page links and the date line", () => {
     expect(recommendationsPageHref(1)).toBe("/admin/copilot");
     expect(recommendationsPageHref(3)).toBe("/admin/copilot?page=3");
@@ -141,10 +174,55 @@ describe("recommendation copy", () => {
   });
 });
 
+describe("RecommendationStatusBadgeView", () => {
+  it("shows the status text with the D4 variant, for every status", () => {
+    const classes: Record<CopilotAnswerRecommendation["status"], string> = {
+      new: "border-border",
+      saved: "bg-secondary",
+      dismissed: "border-border",
+      completed: "bg-success-surface",
+    };
+    for (const status of ["new", "saved", "dismissed", "completed"] as const) {
+      const html = renderToStaticMarkup(createElement(RecommendationStatusBadgeView, { status }));
+      expect(html).toContain(statusText(status));
+      expect(html).toContain(classes[status]);
+    }
+  });
+});
+
+describe("RecommendationStatusBadge", () => {
+  const badge = (
+    status: CopilotAnswerRecommendation["status"],
+    statuses: Readonly<Record<string, CopilotAnswerRecommendation["status"]>> = {},
+  ) =>
+    renderToStaticMarkup(
+      createElement(
+        RecommendationStatusesContext,
+        { value: { statuses, report: vi.fn() } },
+        createElement(RecommendationStatusBadge, { id: ID, status }),
+      ),
+    );
+
+  it("shows the status it was rendered with when nothing was reported", () => {
+    expect(badge("saved")).toContain("Status: Saved");
+    expect(
+      renderToStaticMarkup(
+        createElement(RecommendationStatusBadge, { id: ID, status: "dismissed" }),
+      ),
+    ).toContain("Status: Dismissed");
+  });
+
+  it("shows the latest status reported for this recommendation by any card (#67)", () => {
+    expect(badge("new", { [ID]: "completed" })).toContain("Status: Completed");
+    expect(badge("new", { [GONE_ID]: "completed" })).toContain("Status: New");
+  });
+});
+
 describe("RecommendationStatusFormView", () => {
   it("offers save, dismiss and complete for a new recommendation, posting the shown status", () => {
     const html = renderForm(IDLE_RECOMMENDATION_STATUS_STATE);
-    expect(html).toContain("Status: New");
+    // The badge sits in the card header (D12), not in the form.
+    expect(html).not.toContain("Status: New");
     expect(html).toContain(`name="recommendationId" value="${ID}"`);
     expect(html).toContain('name="from" value="new"');
     expect(html).toContain('value="saved"');
@@ -170,11 +248,34 @@ describe("RecommendationStatusFormView", () => {
       message: statusChangedMessage("completed"),
       currentStatus: "completed",
     });
-    expect(html).toContain("Status: Completed");
+    expect(html).not.toContain("Status: Completed");
     expect(html).toContain("No further actions.");
     expect(html).not.toContain("<form");
     expect(html).toContain('role="status"');
     expect(html).toContain("Copilot did not change anything in your store.");
+  });
+
+  it("offers exactly the transitions of the status except new", () => {
+    for (const status of ["new", "saved", "dismissed", "completed"] as const) {
+      const offered = statusActions(status);
+      expect(offered).toEqual(
+        allowedRecommendationTransitions(status).filter((to) => to !== "new"),
+      );
+      const html = renderForm(IDLE_RECOMMENDATION_STATUS_STATE, status);
+      expect(html.match(/name="to"/g) ?? []).toHaveLength(offered.length);
+      for (const to of offered) expect(html).toContain(`value="${to}" aria-label`);
+    }
+  });
+
+  it("shows a success result as a success alert with role status", () => {
+    const html = renderForm({
+      status: "success",
+      message: statusChangedMessage("saved"),
+      currentStatus: "saved",
+    });
+    expect(html).toContain('data-variant="success"');
+    expect(html).toContain('role="status"');
+    expect(html).toContain("Recommendation saved.");
   });
 
   it("shows an error as an alert and keeps the actions", () => {
@@ -193,7 +294,7 @@ describe("RecommendationStatusForm", () => {
         recommendation: { id: ID, status: "new", title: TITLE },
       }),
     );
-    expect(html).toContain("Status: New");
+    expect(html).toContain("<form");
   });
 
   it("shows the status another card of the same recommendation reported (#67)", () => {
@@ -208,13 +309,11 @@ describe("RecommendationStatusForm", () => {
         form,
       ),
     );
-    expect(html).toContain("Status: Completed");
     expect(html).not.toContain("<form");
     // The page's provider starts with nothing reported: the card shows its own status.
     const provided = renderToStaticMarkup(
       createElement(RecommendationStatusesProvider, null, form),
     );
-    expect(provided).toContain("Status: Saved");
     expect(provided).toContain("<form");
   });
 });
@@ -288,7 +387,7 @@ describe("statuses shared between the cards of one recommendation (#67)", () => 
         reportedStatus: "completed",
       }),
     );
-    expect(html).toContain("Status: Completed");
+    expect(html).not.toContain("Status: Completed");
     expect(html).toContain("No further actions.");
     expect(html).not.toContain("<form");
     expect(html).not.toContain("Recommendation saved.");
@@ -329,6 +428,55 @@ describe("RecommendationCardView", () => {
     expect(html).toContain(`href="/admin/products/${PULSE_ID}"`);
     expect(html).toContain(DELETED_PRODUCT_TEXT);
     expect(html).not.toContain(`href="/admin/products/${GONE_ID}"`);
+  });
+
+  it("links a product name with the TextLink component (C11)", () => {
+    const html = renderToStaticMarkup(
+      createElement(RecommendationCardView, { recommendation: RECOMMENDATION }),
+    );
+    expect(html).toContain(`data-slot="text-link"`);
+    expect(html).toContain(`href="/admin/products/${PULSE_ID}"`);
+    expect(html).toContain(">Pulse Ultralight Mouse</a>");
+  });
+
+  it("badges a high priority as default and a medium or low one as secondary (D3)", () => {
+    const high = renderToStaticMarkup(
+      createElement(RecommendationCardView, { recommendation: RECOMMENDATION }),
+    );
+    expect(high).toContain("bg-primary text-primary-foreground");
+    expect(high).not.toContain("bg-destructive-surface");
+    for (const priority of ["medium", "low"] as const) {
+      const html = renderToStaticMarkup(
+        createElement(RecommendationCardView, {
+          recommendation: { ...RECOMMENDATION, priority },
+        }),
+      );
+      expect(html).toContain("bg-secondary text-secondary-foreground");
+      expect(html).not.toContain("bg-destructive-surface");
+    }
+  });
+
+  it("shows the status badge in the header and the actions in the body (D12)", () => {
+    const html = renderToStaticMarkup(
+      createElement(RecommendationCardView, {
+        recommendation: RECOMMENDATION,
+        statusAction: vi.fn(),
+      }),
+    );
+    const header = html.indexOf("Status: New");
+    expect(header).toBeGreaterThan(-1);
+    expect(header).toBeLessThan(html.indexOf("What we see"));
+    expect(html.indexOf('data-testid="recommendation-status"')).toBeGreaterThan(
+      html.indexOf("What we see"),
+    );
+    expect(html.match(/Status: New/g)).toHaveLength(1);
+  });
+
+  it("shows no status badge without the status action", () => {
+    const html = renderToStaticMarkup(
+      createElement(RecommendationCardView, { recommendation: RECOMMENDATION }),
+    );
+    expect(html).not.toContain("Status:");
   });
 });
 
@@ -396,9 +544,23 @@ describe("SavedRecommendationsView", () => {
     expect(html).toContain("Go to the first page");
   });
 
-  it("shows an alert when the list could not be loaded", () => {
+  it("shows an error state when the list could not be loaded", () => {
     const html = renderList(null);
     expect(html).toContain('role="alert"');
-    expect(html).toContain(RECOMMENDATIONS_UNAVAILABLE_TEXT);
+    expect(html).toContain(RECOMMENDATIONS_UNAVAILABLE_TITLE);
+    expect(html).toContain(RECOMMENDATIONS_UNAVAILABLE_DESCRIPTION);
+  });
+
+  it("shows the empty state with the existing text when nothing is saved", () => {
+    const html = renderList(list({ rows: [], total: 0 }));
+    expect(html).toContain('data-slot="empty"');
+    expect(html).toContain(EMPTY_RECOMMENDATIONS_TEXT);
+  });
+
+  it("links the pager with text links", () => {
+    const html = renderList(list({ page: 2, pageCount: 3, total: 50 }));
+    // The card's product link is a text link too: count the pager's links only.
+    const pager = html.slice(html.indexOf("<nav"), html.indexOf("</nav>"));
+    expect(pager.match(/data-slot="text-link"/g)).toHaveLength(2);
   });
 });
