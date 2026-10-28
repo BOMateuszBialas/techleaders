@@ -10,7 +10,8 @@ const askCopilot = createAskCopilotAction(fetch);
 
 /**
  * Thin client wrapper: `useActionState` over the JSON route, plus one `useState` for the question
- * counter (C5, OA-4). The view stays hook-free; the counter's length is its only state.
+ * counter (C5, OA-4). The view stays hook-free; the focus after a refused question is a ref
+ * callback in the view (`focusRefusedQuestion`), so the wrapper has no effect and no ref.
  */
 export function CopilotPanel({
   questions,
