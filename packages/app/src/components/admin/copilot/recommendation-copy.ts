@@ -3,6 +3,7 @@ import {
   STORE_TIME_ZONE,
   allowedRecommendationTransitions,
   type CopilotRecommendationRecord,
+  type RecommendationPriority,
   type RecommendationStatus,
 } from "@commerceos/core";
 import type { CopilotAnswerRecommendation } from "@commerceos/ai";
@@ -101,6 +102,42 @@ export function statusText(status: RecommendationStatus): string {
   return `Status: ${RECOMMENDATION_STATUS_LABELS[status]}`;
 }
 
+/**
+ * The badge of a priority (D3): neutral, with its word ("High priority"). Red is an error and
+ * warning is not used for priority, so `high` is `default` and the other two are `secondary`.
+ */
+export function priorityVariant(priority: RecommendationPriority): "default" | "secondary" {
+  return priority === "high" ? "default" : "secondary";
+}
+
+/**
+ * The badge of a status (D4). Colour is never the only signal: the badge text always says the
+ * status (`statusText`). Done is `success`; the neutral states are `outline`.
+ */
+export function recommendationStatusVariant(
+  status: RecommendationStatus,
+): "outline" | "secondary" | "success" {
+  const variants: Record<RecommendationStatus, "outline" | "secondary" | "success"> = {
+    new: "outline",
+    saved: "secondary",
+    dismissed: "outline",
+    completed: "success",
+  };
+  return variants[status];
+}
+
+/**
+ * The form-level result of a status action (S16, S17): an error is a `destructive` alert with
+ * `role="alert"`, a success is a `success` alert with `role="status"`, and nothing otherwise.
+ */
+export function statusResultTone(
+  state: RecommendationStatusState,
+): { variant: "success" | "destructive"; role: "status" | "alert" } | null {
+  if (state.status === "error") return { variant: "destructive", role: "alert" };
+  if (state.status === "success") return { variant: "success", role: "status" };
+  return null;
+}
+
 export const NO_FURTHER_ACTIONS = "No further actions.";
 export const ACTIONS_NOTE =
   "Your decision is recorded here only; Copilot changes nothing in your store.";
@@ -117,8 +154,8 @@ export const YOUR_RECOMMENDATIONS_HEADING = "Your recommendations";
 export const YOUR_RECOMMENDATIONS_INTRO = "Saved and completed recommendations, newest first.";
 export const EMPTY_RECOMMENDATIONS_TEXT = "Saved recommendations appear here.";
 export const EMPTY_RECOMMENDATIONS_PAGE_TEXT = "There are no recommendations on this page.";
-export const RECOMMENDATIONS_UNAVAILABLE_TEXT =
-  "Your recommendations could not be loaded. Try again in a moment.";
+export const RECOMMENDATIONS_UNAVAILABLE_TITLE = "Your recommendations could not be loaded.";
+export const RECOMMENDATIONS_UNAVAILABLE_DESCRIPTION = "Try again in a moment.";
 export const DELETED_PRODUCT_TEXT = "(deleted product)";
 
 /** `/admin/copilot?page=N` (page 1 has no query). */
