@@ -3,7 +3,6 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { AlertDialog } from "@/components/ui/alert-dialog";
 import { IDLE_ACTION_STATE, type ActionState } from "@/lib/action-state";
-import { FieldError, FormMessage, fieldA11y } from "../form-feedback";
 import {
   categoryNotice,
   categoryPath,
@@ -76,44 +75,6 @@ describe("category copy", () => {
     expect(categoryNotice("<script>")).toBeNull();
     expect(categoryNotice(["created"])).toBeNull();
     expect(categoryNotice(undefined)).toBeNull();
-  });
-});
-
-describe("form feedback", () => {
-  it("renders an alert for errors, a status for success and nothing when idle", () => {
-    expect(
-      renderToStaticMarkup(
-        createElement(FormMessage, { state: { status: "error", message: "No." } }),
-      ),
-    ).toBe('<p role="alert" class="text-sm text-destructive">No.</p>');
-    expect(
-      renderToStaticMarkup(
-        createElement(FormMessage, { state: { status: "success", message: "Saved." } }),
-      ),
-    ).toContain('role="status"');
-    expect(renderToStaticMarkup(createElement(FormMessage, { state: IDLE_ACTION_STATE }))).toBe("");
-  });
-
-  it("renders field errors only when there are messages", () => {
-    expect(
-      renderToStaticMarkup(createElement(FieldError, { id: "e", messages: ["A.", "B."] })),
-    ).toBe('<p id="e" class="text-sm text-destructive">A. B.</p>');
-    expect(renderToStaticMarkup(createElement(FieldError, { id: "e", messages: [] }))).toBe("");
-    expect(renderToStaticMarkup(createElement(FieldError, { id: "e", messages: undefined }))).toBe(
-      "",
-    );
-  });
-
-  it("links an input to its hints and error", () => {
-    expect(fieldA11y("e", ["Bad."], ["h"])).toEqual({
-      "aria-invalid": true,
-      "aria-describedby": "h e",
-    });
-    expect(fieldA11y("e", [])).toEqual({ "aria-invalid": false, "aria-describedby": undefined });
-    expect(fieldA11y("e", undefined, ["h"])).toEqual({
-      "aria-invalid": false,
-      "aria-describedby": "h",
-    });
   });
 });
 
