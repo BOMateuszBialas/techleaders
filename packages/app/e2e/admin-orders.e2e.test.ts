@@ -161,10 +161,14 @@ describe("admin orders (E04-S01)", () => {
     await browser().clickRole("button", "Cancel order…");
     await browser().waitForText("Cancel this order?");
     await browser().press("Escape");
-    await browser().waitForText("Cancel order…");
-    expect(await browser().evaluate("document.activeElement?.textContent ?? ''")).toBe(
-      "Cancel order…",
-    );
+    // The trigger text is in the page while the dialog is still closing, so wait for the focus
+    // to return to the trigger (bounded), not for the text.
+    const focused = "document.activeElement?.textContent ?? ''";
+    for (let attempt = 0; attempt < 50; attempt++) {
+      if ((await browser().evaluate(focused)) === "Cancel order…") break;
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+    expect(await browser().evaluate(focused)).toBe("Cancel order…");
     expect(await browser().text("main")).toContain("Awaiting payment");
 
     // Keyboard only: Enter opens the dialog from the trigger, Tab moves to the action, Enter confirms.
