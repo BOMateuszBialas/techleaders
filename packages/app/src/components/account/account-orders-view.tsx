@@ -34,7 +34,7 @@ export function AccountOrdersView({ email, signOutAction, list }: AccountOrdersV
           Signed in as <span className="font-medium text-foreground">{email}</span>
         </p>
         <form action={signOutAction}>
-          <Button type="submit" variant="outline" size="sm">
+          <Button type="submit" variant="outline" size="sm" data-testid="account-sign-out">
             {ACCOUNT_COPY.signOut}
           </Button>
         </form>

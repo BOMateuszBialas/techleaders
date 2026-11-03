@@ -220,7 +220,7 @@ describe("customer A never reaches customer B's orders (E07-S04)", () => {
     await browser().waitForUrl("**/account/orders");
     await browser().waitForText(order("a").reference);
     // The sign-out button of the "My orders" page (the header has its own).
-    await browser().click('main form button[type="submit"]');
+    await browser().click('[data-testid="account-sign-out"]');
     await browser().waitForText("Vortex Wireless Mouse");
     expect(new URL(await browser().url()).pathname).toBe("/");
 
