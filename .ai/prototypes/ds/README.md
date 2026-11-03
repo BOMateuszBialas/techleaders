@@ -12,7 +12,7 @@
   - Shopper: s01 storefront home (layout A only; cart drawer states), s02 catalog, s03 product, s04 cart, s05 checkout, s06 demo payment, s07 confirmation, s11 My orders, s12 account order.
   - Owner: s13 sign-in, s14 dashboard (metric definitions from `packages/core/.../metric-definitions.ts`, imported through the `@core/` alias), s15 orders, s16 order detail (AlertDialog for cancel), s17 Copilot question, s18 Copilot answer (layouts A, B, C), s19 recommendation decisions.
 - A review bar (prototype only, labelled): screen, state, width (320, 390, 768, 1440, full), light or dark theme, and a sideways-scroll readout for the simulated width.
-- Hash routes (`#s05`). Unknown ids s08, s09, s10 show a "not built in this prototype" page.
+- Hash routes (`#s05`). All key-flow screens s01–s19 are built; s08 (order lookup), s09 (sign-up) and s10 (sign-in) use the state switch in the review bar.
 - Tokens: `packages/app/src/app/globals.css` through `src/styles.css`. Dark theme is the `.dark` class on `<html>`, as in the app.
 
 ## Simulated data
@@ -84,7 +84,7 @@ The prototype reads app sources from `packages/app` and the shared tsconfig from
 ## Open P items (for the owner)
 
 - P1: closed 2026-10-26: layout A for s01 and s18 (owner decision). B and C were removed from the prototype.
-- P2: decide whether s08, s09 and s10 (guest lookup, customer sign-up and sign-in) are built in a later prototype revision. They are listed in the map and linked from the flow, but not built here.
+- s08, s09 and s10 (guest lookup, customer sign-up and sign-in) are built here (2026-11-03) in `src/app/screens/account.tsx`, as state switches with simulated data; their forms do not submit. Check: `node evidence/account-screens.mjs` (needs `npm run build`, `npm run preview` and headless Chrome on port 9333).
 - P3: the Archivo and Geist Mono font files are not in the prototype (see deviation 1).
 - P4: the store header should use the Navigation menu on desktop (retrofit, lesson 08), and the phone menu should use Disclosure (B4.28). Not done here.
 - P5: the owner has not yet reviewed this prototype in a real browser. The review step (a real person clicking, mapa-ekranow §8) is still open.
