@@ -15,7 +15,7 @@ describe("customer accounts (E07-S01)", () => {
   const password = randomBytes(18).toString("base64url");
 
   /** The sign-out button of the "My orders" page (the header has its own). */
-  const MAIN_SIGN_OUT = 'main form button[type="submit"]';
+  const MAIN_SIGN_OUT = '[data-testid="account-sign-out"]';
 
   it("registers through the form and lands on an empty My orders", async () => {
     await browser().clearCookies();
