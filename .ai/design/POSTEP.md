@@ -776,7 +776,8 @@ Stan po zamknięciu tygodnia 2 (2026-10-28):
 - Retrofit admin (lekcja 08), fazy 1 do 6: PR #136, #143, #151 do #154. Usunięcie `form-feedback.tsx` w #159. Tekst logowania admina (P10) zatwierdzony i wdrożony w #156; konto klienta zostaje przy starym tekście.
 - Copilot, faza 3 (karty, badge statusów, zapisana lista): #158, z recenzją Gemini (ustalenia: pager 44 px wprowadzony; dwa pozostałe nietrafne, bo `Alert` nie ma domyślnej roli, a priorytet ma już tekst „High priority").
 - Sklep, menu telefonu (P4, decyzja właściciela: przycisk „Categories" poniżej 768 px, Disclosure): #160, spec `.ai/specs/2026-10-28-storefront-phone-menu.md`.
-- Otwarte: Copilot faza 4 (stany, Storybook, dokumenty, zamknięcie), wizualna część testu agentem z `.ai/design/test-agentem.md` (część na dokumentacji zrobiona w PR #128), zawijanie szerokich tabel na 320 px w stronach dokumentacji (wynik etapu 5), ręczne QA właściciela na 320, 768 i 1024 px dla #151 do #160.
+- Domknięte po 2026-10-28: Copilot faza 4 (#162), usunięcie `form-feedback.tsx` (#159), changelog 1.0.0 (#166) z tagiem `v1.0.0` na `86a5090` (bez publicznego release), job gitleaks i Dependabot (#164), tabela stanów w dokumentacji przewija się we własnym regionie (#165).
+- Otwarte: (1) przewijanie w bok o 26–34 px przy 320 px na 7 stronach prymitywów w Storybooku (layout Storybooka i ramka `Narrow`, nie tabele stanów); (2) wizualna część testu agentem z `.ai/design/test-agentem.md`: ekranu nie zbudowano w aplikacji, więc decyzja właściciela, czy go budować; (3) ręczne QA właściciela na 320, 768, 1024 i 1440 px dla #151 do #162; (4) rotacja sekretów (hasło ownera, `BETTER_AUTH_SECRET`, klucz Gemini), otwarta od tygodnia 2.
 
 ## Storefront v2 (2026-10-26)
 
