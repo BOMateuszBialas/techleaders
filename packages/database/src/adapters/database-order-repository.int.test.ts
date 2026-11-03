@@ -2,8 +2,10 @@ import { randomBytes, randomUUID, createHash } from "node:crypto";
 import { afterAll, beforeAll, beforeEach, describe, expect, inject, it } from "vitest";
 import {
   ConfirmDemoPaymentUseCase,
+  CUSTOMER_ORDER_NOT_FOUND_MESSAGE,
   FORM_REUSED_MESSAGE,
   GUEST_ORDER_VIEWER,
+  GetCustomerOrderUseCase,
   GetOrderByReferenceUseCase,
   ORDER_NOT_FOUND_MESSAGE,
   PlaceOrderUseCase,
@@ -645,6 +647,27 @@ describe("DatabaseOrderRepository (PostgreSQL)", () => {
       expect(await repository().findForCustomer(customers.a, placed.b[0] ?? "")).toBeNull();
       expect(await repository().findForCustomer(customers.a, placed.guest[0] ?? "")).toBeNull();
       expect(await repository().findForCustomer(customers.a, randomUUID())).toBeNull();
+    });
+
+    it("a customer asking for another customer's order id gets the same not-found as an unknown id, through the use case", async () => {
+      const lines = [line(VORTEX, 1)];
+      const { orderId } = await placeOrderUseCase().execute({
+        customerId: customers.a,
+        lines,
+        request: checkout(lines, 24900),
+      });
+      const readAs = (customerId: string, id: string) =>
+        new GetCustomerOrderUseCase({ orderRepository: repository() })
+          .execute({ customerId, orderId: id })
+          .catch((caught: unknown) => caught);
+
+      const foreign = await readAs(customers.b, orderId);
+      const unknown = await readAs(customers.b, randomUUID());
+      expect(isNotFoundError(foreign)).toBe(true);
+      expect(isNotFoundError(unknown)).toBe(true);
+      expect(foreign).toMatchObject({ message: CUSTOMER_ORDER_NOT_FOUND_MESSAGE });
+      expect(unknown).toMatchObject({ message: CUSTOMER_ORDER_NOT_FOUND_MESSAGE });
+      expect(await readAs(customers.a, orderId)).toMatchObject({ id: orderId });
     });
   });
 
