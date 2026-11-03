@@ -12,35 +12,44 @@ export function StateGrid({
   columns: string[];
   rows: { label: string; cells: ReactNode[] }[];
 }) {
+  // Six state columns do not fit 320 px. The wrapper scrolls sideways on its own, so the page
+  // does not; it is focusable and labelled, so keyboard users can reach the columns.
   return (
-    <table className="border-separate border-spacing-x-4 border-spacing-y-3 type-small text-foreground">
-      <thead>
-        <tr>
-          <th scope="col" className="text-left font-medium text-muted-foreground">
-            Variant
-          </th>
-          {columns.map((column) => (
-            <th key={column} scope="col" className="text-left font-medium text-muted-foreground">
-              {column}
+    <div
+      role="region"
+      aria-label="State table, scrolls sideways on narrow screens"
+      tabIndex={0}
+      className="max-w-full overflow-x-auto"
+    >
+      <table className="border-separate border-spacing-x-4 border-spacing-y-3 type-small text-foreground">
+        <thead>
+          <tr>
+            <th scope="col" className="text-left font-medium text-muted-foreground">
+              Variant
             </th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((row) => (
-          <tr key={row.label}>
-            <th scope="row" className="pr-4 text-left font-medium">
-              {row.label}
-            </th>
-            {row.cells.map((cell, index) => (
-              <td key={columns[index]} className="align-middle">
-                {cell}
-              </td>
+            {columns.map((column) => (
+              <th key={column} scope="col" className="text-left font-medium text-muted-foreground">
+                {column}
+              </th>
             ))}
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.label}>
+              <th scope="row" className="pr-4 text-left font-medium">
+                {row.label}
+              </th>
+              {row.cells.map((cell, index) => (
+                <td key={columns[index]} className="align-middle">
+                  {cell}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
