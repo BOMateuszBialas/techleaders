@@ -1,0 +1,57 @@
+# Lekcja 16: model zagrożeń i dowody granic dostępu (CommerceOS)
+
+Data: 2026-11-03. Środowisko: lokalny `next dev` na `localhost:3000`, lokalna baza PostgreSQL z migracjami, dwa konta testowe klienta (`klient-a-l16@demo.test`, `klient-b-l16@demo.test`, hasło w scratchpadzie, nie w repo). Brak konta właściciela w tej sesji.
+
+## Model zagrożeń (zakres: dostęp i izolacja danych)
+
+Cztery pytania: co budujemy (sklep, admin, Copilot, konta klientów), co może pójść źle (dostęp cudzy, eskalacja z konta klienta do admina, wyliczanie zamówień), co z tym zrobimy (straże i testy), czy wystarczy (poniżej).
+
+| # | Zagrożenie (STRIDE) | Wpływ | Mechanizm w kodzie | Stan |
+|---|---|---|---|---|
+| T1 | Information disclosure: klient czyta cudze zamówienie (IDOR) | wysoki (dane osobowe, adres, zakupy) | `api/account/orders/[id]`, `order-access.ts`, `customerApiHandler` | Sprawdzone (dowód D1, D2) |
+| T2 | Elevation of privilege: konto klienta wchodzi do API admina | wysoki (zmiana sklepu, dane wszystkich klientów) | `require-admin.ts`, `api/admin/*` | Sprawdzone bez pozytywnej kontroli właściciela (dowód D3) |
+| T3 | Tampering: klient zmienia status cudzego zamówienia | wysoki (zmiana stanu zamówienia) | metody na `api/account/orders/[id]` | Sprawdzone (dowód D4) |
+
+Odrzucone na tym etapie: wyliczanie zamówień po ID (ID to UUID, a 404 dla obcego i nieistniejącego ID jest identyczny, D2); SQL injection i XSS to zakres SAST/DAST, nie tego dowodu.
+
+## Dowody
+
+### D1. Klient A czyta zamówienie gościa (cudze) i nieistniejące ID
+
+**Karta dowodu**
+- Wymaganie / hipoteza: klient nie czyta zamówień, których nie jest właścicielem (R08–R10, D11, E07-S04).
+- Zakres i ryzyko: T1, odczyt danych zamówienia.
+- Baza i docelowy commit: `main` po #182, lokalna baza z migracjami.
+- Środowisko, seed, konto i czas: konto A (zalogowane, bez zamówień), zamówienie gościa z seeda (`orders.customer_id` = null), 2026-11-03.
+- Sprawdzenie: `curl -b jar-a.txt GET /api/account/orders/<id gościa>` oraz `.../00000000-0000-4000-8000-000000000000`.
+- Oczekiwane zachowanie: 404 dla obu, identyczna odpowiedź.
+- Rzeczywisty wynik: 404 `NOT_FOUND` "Order not found." dla obu (kontrola: bez ciasteczka 401).
+- Czego to nie dowodzi: nie sprawdza zamówienia należącego do innego konta klienta (A i B z własnymi zamówieniami). Konto A nie ma zamówień, a utworzenie ich wymaga przejścia checkoutu.
+
+### D2. Kontrola pozytywna: konto klienta widzi własną listę
+
+- Sprawdzenie: `GET /api/account/orders` z ciasteczkiem A → 200 `{"ok":true,"data":{"orders":[],"capped":false}}`; bez ciasteczka → 401.
+- Wynik: 200 z pustą listą (A nie ma zamówień). Kontrola pozytywna potwierdza, że trasa działa dla zalogowanego klienta.
+
+### D3. Konto klienta nie dociera do API admina
+
+- Sprawdzenie: `GET /api/admin/me` i `POST /api/admin/copilot/answers` z ciasteczkiem A i bez ciasteczka.
+- Wynik: A → 401 w obu, bez ciasteczka → 401 w obu. Odpowiedź taka sama, więc sesja klienta nie daje dostępu.
+- **Brak kontroli pozytywnej:** konto właściciela nie było użyte (brak loginu do lokalnego sweepu). Bez niej nie dowodzimy, że właściciel przechodzi. Do zrobienia po podaniu danych właściciela.
+- Czego to nie dowodzi: nie sprawdza, że sesja właściciela nie jest sesją klienta w drugą stronę (E07-S05), ani uprawnień poszczególnych endpointów admina poza dwoma.
+
+### D4. Klient próbuje zmienić cudze zamówienie
+
+- Sprawdzenie: `PATCH|PUT|DELETE|POST /api/account/orders/<id gościa>` z ciasteczkiem A, body `{"status":"cancelled"}`.
+- Wynik: 405 dla każdej metody (trasa eksportuje tylko `GET`). Status zamówienia w bazie bez zmian (`paid`).
+- Czego to nie dowodzi: zapis przez inne trasy (np. akcje serwerowe) nie był testowany tym probe. Ich pokrycie jest w testach integracyjnych (`*.int.test.ts`, E04-S01 i E07).
+
+## Co nie zostało zrobione (uczciwie)
+
+- **SAST i DAST z ćwiczenia 2:** nie uruchomione. Nie ma zainstalowanego skanera SAST w repo (np. semgrep). Do zrobienia po zgodzie właściciela na narzędzie.
+- **Horyzontalna izolacja A↔B** (oba konta mają zamówienia): wymaga checkoutu jako klient A i B. Do zrobienia przez UI albo po dodaniu helpera testowego.
+- **Pozytywna kontrola admina:** czeka na dane logowania właściciela.
+
+## Wynik
+
+Dla T1–T3 nie znaleziono przekroczenia granicy w sprawdzonym zakresie. Zgodnie z lekcją to poprawny wynik: dowód to metoda i kontrola pozytywna, a nie liczba znalezisk. Nie tworzę testów regresji, bo nie ma potwierdzonego znaleziska. Pozostałe luki wypisane wyżej.
