@@ -10,6 +10,7 @@ Long-term memory for LLM agents: an index. Add an entry after fixing a bug, or w
 
 <!-- Newest first -->
 - **2026-11-03 — A docs overflow can be Storybook's own layout: its generated props table needs `table-layout: fixed`, and its value boxes an inline 100 px min-width is overridden in `preview.css`; a probe with an absolute path measured the main checkout's build, not the worktree's, so point scripts at the build you changed** — run `.ai/design/detector-l06.md` (Storybook part in the PR body)
+- **2026-11-03 — A prototype screen needs its h1 in every state, not only the default: the h1 check fails on loading and error blocks too, so keep the heading above them** — prototype s08–s10, `.ai/prototypes/ds/evidence/account-screens.mjs`.
 
 - **2026-10-28 — An inline ref callback is a new function on every render, so React calls it again with the same state: a focus side effect in it must fire once per state (a WeakSet keyed by the state), not on each call** — Copilot phase 2 review (PR #144)
 
