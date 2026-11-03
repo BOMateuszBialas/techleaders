@@ -1,5 +1,4 @@
 # Lessons Learned
-
 Long-term memory for LLM agents: an index. Add an entry after fixing a bug, or whenever you find something worth remembering. Keep this file short: one line per lesson. A longer write-up goes in `.ai/lessons/YYYY-MM-DD-slug.md` and is linked from its line; a lesson with no link is short enough to read in the line itself.
 
 ## Entry format
@@ -9,6 +8,7 @@ Long-term memory for LLM agents: an index. Add an entry after fixing a bug, or w
 ## Lessons
 
 <!-- Newest first -->
+- **2026-11-03 — Storybook docs overflow can be its own layout, not our tables** — check `table-layout` and the generated props table before changing components (see `.ai/design/detector-l06.md`).
 - **2026-11-03 — A prototype screen needs its h1 in every state, not only the default: the h1 check fails on loading and error blocks too, so keep the heading above them** — prototype s08–s10, `.ai/prototypes/ds/evidence/account-screens.mjs`.
 
 - **2026-10-28 — An inline ref callback is a new function on every render, so React calls it again with the same state: a focus side effect in it must fire once per state (a WeakSet keyed by the state), not on each call** — Copilot phase 2 review (PR #144)
