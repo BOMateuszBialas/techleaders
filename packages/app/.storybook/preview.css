@@ -46,6 +46,24 @@
 }
 
 /*
+ * Storybook's generated props table (ArgsTable) sizes its columns to their longest unbroken
+ * content: 313 px in a 240 px docs column at 320 px, so the page scrolled sideways. A fixed layout
+ * keeps the table inside the column and lets the cells wrap (the rule above). The table stays a
+ * table, so screen readers keep its structure. A cell's value box has an inline min-width of 100 px
+ * (Storybook), wider than a 70 px column: it may shrink to its cell and wrap.
+ */
+.sbdocs .docblock-argstable {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.sbdocs .docblock-argstable td > div {
+  min-width: 0;
+  max-width: 100%;
+  width: auto;
+}
+
+/*
  * Storybook sets white-space: nowrap on inline code. A cell or a paragraph with an identifier
  * (a token name, a file path) then keeps its full width: a five-column table was 992 px wide at
  * 320 px. Inline code wraps like the text around it; code blocks (pre) keep their own horizontal

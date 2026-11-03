@@ -53,12 +53,15 @@ export function StateGrid({
   );
 }
 
-/** A fixed-width frame for "long content and narrow screen" stories (320 px, the smallest width). */
+/**
+ * A frame for "long content and narrow screen" stories: 320 px wide at most, and never wider than
+ * the docs column, so the page does not scroll sideways on a 320 px screen.
+ */
 export function Narrow({ children }: { children: ReactNode }) {
   return (
     <div
       data-testid="narrow-frame"
-      className="flex w-80 flex-col gap-group-item border border-dashed border-border p-4"
+      className="flex w-full max-w-80 flex-col gap-group-item border border-dashed border-border p-4"
     >
       {children}
     </div>
