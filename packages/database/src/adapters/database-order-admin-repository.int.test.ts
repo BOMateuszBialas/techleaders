@@ -1,8 +1,12 @@
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { afterAll, beforeAll, beforeEach, describe, expect, inject, it } from "vitest";
 import {
+  AdjustStockUseCase,
+  ChangeOrderStatusUseCase,
   PlaceOrderUseCase,
+  StaleStockError,
   cartFingerprint,
+  hasAppErrorCode,
   type CartLine,
   type CheckoutRequest,
 } from "@commerceos/core";
@@ -13,6 +17,8 @@ import "../testing/provided-context";
 import { DatabaseCatalogRepository } from "./database-catalog-repository";
 import { DatabaseOrderAdminRepository } from "./database-order-admin-repository";
 import { DatabaseOrderRepository } from "./database-order-repository";
+import { DatabaseProductRepository } from "./database-product-repository";
+import { DatabaseStockRepository } from "./database-stock-repository";
 
 const VORTEX = "vortex-wireless-mouse"; // 249,00 zł
 const PULSE = "pulse-ultralight-mouse"; // 189,00 zł
@@ -346,5 +352,65 @@ describe("DatabaseOrderAdminRepository (PostgreSQL)", () => {
       admin().changeStatus({ orderId, from: "pending_payment", to: "refunded", restock: false }),
     ).rejects.toThrow(/^Order status change failed: .*constraint orders_paid_at_check/);
     expect((await statusOf(orderId)).status).toBe("pending_payment");
+  });
+
+  describe("scenarios through the use cases (real database)", () => {
+    it("refuses a status move outside the transition table: the paid order keeps its status, paid_at and stock", async () => {
+      const orderId = await place([[VORTEX, 2]]);
+      await pay(orderId);
+      const before = await statusOf(orderId);
+      const stockBefore = await stockOf(VORTEX);
+      const changeStatus = new ChangeOrderStatusUseCase({ orderAdminRepository: admin() });
+
+      // Cancelling a paid order would restock it, so the table refuses it before any write.
+      await expect(
+        changeStatus.execute({ orderId, from: "paid", to: "cancelled" }),
+      ).rejects.toMatchObject({ message: "This status change is not allowed." });
+      // Payment is the payment flow's job, never an admin status change (A3).
+      await expect(
+        changeStatus.execute({ orderId, from: "pending_payment", to: "paid" }),
+      ).rejects.toMatchObject({ message: "This status change is not allowed." });
+
+      expect(await statusOf(orderId)).toEqual(before);
+      expect(await stockOf(VORTEX)).toBe(stockBefore);
+    });
+
+    it("refuses a manual stock edit from a page that predates a checkout and keeps the sale's decrement", async () => {
+      const em = orm.em.fork();
+      const adjustStock = new AdjustStockUseCase({
+        stockRepository: new DatabaseStockRepository({ em }),
+        productRepository: new DatabaseProductRepository({ em }),
+      });
+      const productId = ids[VORTEX] ?? "";
+      const adjustmentCount = async () =>
+        (
+          await query<{ count: number }>(
+            "select count(*)::int as count from stock_adjustments where product_id = ?",
+            [productId],
+          )
+        )[0]?.count ?? -1;
+
+      // The owner opens the stock form: it shows 20. A checkout of 3 lands before the save.
+      const pageShows = await stockOf(VORTEX);
+      await place([[VORTEX, 3]]);
+      expect(await stockOf(VORTEX)).toBe(pageShows - 3);
+      const adjustmentsBefore = await adjustmentCount();
+
+      const error = await adjustStock
+        .execute({ productId, expectedQuantity: pageShows, newQuantity: 5 })
+        .catch((caught: unknown) => caught);
+      expect(hasAppErrorCode(error, "CONFLICT")).toBe(true);
+      expect(error).toBeInstanceOf(StaleStockError);
+      expect(error).toMatchObject({ currentQuantity: pageShows - 3 });
+      expect(await stockOf(VORTEX)).toBe(pageShows - 3);
+      expect(await adjustmentCount()).toBe(adjustmentsBefore);
+
+      // From the refreshed page, the same edit goes through and is recorded.
+      await expect(
+        adjustStock.execute({ productId, expectedQuantity: pageShows - 3, newQuantity: 5 }),
+      ).resolves.toMatchObject({ outcome: "updated" });
+      expect(await stockOf(VORTEX)).toBe(5);
+      expect(await adjustmentCount()).toBe(adjustmentsBefore + 1);
+    });
   });
 });

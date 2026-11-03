@@ -3,19 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { CartDrawer, CartProvider, initialLines, useCartState } from "./cart";
+import { accountScreens } from "./screens/account";
 import { galleryScreen } from "./screens/gallery";
 import { ownerScreens } from "./screens/owner";
 import { shopperScreens } from "./screens/shopper";
 import type { ScreenDef } from "./shared";
 
-const screens: ScreenDef[] = [...shopperScreens, ...ownerScreens, galleryScreen];
-
-/** Screens of the key flow that are not built in this prototype (see README, "Not covered"). */
-const NOT_BUILT: Record<string, string> = {
-  s08: "Order lookup (guest)",
-  s09: "Customer sign-up",
-  s10: "Customer sign-in",
-};
+const screens: ScreenDef[] = [...shopperScreens, ...accountScreens, ...ownerScreens, galleryScreen];
 
 const WIDTHS = ["320", "390", "768", "1440", "full"] as const;
 type Width = (typeof WIDTHS)[number];
@@ -49,7 +43,6 @@ export function App() {
   }, [theme]);
 
   const screen = screens.find((s) => s.id === hash);
-  const notBuilt = NOT_BUILT[hash];
   const active = screen ?? screens[0];
   const state = stateByScreen[active.id] ?? active.states[0];
   // Layout A is the only layout of s01 and s18 (owner decision, 2026-10-26); the picker is gone.
@@ -139,16 +132,7 @@ export function App() {
           style={{ width: width === "full" ? "100%" : `${width}px`, maxWidth: "100%" }}
           className="min-h-96 overflow-x-auto rounded-card border border-border bg-background"
         >
-          {notBuilt ? (
-            <div className="p-panel">
-              <h1 className="font-heading type-h2">{notBuilt}</h1>
-              <p className="mt-related type-body text-muted-foreground">
-                Not built in this prototype (outside the key-flow screens in the map). See the README.
-              </p>
-            </div>
-          ) : (
-            <div key={active.id}>{active.render({ state, layout })}</div>
-          )}
+          <div key={active.id}>{active.render({ state, layout })}</div>
         </div>
       </div>
     </div>
