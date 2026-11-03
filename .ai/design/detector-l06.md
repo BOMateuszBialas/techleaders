@@ -74,3 +74,10 @@ pages are not yet measured.
 
 Start PostgreSQL (`npm run db:up`), run `npm run db:migrate` and `npm run db:seed` (see `README.md`),
 create the owner with `npm run admin:create`, then run the sweep and record the numbers in this file.
+
+### Run on 2026-11-03 after local migrations (main, dev server, Docker PostgreSQL)
+
+- Before: 6 FAIL on the storefront home. The cause was not CSS: the local database was missing migrations (`column c.image_url does not exist`). Fix for a local run: `npm run db:migrate`.
+- After: storefront home, 6 of 6 checks OK (320, 768 and 1440 px, light and dark): 0 px sideways overflow, 0 page errors, 0 console errors.
+- Admin dashboard, orders and Copilot: 18 BLOCKED. The owner session needs `LAYOUT_SWEEP_ADMIN_EMAIL` and `LAYOUT_SWEEP_ADMIN_PASSWORD`. Not yet run, so the admin screens are not verified.
+- Lesson for the script: a FAIL can come from the data layer, not the layout. Read the console messages before changing CSS.
