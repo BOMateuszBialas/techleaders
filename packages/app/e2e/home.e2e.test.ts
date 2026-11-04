@@ -183,14 +183,14 @@ describe("storefront home page (Phase 1b)", () => {
     expect(new URL(await browser().url()).searchParams.get("category")).toBe("mousepads");
   });
 
-  it("lists best sellers by name only, from the seeded paid orders", async () => {
+  it("shows the full-width gaming video on the home page, with no demo banner", async () => {
     await browser().open("/");
     await browser().waitForText("Vortex Wireless Mouse");
 
-    const best = await browser().text('section[aria-labelledby="home-best"]');
-    expect(best).toContain("Best sellers");
-    expect(best).not.toMatch(/\d+\s*(units|sold|pcs)/i);
-    expect(best).not.toMatch(/demo/i);
+    const html = await browser().text("body");
+    expect(html).not.toMatch(/demo banner/i);
+    const video = await browser().evaluate("!!document.querySelector('video')");
+    expect(video).toBe(true);
   });
 
   it("has one h1 and no sideways scroll at 320 px (storefront v2, A30)", async () => {

@@ -662,7 +662,7 @@
 
 @media (max-width: 40rem) {
   .storefront-header {
-    grid-template-columns: auto 1fr auto auto;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
     grid-template-areas:
       "menu logo cart account"
       "search search search search";
@@ -681,6 +681,7 @@
   }
   .storefront-header .header-search {
     grid-area: search;
+    min-width: 0;
   }
 }
 
