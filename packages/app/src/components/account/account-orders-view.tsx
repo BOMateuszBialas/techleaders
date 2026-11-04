@@ -68,10 +68,10 @@ function AccountOrdersBody({ list }: { list: CustomerOrderList | null }) {
         <TableCaption className="sr-only">{ACCOUNT_COPY.ordersTableCaption}</TableCaption>
         <TableHeader>
           <TableRow>
-            <TableHead>Reference</TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="text-right">Total</TableHead>
+            <TableHead className="whitespace-normal">Reference</TableHead>
+            <TableHead className="whitespace-normal">Date</TableHead>
+            <TableHead className="whitespace-normal">Status</TableHead>
+            <TableHead className="whitespace-normal text-right">Total</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
