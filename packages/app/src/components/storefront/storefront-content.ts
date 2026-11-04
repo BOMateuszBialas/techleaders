@@ -107,7 +107,7 @@ export const STORE_FEATURES: readonly StoreFeature[] = [
   {
     key: "setup",
     title: "Build your setup",
-    text: "Mousepads for every desk setup.",
+    text: "Mousepads for every desk setup: wide cloth pads for fast, precise mouse movements and glass pads that stay smooth and are easy to wipe clean. Pick the size that fits your desk and the surface your mouse likes best. Every pad shows its stock on the product page, so you can see before you order whether it is available now. Mousepads are the simplest upgrade to a desk, and a good one makes every mouse feel better from the first day.",
     label: "Browse desk gear",
     href: "/products?category=mousepads",
     photo: "/photos/banner-build-your-setup.jpg",
@@ -116,7 +116,7 @@ export const STORE_FEATURES: readonly StoreFeature[] = [
   {
     key: "audio",
     title: "Audio for calls",
-    text: "Gaming headsets for PC and consoles.",
+    text: "Gaming headsets for PC and consoles, with clear microphones for calls and team chat. Closed-back designs keep the outside world out for focus, lightweight models are comfortable for long sessions, and wired or wireless options let you match the headset to your setup. Each listing shows the connection type and the stock, so you can compare two headsets side by side before you buy one for your next match or call.",
     label: "See audio",
     href: "/products?category=headsets",
     photo: "/photos/product-headset-black.jpg",
