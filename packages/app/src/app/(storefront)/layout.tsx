@@ -9,6 +9,7 @@ import { CartLink } from "@/components/cart/cart-link";
 import { FooterCategoryLinks, SiteFooter } from "@/components/storefront/site-footer";
 import { HeaderMenu } from "@/components/storefront/header-menu";
 import { HeaderSearch } from "@/components/storefront/header-search";
+import { StickyHeader } from "@/components/storefront/sticky-header";
 import { STORE_NAME } from "@/components/storefront/storefront-copy";
 import { readCartLines } from "@/server/cart/cart-cookie";
 import { acceptCartChanges, removeCartLine, updateCartLine } from "@/server/cart/cart.action";
@@ -31,7 +32,7 @@ export default function StorefrontLayout({ children }: LayoutProps<"/">) {
         {/* The header is one grid (see `.storefront-header` in globals.css): the menu on the left, the
             store name in the middle, and the cart, the account and the search on the right. On a phone
             the search takes its own row under them. */}
-        <header className="border-b">
+        <StickyHeader>
           <div className="storefront-header mx-auto w-full max-w-(--storefront-width) px-4 py-3">
             <div className="header-menu">
               <Suspense fallback={<HeaderMenu categories={[]} />}>
@@ -42,22 +43,22 @@ export default function StorefrontLayout({ children }: LayoutProps<"/">) {
               {STORE_NAME}
             </Link>
             <div className="header-actions">
-              <div className="header-cart">
-                <Suspense fallback={<CartLink itemCount={null} />}>
-                  <LoadedCartLink />
-                </Suspense>
+              <div className="header-search">
+                <HeaderSearch />
               </div>
               <div className="header-account">
                 <Suspense fallback={null}>
                   <LoadedAccountLink />
                 </Suspense>
               </div>
-              <div className="header-search">
-                <HeaderSearch />
+              <div className="header-cart">
+                <Suspense fallback={<CartLink itemCount={null} />}>
+                  <LoadedCartLink />
+                </Suspense>
               </div>
             </div>
           </div>
-        </header>
+        </StickyHeader>
         <main className="mx-auto flex w-full max-w-(--storefront-width) flex-1 flex-col gap-6 px-4 py-10">
           {children}
         </main>

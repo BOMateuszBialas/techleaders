@@ -641,6 +641,25 @@
   justify-content: flex-end;
   gap: 0.5rem;
 }
+/* The cart is the one filled control in the header, so it is found at a glance. Its count is
+   inverted against the fill. */
+.storefront-header .header-cart > a {
+  height: 2.5rem;
+  padding-inline: 1rem;
+  border-radius: 9999px;
+  border-color: transparent;
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  font-weight: 600;
+}
+.storefront-header .header-cart > a:hover {
+  background-color: var(--primary-hover);
+}
+.storefront-header .header-cart > a > span {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
 @media (max-width: 40rem) {
   .storefront-header {
     grid-template-columns: auto 1fr auto auto;
