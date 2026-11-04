@@ -1,5 +1,6 @@
 import "server-only";
 import { resolvePeriod, type CategoryCount, type LowStockRow } from "@commerceos/core";
+import type { BestSeller } from "@/components/storefront/best-sellers";
 import {
   BEST_SELLERS_LIMIT,
   BEST_SELLERS_PRESET,
@@ -14,16 +15,28 @@ export function loadCategoryCounts(): Promise<LoadResult<CategoryCount[]>> {
 }
 
 /**
- * Names of the best sellers, from the existing `GetTopProductsUseCase` over the last 30 days of
- * paid orders (storefront v2 Q11, A-4). The metric is computed once, by that use case.
+ * The best sellers of the last 30 days of paid orders (storefront v2 Q11, A-4), ranked by the
+ * existing `GetTopProductsUseCase`, which computes the metric once. A row whose product is still
+ * published carries its photo and link (storefront refresh, 2026-11-04); a deleted or unpublished
+ * product keeps its name and no link. Shopper-public data only: published products are read
+ * through `ListCatalogProductsUseCase`.
  */
-export function loadBestSellerNames(now: Date): Promise<LoadResult<string[]>> {
+export function loadBestSellers(now: Date): Promise<LoadResult<BestSeller[]>> {
   return loadWithRequestScope({ page: "home: best sellers" }, async (cradle) => {
     const top = await cradle.getTopProductsUseCase.execute({
       period: resolvePeriod(BEST_SELLERS_PRESET, now),
       limit: BEST_SELLERS_LIMIT,
     });
-    return top.rows.map((row) => row.name);
+    const listing = await cradle.listCatalogProductsUseCase.execute({});
+    const published = new Map(listing.products.map((product) => [product.id, product]));
+    return top.rows.map((row) => {
+      const product = row.productId ? published.get(row.productId) : undefined;
+      return {
+        name: row.name,
+        units: row.units,
+        product: product ? { slug: product.slug, imageUrl: product.imageUrl } : null,
+      };
+    });
   });
 }
 

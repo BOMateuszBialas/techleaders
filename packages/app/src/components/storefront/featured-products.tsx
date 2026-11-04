@@ -3,6 +3,7 @@ import type { CatalogCategory, CatalogProductSummary } from "@commerceos/core";
 import { cn } from "cn";
 import { productsHref } from "@/components/catalog/catalog-copy";
 import { ProductCard } from "@/components/catalog/product-card";
+import { FeaturedCarousel } from "./featured-carousel";
 import { featuredEmptyMessage } from "./storefront-copy";
 
 type Tab = { key: string; label: string; href: string; active: boolean };
@@ -39,9 +40,9 @@ type FeaturedSliderProps = {
 };
 
 /**
- * A horizontally scrolling row of product cards with CSS scroll snapping: no JavaScript, no
- * carousel library and no arrows (spec G10). With nothing featured it says so and links to
- * the listing instead of substituting other products (G17).
+ * A row of product cards in a carousel: a native scroll track with snap points and two buttons
+ * (storefront refresh, 2026-11-04; this replaces the arrow-less scroll of spec G10). With nothing
+ * featured it says so and links to the listing instead of substituting other products (G17).
  */
 export function FeaturedSlider({ category, products }: FeaturedSliderProps) {
   if (products.length === 0) {
@@ -58,15 +59,12 @@ export function FeaturedSlider({ category, products }: FeaturedSliderProps) {
     );
   }
   return (
-    <ul
-      aria-label="Featured products"
-      className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4"
-    >
+    <FeaturedCarousel label="Featured products" count={products.length}>
       {products.map((product) => (
-        <li key={product.id} className="w-64 shrink-0 snap-start">
+        <li key={product.id} className="w-96 shrink-0">
           <ProductCard product={product} />
         </li>
       ))}
-    </ul>
+    </FeaturedCarousel>
   );
 }

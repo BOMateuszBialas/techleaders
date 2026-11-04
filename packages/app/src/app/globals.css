@@ -537,3 +537,86 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Storefront layout width (owner request, 2026-11-04): the header, the page and the footer share
+   one measure. Utilities read it as `max-w-(--storefront-width)`. */
+:root {
+  --storefront-width: 1440px;
+}
+
+/* Storefront type scale: every size is 2 px larger than the scale above (owner request,
+   2026-11-04). It applies to every page that is not the admin, so overlays such as the cart drawer
+   (portalled into <body>) get it too. The admin keeps the scale of its own block. */
+:root:not(:has([data-density="admin"])) {
+  --text-xs: calc(0.75rem + 2px);
+  --text-xs--line-height: calc(1rem + 2px);
+  --text-sm: calc(0.875rem + 2px);
+  --text-sm--line-height: calc(1.25rem + 2px);
+  --text-base: calc(1rem + 2px);
+  --text-base--line-height: calc(1.5rem + 2px);
+  --text-lg: calc(1.125rem + 2px);
+  --text-lg--line-height: calc(1.75rem + 2px);
+  --text-xl: calc(1.25rem + 2px);
+  --text-xl--line-height: calc(1.75rem + 2px);
+  --text-2xl: calc(1.5rem + 2px);
+  --text-2xl--line-height: calc(2rem + 2px);
+  --text-3xl: calc(1.875rem + 2px);
+  --text-3xl--line-height: calc(2.25rem + 2px);
+  --text-4xl: calc(2.25rem + 2px);
+  --text-4xl--line-height: calc(2.5rem + 2px);
+  --type-display-size: calc(clamp(2.5rem, 2.1667rem + 1.4815vw, 3.5rem) + 2px);
+  --type-display-leading: calc(clamp(2.75rem, 2.4167rem + 1.4815vw, 3.75rem) + 2px);
+  --type-h1-size: calc(clamp(1.75rem, 1.5rem + 1.1111vw, 2.5rem) + 2px);
+  --type-h1-leading: calc(clamp(2rem, 1.75rem + 1.1111vw, 2.75rem) + 2px);
+  --type-h2-size: calc(clamp(1.25rem, 1.1667rem + 0.3704vw, 1.5rem) + 2px);
+  --type-h2-leading: calc(clamp(1.75rem, 1.6667rem + 0.3704vw, 2rem) + 2px);
+  --type-h3-size: calc(1.125rem + 2px);
+  --type-h3-leading: calc(1.5rem + 2px);
+  --type-body-size: calc(1rem + 2px);
+  --type-body-leading: calc(1.5rem + 2px);
+  --type-small-size: calc(0.875rem + 2px);
+  --type-small-leading: calc(1.25rem + 2px);
+}
+
+/* Home hero: a full-bleed photo that fills most of the first screen. The text panel sits on it. */
+.storefront-hero {
+  height: 500px;
+}
+/* On a phone the photo band is shorter, so the text panel still fits beside it (phones only). */
+@media (max-width: 40rem) {
+  .storefront-hero {
+    height: 420px;
+  }
+}
+/* Show the keyboard and mouse of the hero photo, not only the top of the monitor. */
+.storefront-hero img {
+  object-position: 50% 68%;
+}
+
+/* Featured carousel track: the buttons and touch or trackpad scrolling replace the scrollbar. */
+.featured-track {
+  scrollbar-width: none;
+}
+/* A mouse drag on a link or photo must scroll the track, not start the browser's own drag. */
+.featured-track a,
+.featured-track img {
+  -webkit-user-drag: none;
+}
+.featured-track::-webkit-scrollbar {
+  display: none;
+}
+
+/* The moving strip: one set of phrases is moved by its own width, so the loop has no jump. */
+.storefront-marquee {
+  animation: storefront-marquee 40s linear infinite;
+}
+@keyframes storefront-marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .storefront-marquee {
+    animation: none;
+  }
+}

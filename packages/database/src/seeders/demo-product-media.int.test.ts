@@ -132,8 +132,9 @@ describe("demo product media migration (PostgreSQL)", () => {
     expect(rowFor(rows, HEADSET.slug).image_url).toBe("/photos/product-headset-black.jpg");
     expect(rowFor(rows, HEADSET.slug).technical_specs).toEqual([]);
     expect(rowFor(rows, KEYBOARD.slug).image_url).toBe(OWNER_IMAGE);
+    // Pulse had no photo here; the collection migration (2026-11-04) now gives it the mouse photo.
     expect(rowFor(rows, UNMAPPED.slug)).toMatchObject({
-      image_url: "/demo/products/pulse-ultralight-mouse.svg",
+      image_url: "/photos/product-mouse-black.jpg",
       technical_specs: [],
     });
 

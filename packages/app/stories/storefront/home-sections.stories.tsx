@@ -114,7 +114,25 @@ export const WhyBuyHereDefault: Story = {
 
 export const BestSellersDefault: Story = {
   name: "Best sellers",
-  render: () => <BestSellers names={["Vortex Wireless Mouse", "Nova TKL Mechanical Keyboard"]} />,
+  render: () => (
+    <BestSellers
+      items={[
+        {
+          name: "Vortex Wireless Mouse",
+          units: 4,
+          product: { slug: "vortex-wireless-mouse", imageUrl: "/photos/product-mouse-black.jpg" },
+        },
+        {
+          name: "Nova TKL Mechanical Keyboard",
+          units: 2,
+          product: {
+            slug: "nova-tkl-mechanical-keyboard",
+            imageUrl: "/photos/product-keyboard-rgb.jpg",
+          },
+        },
+      ]}
+    />
+  ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     await expect(canvas.getByRole("heading", { name: "Best sellers" })).toBeInTheDocument();
@@ -128,7 +146,7 @@ export const BestSellersDefault: Story = {
 
 export const BestSellersEmpty: Story = {
   name: "Best sellers, no paid orders in 30 days",
-  render: () => <BestSellers names={[]} />,
+  render: () => <BestSellers items={[]} />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     await expect(canvas.queryByRole("heading", { name: "Best sellers" })).toBeNull();
