@@ -117,17 +117,31 @@ describe("WhyBuyHere", () => {
 });
 
 describe("BestSellers", () => {
-  it("lists the names in rank order, without numbers or a demo label", () => {
+  it("ranks the items with numbers, links the published ones and leaves deleted ones unlinked", () => {
     const html = renderToStaticMarkup(
-      createElement(BestSellers, { names: ["Vortex Wireless Mouse", "Titan MMO Mouse"] }),
+      createElement(BestSellers, {
+        items: [
+          {
+            name: "Vortex Wireless Mouse",
+            units: 4,
+            product: { slug: "vortex-wireless-mouse", imageUrl: "/photos/product-mouse-black.jpg" },
+          },
+          { name: "Gone pad", units: 1, product: null },
+        ],
+      }),
     );
     expect(html).toContain('aria-labelledby="home-best"');
-    expect(html.indexOf("Vortex Wireless Mouse")).toBeLessThan(html.indexOf("Titan MMO Mouse"));
+    expect(html.indexOf("Vortex Wireless Mouse")).toBeLessThan(html.indexOf("Gone pad"));
+    expect(html).toContain("01");
+    expect(html).toContain("02");
+    expect(html).toContain('href="/products/vortex-wireless-mouse"');
+    expect(html.match(/href="\/products\//g)).toHaveLength(1);
+    expect(html).not.toMatch(/\d+\s*sold/);
     expect(html).not.toMatch(/demo/i);
   });
 
   it("renders nothing, not even the heading, when there are no best sellers", () => {
-    expect(renderToStaticMarkup(createElement(BestSellers, { names: [] }))).toBe("");
+    expect(renderToStaticMarkup(createElement(BestSellers, { items: [] }))).toBe("");
   });
 });
 

@@ -124,16 +124,18 @@ describe("FeaturedTabs", () => {
 });
 
 describe("FeaturedSlider", () => {
-  it("renders a scroll-snap row of product cards, out-of-stock products labelled", () => {
+  it("renders a scrolling carousel of product cards, with no controls before the browser measures it", () => {
     const html = renderToStaticMarkup(
       createElement(FeaturedSlider, { category: null, products: [titan] }),
     );
     expect(html).toMatch(
-      /<ul aria-label="Featured products" class="[^"]*snap-x[^"]*overflow-x-auto/,
+      /<ul id="[^"]+" aria-label="Featured products" class="[^"]*overflow-x-auto/,
     );
-    expect(html).toContain("snap-start");
     expect(html).toContain('href="/products/titan-mmo-mouse"');
     expect(html).toContain(">Out of stock<");
+    expect(html).not.toContain("Choose a page");
+    expect(html).not.toContain("Show page");
+    expect(html).not.toContain("Next products");
   });
 
   it("says a category has no featured products and links to its listing (spec G17)", () => {

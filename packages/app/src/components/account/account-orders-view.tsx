@@ -64,14 +64,14 @@ function AccountOrdersBody({ list }: { list: CustomerOrderList | null }) {
   }
   return (
     <div className="flex flex-col gap-3">
-      <Table>
+      <Table className="max-md:text-(length:--type-table-phone-size)">
         <TableCaption className="sr-only">{ACCOUNT_COPY.ordersTableCaption}</TableCaption>
         <TableHeader>
           <TableRow>
-            <TableHead>Reference</TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="text-right">Total</TableHead>
+            <TableHead className="whitespace-normal">Reference</TableHead>
+            <TableHead className="whitespace-normal">Date</TableHead>
+            <TableHead className="whitespace-normal">Status</TableHead>
+            <TableHead className="whitespace-normal text-right">Total</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -90,10 +90,12 @@ function AccountOrdersBody({ list }: { list: CustomerOrderList | null }) {
                   {formatAccountDate(order.createdAt)}
                 </time>
               </TableCell>
-              <TableCell>
+              <TableCell className="whitespace-normal [&>*]:whitespace-normal">
                 <OrderStatusBadge status={order.status} />
               </TableCell>
-              <TableCell className="text-right tabular-nums">{formatMoney(order.total)}</TableCell>
+              <TableCell className="text-right tabular-nums wrap-anywhere whitespace-normal">
+                {formatMoney(order.total)}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>

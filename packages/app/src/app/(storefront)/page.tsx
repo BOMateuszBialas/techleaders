@@ -7,10 +7,15 @@ import { FeaturedSlider, FeaturedTabs } from "@/components/storefront/featured-p
 import { HomeHero } from "@/components/storefront/home-hero";
 import { HomeSectionUnavailable } from "@/components/storefront/home-section-unavailable";
 import { LowStockBannerItem, PromoBannerItem } from "@/components/storefront/promo-banners";
-import { PROMO_BANNERS, WHY_BUY_HERE } from "@/components/storefront/storefront-content";
+import { Marquee } from "@/components/storefront/marquee";
+import {
+  HOME_MARQUEE,
+  PROMO_BANNERS,
+  WHY_BUY_HERE,
+} from "@/components/storefront/storefront-content";
 import { WhyBuyHere } from "@/components/storefront/why-buy-here";
 import { loadHomePage } from "./load-home-page";
-import { loadBestSellerNames, loadCategoryCounts, loadLowStockProduct } from "./load-home-sections";
+import { loadBestSellers, loadCategoryCounts, loadLowStockProduct } from "./load-home-sections";
 
 /**
  * Storefront home (storefront v2 Phase 4), in the approved order: hero, featured products
@@ -21,17 +26,23 @@ import { loadBestSellerNames, loadCategoryCounts, loadLowStockProduct } from "./
 export default function HomePage({ searchParams }: PageProps<"/">) {
   return (
     <div className="flex flex-col gap-12">
-      <HomeHero />
+      <Suspense fallback={<HomeHero />}>
+        <HeroSection />
+      </Suspense>
       <section aria-labelledby="featured-heading" className="flex flex-col gap-4">
-        <h2 id="featured-heading" className="text-xl font-semibold tracking-tight">
+        <h2 id="featured-heading" className="storefront-section-title-sm">
           Featured products
         </h2>
         <Suspense fallback={<FeaturedSkeleton />}>
           <FeaturedSection searchParams={searchParams} />
         </Suspense>
       </section>
+      <Marquee items={HOME_MARQUEE} />
+      <Suspense fallback={null}>
+        <CategorySection />
+      </Suspense>
       <section aria-labelledby="home-highlights" className="flex flex-col gap-4">
-        <h2 id="home-highlights" className="text-xl font-semibold tracking-tight">
+        <h2 id="home-highlights" className="storefront-section-title-sm">
           From the store
         </h2>
         <ul className="grid gap-4 md:grid-cols-3">
@@ -43,9 +54,6 @@ export default function HomePage({ searchParams }: PageProps<"/">) {
           </Suspense>
         </ul>
       </section>
-      <Suspense fallback={null}>
-        <CategorySection />
-      </Suspense>
       <WhyBuyHere items={WHY_BUY_HERE} />
       <Suspense fallback={null}>
         <BestSellersSection />
@@ -91,6 +99,13 @@ async function LowStockBanner() {
   return <LowStockBannerItem product={result.data} />;
 }
 
+/** The hero with its collection card; without the collections the hero still shows, alone. */
+async function HeroSection() {
+  await connection();
+  const result = await loadCategoryCounts();
+  return <HomeHero collections={result.kind === "ok" ? result.data : []} />;
+}
+
 async function CategorySection() {
   await connection();
   const result = await loadCategoryCounts();
@@ -102,11 +117,11 @@ async function CategorySection() {
 
 async function BestSellersSection() {
   await connection();
-  const result = await loadBestSellerNames(new Date());
+  const result = await loadBestSellers(new Date());
   if (result.kind !== "ok") {
     return <HomeSectionUnavailable id="home-best" title="Best sellers" />;
   }
-  return <BestSellers names={result.data} />;
+  return <BestSellers items={result.data} />;
 }
 
 function FeaturedSkeleton() {

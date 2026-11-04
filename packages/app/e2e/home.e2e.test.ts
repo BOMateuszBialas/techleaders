@@ -147,7 +147,7 @@ describe("storefront home page (Phase 1b)", () => {
     await browser().waitForText("Vortex Wireless Mouse");
 
     const elements = Object.values((await browser().snapshot()).refs);
-    for (const name of ["Build your setup", "Audio for calls", "Low stock", "Categories"]) {
+    for (const name of ["Build your setup", "Audio for calls", "Low stock", "Shop by category"]) {
       expect(elements).toContainEqual(expect.objectContaining({ role: "heading", name }));
     }
     const main = await browser().text("main");

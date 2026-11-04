@@ -537,3 +537,155 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Storefront layout width (owner request, 2026-11-04): the header, the page and the footer share
+   one measure. Utilities read it as `max-w-(--storefront-width)`. */
+:root {
+  --storefront-width: 1440px;
+}
+
+/* The orders table on a phone keeps the 14 px it had before the storefront scale grew, so its
+   columns fit 390 px. It is outside the +2 px scale on purpose. */
+:root {
+  --type-table-phone-size: 0.875rem;
+}
+
+/* Storefront type scale: every size is 2 px larger than the scale above (owner request,
+   2026-11-04). It applies inside `.storefront-type`, set on the storefront layout and on the cart
+   drawer (which is portalled into <body>). The design system and the admin keep their own scale. */
+.storefront-type {
+  --text-xs: calc(0.75rem + 2px);
+  --text-xs--line-height: calc(1rem + 2px);
+  --text-sm: calc(0.875rem + 2px);
+  --text-sm--line-height: calc(1.25rem + 2px);
+  --text-base: calc(1rem + 2px);
+  --text-base--line-height: calc(1.5rem + 2px);
+  --text-lg: calc(1.125rem + 2px);
+  --text-lg--line-height: calc(1.75rem + 2px);
+  --text-xl: calc(1.25rem + 2px);
+  --text-xl--line-height: calc(1.75rem + 2px);
+  --text-2xl: calc(1.5rem + 2px);
+  --text-2xl--line-height: calc(2rem + 2px);
+  --text-3xl: calc(1.875rem + 2px);
+  --text-3xl--line-height: calc(2.25rem + 2px);
+  --text-4xl: calc(2.25rem + 2px);
+  --text-4xl--line-height: calc(2.5rem + 2px);
+  --type-display-size: calc(clamp(2.5rem, 2.1667rem + 1.4815vw, 3.5rem) + 2px);
+  --type-display-leading: calc(clamp(2.75rem, 2.4167rem + 1.4815vw, 3.75rem) + 2px);
+  --type-h1-size: calc(clamp(1.75rem, 1.5rem + 1.1111vw, 2.5rem) + 2px);
+  --type-h1-leading: calc(clamp(2rem, 1.75rem + 1.1111vw, 2.75rem) + 2px);
+  --type-h2-size: calc(clamp(1.25rem, 1.1667rem + 0.3704vw, 1.5rem) + 2px);
+  --type-h2-leading: calc(clamp(1.75rem, 1.6667rem + 0.3704vw, 2rem) + 2px);
+  --type-h3-size: calc(1.125rem + 2px);
+  --type-h3-leading: calc(1.5rem + 2px);
+  --type-body-size: calc(1rem + 2px);
+  --type-body-leading: calc(1.5rem + 2px);
+  --type-small-size: calc(0.875rem + 2px);
+  --type-small-leading: calc(1.25rem + 2px);
+}
+
+/* Home hero: a full-bleed photo that fills most of the first screen. The text panel sits on it. */
+.storefront-hero {
+  height: 500px;
+}
+/* On a phone the photo band is shorter, so the text panel still fits beside it (phones only). */
+@media (max-width: 40rem) {
+  .storefront-hero {
+    height: 420px;
+  }
+}
+/* Show the keyboard and mouse of the hero photo, not only the top of the monitor. */
+.storefront-hero img {
+  object-position: 50% 68%;
+}
+
+/* Featured carousel track: the buttons and touch or trackpad scrolling replace the scrollbar. */
+.featured-track {
+  scrollbar-width: none;
+}
+/* A mouse drag on a link or photo must scroll the track, not start the browser's own drag. */
+.featured-track a,
+.featured-track img {
+  -webkit-user-drag: none;
+}
+.featured-track::-webkit-scrollbar {
+  display: none;
+}
+
+/* Section headings of the storefront home: the size of the text scale plus 4 px (owner request,
+   2026-11-04). The small one is the scale's xl step, the large one its 2xl step. */
+.storefront-section-title-sm {
+  font-size: calc(var(--text-xl) + 4px);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.storefront-section-title-lg {
+  font-size: calc(var(--text-2xl) + 4px);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* The moving strip: one set of phrases is moved by its own width, so the loop has no jump. */
+.storefront-marquee {
+  animation: storefront-marquee 40s linear infinite;
+}
+@keyframes storefront-marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .storefront-marquee {
+    animation: none;
+  }
+}
+
+/* The hero collection stage: three photos at once. The middle one is the largest, the two beside
+   it are smaller and fainter, and the rest wait out of view. The row moves by changing the slot
+   (the slot classes are placed here, not in the markup). */
+.hero-stage {
+  position: relative;
+  width: 44rem;
+  max-width: 100%;
+  height: 22rem;
+}
+.hero-slot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 14rem;
+  height: 19rem;
+  overflow: hidden;
+  border-radius: 1rem;
+  border-width: 1px;
+  box-shadow: 0 20px 40px -12px rgb(0 0 0 / 0.35);
+  transition:
+    transform 0.7s ease,
+    opacity 0.7s ease;
+}
+.hero-slot-center {
+  transform: translate(-50%, -50%) scale(1.15);
+  opacity: 1;
+  z-index: 3;
+}
+.hero-slot-left {
+  transform: translate(calc(-50% - 11rem), -50%) scale(0.8);
+  opacity: 0.85;
+  z-index: 2;
+}
+.hero-slot-right {
+  transform: translate(calc(-50% + 11rem), -50%) scale(0.8);
+  opacity: 0.85;
+  z-index: 2;
+}
+.hero-slot-hidden {
+  transform: translate(-50%, -50%) scale(0.6);
+  opacity: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-slot {
+    transition: none;
+  }
+}

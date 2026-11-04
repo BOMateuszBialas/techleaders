@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const listCategoryCounts = vi.fn();
 const getTopProducts = vi.fn();
 const getLowStockProducts = vi.fn();
+const listCatalogProducts = vi.fn();
 const dispose = vi.fn(async () => {});
 
 vi.mock("@/server/container", () => ({
@@ -11,12 +12,13 @@ vi.mock("@/server/container", () => ({
       listCategoryCountsUseCase: { execute: listCategoryCounts },
       getTopProductsUseCase: { execute: getTopProducts },
       getLowStockProductsUseCase: { execute: getLowStockProducts },
+      listCatalogProductsUseCase: { execute: listCatalogProducts },
     },
     dispose,
   }),
 }));
 
-const { loadBestSellerNames, loadCategoryCounts, loadLowStockProduct } =
+const { loadBestSellers, loadCategoryCounts, loadLowStockProduct } =
   await import("./load-home-sections");
 
 beforeEach(() => {
@@ -42,22 +44,34 @@ describe("loadCategoryCounts", () => {
   });
 });
 
-describe("loadBestSellerNames", () => {
-  it("ranks the last 30 days of paid orders through GetTopProductsUseCase and keeps names only", async () => {
+describe("loadBestSellers", () => {
+  it("ranks the last 30 days of paid orders and links each published product", async () => {
     getTopProducts.mockResolvedValue({
       rows: [
         { productId: "p-1", name: "Vortex Wireless Mouse", units: 4, revenueMinor: 99_600 },
         { productId: null, name: "Gone pad", units: 1, revenueMinor: 1000 },
       ],
     });
+    listCatalogProducts.mockResolvedValue({
+      products: [
+        { id: "p-1", slug: "vortex-wireless-mouse", imageUrl: "/photos/product-mouse-black.jpg" },
+      ],
+    });
     const now = new Date("2026-10-26T12:00:00Z");
 
-    expect(await loadBestSellerNames(now)).toEqual({
+    expect(await loadBestSellers(now)).toEqual({
       kind: "ok",
-      data: ["Vortex Wireless Mouse", "Gone pad"],
+      data: [
+        {
+          name: "Vortex Wireless Mouse",
+          units: 4,
+          product: { slug: "vortex-wireless-mouse", imageUrl: "/photos/product-mouse-black.jpg" },
+        },
+        { name: "Gone pad", units: 1, product: null },
+      ],
     });
     const input = getTopProducts.mock.calls[0]?.[0];
-    expect(input.limit).toBe(3);
+    expect(input.limit).toBe(4);
     expect(input.period.preset).toBe("30d");
     expect(input.period.to.getTime() - input.period.from.getTime()).toBeGreaterThan(
       29 * 86_400_000,
@@ -67,14 +81,15 @@ describe("loadBestSellerNames", () => {
 
   it("returns an empty list when no paid order falls in the window", async () => {
     getTopProducts.mockResolvedValue({ rows: [] });
+    listCatalogProducts.mockResolvedValue({ products: [] });
 
-    expect(await loadBestSellerNames(new Date())).toEqual({ kind: "ok", data: [] });
+    expect(await loadBestSellers(new Date())).toEqual({ kind: "ok", data: [] });
   });
 
   it("returns a generic error state when the metric fails", async () => {
     getTopProducts.mockRejectedValue(new Error("boom"));
 
-    expect(await loadBestSellerNames(new Date())).toEqual({ kind: "error" });
+    expect(await loadBestSellers(new Date())).toEqual({ kind: "error" });
   });
 });
 

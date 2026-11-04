@@ -29,6 +29,8 @@ export type AddToCartViewProps = {
    */
   variant?: ComponentProps<typeof Button>["variant"];
   size?: ComponentProps<typeof Button>["size"];
+  /** The submit button spans the full width of its container (product cards). */
+  fill?: boolean;
 };
 
 /**
@@ -48,10 +50,11 @@ export function AddToCartView({
   withQuantity,
   variant,
   size,
+  fill = false,
 }: AddToCartViewProps) {
   if (!available) {
     return (
-      <Button type="button" variant="outline" disabled>
+      <Button type="button" variant="outline" disabled className={fill ? "w-full" : undefined}>
         {OUT_OF_STOCK_BUTTON}
       </Button>
     );
@@ -81,7 +84,14 @@ export function AddToCartView({
         </div>
       ) : null}
       <div>
-        <Button type="submit" variant={variant} size={size} disabled={pending} aria-busy={pending}>
+        <Button
+          type="submit"
+          variant={variant}
+          size={size}
+          disabled={pending}
+          aria-busy={pending}
+          className={fill ? "w-full" : undefined}
+        >
           {pending ? ADDING_TO_CART : ADD_TO_CART_BUTTON}
         </Button>
       </div>

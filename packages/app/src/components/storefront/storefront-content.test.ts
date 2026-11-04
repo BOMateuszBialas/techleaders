@@ -63,6 +63,6 @@ describe("home page content", () => {
     expect(lowStockText("Titan MMO Mouse", 2)).toBe("Titan MMO Mouse: 2 left");
     expect(LOW_STOCK_BANNER).toEqual({ title: "Low stock", cta: "View product" });
     expect(BEST_SELLERS_PRESET).toBe("30d");
-    expect(BEST_SELLERS_LIMIT).toBe(3);
+    expect(BEST_SELLERS_LIMIT).toBe(4);
   });
 });

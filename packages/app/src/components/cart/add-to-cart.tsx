@@ -16,7 +16,7 @@ export function AddToCart({
   ...props
 }: { action: FormAction } & Pick<
   AddToCartViewProps,
-  "productId" | "available" | "withQuantity" | "variant" | "size"
+  "productId" | "available" | "withQuantity" | "variant" | "size" | "fill"
 >) {
   const drawer = useCartDrawer();
   const [state, formAction, pending] = useActionState(

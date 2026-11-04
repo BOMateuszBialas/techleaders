@@ -132,7 +132,7 @@ const demoProducts = [
     sku: "DEMO-MOU-002",
     description:
       "A 58 g wired mouse with a honeycomb-free shell and a flexible paracord cable for fast flick shots.",
-    imageUrl: "/demo/products/pulse-ultralight-mouse.svg",
+    imageUrl: "/photos/product-mouse-black.jpg",
   },
   {
     slug: "titan-mmo-mouse",
@@ -144,7 +144,7 @@ const demoProducts = [
     description:
       "Twelve thumb buttons in a side grid for MMO and MOBA hotkeys, with on-board memory for five profiles.",
     featured: true,
-    imageUrl: "/demo/products/titan-mmo-mouse.svg",
+    imageUrl: "/photos/product-mouse-black.jpg",
   },
   {
     slug: "nova-tkl-mechanical-keyboard",
@@ -167,7 +167,7 @@ const demoProducts = [
     sku: "DEMO-KEY-002",
     description:
       "Compact 60 percent keyboard with tactile switches and a detachable USB-C cable; more room for wide mouse swipes.",
-    imageUrl: "/demo/products/strike-60-keyboard.svg",
+    imageUrl: "/photos/product-keyboard-rgb.jpg",
   },
   {
     slug: "aurora-full-size-keyboard",
@@ -178,7 +178,7 @@ const demoProducts = [
     sku: "DEMO-KEY-003",
     description:
       "Full-size mechanical keyboard with a numpad, a volume roller and a magnetic wrist rest.",
-    imageUrl: "/demo/products/aurora-full-size-keyboard.svg",
+    imageUrl: "/photos/product-keyboard-rgb.jpg",
   },
   {
     slug: "echo-surround-headset",
@@ -201,7 +201,7 @@ const demoProducts = [
     sku: "DEMO-HEA-002",
     description:
       "Low-latency 2.4 GHz wireless headset with Bluetooth, memory-foam ear cushions and 40 hours of battery life.",
-    imageUrl: "/demo/products/drift-wireless-headset.svg",
+    imageUrl: "/photos/product-headset-black.jpg",
   },
   {
     slug: "nimbus-stereo-headset",
@@ -212,7 +212,7 @@ const demoProducts = [
     sku: "DEMO-HEA-003",
     description:
       "Lightweight stereo headset with a 3.5 mm jack that works with PC, consoles and handhelds.",
-    imageUrl: "/demo/products/nimbus-stereo-headset.svg",
+    imageUrl: "/photos/product-headset-black.jpg",
   },
   {
     slug: "apex-wireless-controller",
@@ -224,7 +224,7 @@ const demoProducts = [
     description:
       "Wireless controller with Hall-effect sticks, two rear paddles and a USB-C charging cable.",
     featured: true,
-    imageUrl: "/demo/products/apex-wireless-controller.svg",
+    imageUrl: "/photos/category-controllers.jpg",
   },
   {
     slug: "retro-wired-controller",
@@ -235,7 +235,7 @@ const demoProducts = [
     sku: "DEMO-CON-002",
     description:
       "Classic-layout wired controller with a precise D-pad for platformers and emulated games.",
-    imageUrl: "/demo/products/retro-wired-controller.svg",
+    imageUrl: "/photos/category-controllers.jpg",
   },
   {
     slug: "arena-fight-stick",
@@ -246,7 +246,7 @@ const demoProducts = [
     sku: "DEMO-CON-003",
     description:
       "Arcade fight stick with a ball-top lever, eight 30 mm buttons and a steel base that stays put.",
-    imageUrl: "/demo/products/arena-fight-stick.svg",
+    imageUrl: "/photos/category-controllers.jpg",
   },
   {
     slug: "glide-xl-mousepad",
@@ -269,7 +269,7 @@ const demoProducts = [
     sku: "DEMO-PAD-002",
     description:
       "Medium cloth mousepad with a textured control surface and a non-slip rubber base.",
-    imageUrl: "/demo/products/control-cloth-mousepad.svg",
+    imageUrl: "/photos/product-mouse-pad.jpg",
   },
   {
     slug: "tempered-glass-mousepad",
@@ -280,7 +280,7 @@ const demoProducts = [
     sku: "DEMO-PAD-003",
     description:
       "Tempered glass mousepad with an etched surface for consistent glide and easy cleaning.",
-    imageUrl: "/demo/products/tempered-glass-mousepad.svg",
+    imageUrl: "/photos/product-mouse-pad.jpg",
   },
 ] as const;
 

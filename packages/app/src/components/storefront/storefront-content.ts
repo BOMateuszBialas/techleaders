@@ -58,26 +58,43 @@ export function lowStockText(name: string, stockQuantity: number): string {
   return `${name}: ${stockQuantity} left`;
 }
 
-export type WhyBuyHereItem = { title: string; text: string };
+/** The icon of a "Why buy here" fact; the icon set lives in `storefront-icons.tsx`. */
+export type WhyBuyHereIcon = "account" | "shield" | "ticket" | "truck";
+
+export type WhyBuyHereItem = { title: string; text: string; icon: WhyBuyHereIcon };
 
 export const WHY_BUY_HERE: readonly WhyBuyHereItem[] = [
   {
     title: "Buy without an account",
     text: "Guest checkout is always available. An account is optional.",
+    icon: "account",
   },
   {
     title: "Stock is checked at checkout",
     text: "The price and stock are checked again on the server before an order is placed.",
+    icon: "shield",
   },
   {
     title: "Keep your reference",
     text: "Each order has a reference that finds it later in My orders or by lookup.",
+    icon: "ticket",
   },
-  { title: "Delivery and returns", text: EXAMPLE_DELIVERY_TEXT },
+  { title: "Delivery and returns", text: EXAMPLE_DELIVERY_TEXT, icon: "truck" },
+];
+
+/**
+ * The moving strip under the home hero: facts the store really has (storefront refresh, 2026-11-04).
+ * Nothing here is a promise the store does not keep.
+ */
+export const HOME_MARQUEE: readonly string[] = [
+  "Stock checked at checkout",
+  "Guest checkout",
+  "Order reference you can look up",
+  "Stock shown on every product",
 ];
 
 /** How many best sellers the home page lists (names only). */
-export const BEST_SELLERS_LIMIT = 3;
+export const BEST_SELLERS_LIMIT = 4;
 
 /** The window of the best sellers list, in days (paid orders, storefront v2 A-4). */
 export const BEST_SELLERS_PRESET = "30d" as const;
