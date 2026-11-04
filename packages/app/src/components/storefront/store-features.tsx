@@ -41,7 +41,10 @@ function FeaturePanel({ feature, photoFirst }: { feature: StoreFeature; photoFir
         />
       </div>
       <div
-        className={cn("flex flex-col items-start gap-5 p-8 md:p-12", !photoFirst && "md:order-1")}
+        className={cn(
+          "flex flex-col items-start gap-5 bg-background p-8 md:p-12",
+          !photoFirst && "md:order-1",
+        )}
       >
         <h3 className="text-3xl font-semibold tracking-tight">{feature.title}</h3>
         <p className="max-w-prose text-base leading-relaxed text-muted-foreground">

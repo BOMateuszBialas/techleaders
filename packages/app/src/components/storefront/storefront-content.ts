@@ -32,7 +32,7 @@ export const PROMO_BANNERS: readonly PromoBanner[] = [
   {
     key: "build-your-setup",
     title: "Build your setup",
-    text: "Mousepads for every desk setup, from wide cloth pads for fast mouse movements to glass pads that stay smooth and easy to clean. Pick the size that fits your desk and the surface your mouse likes best.",
+    text: "Mousepads for every desk setup: from wide cloth pads for fast mouse movements to glass pads that stay smooth and easy to clean. Pick the size that fits your desk and the surface your mouse likes best.",
     cta: "Browse desk gear",
     href: productsHref("mousepads"),
     photo: { src: "/photos/banner-build-your-setup.jpg", alt: "" },
