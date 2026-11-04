@@ -547,7 +547,7 @@
 /* Storefront type scale: every size is 2 px larger than the scale above (owner request,
    2026-11-04). It applies to every page that is not the admin, so overlays such as the cart drawer
    (portalled into <body>) get it too. The admin keeps the scale of its own block. */
-:root:not(:has([data-density="admin"])) {
+:root:not([data-density="admin"]):not(:has([data-density="admin"])) {
   --text-xs: calc(0.75rem + 2px);
   --text-xs--line-height: calc(1rem + 2px);
   --text-sm: calc(0.875rem + 2px);

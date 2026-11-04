@@ -79,7 +79,7 @@ export const CategoryTilesDefault: Story = {
   render: () => <CategoryTiles categories={categories} />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await expect(canvas.getByRole("heading", { name: "Categories" })).toBeInTheDocument();
+    await expect(canvas.getByRole("heading", { name: "Shop by category" })).toBeInTheDocument();
     await expect(canvas.getByRole("link", { name: /Mice 3 products/ })).toHaveAttribute(
       "href",
       "/products?category=mice",
@@ -105,7 +105,9 @@ export const WhyBuyHereDefault: Story = {
   render: () => <WhyBuyHere items={WHY_BUY_HERE} />,
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await expect(canvas.getByRole("heading", { name: "Why buy here" })).toBeInTheDocument();
+    await expect(
+      canvas.getByRole("heading", { name: "Shop with the facts in front of you" }),
+    ).toBeInTheDocument();
     await expect(
       canvas.getByText("Example policy: delivery in 1–3 working days, 14-day returns."),
     ).toBeInTheDocument();
@@ -138,8 +140,8 @@ export const BestSellersDefault: Story = {
     await expect(canvas.getByRole("heading", { name: "Best sellers" })).toBeInTheDocument();
     const items = canvas.getAllByRole("listitem");
     await expect(items.map((item) => item.textContent)).toEqual([
-      "Vortex Wireless Mouse",
-      "Nova TKL Mechanical Keyboard",
+      "01Vortex Wireless Mouse",
+      "02Nova TKL Mechanical Keyboard",
     ]);
   },
 };
