@@ -88,7 +88,10 @@ export const BEST_SELLERS_LIMIT = 4;
 /** The window of the best sellers list, in days (paid orders, storefront v2 A-4). */
 export const BEST_SELLERS_PRESET = "30d" as const;
 
-/** One "From the store" feature: a photo, a short text and a button to a collection (2026-11-04). */
+/**
+ * One "From the store" feature: a photo, a longer text (two or three sentences) and a button to a
+ * collection (2026-11-04).
+ */
 export type StoreFeature = {
   key: string;
   title: string;
@@ -129,3 +132,10 @@ export const STORE_FEATURES: readonly StoreFeature[] = [
     alt: "A gaming keyboard with lit keys",
   },
 ];
+
+/** The full-width gaming video on the home page (owner request, 2026-11-04). Put the file in public/videos/. */
+export const HOME_VIDEO = {
+  src: "/videos/gaming-setup.mp4",
+  poster: "/photos/hero-desk-curved-monitor.jpg",
+  label: "A gaming desk setup, moving slowly",
+} as const;

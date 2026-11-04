@@ -641,8 +641,8 @@
   justify-content: flex-end;
   gap: 0.5rem;
 }
-/* The cart is the one filled control in the header, so it is found at a glance. Its count is
-   inverted against the fill. */
+/* The cart is the one filled control in the header, so it is found at a glance (its count is
+   inverted against the fill). */
 .storefront-header .header-cart > a {
   height: 2.5rem;
   padding-inline: 1rem;
@@ -695,6 +695,12 @@
   font-size: calc(var(--text-2xl) + 4px);
   font-weight: 600;
   letter-spacing: -0.01em;
+}
+
+/* The full-width home video: 60 % of the screen height, at least 18 rem. */
+.home-video {
+  height: 60vh;
+  min-height: 18rem;
 }
 
 /* The moving strip: one set of phrases is moved by its own width, so the loop has no jump. */

@@ -1,7 +1,7 @@
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { CATALOG_UNAVAILABLE_MESSAGE } from "@/components/catalog/catalog-copy";
-import { BestSellers } from "@/components/storefront/best-sellers";
+import { HomeVideo } from "@/components/storefront/home-video";
 import { CategoryTiles } from "@/components/storefront/category-tiles";
 import { FeaturedSlider, FeaturedTabs } from "@/components/storefront/featured-products";
 import { HomeHero } from "@/components/storefront/home-hero";
@@ -10,7 +10,7 @@ import { StoreFeatures } from "@/components/storefront/store-features";
 import { WHY_BUY_HERE } from "@/components/storefront/storefront-content";
 import { WhyBuyHere } from "@/components/storefront/why-buy-here";
 import { loadHomePage } from "./load-home-page";
-import { loadBestSellers, loadCategoryCounts } from "./load-home-sections";
+import { loadCategoryCounts } from "./load-home-sections";
 
 /**
  * Storefront home (storefront v2 Phase 4), in the approved order: hero, featured products
@@ -32,19 +32,25 @@ export default function HomePage({ searchParams }: PageProps<"/">) {
           <FeaturedSection searchParams={searchParams} />
         </Suspense>
       </section>
-      <Suspense fallback={null}>
-        <CategorySection />
-      </Suspense>
-      <section aria-labelledby="home-highlights" className="flex flex-col gap-4">
-        <h2 id="home-highlights" className="storefront-section-title-sm">
-          From the store
-        </h2>
-        <StoreFeatures />
-      </section>
+      {/* Categories and the grey band below them are one block, with no gap between them. */}
+      <div className="flex flex-col">
+        <Suspense fallback={null}>
+          <CategorySection />
+        </Suspense>
+        <section
+          aria-labelledby="home-highlights"
+          className="relative left-1/2 w-screen -translate-x-1/2 bg-muted/40 py-12"
+        >
+          <div className="mx-auto flex w-full max-w-(--storefront-width) flex-col gap-6 px-4">
+            <h2 id="home-highlights" className="storefront-section-title-sm">
+              From the store
+            </h2>
+            <StoreFeatures />
+          </div>
+        </section>
+      </div>
       <WhyBuyHere items={WHY_BUY_HERE} />
-      <Suspense fallback={null}>
-        <BestSellersSection />
-      </Suspense>
+      <HomeVideo />
     </div>
   );
 }
@@ -84,15 +90,6 @@ async function CategorySection() {
     return <HomeSectionUnavailable id="home-categories" title="Categories" />;
   }
   return <CategoryTiles categories={result.data} />;
-}
-
-async function BestSellersSection() {
-  await connection();
-  const result = await loadBestSellers(new Date());
-  if (result.kind !== "ok") {
-    return <HomeSectionUnavailable id="home-best" title="Best sellers" />;
-  }
-  return <BestSellers items={result.data} />;
 }
 
 function FeaturedSkeleton() {

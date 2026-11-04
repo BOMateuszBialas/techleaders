@@ -11,15 +11,10 @@ import { galleryImageUrls } from "@/components/catalog/product-gallery-state";
 import { ProductGallery } from "@/components/catalog/product-gallery";
 import { leadSentence } from "@/components/catalog/product-page-copy";
 import { ProductTabs } from "@/components/catalog/product-tabs";
-import { Marquee } from "@/components/storefront/marquee";
-import { STORE_NAME } from "@/components/storefront/storefront-copy";
 import { addToCart } from "@/server/cart/cart.action";
 import { loadProductPage, productPageTitle } from "./load-product-page";
 
 type ProductPageProps = PageProps<"/products/[slug]">;
-
-/** The strip on a product page repeats the store's name (storefront refresh, 2026-11-04). */
-const PRODUCT_MARQUEE = [STORE_NAME, STORE_NAME, STORE_NAME, STORE_NAME];
 
 /** Streams with the deferred page body; shares the cached loader with the page. */
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
@@ -30,12 +25,9 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 
 export default function ProductPage({ params }: ProductPageProps) {
   return (
-    <div className="flex flex-col gap-6">
-      <Marquee items={PRODUCT_MARQUEE} />
-      <Suspense fallback={<DetailSkeleton />}>
-        <ProductDetails params={params} />
-      </Suspense>
-    </div>
+    <Suspense fallback={<DetailSkeleton />}>
+      <ProductDetails params={params} />
+    </Suspense>
   );
 }
 
