@@ -770,8 +770,26 @@
 /* Photo overlays (owner request, 2026-11-04): a dark scrim and white text over a photo, the same in
    light and dark mode, so the photo is never washed out by a theme colour. */
 .image-scrim {
-  background: linear-gradient(to top, rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.1) 60%, transparent);
+  background: linear-gradient(
+    to top,
+    color-mix(in oklab, var(--foreground) calc(var(--scrim-strength) * 100%), transparent),
+    transparent
+  );
 }
 .on-image {
   color: #fff;
+}
+
+/* How strong the photo scrim is: the foreground colour is dark in light mode (a dark scrim) and light
+   in dark mode, where the scrim is kept lighter so it does not wash the photo out. */
+:root {
+  --scrim-strength: 0.5;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --scrim-strength: 0.25;
+  }
+}
+:root[data-theme="dark"] {
+  --scrim-strength: 0.25;
 }
