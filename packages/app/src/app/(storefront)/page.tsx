@@ -29,17 +29,20 @@ export default function HomePage({ searchParams }: PageProps<"/">) {
       <Suspense fallback={<HomeHero />}>
         <HeroSection />
       </Suspense>
-      <Marquee items={HOME_MARQUEE} />
       <section aria-labelledby="featured-heading" className="flex flex-col gap-4">
-        <h2 id="featured-heading" className="text-xl font-semibold tracking-tight">
+        <h2 id="featured-heading" className="storefront-section-title-sm">
           Featured products
         </h2>
         <Suspense fallback={<FeaturedSkeleton />}>
           <FeaturedSection searchParams={searchParams} />
         </Suspense>
       </section>
+      <Marquee items={HOME_MARQUEE} />
+      <Suspense fallback={null}>
+        <CategorySection />
+      </Suspense>
       <section aria-labelledby="home-highlights" className="flex flex-col gap-4">
-        <h2 id="home-highlights" className="text-xl font-semibold tracking-tight">
+        <h2 id="home-highlights" className="storefront-section-title-sm">
           From the store
         </h2>
         <ul className="grid gap-4 md:grid-cols-3">
@@ -51,9 +54,6 @@ export default function HomePage({ searchParams }: PageProps<"/">) {
           </Suspense>
         </ul>
       </section>
-      <Suspense fallback={null}>
-        <CategorySection />
-      </Suspense>
       <WhyBuyHere items={WHY_BUY_HERE} />
       <Suspense fallback={null}>
         <BestSellersSection />

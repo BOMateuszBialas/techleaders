@@ -13,7 +13,7 @@ export function WhyBuyHere({ items }: { items: readonly WhyBuyHereItem[] }) {
         <p className="font-mono text-xs tracking-widest text-muted-foreground uppercase">
           Why buy here
         </p>
-        <h2 id="home-why" className="text-2xl font-semibold tracking-tight">
+        <h2 id="home-why" className="storefront-section-title-lg">
           Shop with the facts in front of you
         </h2>
       </div>

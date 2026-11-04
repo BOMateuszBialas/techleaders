@@ -8,7 +8,7 @@
  */
 
 /** How long one collection stays on screen before the next one (milliseconds). */
-export const ROTATE_INTERVAL_MS = 5000;
+export const ROTATE_INTERVAL_MS = 2000;
 
 /** The collection after `current`, wrapping to the first one after the last. */
 export function nextSlide(current: number, count: number): number {

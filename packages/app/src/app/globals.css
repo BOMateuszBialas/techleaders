@@ -606,6 +606,19 @@
   display: none;
 }
 
+/* Section headings of the storefront home: the size of the text scale plus 4 px (owner request,
+   2026-11-04). The small one is the scale's xl step, the large one its 2xl step. */
+.storefront-section-title-sm {
+  font-size: calc(var(--text-xl) + 4px);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.storefront-section-title-lg {
+  font-size: calc(var(--text-2xl) + 4px);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
 /* The moving strip: one set of phrases is moved by its own width, so the loop has no jump. */
 .storefront-marquee {
   animation: storefront-marquee 40s linear infinite;

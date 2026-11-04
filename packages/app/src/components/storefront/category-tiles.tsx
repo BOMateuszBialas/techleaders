@@ -16,8 +16,8 @@ export function CategoryTiles({ categories }: { categories: readonly CategoryCou
   if (categories.length === 0) return null;
   return (
     <section aria-labelledby="home-categories" className="flex flex-col gap-6">
-      <div className="flex flex-col gap-2">
-        <h2 id="home-categories" className="text-2xl font-semibold tracking-tight">
+      <div className="flex flex-col items-center gap-2 text-center">
+        <h2 id="home-categories" className="storefront-section-title-lg">
           Shop by category
         </h2>
         <p className="text-muted-foreground">Browse the store by what you are looking for.</p>

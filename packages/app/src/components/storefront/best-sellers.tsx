@@ -25,7 +25,7 @@ export function BestSellers({ items }: { items: readonly BestSeller[] }) {
         <p className="font-mono text-xs tracking-widest text-muted-foreground uppercase">
           Last 30 days
         </p>
-        <h2 id="home-best" className="text-2xl font-semibold tracking-tight">
+        <h2 id="home-best" className="storefront-section-title-lg">
           Best sellers
         </h2>
       </div>
