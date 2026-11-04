@@ -15,7 +15,7 @@ export function HeaderSearch() {
       aria-label="Site search"
       method="get"
       action="/products"
-      className="flex min-w-0 flex-1 items-center gap-1 sm:flex-none"
+      className="flex min-w-0 items-center"
     >
       <label htmlFor="header-search-q" className="sr-only">
         Search products
@@ -26,9 +26,15 @@ export function HeaderSearch() {
         type="search"
         maxLength={CATALOG_SEARCH_MAX_LENGTH}
         placeholder="Search products"
-        className="min-w-0 flex-1 sm:w-48 sm:flex-none"
+        className="h-9 w-full rounded-full border-transparent bg-muted pr-9 pl-4 text-sm shadow-none focus-visible:bg-background sm:w-56"
       />
-      <Button type="submit" variant="outline" size="icon" aria-label="Search">
+      <Button
+        type="submit"
+        variant="ghost"
+        size="icon-sm"
+        aria-label="Search"
+        className="-ml-9 rounded-full"
+      >
         <IconSearch aria-hidden="true" />
       </Button>
     </form>

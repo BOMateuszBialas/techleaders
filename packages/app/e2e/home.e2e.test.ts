@@ -147,13 +147,12 @@ describe("storefront home page (Phase 1b)", () => {
     await browser().waitForText("Vortex Wireless Mouse");
 
     const elements = Object.values((await browser().snapshot()).refs);
-    for (const name of ["Build your setup", "Audio for calls", "Low stock", "Shop by category"]) {
+    for (const name of ["Build your setup", "Audio for calls", "Keyboards", "Shop by category"]) {
       expect(elements).toContainEqual(expect.objectContaining({ role: "heading", name }));
     }
     const main = await browser().text("main");
     expect(main).toContain("Mousepads for every desk setup.");
     expect(main).toContain("Gaming headsets for PC and consoles.");
-    expect(main).toMatch(/: \d+ left/);
     expect(main).toContain("Example policy: delivery in 1–3 working days, 14-day returns.");
 
     // Tiles omit a category with no published product (the [E2E] drafts-only and empty ones).

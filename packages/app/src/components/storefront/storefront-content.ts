@@ -32,7 +32,7 @@ export const PROMO_BANNERS: readonly PromoBanner[] = [
   {
     key: "build-your-setup",
     title: "Build your setup",
-    text: "Mousepads for every desk setup.",
+    text: "Mousepads for every desk setup, from wide cloth pads for fast mouse movements to glass pads that stay smooth and easy to clean. Pick the size that fits your desk and the surface your mouse likes best.",
     cta: "Browse desk gear",
     href: productsHref("mousepads"),
     photo: { src: "/photos/banner-build-your-setup.jpg", alt: "" },
@@ -40,7 +40,7 @@ export const PROMO_BANNERS: readonly PromoBanner[] = [
   {
     key: "audio-for-calls",
     title: "Audio for calls",
-    text: "Gaming headsets for PC and consoles.",
+    text: "Gaming headsets for PC and consoles, with clear microphones for calls and team chat. Closed-back designs for focus, lightweight models for long sessions, and wired or wireless options to match your setup.",
     cta: "See audio",
     href: productsHref("headsets"),
     photo: {
@@ -82,19 +82,50 @@ export const WHY_BUY_HERE: readonly WhyBuyHereItem[] = [
   { title: "Delivery and returns", text: EXAMPLE_DELIVERY_TEXT, icon: "truck" },
 ];
 
-/**
- * The moving strip under the home hero: facts the store really has (storefront refresh, 2026-11-04).
- * Nothing here is a promise the store does not keep.
- */
-export const HOME_MARQUEE: readonly string[] = [
-  "Stock checked at checkout",
-  "Guest checkout",
-  "Order reference you can look up",
-  "Stock shown on every product",
-];
-
 /** How many best sellers the home page lists (names only). */
 export const BEST_SELLERS_LIMIT = 4;
 
 /** The window of the best sellers list, in days (paid orders, storefront v2 A-4). */
 export const BEST_SELLERS_PRESET = "30d" as const;
+
+/** One "From the store" feature: a photo, a short text and a button to a collection (2026-11-04). */
+export type StoreFeature = {
+  key: string;
+  title: string;
+  text: string;
+  label: string;
+  href: string;
+  photo: string;
+  alt: string;
+};
+
+/** The three features of the home page, shown left and right in turn (photo first, then text). */
+export const STORE_FEATURES: readonly StoreFeature[] = [
+  {
+    key: "setup",
+    title: "Build your setup",
+    text: "Mousepads for every desk setup.",
+    label: "Browse desk gear",
+    href: "/products?category=mousepads",
+    photo: "/photos/banner-build-your-setup.jpg",
+    alt: "A gaming mouse on a mousepad on a dark desk, lit in blue",
+  },
+  {
+    key: "audio",
+    title: "Audio for calls",
+    text: "Gaming headsets for PC and consoles.",
+    label: "See audio",
+    href: "/products?category=headsets",
+    photo: "/photos/product-headset-black.jpg",
+    alt: "Black over-ear headset with a cable, seen from above",
+  },
+  {
+    key: "keyboards",
+    title: "Keyboards",
+    text: "Full-size and compact keyboards with RGB lighting and mechanical switches. Tenkeyless layouts leave room for the mouse, and 60% boards keep the desk clear for those who want the smallest footprint.",
+    label: "See keyboards",
+    href: "/products?category=keyboards",
+    photo: "/photos/product-keyboard-rgb.jpg",
+    alt: "A gaming keyboard with lit keys",
+  },
+];
