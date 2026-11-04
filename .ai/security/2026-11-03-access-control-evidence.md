@@ -37,7 +37,7 @@ Odrzucone na tym etapie: wyliczanie zamówień po ID (ID to UUID, a 404 dla obce
 
 - Sprawdzenie: `GET /api/admin/me` i `POST /api/admin/copilot/answers` z ciasteczkiem A i bez ciasteczka.
 - Wynik: A → 401 w obu, bez ciasteczka → 401 w obu. Odpowiedź taka sama, więc sesja klienta nie daje dostępu.
-- **Brak kontroli pozytywnej:** konto właściciela nie było użyte (brak loginu do lokalnego sweepu). Bez niej nie dowodzimy, że właściciel przechodzi. Do zrobienia po podaniu danych właściciela.
+- **Kontrola pozytywna (uzupełniona 2026-11-04):** `node .ai/scripts/layout-sweep.mjs` z kontem właściciela na lokalnym `next dev` (localhost:3000): 24 z 24 OK (strona główna, dashboard, zamówienia i Copilot w 320, 768 i 1440 px, jasny i ciemny motyw), bez overflow, błędów strony, błędów konsoli i odpowiedzi 5xx. Dowodzi to, że sesja właściciela przechodzi do stron admina. Sama trasa `/api/admin/me` z sesją właściciela nie była osobno wywołana.
 - Czego to nie dowodzi: nie sprawdza, że sesja właściciela nie jest sesją klienta w drugą stronę (E07-S05), ani uprawnień poszczególnych endpointów admina poza dwoma.
 
 ### D4. Klient próbuje zmienić cudze zamówienie
@@ -61,7 +61,7 @@ Odrzucone na tym etapie: wyliczanie zamówień po ID (ID to UUID, a 404 dla obce
 ## Co nie zostało zrobione (uczciwie)
 
 - **SAST i DAST z ćwiczenia 2:** nie uruchomione. Nie ma zainstalowanego skanera SAST w repo (np. semgrep). Do zrobienia po zgodzie właściciela na narzędzie.
-- **Pozytywna kontrola admina:** czeka na dane logowania właściciela (`LAYOUT_SWEEP_ADMIN_EMAIL` / `..._PASSWORD` w powłoce właściciela, nie w czacie).
+- **Pozytywna kontrola admina:** zrobiona (patrz D3, sweep 24/24). Otwarte zostaje tylko wywołanie `/api/admin/me` z sesją właściciela.
 
 ## Wynik
 
