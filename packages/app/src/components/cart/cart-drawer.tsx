@@ -27,7 +27,7 @@ export function CartDrawer({ cart, updateAction, removeAction, acceptAction }: C
   const { state, dispatch } = drawer;
   return (
     <Drawer open={state.open} onOpenChange={closeDrawerOnRequest(dispatch)}>
-      <DrawerContent finalFocus={state.returnFocusTo}>
+      <DrawerContent finalFocus={state.returnFocusTo} className="storefront-type">
         <DrawerHeader>
           <DrawerTitle>{cart ? drawerTitle(cart.itemCount) : CART_HEADING}</DrawerTitle>
         </DrawerHeader>
