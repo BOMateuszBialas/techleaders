@@ -722,16 +722,16 @@
    (the slot classes are placed here, not in the markup). */
 .hero-stage {
   position: relative;
-  width: 44rem;
+  width: 48rem;
   max-width: 100%;
-  height: 22rem;
+  height: 30rem;
 }
 .hero-slot {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 14rem;
-  height: 19rem;
+  width: 18rem;
+  height: 24rem;
   overflow: hidden;
   border-radius: 1rem;
   border-width: 1px;
@@ -746,12 +746,12 @@
   z-index: 3;
 }
 .hero-slot-left {
-  transform: translate(calc(-50% - 11rem), -50%) scale(0.8);
+  transform: translate(calc(-50% - 14rem), -50%) scale(0.8);
   opacity: 0.85;
   z-index: 2;
 }
 .hero-slot-right {
-  transform: translate(calc(-50% + 11rem), -50%) scale(0.8);
+  transform: translate(calc(-50% + 14rem), -50%) scale(0.8);
   opacity: 0.85;
   z-index: 2;
 }

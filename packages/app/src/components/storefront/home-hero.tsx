@@ -33,8 +33,8 @@ export function HomeHero({ collections = [] }: { collections?: readonly Category
         aria-hidden
         className="absolute inset-0 bg-gradient-to-t from-foreground/40 to-transparent"
       />
-      <div className="relative flex h-full w-full items-end">
-        <div className="mx-auto flex w-full max-w-(--storefront-width) items-end justify-between gap-6 px-4 pb-8 sm:pb-12">
+      <div className="relative flex h-full w-full items-center">
+        <div className="mx-auto flex w-full max-w-(--storefront-width) items-center justify-between gap-6 px-4 py-8 sm:py-12">
           <div className="flex w-full max-w-xl flex-col gap-4 rounded-2xl border bg-background/80 p-6 shadow-xl backdrop-blur-md sm:p-8">
             <h1 id="hero-heading" className="text-3xl font-semibold tracking-tight sm:text-4xl">
               {HOME_HERO.headline}
