@@ -29,10 +29,7 @@ export function HomeHero({ collections = [] }: { collections?: readonly Category
         aria-hidden="true"
         className="absolute inset-0 h-full w-full object-cover object-center"
       />
-      <div
-        aria-hidden
-        className="absolute inset-0 bg-gradient-to-t from-foreground/40 to-transparent"
-      />
+      <div aria-hidden className="absolute inset-0 image-scrim" />
       <div className="relative flex h-full w-full items-center">
         <div className="mx-auto flex w-full max-w-(--storefront-width) items-center justify-between gap-6 px-4 py-8 sm:py-12">
           <div className="flex w-full max-w-xl flex-col gap-4 rounded-2xl border bg-background/80 p-6 shadow-xl backdrop-blur-md sm:p-8">

@@ -55,14 +55,11 @@ function CategoryTile({ category }: { category: CategoryCount }) {
             {NO_PHOTO_LABEL}
           </span>
         )}
-        <span
-          aria-hidden="true"
-          className="absolute inset-0 bg-gradient-to-t from-foreground/70 via-foreground/10 to-transparent"
-        />
+        <span aria-hidden="true" className="absolute inset-0 image-scrim" />
         <span
           className={
             src
-              ? "absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-5 text-background"
+              ? "absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-5 on-image"
               : "absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-5 text-foreground"
           }
         >

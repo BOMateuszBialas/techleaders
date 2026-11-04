@@ -766,3 +766,12 @@
     transition: none;
   }
 }
+
+/* Photo overlays (owner request, 2026-11-04): a dark scrim and white text over a photo, the same in
+   light and dark mode, so the photo is never washed out by a theme colour. */
+.image-scrim {
+  background: linear-gradient(to top, rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.1) 60%, transparent);
+}
+.on-image {
+  color: #fff;
+}
