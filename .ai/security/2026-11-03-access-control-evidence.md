@@ -46,11 +46,22 @@ Odrzucone na tym etapie: wyliczanie zamówień po ID (ID to UUID, a 404 dla obce
 - Wynik: 405 dla każdej metody (trasa eksportuje tylko `GET`). Status zamówienia w bazie bez zmian (`paid`).
 - Czego to nie dowodzi: zapis przez inne trasy (np. akcje serwerowe) nie był testowany tym probe. Ich pokrycie jest w testach integracyjnych (`*.int.test.ts`, E04-S01 i E07).
 
+### D5. Horyzontalna izolacja A↔B (oba konta mają zamówienia)
+
+**Karta dowodu**
+- Wymaganie / hipoteza: klient A nie dociera do zamówienia klienta B ani przez stronę, API, strony publiczne, akcję płatności, cache ani po wylogowaniu i zalogowaniu w tej samej przeglądarce (E07-S04).
+- Zakres i ryzyko: T1 między kontami klientów (IDOR poziomy).
+- Baza i commit: `main` po #185 (ten sam kod, co w CI), build produkcyjny `next build` z tego commita.
+- Środowisko: lokalny build, lokalna baza PostgreSQL 17 w Dockerze, agent-browser v0.35.2 (przypięty), Chrome for Testing 157. Konta testowe tworzy globalny setup e2e, nie są w repo.
+- Sprawdzenie: `npx vitest run --project e2e packages/app/e2e/customer-isolation.e2e.test.ts`. Klient A i B kupują po jednym produkcie przez UI (checkout jako zalogowany klient), potem A próbuje dotrzeć do zamówienia B.
+- Oczekiwane zachowanie: wszystkie 8 testów zielone; zamówienie B nie pojawia się na stronach A, w API, na publicznych stronach referencji ani w akcji płatności.
+- Rzeczywisty wynik: **8 z 8 testów zielone**, 31,7 s (`Test Files 1 passed`, log w scratchpadzie sesji).
+- Czego to nie dowodzi: jeden przebieg, jeden seed, jedna przeglądarka. Nie testuje współbieżnych żądań ani konta właściciela (to D3). Nie dowodzi, że każda nowa trasa będzie chroniona; to zadanie testów przy kolejnych zmianach.
+
 ## Co nie zostało zrobione (uczciwie)
 
 - **SAST i DAST z ćwiczenia 2:** nie uruchomione. Nie ma zainstalowanego skanera SAST w repo (np. semgrep). Do zrobienia po zgodzie właściciela na narzędzie.
-- **Horyzontalna izolacja A↔B** (oba konta mają zamówienia): wymaga checkoutu jako klient A i B. Do zrobienia przez UI albo po dodaniu helpera testowego.
-- **Pozytywna kontrola admina:** czeka na dane logowania właściciela.
+- **Pozytywna kontrola admina:** czeka na dane logowania właściciela (`LAYOUT_SWEEP_ADMIN_EMAIL` / `..._PASSWORD` w powłoce właściciela, nie w czacie).
 
 ## Wynik
 
