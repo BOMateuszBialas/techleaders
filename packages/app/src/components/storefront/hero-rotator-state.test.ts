@@ -4,6 +4,7 @@ import {
   nextSlide,
   prefersReducedMotion,
   ROTATE_INTERVAL_MS,
+  slotOf,
 } from "./hero-rotator-state";
 
 /** The update functions the controller sent to `setIndex`, applied to `from`. */
@@ -110,5 +111,28 @@ describe("prefersReducedMotion", () => {
     }));
 
     expect(prefersReducedMotion()).toBe(true);
+  });
+});
+
+describe("slotOf", () => {
+  it("puts the active collection in the middle, its neighbours beside it, the rest out of view", () => {
+    expect(slotOf(2, 2, 5)).toBe("center");
+    expect(slotOf(3, 2, 5)).toBe("right");
+    expect(slotOf(1, 2, 5)).toBe("left");
+    expect(slotOf(4, 2, 5)).toBe("hidden");
+    expect(slotOf(0, 2, 5)).toBe("hidden");
+  });
+
+  it("wraps around the ends of the stage", () => {
+    expect(slotOf(0, 4, 5)).toBe("right");
+    expect(slotOf(4, 0, 5)).toBe("left");
+  });
+
+  it("shows the only collection in the middle", () => {
+    expect(slotOf(0, 0, 1)).toBe("center");
+  });
+
+  it("is out of view for a stage with no collections", () => {
+    expect(slotOf(0, 0, 0)).toBe("hidden");
   });
 });

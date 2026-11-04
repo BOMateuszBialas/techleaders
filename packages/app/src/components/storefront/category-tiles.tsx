@@ -3,14 +3,14 @@ import Link from "next/link";
 import type { CategoryCount } from "@commerceos/core";
 import { NO_PHOTO_LABEL, productsHref, resultCountText } from "@/components/catalog/catalog-copy";
 import { photoSrc } from "@/components/catalog/product-photo";
-import { FeaturedCarousel } from "./featured-carousel";
 
 /**
  * The categories of the home page (storefront refresh, 2026-11-04): a heading, a line under it, and
- * a carousel of photo cards. Each card names its category and its published product count, with an
- * arrow to the listing. A category without published products is omitted, and with none left the
- * whole section is omitted. The photo is decorative (the card's text names the category), so its
- * alt text is empty; without a photo the card shows the neutral "No photo yet" label.
+ * the categories side by side across the full width of the screen, with no slider. Each tile names
+ * its category and its published product count, with an arrow to the listing. A category without
+ * published products is omitted, and with none left the whole section is omitted. The photo is
+ * decorative (the tile's text names the category), so its alt text is empty; without a photo the
+ * tile shows the neutral "No photo yet" label.
  */
 export function CategoryTiles({ categories }: { categories: readonly CategoryCount[] }) {
   if (categories.length === 0) return null;
@@ -22,22 +22,24 @@ export function CategoryTiles({ categories }: { categories: readonly CategoryCou
         </h2>
         <p className="text-muted-foreground">Browse the store by what you are looking for.</p>
       </div>
-      <FeaturedCarousel label="Categories" count={categories.length}>
-        {categories.map((category) => (
-          <CategoryCard key={category.slug} category={category} />
-        ))}
-      </FeaturedCarousel>
+      <div className="relative left-1/2 w-screen -translate-x-1/2">
+        <ul className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5">
+          {categories.map((category) => (
+            <CategoryTile key={category.slug} category={category} />
+          ))}
+        </ul>
+      </div>
     </section>
   );
 }
 
-function CategoryCard({ category }: { category: CategoryCount }) {
+function CategoryTile({ category }: { category: CategoryCount }) {
   const src = photoSrc(category.imageUrl);
   return (
-    <li className="w-72 shrink-0 sm:w-80">
+    <li>
       <Link
         href={productsHref(category.slug)}
-        className="group relative block aspect-4/5 overflow-hidden rounded-xl border bg-muted"
+        className="group relative block aspect-4/5 overflow-hidden bg-muted"
       >
         {src ? (
           <Image
@@ -45,7 +47,7 @@ function CategoryCard({ category }: { category: CategoryCount }) {
             alt=""
             fill
             unoptimized
-            sizes="(min-width: 640px) 320px, 288px"
+            sizes="(min-width: 1280px) 288px, (min-width: 768px) 25vw, 50vw"
             className="object-cover transition duration-500 group-hover:scale-105"
           />
         ) : (

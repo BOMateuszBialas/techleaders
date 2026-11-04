@@ -620,3 +620,53 @@
     animation: none;
   }
 }
+
+/* The hero collection stage: three photos at once. The middle one is the largest, the two beside
+   it are smaller and fainter, and the rest wait out of view. The row moves by changing the slot
+   (the slot classes are placed here, not in the markup). */
+.hero-stage {
+  position: relative;
+  width: 44rem;
+  max-width: 100%;
+  height: 22rem;
+}
+.hero-slot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 14rem;
+  height: 19rem;
+  overflow: hidden;
+  border-radius: 1rem;
+  border-width: 1px;
+  box-shadow: 0 20px 40px -12px rgb(0 0 0 / 0.35);
+  transition:
+    transform 0.7s ease,
+    opacity 0.7s ease;
+}
+.hero-slot-center {
+  transform: translate(-50%, -50%) scale(1.15);
+  opacity: 1;
+  z-index: 3;
+}
+.hero-slot-left {
+  transform: translate(calc(-50% - 11rem), -50%) scale(0.8);
+  opacity: 0.85;
+  z-index: 2;
+}
+.hero-slot-right {
+  transform: translate(calc(-50% + 11rem), -50%) scale(0.8);
+  opacity: 0.85;
+  z-index: 2;
+}
+.hero-slot-hidden {
+  transform: translate(-50%, -50%) scale(0.6);
+  opacity: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-slot {
+    transition: none;
+  }
+}

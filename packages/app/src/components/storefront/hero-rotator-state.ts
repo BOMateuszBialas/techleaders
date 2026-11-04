@@ -59,3 +59,19 @@ export function createRotatorController(
 export function prefersReducedMotion(): boolean {
   return globalThis.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
+
+/** Where a collection sits in the stage: in the middle, beside it on either side, or out of view. */
+export type RotatorSlot = "center" | "left" | "right" | "hidden";
+
+/**
+ * The slot of collection `index` when `active` is in the middle. The stage wraps around, so the
+ * collection after the last one sits on the right and the one before the first on the left.
+ */
+export function slotOf(index: number, active: number, count: number): RotatorSlot {
+  if (count < 1) return "hidden";
+  const distance = (((index - active) % count) + count) % count;
+  if (distance === 0) return "center";
+  if (distance === 1) return "right";
+  if (distance === count - 1) return "left";
+  return "hidden";
+}
