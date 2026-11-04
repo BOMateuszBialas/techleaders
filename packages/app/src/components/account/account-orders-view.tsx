@@ -90,10 +90,12 @@ function AccountOrdersBody({ list }: { list: CustomerOrderList | null }) {
                   {formatAccountDate(order.createdAt)}
                 </time>
               </TableCell>
-              <TableCell>
+              <TableCell className="whitespace-normal [&>*]:whitespace-normal">
                 <OrderStatusBadge status={order.status} />
               </TableCell>
-              <TableCell className="text-right tabular-nums">{formatMoney(order.total)}</TableCell>
+              <TableCell className="text-right tabular-nums wrap-anywhere whitespace-normal">
+                {formatMoney(order.total)}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
