@@ -10,7 +10,7 @@ export function HomeVideo() {
   return (
     <section
       aria-label={HOME_VIDEO.label}
-      className="relative left-1/2 w-screen -translate-x-1/2 overflow-hidden bg-foreground"
+      className="relative left-1/2 -mb-10 w-screen -translate-x-1/2 overflow-hidden bg-foreground"
     >
       <video
         src={HOME_VIDEO.src}
