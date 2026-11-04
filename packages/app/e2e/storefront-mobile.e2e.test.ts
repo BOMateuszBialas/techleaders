@@ -63,11 +63,10 @@ describe("storefront at 390 px", () => {
     const tableOverflow = await browser().evaluate(
       "[...document.querySelectorAll('[data-slot=table-container]')].map((el) => el.scrollWidth - el.clientWidth)",
     );
+    const overflows = z.array(z.number()).parse(tableOverflow);
     expect(
-      z
-        .array(z.number())
-        .parse(tableOverflow)
-        .every((overflow) => overflow <= 0),
+      overflows.every((overflow) => overflow <= 0),
+      `order tables overflow by ${JSON.stringify(overflows)} px at 390 px`,
     ).toBe(true);
     const measured = z
       .object({ scrollWidth: z.number(), innerWidth: z.number(), signOutRight: z.number() })
