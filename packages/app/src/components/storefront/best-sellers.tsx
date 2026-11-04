@@ -35,7 +35,7 @@ export function BestSellers({ items }: { items: readonly BestSeller[] }) {
             key={`${index}-${item.name}`}
             className="group relative flex items-center gap-4 rounded-xl border border-foreground/10 bg-card/70 p-3 backdrop-blur-sm transition duration-300 hover:border-foreground/30 hover:shadow-md"
           >
-            <span className="w-10 shrink-0 font-mono text-3xl font-bold text-muted-foreground/50 tabular-nums">
+            <span className="w-10 shrink-0 font-mono text-3xl font-bold text-muted-foreground tabular-nums">
               {String(index + 1).padStart(2, "0")}
             </span>
             <div className="w-20 shrink-0 overflow-hidden rounded-md">

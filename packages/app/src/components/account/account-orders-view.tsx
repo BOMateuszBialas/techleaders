@@ -64,7 +64,7 @@ function AccountOrdersBody({ list }: { list: CustomerOrderList | null }) {
   }
   return (
     <div className="flex flex-col gap-3">
-      <Table className="max-md:text-xs">
+      <Table className="max-md:text-(length:--type-table-phone-size)">
         <TableCaption className="sr-only">{ACCOUNT_COPY.ordersTableCaption}</TableCaption>
         <TableHeader>
           <TableRow>

@@ -544,6 +544,12 @@
   --storefront-width: 1440px;
 }
 
+/* The orders table on a phone keeps the 14 px it had before the storefront scale grew, so its
+   columns fit 390 px. It is outside the +2 px scale on purpose. */
+:root {
+  --type-table-phone-size: 0.875rem;
+}
+
 /* Storefront type scale: every size is 2 px larger than the scale above (owner request,
    2026-11-04). It applies inside `.storefront-type`, set on the storefront layout and on the cart
    drawer (which is portalled into <body>). The design system and the admin keep their own scale. */
