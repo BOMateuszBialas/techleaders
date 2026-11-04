@@ -1,7 +1,7 @@
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { CATALOG_UNAVAILABLE_MESSAGE } from "@/components/catalog/catalog-copy";
-import { HomeVideo } from "@/components/storefront/home-video";
+import { HomePhotoBand } from "@/components/storefront/home-video";
 import { CategoryTiles } from "@/components/storefront/category-tiles";
 import { FeaturedSlider, FeaturedTabs } from "@/components/storefront/featured-products";
 import { HomeHero } from "@/components/storefront/home-hero";
@@ -50,7 +50,7 @@ export default function HomePage({ searchParams }: PageProps<"/">) {
         </section>
       </div>
       <WhyBuyHere items={WHY_BUY_HERE} />
-      <HomeVideo />
+      <HomePhotoBand />
     </div>
   );
 }

@@ -1,18 +1,16 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { HomeVideo } from "./home-video";
-import { HOME_VIDEO } from "./storefront-content";
+import { HomePhotoBand } from "./home-video";
+import { HOME_HERO } from "./storefront-content";
 
-describe("HomeVideo", () => {
-  it("plays the gaming video muted and looping across the full width, with its poster", () => {
-    const html = renderToStaticMarkup(createElement(HomeVideo));
-    expect(html).toContain("<video");
-    expect(html).toContain(`src="${HOME_VIDEO.src}"`);
-    expect(html).toContain(`poster="${HOME_VIDEO.poster}"`);
-    expect(html).toContain("muted");
-    expect(html).toContain("loop");
+describe("HomePhotoBand", () => {
+  it("shows the hero photo across the full width, decorative, with no video", () => {
+    const html = renderToStaticMarkup(createElement(HomePhotoBand));
+    expect(html).toContain("home-photo-band");
     expect(html).toContain("w-screen");
-    expect(html).toContain(`aria-label="${HOME_VIDEO.label}"`);
+    expect(html).toContain(HOME_HERO.photo);
+    expect(html).toContain(`alt=""`);
+    expect(html).not.toContain("<video");
   });
 });

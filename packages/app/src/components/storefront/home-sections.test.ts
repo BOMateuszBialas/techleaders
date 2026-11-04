@@ -22,7 +22,8 @@ describe("HomeHero", () => {
     expect(html).toContain(HOME_HERO.description);
     expect(html).toContain(`href="/products"`);
     expect(html).toContain(">Shop all products</a>");
-    expect(html).toContain('alt=""');
+    expect(html).toContain("<video");
+    expect(html).toContain(`poster="${HOME_HERO.photo}"`);
     expect(html).not.toMatch(/demo data/i);
   });
 });

@@ -586,7 +586,7 @@
 
 /* Home hero: a full-bleed photo that fills most of the first screen. The text panel sits on it. */
 .storefront-hero {
-  height: 500px;
+  height: 800px;
 }
 /* On a phone the photo band is shorter, so the text panel still fits beside it (phones only). */
 @media (max-width: 40rem) {
@@ -698,12 +698,8 @@
 }
 
 /* The full-width home video: at most 500 px tall, the picture fills the band (cropped, not stretched). */
-.home-video {
-  display: block;
-  width: 100%;
-  height: 500px;
-  max-height: 500px;
-  object-fit: cover;
+.home-photo-band {
+  height: 700px;
 }
 
 /* The moving strip: one set of phrases is moved by its own width, so the loop has no jump. */

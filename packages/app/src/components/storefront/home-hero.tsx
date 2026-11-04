@@ -1,9 +1,8 @@
-import Image from "next/image";
 import Link from "next/link";
 import type { CategoryCount } from "@commerceos/core";
 import { buttonVariants } from "@/components/ui/button";
 import { HeroRotator } from "./hero-rotator";
-import { HOME_HERO } from "./storefront-content";
+import { HOME_HERO, HOME_VIDEO } from "./storefront-content";
 
 /**
  * The home hero (storefront refresh, 2026-11-04): a photo that runs the full width of the screen
@@ -19,14 +18,16 @@ export function HomeHero({ collections = [] }: { collections?: readonly Category
       aria-labelledby="hero-heading"
       className="storefront-hero relative left-1/2 -mt-10 w-screen -translate-x-1/2 overflow-hidden bg-muted"
     >
-      <Image
-        src={HOME_HERO.photo}
-        alt=""
-        fill
-        priority
-        sizes="100vw"
-        unoptimized
-        className="object-cover object-center"
+      <video
+        src={HOME_VIDEO.src}
+        poster={HOME_HERO.photo}
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="metadata"
+        aria-hidden="true"
+        className="absolute inset-0 h-full w-full object-cover object-center"
       />
       <div
         aria-hidden
