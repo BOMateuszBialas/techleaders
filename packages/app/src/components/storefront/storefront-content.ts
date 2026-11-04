@@ -32,7 +32,7 @@ export const PROMO_BANNERS: readonly PromoBanner[] = [
   {
     key: "build-your-setup",
     title: "Build your setup",
-    text: "Mousepads for every desk setup: from wide cloth pads for fast mouse movements to glass pads that stay smooth and easy to clean. Pick the size that fits your desk and the surface your mouse likes best.",
+    text: "Mousepads for every desk setup: wide cloth pads for fast, precise mouse movements and glass pads that stay smooth and are easy to wipe clean. Pick the size that fits your desk and the surface your mouse likes best. Every pad shows its stock on the product page, so you can see before you order whether it is available now. Mousepads are the simplest upgrade to a desk, and a good one makes every mouse feel better from the first day.",
     cta: "Browse desk gear",
     href: productsHref("mousepads"),
     photo: { src: "/photos/banner-build-your-setup.jpg", alt: "" },
@@ -40,7 +40,7 @@ export const PROMO_BANNERS: readonly PromoBanner[] = [
   {
     key: "audio-for-calls",
     title: "Audio for calls",
-    text: "Gaming headsets for PC and consoles, with clear microphones for calls and team chat. Closed-back designs for focus, lightweight models for long sessions, and wired or wireless options to match your setup.",
+    text: "Gaming headsets for PC and consoles, with clear microphones for calls and team chat. Closed-back designs keep the outside world out for focus, lightweight models are comfortable for long sessions, and wired or wireless options let you match the headset to your setup. Each listing shows the connection type and the stock, so you can compare two headsets side by side before you buy one for your next match or call.",
     cta: "See audio",
     href: productsHref("headsets"),
     photo: {
@@ -125,7 +125,7 @@ export const STORE_FEATURES: readonly StoreFeature[] = [
   {
     key: "keyboards",
     title: "Keyboards",
-    text: "Full-size and compact keyboards with RGB lighting and mechanical switches. Tenkeyless layouts leave room for the mouse, and 60% boards keep the desk clear for those who want the smallest footprint.",
+    text: "Full-size and compact keyboards with RGB lighting and mechanical switches. Tenkeyless layouts leave room for the mouse, and 60 percent boards keep the desk clear for those who want the smallest footprint. Compare the layouts on each product page, check the switch type and the stock, and pick the keyboard that fits how you type and play.",
     label: "See keyboards",
     href: "/products?category=keyboards",
     photo: "/photos/product-keyboard-rgb.jpg",
