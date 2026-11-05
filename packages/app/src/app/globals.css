@@ -646,6 +646,11 @@
 /* The storefront header (owner request, 2026-11-04): the menu on the left, the store name in the
    middle, and the cart, the account and the search on the right (one grid, named areas). On a phone the cart and the account
    stay in the top row and the search takes a full row under them. */
+/* Scrolling to an element stops it below the sticky storefront header, not under it. The header is
+   two rows on a phone, so the offset is generous. Only the storefront pages have the header. */
+:root:has(.storefront-header) {
+  scroll-padding-top: 9rem;
+}
 .storefront-header {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
