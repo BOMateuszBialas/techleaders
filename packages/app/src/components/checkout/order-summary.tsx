@@ -1,8 +1,16 @@
 import { formatMoney, type Money } from "@commerceos/core";
+import { ProductThumbnail } from "@/components/catalog/product-thumbnail";
 import { Card, CardContent } from "@/components/ui/card";
 import { SHIPPING_FREE } from "./checkout-copy";
 
-export type SummaryItem = { name: string; unitPrice: Money; quantity: number; lineTotal: Money };
+/** One item of the summary. `imageUrl` is set for a cart (checkout); a stored order has none. */
+export type SummaryItem = {
+  name: string;
+  imageUrl?: string | null;
+  unitPrice: Money;
+  quantity: number;
+  lineTotal: Money;
+};
 
 /**
  * Items and totals, all from the server (cart spec R04): the checkout shows the cart priced
@@ -27,8 +35,9 @@ export function OrderSummary({
           <ul className="flex flex-col divide-y text-sm">
             {/* Names are snapshots and need not be unique, so the position is part of the key. */}
             {items.map((item, index) => (
-              <li key={`${index}-${item.name}`} className="flex justify-between gap-4 py-2">
-                <span>
+              <li key={`${index}-${item.name}`} className="flex items-center gap-3 py-2">
+                <ProductThumbnail imageUrl={item.imageUrl} name={item.name} widthClassName="w-12" />
+                <span className="min-w-0 flex-1">
                   {item.name} × {item.quantity}
                   <span className="block text-muted-foreground">
                     {formatMoney(item.unitPrice)} each

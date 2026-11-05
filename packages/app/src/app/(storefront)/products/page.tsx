@@ -6,6 +6,7 @@ import { CATALOG_UNAVAILABLE_MESSAGE } from "@/components/catalog/catalog-copy";
 import { CatalogResults } from "@/components/catalog/catalog-results";
 import { CatalogSearchForm } from "@/components/catalog/catalog-search-form";
 import { CategoryNav } from "@/components/catalog/category-nav";
+import { ListingHero } from "@/components/catalog/listing-hero";
 import { loadCatalogPage } from "./load-catalog-page";
 
 export const metadata: Metadata = { title: "Products" };
@@ -14,7 +15,7 @@ export const metadata: Metadata = { title: "Products" };
 export default function ProductsPage({ searchParams }: PageProps<"/products">) {
   return (
     <>
-      <h1 className="text-3xl font-semibold tracking-tight">Products</h1>
+      <ListingHero />
       <Suspense fallback={<ListingSkeleton />}>
         <CatalogListingSection searchParams={searchParams} />
       </Suspense>
@@ -41,17 +42,19 @@ async function CatalogListingSection({
   const { categories, listing, unknownCategory } = result.data;
   return (
     <>
-      <CatalogSearchForm
-        categories={categories}
-        search={query.q}
-        categorySlug={query.category}
-        searchTooLong={query.qError === "too_long"}
-      />
-      <CategoryNav
-        categories={categories}
-        activeSlug={listing ? (listing.category?.slug ?? null) : undefined}
-        search={query.q}
-      />
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <CategoryNav
+          categories={categories}
+          activeSlug={listing ? (listing.category?.slug ?? null) : undefined}
+          search={query.q}
+        />
+        <CatalogSearchForm
+          categories={categories}
+          search={query.q}
+          categorySlug={query.category}
+          searchTooLong={query.qError === "too_long"}
+        />
+      </div>
       <CatalogResults listing={listing} unknownCategory={unknownCategory} search={query.q} />
     </>
   );

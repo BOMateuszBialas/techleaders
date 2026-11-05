@@ -108,10 +108,10 @@ describe("storefront search and category filter (E01-S02)", () => {
   });
 
   it("combines a search with a category; results satisfy both (AC2)", async () => {
-    await browser().open("/products");
+    // The category comes from the pills; the search form keeps it when it is submitted.
+    await browser().open("/products?category=mice");
     await browser().waitForText("Vortex Wireless Mouse");
     await browser().fillLabel("Search term", "wireless");
-    await browser().select("#catalog-search-category", "mice");
     await browser().click(`${SEARCH_FORM} button[type="submit"]`);
     await browser().waitForUrl("**/products?q=wireless&category=mice");
     await browser().waitForText('Results for "wireless" in Mice');
@@ -122,7 +122,6 @@ describe("storefront search and category filter (E01-S02)", () => {
       expect(main).not.toContain(other);
     // The form keeps its values after the submit.
     expect(await browser().value("#catalog-search-q")).toBe("wireless");
-    expect(await browser().value("#catalog-search-category")).toBe("mice");
 
     // The same term in another category matches nothing; "Clear search" keeps the category.
     await browser().open("/products?category=mousepads&q=wireless");

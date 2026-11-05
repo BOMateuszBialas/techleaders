@@ -30,6 +30,8 @@ export type CatalogProductRecord = {
   currency: CurrencyCode;
   stockQuantity: number;
   imageUrl: string | null;
+  /** Further photos after `imageUrl`, for the gallery's thumbnails (empty when there are none). */
+  additionalImageUrls: string[];
   /** Stored as jsonb; the core read mapper validates the shape before it reaches a shopper. */
   technicalSpecs: TechnicalSpec[];
   status: ProductStatus;

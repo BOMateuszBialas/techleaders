@@ -61,7 +61,7 @@ export function FeaturedSlider({ category, products }: FeaturedSliderProps) {
   return (
     <FeaturedCarousel label="Featured products" count={products.length}>
       {products.map((product) => (
-        <li key={product.id} className="w-96 shrink-0">
+        <li key={product.id} className="featured-slide shrink-0">
           <ProductCard product={product} />
         </li>
       ))}

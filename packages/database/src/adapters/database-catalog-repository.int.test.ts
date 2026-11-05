@@ -196,7 +196,7 @@ describe("DatabaseCatalogRepository (PostgreSQL)", () => {
   it("searches descriptions and counts every match", async () => {
     const byDescription = await repository().findProducts({
       status: "published",
-      search: "hall-effect",
+      search: "favourite move",
       limit: 48,
     });
     expect(byDescription.items.map((product) => product.slug)).toEqual([
@@ -297,5 +297,15 @@ describe("DatabaseCatalogRepository (PostgreSQL)", () => {
     expect(await search("\\ edition")).toEqual(["int-wildcards"]);
     // An unescaped "%" would match "100% wool" here.
     expect(await search("100%wool")).toEqual([]);
+  });
+  it("returns a product's further photos: four copies of the demo photo, in the demo catalogue", async () => {
+    const product = await repository().findProductBySlug("vortex-wireless-mouse");
+    expect(product?.imageUrl).toBeTruthy();
+    expect(product?.additionalImageUrls).toEqual([
+      product?.imageUrl,
+      product?.imageUrl,
+      product?.imageUrl,
+      product?.imageUrl,
+    ]);
   });
 });

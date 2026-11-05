@@ -12,7 +12,7 @@ import { useBrowser } from "./support/browser-test";
 
 const TECHNICAL_PRODUCT = "vortex-wireless-mouse";
 const NO_PHOTO_PRODUCT = "pulse-ultralight-mouse";
-const NO_ROWS_PRODUCT = "arena-fight-stick";
+const NO_ROWS_PRODUCT = "qa-mousepad-xl";
 const SPECS = [
   { label: "Sensor", value: "Optical, 26,000 DPI" },
   { label: "Connection", value: "2.4 GHz wireless" },
@@ -104,7 +104,7 @@ describe("storefront product page (storefront v2, Phase 3)", () => {
   it("shows the gallery and the details side by side from 1024 px", async () => {
     await browser().setViewport(1280, 800);
     await browser().open(`/products/${TECHNICAL_PRODUCT}`);
-    await browser().waitForText("Wireless gaming mouse with a 26,000 DPI");
+    await browser().waitForText("The Vortex is a wireless gaming mouse");
 
     const layout = await readLayout();
     expect(layout.infoLeft).toBeGreaterThan(layout.galleryLeft);
@@ -115,7 +115,7 @@ describe("storefront product page (storefront v2, Phase 3)", () => {
   it("stacks the gallery above the details below 1024 px", async () => {
     await browser().setViewport(390, 844);
     await browser().open(`/products/${TECHNICAL_PRODUCT}`);
-    await browser().waitForText("Wireless gaming mouse with a 26,000 DPI");
+    await browser().waitForText("The Vortex is a wireless gaming mouse");
 
     const layout = await readLayout();
     expect(layout.infoTop).toBeGreaterThanOrEqual(layout.galleryBottom - 1);
@@ -126,7 +126,7 @@ describe("storefront product page (storefront v2, Phase 3)", () => {
   it("has no sideways scroll at 320 px", async () => {
     await browser().setViewport(320, 640);
     await browser().open(`/products/${TECHNICAL_PRODUCT}`);
-    await browser().waitForText("Wireless gaming mouse with a 26,000 DPI");
+    await browser().waitForText("The Vortex is a wireless gaming mouse");
 
     const layout = await readLayout();
     expect(layout.scrollWidth).toBe(320);
@@ -136,7 +136,7 @@ describe("storefront product page (storefront v2, Phase 3)", () => {
   it("switches tabs by click and by the arrow keys, showing the technical data and the labelled delivery text", async () => {
     await browser().setViewport(1280, 800);
     await browser().open(`/products/${TECHNICAL_PRODUCT}`);
-    await browser().waitForText("Wireless gaming mouse with a 26,000 DPI");
+    await browser().waitForText("The Vortex is a wireless gaming mouse");
 
     await browser().clickRole("tab", "Technical data");
     await browser().waitForText("Example values for the demo store.");
@@ -154,7 +154,7 @@ describe("storefront product page (storefront v2, Phase 3)", () => {
   it("shows the neutral line for a product without technical rows", async () => {
     await browser().setViewport(1280, 800);
     await browser().open(`/products/${NO_ROWS_PRODUCT}`);
-    await browser().waitForText("Arcade fight stick with a ball-top lever");
+    await browser().waitForText("QA Mousepad XL");
 
     await browser().clickRole("tab", "Technical data");
     await browser().waitForText("Technical data is not available for this product yet.");

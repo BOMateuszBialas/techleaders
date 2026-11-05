@@ -1,11 +1,10 @@
-import { IconLogout, IconUser } from "@tabler/icons-react";
+import { IconUser } from "@tabler/icons-react";
 import Link from "next/link";
 import { ACCOUNT_COPY } from "./account-copy";
 
 export type AccountHeaderLinkProps = {
   /** Whether a customer session was read for this request (spec A21, A24). */
   signedIn: boolean;
-  signOutAction: () => void | Promise<void>;
 };
 
 const CONTROL_CLASS =
@@ -14,11 +13,12 @@ const CONTROL_CLASS =
 const LABEL_CLASS = "sr-only sm:not-sr-only sm:whitespace-nowrap";
 
 /**
- * The storefront header's account entry (spec A21): "Sign in" for a signed-out shopper (also
- * when the session read failed, A24), or "My orders" plus "Sign out". Rendered at request time
- * inside `<Suspense>`, never inside `use cache` (A23).
+ * The storefront header's account entry (spec A21): one control, "Sign in" for a signed-out
+ * shopper (also when the session read failed, A24), or "My orders" for a signed-in one. Sign out
+ * lives on the orders page, so the header keeps one control. Rendered at request time inside
+ * `<Suspense>`, never inside `use cache` (A23).
  */
-export function AccountHeaderLink({ signedIn, signOutAction }: AccountHeaderLinkProps) {
+export function AccountHeaderLink({ signedIn }: AccountHeaderLinkProps) {
   if (!signedIn) {
     return (
       <Link href="/account/sign-in" className={CONTROL_CLASS}>
@@ -28,17 +28,9 @@ export function AccountHeaderLink({ signedIn, signOutAction }: AccountHeaderLink
     );
   }
   return (
-    <div className="flex items-center gap-2">
-      <Link href="/account/orders" className={CONTROL_CLASS}>
-        <IconUser aria-hidden="true" className="size-4" />
-        <span className={LABEL_CLASS}>{ACCOUNT_COPY.myOrders}</span>
-      </Link>
-      <form action={signOutAction}>
-        <button type="submit" className={CONTROL_CLASS}>
-          <IconLogout aria-hidden="true" className="size-4" />
-          <span className={LABEL_CLASS}>{ACCOUNT_COPY.signOut}</span>
-        </button>
-      </form>
-    </div>
+    <Link href="/account/orders" className={CONTROL_CLASS}>
+      <IconUser aria-hidden="true" className="size-4" />
+      <span className={LABEL_CLASS}>{ACCOUNT_COPY.myOrders}</span>
+    </Link>
   );
 }

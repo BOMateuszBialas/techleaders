@@ -16,6 +16,8 @@ export const PRODUCT_NAME_MAX_LENGTH = 200;
 export const PRODUCT_DESCRIPTION_MAX_LENGTH = 5000;
 export const PRODUCT_SKU_MAX_LENGTH = 64;
 export const PRODUCT_IMAGE_URL_MAX_LENGTH = 2048;
+/** Further photos per product, shown as thumbnails on the product page (storefront gallery). */
+export const PRODUCT_ADDITIONAL_IMAGES_MAX = 8;
 
 export const PRICE_EMPTY_MESSAGE = "Enter a price.";
 export const PRICE_FORMAT_MESSAGE =
@@ -103,6 +105,25 @@ const productFieldsSchema = z.object({
     .default("")
     .refine((value) => value === "" || isAllowedImageUrl(value), IMAGE_URL_MESSAGE)
     .transform((value) => value || null),
+  /** One address per line; blank lines are dropped. */
+  additionalImageUrls: z
+    .string()
+    .default("")
+    .transform((value) =>
+      value
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter((line) => line !== ""),
+    )
+    .refine(
+      (urls) => urls.length <= PRODUCT_ADDITIONAL_IMAGES_MAX,
+      `Use at most ${PRODUCT_ADDITIONAL_IMAGES_MAX} additional photos.`,
+    )
+    .refine(
+      (urls) =>
+        urls.every((url) => url.length <= PRODUCT_IMAGE_URL_MAX_LENGTH && isAllowedImageUrl(url)),
+      IMAGE_URL_MESSAGE,
+    ),
   featured: checkboxSchema,
 });
 
@@ -124,6 +145,7 @@ function toProductWrite(fields: ProductFields, slug: string): ProductWrite {
     sku: fields.sku,
     categoryId: fields.categoryId,
     imageUrl: fields.imageUrl,
+    additionalImageUrls: fields.additionalImageUrls,
     featured: fields.featured,
   };
 }

@@ -1,5 +1,6 @@
 import { ACCOUNT_COPY, CUSTOMER_SIGN_IN_FROM_CHECKOUT } from "@/components/account/account-copy";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -26,6 +27,8 @@ export type CheckoutFormContext = {
   expectedTotalMinor: number;
   /** The mode this request's session read gave (E07 spec A24). */
   mode: CheckoutMode;
+  /** The order summary, shown in the right column above the button (its items and totals). */
+  summary?: ReactNode;
 };
 
 export type CheckoutFormViewProps = CheckoutFormContext & {
@@ -112,6 +115,7 @@ export function CheckoutFormView({
   cartFingerprint,
   expectedTotalMinor,
   mode: pageMode,
+  summary,
 }: CheckoutFormViewProps) {
   const mode = shownCheckoutMode(pageMode, state);
   const sessionLost = state.code === CHECKOUT_SESSION_LOST;
@@ -120,49 +124,59 @@ export function CheckoutFormView({
   const stored: Record<string, string> =
     mode.kind === "account" ? { customerEmail: mode.email } : {};
   return (
-    <form action={action} noValidate className="flex flex-col gap-4">
-      <input type="hidden" name="idempotencyKey" value={idempotencyKey} />
-      <input type="hidden" name="cartFingerprint" value={cartFingerprint} />
-      <input type="hidden" name="expectedTotalMinor" value={String(expectedTotalMinor)} />
-      <input type="hidden" name="shippingCountry" value="PL" />
-      <input type="hidden" name={CHECKOUT_AS_FIELD} value={mode.kind} />
-      {FIELDS.map((field) => {
-        const id = `checkout-${field.name}`;
-        const errorId = `${id}-error`;
-        return (
-          <Field key={field.name}>
-            <FieldLabel htmlFor={id} optional={field.optional}>
-              {field.label}
-            </FieldLabel>
-            <Input
-              id={id}
-              name={field.name}
-              type={field.type ?? "text"}
-              autoComplete={field.autoComplete}
-              required={!field.optional}
-              defaultValue={fieldDefault(state, field.name, stored[field.name])}
-              {...fieldA11y(errorId, errors[field.name])}
-            />
-            <FieldError id={errorId}>{errors[field.name]?.join(" ")}</FieldError>
-          </Field>
-        );
-      })}
-      <p className="text-sm">
-        Country: <span className="font-medium">{SHIPPING_COUNTRY_NAME}</span>
-      </p>
-      {sessionLost || state.status !== "error" ? null : (
-        <Alert variant="destructive" role="alert">
-          <AlertDescription>{state.message}</AlertDescription>
-        </Alert>
-      )}
-      {isConflict ? (
-        <TextLink href="/cart" variant="standalone">
-          {REVIEW_CART_LINK}
-        </TextLink>
-      ) : null}
-      <CheckoutModeLine mode={mode} />
-      <div>
-        <Button type="submit" variant="action" disabled={pending} aria-busy={pending}>
+    <form action={action} noValidate className="grid gap-8 md:grid-cols-checkout">
+      <div className="flex flex-col gap-4">
+        <input type="hidden" name="idempotencyKey" value={idempotencyKey} />
+        <input type="hidden" name="cartFingerprint" value={cartFingerprint} />
+        <input type="hidden" name="expectedTotalMinor" value={String(expectedTotalMinor)} />
+        <input type="hidden" name="shippingCountry" value="PL" />
+        <input type="hidden" name={CHECKOUT_AS_FIELD} value={mode.kind} />
+        {FIELDS.map((field) => {
+          const id = `checkout-${field.name}`;
+          const errorId = `${id}-error`;
+          return (
+            <Field key={field.name}>
+              <FieldLabel htmlFor={id} optional={field.optional}>
+                {field.label}
+              </FieldLabel>
+              <Input
+                id={id}
+                name={field.name}
+                type={field.type ?? "text"}
+                autoComplete={field.autoComplete}
+                required={!field.optional}
+                defaultValue={fieldDefault(state, field.name, stored[field.name])}
+                {...fieldA11y(errorId, errors[field.name])}
+              />
+              <FieldError id={errorId}>{errors[field.name]?.join(" ")}</FieldError>
+            </Field>
+          );
+        })}
+        <p className="text-sm">
+          Country: <span className="font-medium">{SHIPPING_COUNTRY_NAME}</span>
+        </p>
+        {sessionLost || state.status !== "error" ? null : (
+          <Alert variant="destructive" role="alert">
+            <AlertDescription>{state.message}</AlertDescription>
+          </Alert>
+        )}
+        {isConflict ? (
+          <TextLink href="/cart" variant="standalone">
+            {REVIEW_CART_LINK}
+          </TextLink>
+        ) : null}
+        <CheckoutModeLine mode={mode} />
+      </div>
+      <div className="flex flex-col gap-4 self-start">
+        {summary}
+        <Button
+          type="submit"
+          variant="action"
+          size="lg"
+          className="w-full"
+          disabled={pending}
+          aria-busy={pending}
+        >
           {pending ? PLACING_ORDER : PLACE_ORDER_BUTTON}
         </Button>
       </div>

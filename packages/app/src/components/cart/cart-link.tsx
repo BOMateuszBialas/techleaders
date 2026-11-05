@@ -20,9 +20,15 @@ export function CartLink({ itemCount }: { itemCount: number | null }) {
       href="/cart"
       onClick={drawer ? openDrawerOnPlainClick(drawer.dispatch) : undefined}
       aria-label={itemCount === null ? "Cart" : cartLinkLabel(itemCount)}
-      className={buttonVariants({ variant: "outline", size: "sm", className: "gap-1.5" })}
+      className={buttonVariants({
+        variant: "outline",
+        size: "sm",
+        className: "gap-1.5 px-2.5 sm:px-3",
+      })}
     >
-      <IconShoppingCart aria-hidden="true" className="size-4" /> Cart
+      <IconShoppingCart aria-hidden="true" className="size-4" />
+      {/* On a phone the icon and the count stand alone; the name stays for screen readers. */}
+      <span className="hidden sm:inline">Cart</span>
       {itemCount === null ? null : (
         <span
           data-testid="cart-count"

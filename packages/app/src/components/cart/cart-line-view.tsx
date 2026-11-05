@@ -1,12 +1,13 @@
 import Link from "next/link";
-import { CART_LIMITS, formatMoney, type PricedCartLine } from "@commerceos/core";
+import { IconMinus, IconPlus, IconTrash } from "@tabler/icons-react";
+import { formatMoney, type PricedCartLine } from "@commerceos/core";
+import { ProductThumbnail } from "@/components/catalog/product-thumbnail";
 import { Button } from "@/components/ui/button";
-import { Field, FieldError, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import { IDLE_ACTION_STATE, fieldDefault, type ActionState } from "@/lib/action-state";
-import { fieldA11y } from "@/lib/field-a11y";
+import { FieldError } from "@/components/ui/field";
+import { IDLE_ACTION_STATE, type ActionState } from "@/lib/action-state";
 import { CartFormMessage } from "./cart-form-message";
-import { QUANTITY_LABEL, REMOVE_BUTTON, UPDATE_BUTTON } from "./cart-copy";
+import { REMOVE_BUTTON } from "./cart-copy";
+import { QuantityStepperView } from "./quantity-stepper-view";
 
 type FormProps = {
   action: (formData: FormData) => void;
@@ -22,7 +23,7 @@ export type CartLineViewProps = {
 
 /**
  * The one message a line shows: a failed remove, else the update's result. An update refused
- * with a field error shows it under the input only, not twice.
+ * with a field error shows it under the quantity only, not twice.
  */
 export function lineMessage(update: ActionState, remove: ActionState): ActionState {
   if (remove.status === "error") return remove;
@@ -31,71 +32,81 @@ export function lineMessage(update: ActionState, remove: ActionState): ActionSta
 }
 
 /**
- * One cart line in one given state (cart spec, UI/UX "/cart"): name, unit price, a quantity
- * form (1–99), the line total and a remove button. Prices come from the server's catalog
- * read, never from the cookie. No hooks: `CartLineItem` connects both forms to
- * `useActionState`.
+ * One cart line on the cart page (cart spec, UI/UX "/cart"): the photo and the name with the unit
+ * price on the left; on the right, in one line, the quantity ("−" and "+", the same control as the
+ * drawer), the line total and the trash button. Prices come from the server's catalog read, never
+ * from the cookie. No hooks: `CartLineItem` connects both forms to `useActionState`.
  */
 export function CartLineView({ line, update, remove }: CartLineViewProps) {
   const errors = update.state.fieldErrors ?? {};
-  const inputId = `cart-quantity-${line.productId}`;
-  const errorId = `${inputId}-error`;
+  const errorId = `cart-quantity-${line.productId}-error`;
   return (
-    <li className="flex flex-col gap-3 py-4 sm:flex-row sm:items-start sm:justify-between">
-      <div className="flex flex-col gap-1">
-        <Link href={`/products/${line.slug}`} className="font-medium hover:underline">
-          {line.name}
-        </Link>
-        <p className="text-sm text-muted-foreground">{formatMoney(line.unitPrice)} each</p>
+    <li className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex items-start gap-3">
+        <ProductThumbnail imageUrl={line.imageUrl} name={line.name} widthClassName="w-20" />
+        <div className="flex flex-col gap-1">
+          <Link href={`/products/${line.slug}`} className="font-medium hover:underline">
+            {line.name}
+          </Link>
+          <p className="text-sm text-muted-foreground">{formatMoney(line.unitPrice)} each</p>
+        </div>
       </div>
-      <div className="flex flex-col gap-2 sm:items-end">
-        {/* Remounted when the stored quantity changes, so the input starts from it. */}
-        <form
-          key={line.quantity}
-          action={update.action}
-          noValidate
-          className="flex items-end gap-2"
-        >
-          <input type="hidden" name="productId" value={line.productId} />
-          <Field className="w-auto">
-            <FieldLabel htmlFor={inputId}>
-              {QUANTITY_LABEL}
-              <span className="sr-only"> of {line.name}</span>
-            </FieldLabel>
-            <Input
-              id={inputId}
-              name="quantity"
-              type="number"
-              inputMode="numeric"
-              min={1}
-              max={CART_LIMITS.maxQuantity}
-              step={1}
-              defaultValue={fieldDefault(update.state, "quantity", String(line.quantity))}
-              className="w-20"
-              {...fieldA11y(errorId, errors.quantity)}
-            />
-          </Field>
-          <Button type="submit" variant="outline" disabled={update.pending}>
-            {UPDATE_BUTTON}
-          </Button>
-        </form>
+      <div className="flex flex-col items-end gap-2">
+        <QuantityStepperView
+          label={`Quantity of ${line.name}`}
+          quantity={line.quantity}
+          decrease={
+            <form action={update.action}>
+              <input type="hidden" name="productId" value={line.productId} />
+              <input type="hidden" name="quantity" value={line.quantity - 1} />
+              <Button
+                type="submit"
+                variant="ghost"
+                size="icon-sm"
+                aria-label={`Decrease quantity of ${line.name}`}
+                disabled={line.quantity <= 1 || update.pending}
+              >
+                <IconMinus aria-hidden="true" />
+              </Button>
+            </form>
+          }
+          increase={
+            <form action={update.action}>
+              <input type="hidden" name="productId" value={line.productId} />
+              <input type="hidden" name="quantity" value={line.quantity + 1} />
+              <Button
+                type="submit"
+                variant="ghost"
+                size="icon-sm"
+                aria-label={`Increase quantity of ${line.name}`}
+                disabled={update.pending}
+              >
+                <IconPlus aria-hidden="true" />
+              </Button>
+            </form>
+          }
+        />
+        <div className="flex items-center gap-2">
+          <p className="font-semibold tabular-nums" data-testid="line-total">
+            {formatMoney(line.lineTotal)}
+          </p>
+          <form action={remove.action}>
+            <input type="hidden" name="productId" value={line.productId} />
+            <Button
+              type="submit"
+              variant="ghost"
+              size="icon"
+              className="size-11 text-foreground"
+              disabled={remove.pending}
+              aria-label={`${REMOVE_BUTTON} ${line.name}`}
+              title={REMOVE_BUTTON}
+            >
+              <IconTrash aria-hidden="true" />
+            </Button>
+          </form>
+        </div>
         <FieldError id={errorId}>{errors.quantity?.join(" ")}</FieldError>
         <CartFormMessage state={lineMessage(update.state, remove.state)} />
-        <p className="font-semibold" data-testid="line-total">
-          {formatMoney(line.lineTotal)}
-        </p>
-        <form action={remove.action}>
-          <input type="hidden" name="productId" value={line.productId} />
-          <Button
-            type="submit"
-            variant="link"
-            size="sm"
-            disabled={remove.pending}
-            aria-label={`${REMOVE_BUTTON} ${line.name}`}
-          >
-            {REMOVE_BUTTON}
-          </Button>
-        </form>
       </div>
     </li>
   );

@@ -1,18 +1,11 @@
 import type { ComponentProps } from "react";
-import { CART_LIMITS } from "@commerceos/core";
+import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { fieldDefault, type ActionState } from "@/lib/action-state";
-import { fieldA11y } from "@/lib/field-a11y";
 import { CartFormMessage } from "./cart-form-message";
-import {
-  ADD_TO_CART_BUTTON,
-  ADDING_TO_CART,
-  OUT_OF_STOCK_BUTTON,
-  QUANTITY_LABEL,
-} from "./cart-copy";
+import { QuantityStepper } from "./quantity-stepper";
+import { ADD_TO_CART_BUTTON, ADDING_TO_CART, OUT_OF_STOCK_BUTTON } from "./cart-copy";
 
 export type AddToCartViewProps = {
   action: (formData: FormData) => void;
@@ -60,41 +53,35 @@ export function AddToCartView({
     );
   }
   const errors = state.fieldErrors ?? {};
-  const inputId = `quantity-${productId}`;
-  const errorId = `${inputId}-error`;
+  const errorId = `quantity-${productId}-error`;
+  const initialQuantity = Number(fieldDefault(state, "quantity", "1"));
+  const submit = (
+    <Button
+      type="submit"
+      variant={variant}
+      size={size}
+      disabled={pending}
+      aria-busy={pending}
+      className={cn(fill && "w-full", withQuantity && "flex-1")}
+    >
+      {pending ? ADDING_TO_CART : ADD_TO_CART_BUTTON}
+    </Button>
+  );
   return (
     <form action={action} noValidate className="flex flex-col gap-2">
       <input type="hidden" name="productId" value={productId} />
       {withQuantity ? (
         <div className="flex flex-col gap-2">
-          <Label htmlFor={inputId}>{QUANTITY_LABEL}</Label>
-          <Input
-            id={inputId}
-            name="quantity"
-            type="number"
-            inputMode="numeric"
-            min={1}
-            max={CART_LIMITS.maxQuantity}
-            step={1}
-            defaultValue={fieldDefault(state, "quantity", "1")}
-            className="w-24"
-            {...fieldA11y(errorId, errors.quantity)}
-          />
+          {/* The quantity and the button share one line; the error sits under both. */}
+          <div className="flex items-center gap-3">
+            <QuantityStepper key={initialQuantity} initial={initialQuantity} />
+            {submit}
+          </div>
           <FieldError id={errorId}>{errors.quantity?.join(" ")}</FieldError>
         </div>
-      ) : null}
-      <div>
-        <Button
-          type="submit"
-          variant={variant}
-          size={size}
-          disabled={pending}
-          aria-busy={pending}
-          className={fill ? "w-full" : undefined}
-        >
-          {pending ? ADDING_TO_CART : ADD_TO_CART_BUTTON}
-        </Button>
-      </div>
+      ) : (
+        <div>{submit}</div>
+      )}
       <CartFormMessage state={state} />
     </form>
   );

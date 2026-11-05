@@ -18,6 +18,11 @@ export const ProductSchema = defineEntity({
     stockQuantity: p.integer().default(0).check("stock_quantity >= 0"),
     imageUrl: p.string().length(2048).nullable(),
     /**
+     * Further photos of the product, shown as thumbnails after `imageUrl` (storefront gallery).
+     * The admin does not edit them yet; the seeder and a one-off migration fill them for the demo.
+     */
+    additionalImageUrls: p.json<string[]>().defaultRaw("'[]'"),
+    /**
      * Technical data rows `{ label, value }` (storefront v2 spec, Phase 3, Q10). The database
      * checks only the type; the shape (at most 12 rows, label and value lengths) is the core
      * schema `technicalSpecsSchema`. Set by the seeder for the products it creates only.

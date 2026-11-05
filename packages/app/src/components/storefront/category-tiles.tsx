@@ -23,7 +23,7 @@ export function CategoryTiles({ categories }: { categories: readonly CategoryCou
         <p className="text-muted-foreground">Browse the store by what you are looking for.</p>
       </div>
       <div className="relative left-1/2 w-screen -translate-x-1/2">
-        <ul className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5">
+        <ul className="featured-track flex snap-x overflow-x-auto scroll-px-4 px-4 md:grid md:scroll-px-0 md:grid-cols-4 md:px-0 xl:grid-cols-5">
           {categories.map((category) => (
             <CategoryTile key={category.slug} category={category} />
           ))}
@@ -36,7 +36,7 @@ export function CategoryTiles({ categories }: { categories: readonly CategoryCou
 function CategoryTile({ category }: { category: CategoryCount }) {
   const src = photoSrc(category.imageUrl);
   return (
-    <li>
+    <li className="w-full shrink-0 snap-start sm:w-1/2 md:w-auto">
       <Link
         href={productsHref(category.slug)}
         className="group relative block aspect-4/5 overflow-hidden bg-muted"

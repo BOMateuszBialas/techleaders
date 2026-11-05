@@ -26,6 +26,7 @@ const PRODUCT_FIELDS = [
   "sku",
   "categoryId",
   "imageUrl",
+  "additionalImageUrls",
   "featured",
 ];
 /** Status and stock are set only when a product is created (spec A14). */

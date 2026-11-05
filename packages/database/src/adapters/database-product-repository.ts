@@ -21,6 +21,7 @@ function toRecord(product: Product): AdminProductRecord {
     sku: product.sku ?? null,
     stockQuantity: product.stockQuantity,
     imageUrl: product.imageUrl ?? null,
+    additionalImageUrls: product.additionalImageUrls,
     status: product.status,
     featured: product.featured,
     category: category ? { id: category.id, slug: category.slug, name: category.name } : null,

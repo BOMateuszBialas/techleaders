@@ -52,6 +52,7 @@ describe("DatabaseProductRepository (PostgreSQL)", () => {
       sku: "DEMO-MOU-009",
       categoryId: null,
       imageUrl: null,
+      additionalImageUrls: [],
       featured: false,
       status: "draft",
       stockQuantity: 5,

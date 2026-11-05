@@ -1,8 +1,11 @@
 /** View logic of the product gallery (storefront v2, Phase 3, Q9). No React here. */
 
-/** The gallery shows one image now; thumbnails appear from two images (Q9). */
-export function galleryImageUrls(imageUrl: string | null): string[] {
-  return imageUrl ? [imageUrl] : [];
+/**
+ * The gallery's photos in order: the main image, then the further ones. An empty main image is
+ * skipped, so a product without a photo shows none. Thumbnails appear from two images (Q9).
+ */
+export function galleryImageUrls(imageUrl: string | null, additionalImageUrls: string[]): string[] {
+  return imageUrl ? [imageUrl, ...additionalImageUrls] : [];
 }
 
 /** Thumbnails are a row of buttons only for two or more images. */
@@ -39,4 +42,9 @@ export function nextThumbnailIndex(
     default:
       return null;
   }
+}
+
+/** The photo before or after the active one, wrapping at both ends (the arrows of the gallery). */
+export function stepThumbnail(current: number, imageCount: number, step: 1 | -1): number {
+  return (current + step + imageCount) % imageCount;
 }

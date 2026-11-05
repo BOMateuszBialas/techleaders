@@ -44,6 +44,7 @@ describe("DatabaseProductImportRepository (PostgreSQL)", () => {
       sku: "IMP-001",
       categoryId: null,
       imageUrl: null,
+      additionalImageUrls: [],
       featured: false,
       status: "draft",
       stockQuantity: 7,

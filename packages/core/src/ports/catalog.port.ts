@@ -52,6 +52,7 @@ export type AdminProductRecord = {
   sku: string | null;
   stockQuantity: number;
   imageUrl: string | null;
+  additionalImageUrls: string[];
   status: ProductStatus;
   /** Shown in the home page's featured slider when published (storefront spec G9). */
   featured: boolean;
@@ -67,6 +68,7 @@ export type ProductWrite = {
   sku: string | null;
   categoryId: string | null;
   imageUrl: string | null;
+  additionalImageUrls: string[];
   featured: boolean;
 };
 

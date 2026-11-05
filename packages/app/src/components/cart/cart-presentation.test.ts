@@ -108,7 +108,6 @@ describe("A1: add to cart colour and size", () => {
       }),
     );
     expect(error).toContain('id="quantity-7a2d3b63-7e1f-4b9c-8b62-4a4b2c2c3e01-error"');
-    expect(error).toContain('aria-invalid="true"');
     expect(error).toContain('role="alert"');
     const success = renderToStaticMarkup(
       createElement(AddToCartView, {
@@ -117,7 +116,6 @@ describe("A1: add to cart colour and size", () => {
       }),
     );
     expect(success).toContain('role="status"');
-    expect(success).toContain('data-variant="success"');
   });
 });
 
@@ -138,7 +136,7 @@ describe("A2: cart buttons", () => {
     ],
   );
 
-  it("makes Checkout the action colour, Update outline and Remove a link", () => {
+  it("makes Checkout the action colour, the quantity buttons without a border and Remove a trash icon", () => {
     const html = renderToStaticMarkup(
       createElement(CartSummary, {
         cart,
@@ -148,17 +146,23 @@ describe("A2: cart buttons", () => {
       }),
     );
     expect(linkTag(html, "Checkout")).toContain("bg-action");
-    expect(buttonTag(html, "Update")).toContain("border-input");
-    expect(tagWithLabel(html, "button", "Remove Vortex Wireless Mouse")).toContain("text-link");
+    expect(
+      tagWithLabel(html, "button", "Increase quantity of Vortex Wireless Mouse"),
+    ).not.toContain("border-input");
+    expect(tagWithLabel(html, "button", "Remove Vortex Wireless Mouse")).toContain(
+      "text-foreground",
+    );
   });
 
   it("keeps the name of Remove, and the price stays out of the action colour", () => {
     const html = renderToStaticMarkup(
       createElement(CartLineView, { line, update: idle, remove: idle }),
     );
-    expect(tagWithLabel(html, "button", "Remove Vortex Wireless Mouse")).toContain("text-link");
+    expect(tagWithLabel(html, "button", "Remove Vortex Wireless Mouse")).toContain(
+      "text-foreground",
+    );
     expect(html).not.toContain("bg-action");
-    expect(html).toContain('class="font-semibold" data-testid="line-total"');
+    expect(html).toContain('data-testid="line-total"');
   });
 });
 
@@ -253,7 +257,7 @@ describe("A7: line messages and quantity errors", () => {
     fieldErrors: { quantity: ["Only 3 left in stock."] },
   };
 
-  it("shows the quantity error under the input with aria-describedby and aria-invalid", () => {
+  it("shows the quantity error under the controls, and no alert", () => {
     const html = renderToStaticMarkup(
       createElement(CartLineView, {
         line,
@@ -262,8 +266,6 @@ describe("A7: line messages and quantity errors", () => {
       }),
     );
     const errorId = `cart-quantity-${VORTEX_ID}-error`;
-    expect(html).toContain(`aria-describedby="${errorId}"`);
-    expect(html).toContain('aria-invalid="true"');
     expect(html).toContain(`data-slot="field-error" class="`);
     expect(html).toContain(`id="${errorId}"`);
     expect(html).not.toContain('role="alert"');

@@ -6,6 +6,7 @@ import {
   galleryImageUrls,
   nextThumbnailIndex,
   showsThumbnails,
+  stepThumbnail,
   thumbnailLabel,
 } from "./product-gallery-state";
 
@@ -48,11 +49,14 @@ function keyEvent(key: string) {
 }
 
 describe("product gallery view logic", () => {
-  it("shows the product's one image, or none", () => {
-    expect(galleryImageUrls("/demo/products/vortex-wireless-mouse.svg")).toEqual([
-      "/demo/products/vortex-wireless-mouse.svg",
+  it("lists the main image first, then the further ones, or none", () => {
+    expect(galleryImageUrls("/photos/a.jpg", ["/photos/b.jpg", "/photos/c.jpg"])).toEqual([
+      "/photos/a.jpg",
+      "/photos/b.jpg",
+      "/photos/c.jpg",
     ]);
-    expect(galleryImageUrls(null)).toEqual([]);
+    expect(galleryImageUrls("/photos/a.jpg", [])).toEqual(["/photos/a.jpg"]);
+    expect(galleryImageUrls(null, ["/photos/b.jpg"])).toEqual([]);
   });
 
   it("shows thumbnails only from two images", () => {
@@ -133,8 +137,9 @@ describe("ProductGallery", () => {
     expect(buttons).toHaveLength(2);
 
     const focus = vi.fn();
+    const scrollIntoView = vi.fn();
     for (const button of buttons) {
-      (button.props.ref as (element: unknown) => void)({ focus });
+      (button.props.ref as (element: unknown) => void)({ focus, scrollIntoView });
     }
     expect(hooks.refs.current).toHaveLength(2);
 
@@ -145,7 +150,10 @@ describe("ProductGallery", () => {
   it("moves to the next thumbnail with the arrow keys and focuses it", () => {
     const imageUrls = ["/demo/products/a.svg", "/demo/products/b.svg"];
     const focus = vi.fn();
-    hooks.refs.current = [{ focus: vi.fn() }, { focus }];
+    hooks.refs.current = [
+      { focus: vi.fn(), scrollIntoView: vi.fn() },
+      { focus, scrollIntoView: vi.fn() },
+    ];
     const group = elements(renderGallery(imageUrls)).find((el) => el.props.role === "group");
     const onKeyDown = group?.props.onKeyDown as (event: ReturnType<typeof keyEvent>) => void;
 
@@ -166,5 +174,31 @@ describe("ProductGallery", () => {
     onKeyDown(event);
     expect(event.preventDefault).not.toHaveBeenCalled();
     expect(hooks.setActive).not.toHaveBeenCalled();
+  });
+
+  it("steps to the next and previous photo with the arrows, wrapping at the ends", () => {
+    const imageUrls = ["/photos/a.jpg", "/photos/b.jpg", "/photos/c.jpg"];
+    const scrolls = imageUrls.map(() => vi.fn());
+    hooks.refs.current = scrolls.map((scrollIntoView) => ({ focus: vi.fn(), scrollIntoView }));
+    const arrow = (label: string) =>
+      elements(renderGallery(imageUrls)).find((el) => el.props["aria-label"] === label);
+
+    (arrow("Next image")?.props.onClick as () => void)();
+    expect(hooks.setActive).toHaveBeenLastCalledWith(1);
+    expect(scrolls[1]).toHaveBeenCalledWith({
+      block: "nearest",
+      inline: "nearest",
+    });
+
+    hooks.active = 0;
+    (arrow("Previous image")?.props.onClick as () => void)();
+    expect(hooks.setActive).toHaveBeenLastCalledWith(2);
+  });
+
+  it("wraps the step through the photos in both directions", () => {
+    expect(stepThumbnail(0, 3, 1)).toBe(1);
+    expect(stepThumbnail(2, 3, 1)).toBe(0);
+    expect(stepThumbnail(0, 3, -1)).toBe(2);
+    expect(stepThumbnail(1, 3, -1)).toBe(0);
   });
 });

@@ -2,8 +2,8 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { z } from "zod";
 import { ARTIFACTS_DIR, useBrowser } from "./support/browser-test";
 
-const TRIGGER = 'summary[data-slot="disclosure-trigger"]';
-const PHONE_LINK = 'details[data-slot="disclosure"] a[href="/products?category=mice"]';
+const TRIGGER = 'button[aria-label="Categories"]';
+const PHONE_LINK = '[role="dialog"] a[href="/products?category=mice"]';
 
 /**
  * The storefront header's category menu (P4, owner choice): below 768 px one "Categories" button

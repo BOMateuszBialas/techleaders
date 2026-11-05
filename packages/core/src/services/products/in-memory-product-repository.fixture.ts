@@ -27,6 +27,7 @@ export const VORTEX: AdminProductRecord = {
   sku: "DEMO-MOU-001",
   stockQuantity: 8,
   imageUrl: "/demo/products/vortex-wireless-mouse.svg",
+  additionalImageUrls: [],
   status: "published",
   featured: true,
   category: MICE_CATEGORY,

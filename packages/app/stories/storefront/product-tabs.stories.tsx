@@ -29,6 +29,7 @@ const DESCRIPTION = "Wireless gaming mouse with a 26,000 DPI sensor.\nTwo connec
 
 export const WithTechnicalData: TabsStory = {
   args: {
+    inStock: true,
     description: DESCRIPTION,
     technicalSpecs: [
       { label: "Sensor", value: "Optical, 26,000 DPI" },
@@ -54,7 +55,7 @@ export const WithTechnicalData: TabsStory = {
 };
 
 export const WithoutTechnicalData: TabsStory = {
-  args: { description: DESCRIPTION, technicalSpecs: [] },
+  args: { description: DESCRIPTION, technicalSpecs: [], inStock: false },
   play: async ({ canvas, userEvent }) => {
     await userEvent.click(canvas.getByRole("tab", { name: "Technical data" }));
     await expect(canvas.getByText(TECHNICAL_DATA_EMPTY)).toBeInTheDocument();

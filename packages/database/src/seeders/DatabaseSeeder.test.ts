@@ -80,8 +80,8 @@ describe("seedCatalog (insert-only, A18)", () => {
       featured: true,
       currency: "PLN",
       imageUrl: "/photos/product-mouse-black.jpg",
-      technicalSpecs: expect.arrayContaining([expect.objectContaining({ label: "Weight" })]),
-      description: expect.stringMatching(/^Wireless gaming mouse/),
+      technicalSpecs: expect.arrayContaining([expect.objectContaining({ label: "Sensor" })]),
+      description: expect.stringMatching(/^The Vortex is a wireless gaming mouse/),
     });
   });
 
@@ -141,6 +141,28 @@ describe("seedCatalog (insert-only, A18)", () => {
       featured: false,
       imageUrl: null,
       description: "Draft pad. Seed data for local development.",
+    });
+  });
+
+  it("keeps the technical rows a product was given when it has no demo content", async () => {
+    const [category] = DEMO_CATALOG.categories;
+    const given: SeedCatalog = {
+      categories: [category!],
+      products: [
+        {
+          slug: "given-pad",
+          name: "Given pad",
+          category: category!.slug,
+          priceMinor: 100,
+          stockQuantity: 1,
+          sku: "TEST-002",
+          technicalSpecs: [{ label: "Size", value: "Small" }],
+        },
+      ],
+    };
+    await seedCatalog(stub.em, given);
+    expect(stub.inserts[1]?.rows[0]).toMatchObject({
+      technicalSpecs: [{ label: "Size", value: "Small" }],
     });
   });
 

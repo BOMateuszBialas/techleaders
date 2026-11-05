@@ -55,6 +55,7 @@ describe("productInputSchema", () => {
       sku: "DEMO-MOU-009",
       categoryId: MICE_ID,
       imageUrl: "https://images.example.com/phantom.png",
+      additionalImageUrls: [],
       featured: true,
     });
   });
@@ -78,10 +79,33 @@ describe("productInputSchema", () => {
       sku: null,
       categoryId: null,
       imageUrl: null,
+      additionalImageUrls: [],
       featured: false,
     });
     expect(productInputSchema.parse({ name: "X", price: "1" }).featured).toBe(false);
     expect(productInputSchema.parse({ name: "X", price: "1", featured: true }).featured).toBe(true);
+  });
+
+  it("reads the additional photos one address per line, drops blank lines and checks each", () => {
+    const parsed = productInputSchema.parse({
+      ...valid,
+      additionalImageUrls: " https://img.example.com/1.png \r\n\r\nhttps://img.example.com/2.png\n",
+    });
+    expect(parsed.additionalImageUrls).toEqual([
+      "https://img.example.com/1.png",
+      "https://img.example.com/2.png",
+    ]);
+    expect(productInputSchema.parse(valid).additionalImageUrls).toEqual([]);
+    expect(editErrors({ ...valid, additionalImageUrls: "http://plain.example.com/x.png" })).toEqual(
+      { additionalImageUrls: [IMAGE_URL_MESSAGE] },
+    );
+    expect(
+      editErrors({ ...valid, additionalImageUrls: `https://x.test/${"a".repeat(2040)}` }),
+    ).toEqual({ additionalImageUrls: [IMAGE_URL_MESSAGE] });
+    const nine = Array.from({ length: 9 }, (_, index) => `https://img.example.com/${index}.png`);
+    expect(editErrors({ ...valid, additionalImageUrls: nine.join("\n") })).toEqual({
+      additionalImageUrls: ["Use at most 8 additional photos."],
+    });
   });
 
   it("never carries status or stock in an edit", () => {

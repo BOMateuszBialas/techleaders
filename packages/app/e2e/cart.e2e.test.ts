@@ -34,7 +34,9 @@ describe("storefront cart (E02-S01)", () => {
     expect(await browser().text(CART_LINK)).toMatch(/Cart\s*1/);
 
     await openCart();
-    expect(await browser().value('ul[aria-label="Cart items"] input[name="quantity"]')).toBe("1");
+    expect(await browser().text('output[aria-label="Quantity of Vortex Wireless Mouse"]')).toBe(
+      "1",
+    );
     expect(await browser().text('[data-testid="cart-subtotal"]')).toMatch(/249,00\s*zł/);
     expect(await browser().count('main a[href="/checkout"]')).toBe(1);
   });
@@ -43,13 +45,15 @@ describe("storefront cart (E02-S01)", () => {
     await addFromProductPage("vortex-wireless-mouse", "Vortex Wireless Mouse");
     await openCart();
 
-    await browser().fillLabel("Quantity of Vortex Wireless Mouse", "3");
-    await browser().clickRole("button", "Update");
+    // "+" and "−" submit the line at once, as in the cart drawer.
+    await browser().clickRole("button", "Increase quantity of Vortex Wireless Mouse");
     await browser().waitForText("Cart updated.");
+    await browser().clickRole("button", "Increase quantity of Vortex Wireless Mouse");
+    await browser().waitForText("747,00");
     expect(await browser().text('[data-testid="cart-subtotal"]')).toMatch(/747,00\s*zł/);
     expect(await browser().text(CART_LINK)).toMatch(/Cart\s*3/);
 
-    // Remove is a `<button>` styled as a link (retrofit Phase 1, B1.16): its role stays `button`.
+    // Remove is a trash button with the product name in its label; its role stays `button`.
     await browser().clickRole("button", "Remove Vortex Wireless Mouse");
     await browser().waitForText("Your cart is empty.");
     expect(await browser().text(CART_LINK)).toMatch(/Cart\s*0/);
@@ -58,15 +62,18 @@ describe("storefront cart (E02-S01)", () => {
   it("refuses a quantity above the stock with a clear message (AC3)", async () => {
     await browser().open("/products/pulse-ultralight-mouse");
     await browser().waitForText("Pulse Ultralight Mouse");
-    await browser().fillLabel("Quantity", "4");
+    for (let click = 0; click < 3; click++) {
+      await browser().clickRole("button", "Increase quantity");
+    }
     await browser().clickRole("button", "Add to cart");
     await browser().waitForText("Only 3 left in stock.");
     expect(await browser().text(CART_LINK)).not.toMatch(/Cart\s*4/);
 
     await addFromProductPage("pulse-ultralight-mouse", "Pulse Ultralight Mouse");
     await openCart();
-    await browser().fillLabel("Quantity of Pulse Ultralight Mouse", "4");
-    await browser().clickRole("button", "Update");
+    await browser().clickRole("button", "Increase quantity of Pulse Ultralight Mouse");
+    await browser().waitForText("189,00");
+    await browser().clickRole("button", "Increase quantity of Pulse Ultralight Mouse");
     await browser().waitForText("Only 3 left in stock.");
     expect(await browser().text('[data-testid="cart-subtotal"]')).toMatch(/189,00\s*zł/);
   });

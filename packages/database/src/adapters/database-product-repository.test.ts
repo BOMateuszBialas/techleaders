@@ -21,6 +21,7 @@ const vortex = {
   sku: "DEMO-MOU-001",
   stockQuantity: 8,
   imageUrl: "/demo/products/vortex-wireless-mouse.svg",
+  additionalImageUrls: [],
   status: "published",
   featured: true,
   category: { ...mice, description: "[DEMO] Gaming mice." },
@@ -35,6 +36,7 @@ const write: ProductWrite = {
   sku: null,
   categoryId: null,
   imageUrl: null,
+  additionalImageUrls: [],
   featured: false,
 };
 
@@ -102,6 +104,7 @@ describe("DatabaseProductRepository", () => {
       sku: null,
       category: mice.id,
       imageUrl: null,
+      additionalImageUrls: [],
       featured: false,
       status: "draft",
       stockQuantity: 0,
@@ -145,6 +148,7 @@ describe("DatabaseProductRepository", () => {
       sku: null,
       category: mice.id,
       imageUrl: null,
+      additionalImageUrls: [],
       featured: false,
     });
     expect(assigned).not.toHaveProperty("stockQuantity");

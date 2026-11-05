@@ -33,7 +33,10 @@ describe("storefront checkout (E02-S02)", () => {
   async function addVortex(quantity: string) {
     await browser().open("/products/vortex-wireless-mouse");
     await browser().waitForText("Vortex Wireless Mouse");
-    await browser().fillLabel("Quantity", quantity);
+    // The product page's quantity starts at 1; "+" adds one per click, as a shopper does.
+    for (let click = 1; click < Number(quantity); click++) {
+      await browser().clickRole("button", "Increase quantity");
+    }
     await browser().clickRole("button", "Add to cart");
     await browser().waitForText("Added to cart.");
   }

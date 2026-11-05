@@ -1,6 +1,6 @@
 import Link from "next/link";
+import { FadingStatus } from "./fading-status";
 import { formatMoney, type PricedCart } from "@commerceos/core";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { buttonVariants } from "@/components/ui/button";
 import { DrawerBody, DrawerFooter } from "@/components/ui/drawer";
 import { Empty, EmptyContent, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
@@ -23,6 +23,8 @@ export type CartDrawerViewProps = {
   cart: PricedCart | null;
   /** "Added to cart." after an add, shown here because the page behind is inert (spec A10). */
   notice: string | null;
+  /** Called when a link leaves the page (the drawer closes, so it is not left open). */
+  onNavigate?: () => void;
   updateAction: FormAction;
   removeAction: FormAction;
   acceptAction: (formData: FormData) => Promise<void>;
@@ -38,6 +40,7 @@ export type CartDrawerViewProps = {
 export function CartDrawerView({
   cart,
   notice,
+  onNavigate,
   updateAction,
   removeAction,
   acceptAction,
@@ -49,7 +52,11 @@ export function CartDrawerView({
           title={CART_UNAVAILABLE_TITLE}
           description={CART_UNAVAILABLE_MESSAGE}
           action={
-            <Link href="/cart" className={buttonVariants({ variant: "outline" })}>
+            <Link
+              href="/cart"
+              onClick={onNavigate}
+              className={buttonVariants({ variant: "outline" })}
+            >
               {VIEW_FULL_CART_LINK}
             </Link>
           }
@@ -60,11 +67,7 @@ export function CartDrawerView({
   return (
     <>
       <DrawerBody>
-        {notice ? (
-          <Alert variant="success" role="status">
-            <AlertDescription>{notice}</AlertDescription>
-          </Alert>
-        ) : null}
+        {notice ? <FadingStatus message={notice} token={notice} /> : null}
         {cart.changed ? <CartChanges notices={cart.notices} acceptAction={acceptAction} /> : null}
         {cart.subtotal === null ? (
           <Empty>
@@ -72,7 +75,11 @@ export function CartDrawerView({
               <EmptyTitle>{EMPTY_CART_MESSAGE}</EmptyTitle>
             </EmptyHeader>
             <EmptyContent>
-              <Link href="/products" className={buttonVariants({ variant: "outline" })}>
+              <Link
+                href="/products"
+                onClick={onNavigate}
+                className={buttonVariants({ variant: "outline" })}
+              >
                 {SHOP_ALL_PRODUCTS_LINK}
               </Link>
             </EmptyContent>
@@ -101,11 +108,19 @@ export function CartDrawerView({
           <p className="text-sm text-muted-foreground">{PRICES_CONFIRMED_NOTE}</p>
           {/* Closed while the stored cart still needs the correction above (as on /cart). */}
           {cart.changed ? null : (
-            <Link href="/checkout" className={buttonVariants({ variant: "action", size: "lg" })}>
+            <Link
+              href="/checkout"
+              onClick={onNavigate}
+              className={buttonVariants({ variant: "action", size: "lg" })}
+            >
               {CHECKOUT_LINK}
             </Link>
           )}
-          <Link href="/cart" className="w-fit text-sm underline underline-offset-4">
+          <Link
+            href="/cart"
+            onClick={onNavigate}
+            className="w-fit self-center text-sm underline underline-offset-4"
+          >
             {VIEW_FULL_CART_LINK}
           </Link>
         </DrawerFooter>

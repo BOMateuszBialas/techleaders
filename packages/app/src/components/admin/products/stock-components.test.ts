@@ -29,6 +29,7 @@ const adminProduct: AdminProduct = {
   sku: null,
   stockQuantity: 0,
   imageUrl: null,
+  additionalImageUrls: [],
   status: "published",
   featured: false,
   category: null,

@@ -63,34 +63,33 @@ describe("search copy", () => {
 });
 
 describe("CatalogSearchForm", () => {
-  it("is a GET search form to /products with a labelled term and category", () => {
+  it("is a GET search form to /products with one labelled term, and no category dropdown", () => {
     const html = renderToStaticMarkup(createElement(CatalogSearchForm, { categories }));
     expect(html).toMatch(/^<form role="search" aria-label="Search the catalog"/);
     expect(html).toMatch(/^<form[^>]* action="\/products" method="get">/);
     expect(html).toContain('for="catalog-search-q"');
     expect(html).toMatch(/id="catalog-search-q"[^>]*name="q"/);
     expect(html).toMatch(/maxLength="100"/);
-    expect(html).toContain('for="catalog-search-category"');
-    expect(html).toContain('<option value="" selected="">All categories</option>');
-    expect(html).toContain('<option value="mice">Mice</option>');
+    expect(html).not.toContain("<select");
+    expect(html).not.toContain('name="category"');
     expect(html).toContain('type="submit"');
     expect(html).not.toContain('aria-invalid="');
     expect(html).not.toContain(SEARCH_TOO_LONG_MESSAGE);
   });
 
-  it("keeps the submitted term and category", () => {
+  it("keeps the submitted term, and the current category as a hidden field", () => {
     const html = renderToStaticMarkup(
       createElement(CatalogSearchForm, { categories, search: "wireless", categorySlug: "mice" }),
     );
     expect(html).toContain('value="wireless"');
-    expect(html).toContain('<option value="mice" selected="">Mice</option>');
+    expect(html).toContain('<input type="hidden" name="category" value="mice"/>');
   });
 
-  it("falls back to all categories for an unknown slug", () => {
+  it("sends no category for an unknown slug", () => {
     const html = renderToStaticMarkup(
       createElement(CatalogSearchForm, { categories, categorySlug: "missing" }),
     );
-    expect(html).toContain('<option value="" selected="">All categories</option>');
+    expect(html).not.toContain('name="category"');
   });
 
   it("ties the too-long message to the input", () => {

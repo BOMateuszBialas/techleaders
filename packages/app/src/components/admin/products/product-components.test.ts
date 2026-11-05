@@ -36,6 +36,7 @@ const vortex: ProductFormProduct = {
   currency: "PLN",
   sku: "DEMO-MOU-001",
   imageUrl: "https://images.example.com/vortex.png",
+  additionalImageUrls: [],
   status: "published",
   featured: true,
   categoryId: "6f1c2a52-6d0e-4a8b-9a51-3f3a1c1b2d02",

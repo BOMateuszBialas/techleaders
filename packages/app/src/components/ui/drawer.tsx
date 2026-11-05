@@ -20,8 +20,17 @@ import { overlayBackdropClassName, overlayHeaderClassName } from "@/components/u
  */
 
 /** The side sheet surface: fixed to the right edge, full height, a 1 px left border. */
-const drawerPopupClassName =
+const drawerPopupRightClassName =
   "fixed inset-y-0 right-0 z-50 flex h-dvh w-full max-w-md flex-col gap-group overflow-hidden border-l border-border bg-popover p-panel text-popover-foreground shadow-overlay outline-none transition duration-(--duration-slow) ease-out motion-reduce:transition-none data-ending-style:translate-x-full data-ending-style:duration-(--duration-base) data-ending-style:ease-in data-starting-style:translate-x-full";
+
+/** The same sheet from the left edge (the storefront's phone menu). */
+const drawerPopupLeftClassName =
+  "fixed inset-y-0 left-0 z-50 flex h-dvh w-full max-w-md flex-col gap-group overflow-hidden border-r border-border bg-popover p-panel text-popover-foreground shadow-overlay outline-none transition duration-(--duration-slow) ease-out motion-reduce:transition-none data-ending-style:-translate-x-full data-ending-style:duration-(--duration-base) data-ending-style:ease-in data-starting-style:-translate-x-full";
+
+/** The class of the sheet for its side: right (the default) or left. */
+export function drawerPopupClassFor(side: "left" | "right"): string {
+  return side === "left" ? drawerPopupLeftClassName : drawerPopupRightClassName;
+}
 
 const drawerFooterClassName = "flex shrink-0 flex-col gap-related border-t border-border pt-panel";
 
@@ -41,10 +50,13 @@ function DrawerContent({
   className,
   children,
   showCloseButton = true,
+  side = "right",
   ...props
 }: DrawerPrimitive.Popup.Props & {
   /** The X in the corner. Keep it unless the drawer has another explicit way to close. */
   showCloseButton?: boolean;
+  /** The edge the sheet comes from: right (the cart) or left (the phone menu). */
+  side?: "left" | "right";
 }) {
   return (
     // No positioning viewport: the popup is fixed to the edges, so it is full width below sm.
@@ -53,7 +65,7 @@ function DrawerContent({
       <DrawerPrimitive.Popup
         data-slot="drawer-content"
         data-close-button={showCloseButton ? "" : undefined}
-        className={cn(drawerPopupClassName, "group/drawer", className)}
+        className={cn(drawerPopupClassFor(side), "group/drawer", className)}
         {...props}
       >
         {showCloseButton ? (

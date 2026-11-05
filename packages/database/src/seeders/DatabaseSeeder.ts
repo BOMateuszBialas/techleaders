@@ -13,6 +13,8 @@ import { ProductViewDailyStatSchema } from "../entities/traffic/product-view-dai
 import { TrafficDailyStatSchema } from "../entities/traffic/traffic-daily-stat.entity";
 import { generateDemoStore, type DemoStoreProduct } from "./demo-store";
 
+import { DEMO_PRODUCT_CONTENT } from "../demo/demo-product-content";
+
 /**
  * Local development / demo seed data: a fictional gaming-accessories store (decision D10) with
  * a fictional order history and traffic (orders spec Phase 2, E04-S03; D08). The machine markers
@@ -97,18 +99,6 @@ const demoCategories = [
   },
 ] as const;
 
-/**
- * Fictional technical rows of the Vortex mouse (storefront v2 Q10, AS-10). The same rows are
- * written by the one-off update `Migration20261026180000_demo_product_media` for existing rows.
- */
-const DEMO_MOUSE_TECHNICAL_SPECS: readonly TechnicalSpec[] = [
-  { label: "Switch type", value: "Optical-mechanical (fictional)" },
-  { label: "Connection", value: "2.4 GHz wireless and USB-C (fictional)" },
-  { label: "Weight", value: "65 g (fictional)" },
-  { label: "Dimensions", value: "118 × 62 × 38 mm (fictional)" },
-  { label: "Warranty", value: "24 months (fictional, AS-10)" },
-];
-
 const demoProducts = [
   {
     slug: "vortex-wireless-mouse",
@@ -121,7 +111,6 @@ const demoProducts = [
       "Wireless gaming mouse with a 26,000 DPI optical sensor, 70 hours of battery life and five programmable buttons.",
     featured: true,
     imageUrl: "/photos/product-mouse-black.jpg",
-    technicalSpecs: DEMO_MOUSE_TECHNICAL_SPECS,
   },
   {
     slug: "pulse-ultralight-mouse",
@@ -325,7 +314,12 @@ export async function seedCatalog(
         skipped.push(product.slug);
         return [];
       }
-      const text = description ?? `${product.name}. Seed data for local development.`;
+      // The longer demo content (description and technical rows) comes from one shared module.
+      const content = DEMO_PRODUCT_CONTENT.find(
+        (item) => item.slug === product.slug && item.sku === product.sku,
+      );
+      const text =
+        content?.description ?? description ?? `${product.name}. Seed data for local development.`;
       return [
         {
           ...product,
@@ -334,7 +328,12 @@ export async function seedCatalog(
           status: status ?? ("published" as const),
           featured: featured ?? false,
           imageUrl: imageUrl ?? null,
-          technicalSpecs: technicalSpecs ? [...technicalSpecs] : [],
+          additionalImageUrls: imageUrl ? [imageUrl, imageUrl, imageUrl, imageUrl] : [],
+          technicalSpecs: content
+            ? [...content.technicalSpecs]
+            : technicalSpecs
+              ? [...technicalSpecs]
+              : [],
           category: categoryId,
         },
       ];

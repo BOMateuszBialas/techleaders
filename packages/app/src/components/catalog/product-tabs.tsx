@@ -1,6 +1,6 @@
 import type { TechnicalSpec } from "@commerceos/core";
-import { EXAMPLE_DELIVERY_TEXT } from "@/components/storefront/storefront-content";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ProductDelivery } from "./product-delivery";
 import {
   PRODUCT_TABS_LABEL,
   TAB_DELIVERY,
@@ -11,15 +11,17 @@ import { ProductTechnicalData } from "./product-technical-data";
 
 /**
  * The product details under the price (storefront v2, Phase 3, D5): Description, Technical data
- * and Delivery and returns. The description is plain text (no HTML); the delivery text is the
- * labelled example (Q7, OA-5). Arrow keys and Home/End move between tabs (Base UI).
+ * and Delivery and returns. The description is plain text (no HTML) in paragraphs, a blank line
+ * between them. Arrow keys and Home/End move between tabs (Base UI).
  */
 export function ProductTabs({
   description,
   technicalSpecs,
+  inStock,
 }: {
   description: string;
   technicalSpecs: TechnicalSpec[];
+  inStock: boolean;
 }) {
   return (
     <Tabs defaultValue="description">
@@ -29,13 +31,19 @@ export function ProductTabs({
         <TabsTrigger value="delivery">{TAB_DELIVERY}</TabsTrigger>
       </TabsList>
       <TabsContent value="description" className="pt-related">
-        <p className="max-w-measure whitespace-pre-line">{description}</p>
+        <div className="flex max-w-measure flex-col gap-4">
+          {description.split("\n\n").map((paragraph, index) => (
+            <p key={index} className="whitespace-pre-line leading-relaxed">
+              {paragraph}
+            </p>
+          ))}
+        </div>
       </TabsContent>
       <TabsContent value="technical" className="pt-related">
         <ProductTechnicalData specs={technicalSpecs} />
       </TabsContent>
       <TabsContent value="delivery" className="pt-related">
-        <p className="max-w-measure">{EXAMPLE_DELIVERY_TEXT}</p>
+        <ProductDelivery inStock={inStock} />
       </TabsContent>
     </Tabs>
   );

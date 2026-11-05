@@ -159,6 +159,13 @@
   --raw-red-600: oklch(0.5 0.19 25);
   --raw-red-700: oklch(0.44 0.17 25);
   --raw-red-950: oklch(0.27 0.06 25);
+  --raw-violet-400: oklch(0.7 0.2 300);
+  --raw-violet-500: oklch(0.6 0.23 300);
+  --raw-violet-600: oklch(0.52 0.23 300);
+  --raw-violet-700: oklch(0.45 0.21 300);
+  --raw-fuchsia-400: oklch(0.72 0.23 330);
+  --raw-fuchsia-500: oklch(0.66 0.25 335);
+  --raw-fuchsia-600: oklch(0.6 0.25 340);
   --raw-green-50: oklch(0.96 0.04 150);
   --raw-green-300: oklch(0.78 0.13 150);
   --raw-green-700: oklch(0.46 0.11 150);
@@ -199,9 +206,9 @@
   --primary: var(--raw-gray-850); /* R04.2: neutral main action in admin, K7 */
   --primary-hover: var(--raw-gray-700); /* P7: states as colors, not opacity */
   --primary-foreground: var(--raw-gray-25);
-  --action: var(--raw-red-600); /* R03.1, K1: purchase actions only (rule 2) */
-  --action-hover: var(--raw-red-700); /* R03.1 + P7 */
-  --action-foreground: var(--raw-gray-25); /* R03.1: text #fbfbfb on the red */
+  --action: var(--raw-gray-900); /* R03.1, K1: purchase actions only (rule 2): black */
+  --action-hover: var(--raw-gray-700); /* R03.1 + P7 */
+  --action-foreground: var(--raw-gray-25); /* R03.1: text #fbfbfb on the black */
   --secondary: var(--raw-gray-150); /* R03, R04.1: secondary actions, neutral status badge */
   --secondary-hover: var(--raw-gray-200); /* stage 2 Q1: hover of the secondary button (P7) */
   --secondary-foreground: var(--raw-gray-850);
@@ -232,7 +239,9 @@
   --frame-border: var(--raw-gray-700);
   --frame-input: var(--raw-gray-550); /* WCAG 1.4.11 inside the frame */
   --frame-ring: var(--raw-gray-25);
-  --frame-accent: var(--raw-red-400); /* R03.1 + K7: brand mark only, never text on it (rule 3) */
+  --frame-accent: var(
+    --raw-fuchsia-400
+  ); /* R03.1 + K7: brand mark only, never text on it (rule 3) */
 
   /* Admin sidebar (R04.1); red only as the active marker (R04.2, K7) */
   --sidebar: var(--raw-gray-850);
@@ -240,7 +249,7 @@
   --sidebar-muted-foreground: var(--raw-gray-400);
   --sidebar-accent: var(--raw-gray-700);
   --sidebar-accent-foreground: var(--raw-gray-25);
-  --sidebar-primary: var(--raw-red-400);
+  --sidebar-primary: var(--raw-fuchsia-400);
   --sidebar-primary-foreground: var(--raw-gray-900);
   --sidebar-border: var(--raw-gray-700);
   --sidebar-ring: var(--raw-gray-25);
@@ -266,9 +275,11 @@
   --primary: var(--raw-gray-200);
   --primary-hover: var(--raw-gray-300);
   --primary-foreground: var(--raw-gray-900);
-  --action: var(--raw-red-500); /* 5.16:1 with its text: do not darken without recounting */
-  --action-hover: var(--raw-red-600);
-  --action-foreground: var(--raw-gray-25);
+  --action: var(
+    --raw-gray-100
+  ); /* dark mode: a light button with dark text (black on the light surface) */
+  --action-hover: var(--raw-gray-300);
+  --action-foreground: var(--raw-gray-900);
   --secondary: var(--raw-gray-800);
   --secondary-hover: var(--raw-gray-700);
   --secondary-foreground: var(--raw-gray-50);
@@ -296,14 +307,14 @@
   --frame-border: var(--raw-gray-700);
   --frame-input: var(--raw-gray-550);
   --frame-ring: var(--raw-gray-25);
-  --frame-accent: var(--raw-red-400);
+  --frame-accent: var(--raw-fuchsia-400);
 
   --sidebar: var(--raw-gray-950);
   --sidebar-foreground: var(--raw-gray-200);
   --sidebar-muted-foreground: var(--raw-gray-400);
   --sidebar-accent: var(--raw-gray-800);
   --sidebar-accent-foreground: var(--raw-gray-25);
-  --sidebar-primary: var(--raw-red-400);
+  --sidebar-primary: var(--raw-fuchsia-400);
   --sidebar-primary-foreground: var(--raw-gray-900);
   --sidebar-border: var(--raw-gray-700);
   --sidebar-ring: var(--raw-gray-25);
@@ -526,6 +537,21 @@
   * {
     @apply border-border outline-ring;
   }
+  /* Every control that acts on a click shows the pointer; disabled ones keep the default cursor. */
+  :where(
+    a,
+    button,
+    summary,
+    select,
+    label[for],
+    [role="button"],
+    input[type="button"],
+    input[type="submit"],
+    input[type="checkbox"],
+    input[type="radio"]
+  ):not(:disabled, [aria-disabled="true"]) {
+    cursor: pointer;
+  }
   html {
     @apply font-sans;
     color-scheme: light;
@@ -599,6 +625,11 @@
   object-position: 50% 68%;
 }
 
+/* A featured card: 24 rem on a wide screen, and never wider than the track (the phone width). */
+.featured-slide {
+  width: min(24rem, 100%);
+}
+
 /* Featured carousel track: the buttons and touch or trackpad scrolling replace the scrollbar. */
 .featured-track {
   scrollbar-width: none;
@@ -639,7 +670,8 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 0.5rem;
+  /* Search, account and cart are spaced evenly: the search-to-account gap equals account-to-cart. */
+  gap: 0.75rem;
 }
 /* The cart is the one filled control in the header, so it is found at a glance (its count is
    inverted against the fill). */
@@ -655,7 +687,8 @@
 .storefront-header .header-cart > a:hover {
   background-color: var(--primary-hover);
 }
-.storefront-header .header-cart > a > span {
+/* Only the count pill (not the "Cart" text, which is a span too) takes the inverted colours. */
+.storefront-header .header-cart > a > span[data-testid="cart-count"] {
   background-color: var(--background);
   color: var(--foreground);
 }
@@ -664,7 +697,7 @@
   .storefront-header {
     grid-template-columns: auto minmax(0, 1fr) auto auto;
     grid-template-areas:
-      "menu logo cart account"
+      "menu logo account cart"
       "search search search search";
     gap: 0.5rem;
   }
