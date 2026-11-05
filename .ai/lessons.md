@@ -6,8 +6,8 @@ Long-term memory for LLM agents: an index. Add an entry after fixing a bug, or w
 - **YYYY-MM-DD — Title**: what happened, the lesson / improvement, and (optional) link to `lessons/YYYY-MM-DD-slug.md`.
 
 ## Lessons
-
 <!-- Newest first -->
+- **2026-11-05 — Storefront layout and e2e: six lessons (sticky header, in-flow buttons, hydration waits, Suspense, copied migration data, short vs long copy)** — details in `lessons/2026-11-05-storefront-layout-and-e2e.md`.
 - **2026-11-03 — Storybook docs overflow can be its own layout, not our tables** — check `table-layout` and the generated props table before changing components (see `.ai/design/detector-l06.md`).
 - **2026-11-03 — A prototype screen needs its h1 in every state, not only the default: the h1 check fails on loading and error blocks too, so keep the heading above them** — prototype s08–s10, `.ai/prototypes/ds/evidence/account-screens.mjs`.
 
