@@ -147,13 +147,12 @@ describe("storefront home page (Phase 1b)", () => {
     await browser().waitForText("Vortex Wireless Mouse");
 
     const elements = Object.values((await browser().snapshot()).refs);
-    for (const name of ["Build your setup", "Audio for calls", "Low stock", "Shop by category"]) {
+    for (const name of ["Build your setup", "Audio for calls", "Keyboards", "Shop by category"]) {
       expect(elements).toContainEqual(expect.objectContaining({ role: "heading", name }));
     }
     const main = await browser().text("main");
-    expect(main).toContain("Mousepads for every desk setup.");
-    expect(main).toContain("Gaming headsets for PC and consoles.");
-    expect(main).toMatch(/: \d+ left/);
+    expect(main).toContain("Mousepads for every desk setup:");
+    expect(main).toContain("Gaming headsets for PC and consoles,");
     expect(main).toContain("Example policy: delivery in 1–3 working days, 14-day returns.");
 
     // Tiles omit a category with no published product (the [E2E] drafts-only and empty ones).
@@ -184,14 +183,14 @@ describe("storefront home page (Phase 1b)", () => {
     expect(new URL(await browser().url()).searchParams.get("category")).toBe("mousepads");
   });
 
-  it("lists best sellers by name only, from the seeded paid orders", async () => {
+  it("shows the full-width gaming video on the home page, with no demo banner", async () => {
     await browser().open("/");
     await browser().waitForText("Vortex Wireless Mouse");
 
-    const best = await browser().text('section[aria-labelledby="home-best"]');
-    expect(best).toContain("Best sellers");
-    expect(best).not.toMatch(/\d+\s*(units|sold|pcs)/i);
-    expect(best).not.toMatch(/demo/i);
+    const html = await browser().text("body");
+    expect(html).not.toMatch(/demo banner/i);
+    const video = await browser().evaluate("!!document.querySelector('video')");
+    expect(video).toBe(true);
   });
 
   it("has one h1 and no sideways scroll at 320 px (storefront v2, A30)", async () => {

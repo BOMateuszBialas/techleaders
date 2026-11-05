@@ -9,6 +9,7 @@ import { CartLink } from "@/components/cart/cart-link";
 import { FooterCategoryLinks, SiteFooter } from "@/components/storefront/site-footer";
 import { HeaderMenu } from "@/components/storefront/header-menu";
 import { HeaderSearch } from "@/components/storefront/header-search";
+import { StickyHeader } from "@/components/storefront/sticky-header";
 import { STORE_NAME } from "@/components/storefront/storefront-copy";
 import { readCartLines } from "@/server/cart/cart-cookie";
 import { acceptCartChanges, removeCartLine, updateCartLine } from "@/server/cart/cart.action";
@@ -28,27 +29,36 @@ export default function StorefrontLayout({ children }: LayoutProps<"/">) {
   return (
     <CartDrawerProvider>
       <div className="storefront-type flex flex-1 flex-col overflow-x-clip">
-        <header className="border-b">
-          <div className="mx-auto flex min-h-14 w-full max-w-(--storefront-width) flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2 sm:h-14 sm:flex-nowrap sm:py-0">
-            <Link href="/" className="font-semibold tracking-tight">
-              {STORE_NAME}
-            </Link>
-            {/* On a phone the actions take their own full-width row, so the cart stays in view; from
-              `sm` the header keeps one fixed-height row, so streamed menu links never shift the page. */}
-            <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto sm:flex-nowrap">
-              <HeaderSearch />
+        {/* The header is one grid (see `.storefront-header` in globals.css): the menu on the left, the
+            store name in the middle, and the cart, the account and the search on the right. On a phone
+            the search takes its own row under them. */}
+        <StickyHeader>
+          <div className="storefront-header mx-auto w-full max-w-(--storefront-width) px-4 py-3">
+            <div className="header-menu">
               <Suspense fallback={<HeaderMenu categories={[]} />}>
                 <LoadedHeaderMenu />
               </Suspense>
-              <Suspense fallback={<CartLink itemCount={null} />}>
-                <LoadedCartLink />
-              </Suspense>
-              <Suspense fallback={null}>
-                <LoadedAccountLink />
-              </Suspense>
+            </div>
+            <Link href="/" className="header-logo">
+              {STORE_NAME}
+            </Link>
+            <div className="header-actions">
+              <div className="header-search">
+                <HeaderSearch />
+              </div>
+              <div className="header-account">
+                <Suspense fallback={null}>
+                  <LoadedAccountLink />
+                </Suspense>
+              </div>
+              <div className="header-cart">
+                <Suspense fallback={<CartLink itemCount={null} />}>
+                  <LoadedCartLink />
+                </Suspense>
+              </div>
             </div>
           </div>
-        </header>
+        </StickyHeader>
         <main className="mx-auto flex w-full max-w-(--storefront-width) flex-1 flex-col gap-6 px-4 py-10">
           {children}
         </main>

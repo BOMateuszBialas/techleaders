@@ -32,7 +32,7 @@ export const PROMO_BANNERS: readonly PromoBanner[] = [
   {
     key: "build-your-setup",
     title: "Build your setup",
-    text: "Mousepads for every desk setup.",
+    text: "Mousepads for every desk setup: wide cloth pads for fast, precise mouse movements and glass pads that stay smooth and are easy to wipe clean. Pick the size that fits your desk and the surface your mouse likes best. Every pad shows its stock on the product page, so you can see before you order whether it is available now. Mousepads are the simplest upgrade to a desk, and a good one makes every mouse feel better from the first day.",
     cta: "Browse desk gear",
     href: productsHref("mousepads"),
     photo: { src: "/photos/banner-build-your-setup.jpg", alt: "" },
@@ -40,7 +40,7 @@ export const PROMO_BANNERS: readonly PromoBanner[] = [
   {
     key: "audio-for-calls",
     title: "Audio for calls",
-    text: "Gaming headsets for PC and consoles.",
+    text: "Gaming headsets for PC and consoles, with clear microphones for calls and team chat. Closed-back designs keep the outside world out for focus, lightweight models are comfortable for long sessions, and wired or wireless options let you match the headset to your setup. Each listing shows the connection type and the stock, so you can compare two headsets side by side before you buy one for your next match or call.",
     cta: "See audio",
     href: productsHref("headsets"),
     photo: {
@@ -82,19 +82,60 @@ export const WHY_BUY_HERE: readonly WhyBuyHereItem[] = [
   { title: "Delivery and returns", text: EXAMPLE_DELIVERY_TEXT, icon: "truck" },
 ];
 
-/**
- * The moving strip under the home hero: facts the store really has (storefront refresh, 2026-11-04).
- * Nothing here is a promise the store does not keep.
- */
-export const HOME_MARQUEE: readonly string[] = [
-  "Stock checked at checkout",
-  "Guest checkout",
-  "Order reference you can look up",
-  "Stock shown on every product",
-];
-
 /** How many best sellers the home page lists (names only). */
 export const BEST_SELLERS_LIMIT = 4;
 
 /** The window of the best sellers list, in days (paid orders, storefront v2 A-4). */
 export const BEST_SELLERS_PRESET = "30d" as const;
+
+/**
+ * One "From the store" feature: a photo, a longer text (two or three sentences) and a button to a
+ * collection (2026-11-04).
+ */
+export type StoreFeature = {
+  key: string;
+  title: string;
+  text: string;
+  label: string;
+  href: string;
+  photo: string;
+  alt: string;
+};
+
+/** The three features of the home page, shown left and right in turn (photo first, then text). */
+export const STORE_FEATURES: readonly StoreFeature[] = [
+  {
+    key: "setup",
+    title: "Build your setup",
+    text: "Mousepads for every desk setup: wide cloth pads for fast, precise mouse movements and glass pads that stay smooth and are easy to wipe clean. Pick the size that fits your desk and the surface your mouse likes best. Every pad shows its stock on the product page, so you can see before you order whether it is available now. Mousepads are the simplest upgrade to a desk, and a good one makes every mouse feel better from the first day.",
+    label: "Browse desk gear",
+    href: "/products?category=mousepads",
+    photo: "/photos/banner-build-your-setup.jpg",
+    alt: "A gaming mouse on a mousepad on a dark desk, lit in blue",
+  },
+  {
+    key: "audio",
+    title: "Audio for calls",
+    text: "Gaming headsets for PC and consoles, with clear microphones for calls and team chat. Closed-back designs keep the outside world out for focus, lightweight models are comfortable for long sessions, and wired or wireless options let you match the headset to your setup. Each listing shows the connection type and the stock, so you can compare two headsets side by side before you buy one for your next match or call.",
+    label: "See audio",
+    href: "/products?category=headsets",
+    photo: "/photos/product-headset-black.jpg",
+    alt: "Black over-ear headset with a cable, seen from above",
+  },
+  {
+    key: "keyboards",
+    title: "Keyboards",
+    text: "Full-size and compact keyboards with RGB lighting and mechanical switches. Tenkeyless layouts leave room for the mouse, and 60 percent boards keep the desk clear for those who want the smallest footprint. Compare the layouts on each product page, check the switch type and the stock, and pick the keyboard that fits how you type and play.",
+    label: "See keyboards",
+    href: "/products?category=keyboards",
+    photo: "/photos/product-keyboard-rgb.jpg",
+    alt: "A gaming keyboard with lit keys",
+  },
+];
+
+/** The full-width gaming video on the home page (owner request, 2026-11-04). Put the file in public/videos/. */
+export const HOME_VIDEO = {
+  src: "/videos/gaming-setup.mp4",
+  poster: "/photos/hero-desk-curved-monitor.jpg",
+  label: "A gaming desk setup, moving slowly",
+} as const;

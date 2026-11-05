@@ -49,7 +49,10 @@ export function HeaderMenu({ categories }: HeaderMenuProps) {
         <DisclosureTrigger className={buttonVariants({ variant: "outline" })}>
           {HEADER_MENU_TRIGGER_LABEL}
         </DisclosureTrigger>
-        <DisclosureContent className="absolute right-0 z-10 mt-2">
+        {/* The trigger sits at the left edge of the phone header, so the list opens to its right;
+            anchored on the right it ran off the left edge of the screen and its links could not be
+            pressed. */}
+        <DisclosureContent className="absolute left-0 z-10 mt-2">
           <nav aria-label="Main" className="w-56 rounded-md border bg-background p-3 shadow-md">
             <ul className="flex flex-col gap-2 text-sm text-muted-foreground">
               <MenuLinks categories={categories} />

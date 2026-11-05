@@ -1,9 +1,8 @@
-import Image from "next/image";
 import Link from "next/link";
 import type { CategoryCount } from "@commerceos/core";
 import { buttonVariants } from "@/components/ui/button";
 import { HeroRotator } from "./hero-rotator";
-import { HOME_HERO } from "./storefront-content";
+import { HOME_HERO, HOME_VIDEO } from "./storefront-content";
 
 /**
  * The home hero (storefront refresh, 2026-11-04): a photo that runs the full width of the screen
@@ -19,21 +18,20 @@ export function HomeHero({ collections = [] }: { collections?: readonly Category
       aria-labelledby="hero-heading"
       className="storefront-hero relative left-1/2 -mt-10 w-screen -translate-x-1/2 overflow-hidden bg-muted"
     >
-      <Image
-        src={HOME_HERO.photo}
-        alt=""
-        fill
-        priority
-        sizes="100vw"
-        unoptimized
-        className="object-cover object-center"
+      <video
+        src={HOME_VIDEO.src}
+        poster={HOME_HERO.photo}
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="metadata"
+        aria-hidden="true"
+        className="absolute inset-0 h-full w-full object-cover object-center"
       />
-      <div
-        aria-hidden
-        className="absolute inset-0 bg-gradient-to-t from-foreground/40 to-transparent"
-      />
-      <div className="relative flex h-full w-full items-end">
-        <div className="mx-auto flex w-full max-w-(--storefront-width) items-end justify-between gap-6 px-4 pb-8 sm:pb-12">
+      <div aria-hidden className="absolute inset-0 image-scrim" />
+      <div className="relative flex h-full w-full items-center">
+        <div className="mx-auto flex w-full max-w-(--storefront-width) items-center justify-between gap-6 px-4 py-8 sm:py-12">
           <div className="flex w-full max-w-xl flex-col gap-4 rounded-2xl border bg-background/80 p-6 shadow-xl backdrop-blur-md sm:p-8">
             <h1 id="hero-heading" className="text-3xl font-semibold tracking-tight sm:text-4xl">
               {HOME_HERO.headline}

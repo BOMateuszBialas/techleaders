@@ -22,7 +22,8 @@ describe("HomeHero", () => {
     expect(html).toContain(HOME_HERO.description);
     expect(html).toContain(`href="/products"`);
     expect(html).toContain(">Shop all products</a>");
-    expect(html).toContain('alt=""');
+    expect(html).toContain("<video");
+    expect(html).toContain(`poster="${HOME_HERO.photo}"`);
     expect(html).not.toMatch(/demo data/i);
   });
 });
@@ -34,7 +35,7 @@ describe("PromoBannerItem", () => {
     );
     expect(html).toContain("<h3");
     expect(html).toContain("Audio for calls");
-    expect(html).toContain("Gaming headsets for PC and consoles.");
+    expect(html).toContain("Gaming headsets for PC and consoles,");
     expect(html).toContain('href="/products?category=headsets"');
     expect(html).toContain('alt="Black over-ear headset with a cable, seen from above"');
     expect(html).toContain("/photos/product-headset-black.jpg");

@@ -72,14 +72,11 @@ function CollectionCard({ collection, slot }: { collection: CategoryCount; slot:
           {NO_PHOTO_LABEL}
         </span>
       )}
-      <span
-        aria-hidden="true"
-        className="absolute inset-0 bg-gradient-to-t from-foreground/70 via-foreground/10 to-transparent"
-      />
+      <span aria-hidden="true" className="absolute inset-0 image-scrim" />
       <span
         className={cn(
           "absolute inset-x-0 bottom-0 flex flex-col gap-1 p-4",
-          src ? "text-background" : "text-foreground",
+          src ? "on-image" : "text-foreground",
         )}
       >
         <span className="text-lg font-semibold">{collection.name}</span>

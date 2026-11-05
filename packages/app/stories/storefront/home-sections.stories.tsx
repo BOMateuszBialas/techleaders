@@ -61,7 +61,7 @@ export const PromoBanners: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     await expect(canvas.getByRole("heading", { name: "Build your setup" })).toBeInTheDocument();
-    await expect(canvas.getByText("Mousepads for every desk setup.")).toBeInTheDocument();
+    await expect(canvas.getByText(/^Mousepads for every desk setup:/)).toBeInTheDocument();
     await expect(canvas.getByRole("link", { name: "See audio" })).toHaveAttribute(
       "href",
       "/products?category=headsets",
