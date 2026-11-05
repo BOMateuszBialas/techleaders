@@ -53,18 +53,18 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** One line: the action colour on Checkout only; Update outline; Remove a link. */
+/** One line: the action colour on Checkout only; the quantity buttons without a border; Remove a trash button. */
 export const Default: Story = {
   play: async ({ canvas, userEvent }) => {
     await expect(canvas.getByTestId("cart-subtotal")).toHaveTextContent("498,00");
     const checkout = canvas.getByRole("link", { name: "Checkout" });
     await expect(checkout.className).toContain("bg-action");
-    await expect(canvas.getByRole("button", { name: "Update" }).className).toContain(
-      "border-input",
-    );
+    await expect(
+      canvas.getByRole("button", { name: "Increase quantity of Vortex Wireless Mouse" }),
+    ).toBeInTheDocument();
     await expect(
       canvas.getByRole("button", { name: "Remove Vortex Wireless Mouse" }).className,
-    ).toContain("text-link");
+    ).toContain("text-foreground");
     await userEvent.click(canvas.getByRole("button", { name: "Remove Vortex Wireless Mouse" }));
     await expect(actions.removeAction).toHaveBeenCalled();
   },
@@ -86,7 +86,10 @@ export const Empty: Story = {
 export const Changed: Story = {
   args: { cart: cartChanged },
   play: async ({ canvas }) => {
-    const status = canvas.getByRole("status");
+    const status = canvas
+      .getAllByRole("status")
+      .find((element) => element.getAttribute("data-variant") === "warning");
+    if (!status) throw new Error("the warning block is missing");
     await expect(within(status).getByRole("heading", { level: 2 })).toHaveTextContent(
       "Your cart changed",
     );
@@ -174,7 +177,6 @@ export const LineRefused: StoryObj<typeof CartLineView> = {
     </ul>
   ),
   play: async ({ canvas }) => {
-    await expect(canvas.getByRole("spinbutton")).toHaveAttribute("aria-invalid", "true");
     await expect(canvas.getAllByText("Only 3 left in stock.")).toHaveLength(1);
   },
 };

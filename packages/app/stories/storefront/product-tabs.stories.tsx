@@ -2,7 +2,6 @@ import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { expect, waitFor, within } from "storybook/test";
 import { TECHNICAL_DATA_EMPTY } from "@/components/catalog/product-page-copy";
 import { ProductTabs } from "@/components/catalog/product-tabs";
-import { EXAMPLE_DELIVERY_TEXT } from "@/components/storefront/storefront-content";
 
 /**
  * Storefront / Product page / Tabs. The details under the price of `/products/[slug]` (storefront
@@ -29,6 +28,7 @@ const DESCRIPTION = "Wireless gaming mouse with a 26,000 DPI sensor.\nTwo connec
 
 export const WithTechnicalData: TabsStory = {
   args: {
+    inStock: true,
     description: DESCRIPTION,
     technicalSpecs: [
       { label: "Sensor", value: "Optical, 26,000 DPI" },
@@ -47,14 +47,14 @@ export const WithTechnicalData: TabsStory = {
     await expect(canvas.getByText("Optical, 26,000 DPI")).toBeInTheDocument();
 
     await userEvent.click(canvas.getByRole("tab", { name: "Delivery and returns" }));
-    await expect(canvas.getByText(EXAMPLE_DELIVERY_TEXT)).toBeInTheDocument();
+    await expect(canvas.getByText("Delivery time")).toBeInTheDocument();
     // The previous panel stays mounted until its close completes (Base UI), so wait for it to go.
     await waitFor(() => expect(canvas.queryByText("Sensor")).toBeNull());
   },
 };
 
 export const WithoutTechnicalData: TabsStory = {
-  args: { description: DESCRIPTION, technicalSpecs: [] },
+  args: { description: DESCRIPTION, technicalSpecs: [], inStock: false },
   play: async ({ canvas, userEvent }) => {
     await userEvent.click(canvas.getByRole("tab", { name: "Technical data" }));
     await expect(canvas.getByText(TECHNICAL_DATA_EMPTY)).toBeInTheDocument();

@@ -5,7 +5,7 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/u
 import type { FormAction } from "@/lib/action-state";
 import { CART_HEADING } from "./cart-copy";
 import { useCartDrawer } from "./cart-drawer-context";
-import { closeDrawerOnRequest, drawerTitle } from "./cart-drawer-state";
+import { closeDrawerOnNavigate, closeDrawerOnRequest, drawerTitle } from "./cart-drawer-state";
 import { CartDrawerView } from "./cart-drawer-view";
 
 export type CartDrawerProps = {
@@ -34,6 +34,7 @@ export function CartDrawer({ cart, updateAction, removeAction, acceptAction }: C
         <CartDrawerView
           cart={cart}
           notice={state.notice}
+          onNavigate={closeDrawerOnNavigate(dispatch)}
           updateAction={updateAction}
           removeAction={removeAction}
           acceptAction={acceptAction}

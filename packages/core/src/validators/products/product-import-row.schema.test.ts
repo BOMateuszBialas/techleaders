@@ -121,6 +121,7 @@ describe("checkProductImportRow", () => {
         sku: "PHM-001",
         categoryId: MICE.id,
         imageUrl: "https://example.com/phantom.png",
+        additionalImageUrls: [],
         featured: true,
         status: "published",
         stockQuantity: 12,

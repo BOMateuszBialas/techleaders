@@ -3,6 +3,7 @@ import { IDLE_ACTION_STATE, type ActionState } from "@/lib/action-state";
 import { ADDED_TO_CART_MESSAGE } from "./cart-copy";
 import {
   cartDrawerReducer,
+  closeDrawerOnNavigate,
   closeDrawerOnRequest,
   drawerTitle,
   INITIAL_CART_DRAWER_STATE,
@@ -164,5 +165,13 @@ describe("closeDrawerOnRequest", () => {
     expect(dispatch).toHaveBeenCalledWith({ type: "close" });
     onOpenChange(true);
     expect(dispatch).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("closeDrawerOnNavigate", () => {
+  it("dispatches close when a link inside the drawer leaves the page", () => {
+    const dispatch = vi.fn<(action: CartDrawerAction) => void>();
+    closeDrawerOnNavigate(dispatch)();
+    expect(dispatch).toHaveBeenCalledWith({ type: "close" });
   });
 });

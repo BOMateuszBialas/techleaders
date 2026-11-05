@@ -36,10 +36,12 @@ const product: CatalogProductDetail = {
   slug: "vortex-wireless-mouse",
   name: "Vortex Wireless Mouse",
   description: "A wireless mouse.",
+  longDescription: "A wireless mouse.",
   price: money(24900, "PLN"),
   category: null,
   availability: "in_stock",
   imageUrl: null,
+  additionalImageUrls: [],
   technicalSpecs: [],
 };
 

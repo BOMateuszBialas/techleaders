@@ -66,7 +66,7 @@ describe("AddToCartView", () => {
     expect(html).toContain(`name="productId" value="${VORTEX_ID}"`);
     expect(html).toContain('name="quantity"');
     expect(html).toContain('value="1"');
-    expect(html).toContain('max="99"');
+    expect(html).toContain('aria-label="Increase quantity"');
     expect(html).toContain("noValidate");
     expect(html).not.toContain("price");
     expect(html).toContain(">Add to cart<");
@@ -98,7 +98,6 @@ describe("AddToCartView", () => {
     expect(error).toContain("Only 3 left in stock.");
     expect(error).toContain("Enter a whole number from 1 to 99.");
     expect(error).toContain('value="100"');
-    expect(error).toContain('aria-invalid="true"');
   });
 
   it("renders through its client wrapper", () => {
@@ -131,9 +130,10 @@ describe("CartLineView", () => {
     const html = renderLine();
     expect(html).toContain('href="/products/vortex-wireless-mouse"');
     expect(html).toContain("249,00 zł each");
-    expect(html).toContain('value="2"');
+    expect(html).toContain(">2</output>");
     expect(html).toContain("498,00 zł");
     expect(html).toContain('aria-label="Remove Vortex Wireless Mouse"');
+    expect(html).toContain('aria-label="Quantity of Vortex Wireless Mouse"');
   });
 
   it("shows a refused quantity under the field only", () => {
@@ -145,13 +145,12 @@ describe("CartLineView", () => {
     };
     const html = renderLine({ ...idle, state: refused });
     expect(html.match(/Only 3 left in stock\./g)).toHaveLength(1);
-    expect(html).toContain('value="4"');
     expect(html).not.toContain('role="alert"');
   });
 
   it("disables the buttons while pending", () => {
     const html = renderLine({ ...idle, pending: true }, { ...idle, pending: true });
-    expect(html.match(/ disabled=""/g)).toHaveLength(2);
+    expect(html.match(/ disabled=""/g)).toHaveLength(3);
   });
 
   it("picks one message: a failed remove, else the update's result", () => {
@@ -169,7 +168,7 @@ describe("CartLineView", () => {
     const html = renderToStaticMarkup(
       createElement(CartLineItem, { line, updateAction: serverAction, removeAction: serverAction }),
     );
-    expect(html).toContain(">Update<");
+    expect(html).toContain('aria-label="Increase quantity of Vortex Wireless Mouse"');
   });
 });
 

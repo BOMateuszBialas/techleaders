@@ -21,7 +21,15 @@ function Disclosure({ className, ...props }: React.ComponentProps<"details">) {
   );
 }
 
-function DisclosureTrigger({ className, children, ...props }: React.ComponentProps<"summary">) {
+/**
+ * `indicator={false}` drops the chevron, for a trigger that is an icon of its own (the phone menu's burger).
+ */
+function DisclosureTrigger({
+  className,
+  children,
+  indicator = true,
+  ...props
+}: React.ComponentProps<"summary"> & { indicator?: boolean }) {
   return (
     <summary
       data-slot="disclosure-trigger"
@@ -32,10 +40,12 @@ function DisclosureTrigger({ className, children, ...props }: React.ComponentPro
       {...props}
     >
       {children}
-      <IconChevronDown
-        aria-hidden="true"
-        className="size-(--control-icon-size) shrink-0 text-muted-foreground transition-transform duration-(--duration-base) group-open/disclosure:rotate-180"
-      />
+      {indicator ? (
+        <IconChevronDown
+          aria-hidden="true"
+          className="size-(--control-icon-size) shrink-0 text-muted-foreground transition-transform duration-(--duration-base) group-open/disclosure:rotate-180"
+        />
+      ) : null}
     </summary>
   );
 }

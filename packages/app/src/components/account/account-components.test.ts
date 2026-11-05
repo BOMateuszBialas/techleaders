@@ -85,9 +85,7 @@ describe("CustomerAuthCardSkeleton", () => {
 
 describe("AccountHeaderLink", () => {
   it("offers sign-in to a signed-out shopper", () => {
-    const html = render(
-      createElement(AccountHeaderLink, { signedIn: false, signOutAction: action }),
-    );
+    const html = render(createElement(AccountHeaderLink, { signedIn: false }));
     expect(html).toMatch(
       /<a href="\/account\/sign-in"><svg[^>]*>(<path[^>]*><\/path>)*<\/svg><span>Sign in<\/span><\/a>/,
     );
@@ -95,25 +93,19 @@ describe("AccountHeaderLink", () => {
     expect(html).not.toContain("<form");
   });
 
-  it("offers My orders and sign-out to a signed-in customer", () => {
-    const html = render(
-      createElement(AccountHeaderLink, { signedIn: true, signOutAction: action }),
-    );
+  it("offers only My orders to a signed-in customer; sign-out stays on the orders page", () => {
+    const html = render(createElement(AccountHeaderLink, { signedIn: true }));
     expect(html).toMatch(
-      /<a href="\/account\/orders"><svg[^>]*>(<path[^>]*><\/path>)*<\/svg><span>My orders<\/span><\/a>/,
+      /^<a href="\/account\/orders"><svg[^>]*>(<path[^>]*><\/path>)*<\/svg><span>My orders<\/span><\/a>$/,
     );
-    expect(html).toMatch(
-      /<form[^>]*><button type="submit"><svg[^>]*>(<path[^>]*><\/path>)*<\/svg><span>Sign out<\/span><\/button><\/form>/,
-    );
-    expect(html).not.toContain('href="/account/sign-in"');
+    expect(html).not.toContain("<form");
+    expect(html).not.toContain("Sign out");
   });
 
   it("keeps the labels for screen readers while a phone shows only the icons", () => {
-    const html = renderToStaticMarkup(
-      createElement(AccountHeaderLink, { signedIn: true, signOutAction: action }),
-    );
+    const html = renderToStaticMarkup(createElement(AccountHeaderLink, { signedIn: true }));
     expect(html.match(/<span class="sr-only sm:not-sr-only sm:whitespace-nowrap">/g)).toHaveLength(
-      2,
+      1,
     );
   });
 });

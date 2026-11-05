@@ -1,9 +1,45 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { z } from "zod";
 import { ARTIFACTS_DIR, useBrowser } from "./support/browser-test";
+import type { BrowserSession } from "./support/agent-browser";
 
-const TRIGGER = 'summary[data-slot="disclosure-trigger"]';
-const PHONE_LINK = 'details[data-slot="disclosure"] a[href="/products?category=mice"]';
+const TRIGGER = 'button[aria-label="Categories"]';
+const PHONE_LINK = '[role="dialog"] a[href="/products?category=mice"]';
+
+/** True while the phone menu's sheet is on screen (Base UI renders it as a dialog). */
+async function menuOpen(browser: () => BrowserSession): Promise<boolean> {
+  return z
+    .boolean()
+    .parse(await browser().evaluate("!!document.querySelector('[role=\"dialog\"]')"));
+}
+
+/**
+ * Opens the phone menu. The button works once the page is hydrated, so a click made too early does
+ * nothing: the click is repeated until the sheet is open, and the test waits until it has slid in
+ * from the left edge (a link still off screen cannot be clicked).
+ */
+async function menuSettled(browser: () => BrowserSession): Promise<boolean> {
+  return z
+    .boolean()
+    .parse(
+      await browser().evaluate(
+        "(() => { const d = document.querySelector('[role=\\\"dialog\\\"]'); return !!d && d.getBoundingClientRect().left >= 0; })()",
+      ),
+    );
+}
+
+async function openMenu(browser: () => BrowserSession, trigger: string) {
+  await expect
+    .poll(
+      async () => {
+        if (await menuSettled(browser)) return true;
+        if (!(await menuOpen(browser))) await browser().click(trigger);
+        return menuSettled(browser);
+      },
+      { timeout: 20_000 },
+    )
+    .toBe(true);
+}
 
 /**
  * The storefront header's category menu (P4, owner choice): below 768 px one "Categories" button
@@ -44,7 +80,7 @@ describe("storefront category menu on a phone (P4)", () => {
     expect(closed.triggerHeight).toBeGreaterThanOrEqual(44);
     expect(closed.inlineVisible).toBe(false);
 
-    await browser().click(TRIGGER);
+    await openMenu(browser, TRIGGER);
     await browser().waitForText("Mice");
     const open = await measure();
     expect(open.scrollWidth).toBe(open.innerWidth);

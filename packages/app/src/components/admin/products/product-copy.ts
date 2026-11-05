@@ -73,6 +73,8 @@ export const PRICE_HINT =
   "For example 249.90 or 249,90. A published product needs a price above 0.00; a draft may be 0.00.";
 export const SKU_HINT = "Optional. Saved in capitals, for example DEMO-MOU-001.";
 export const IMAGE_URL_HINT = "Optional. An address starting with https://.";
+export const ADDITIONAL_IMAGES_HINT =
+  "Optional. One address per line, up to 8. They appear as thumbnails under the main photo.";
 export const IMAGE_LOAD_FAILED = "Image could not be loaded.";
 export const NO_CATEGORY_LABEL = "No category";
 

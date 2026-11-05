@@ -49,9 +49,12 @@ async function ProductDetails({ params }: { params: ProductPageProps["params"] }
   const product = result.data;
   // Two columns from 1024 px (Tailwind `lg`); below it one column, the gallery first (DOM order).
   return (
-    <article className="grid gap-8 lg:grid-cols-2 lg:items-start">
-      <ProductGallery imageUrls={galleryImageUrls(product.imageUrl)} name={product.name} />
-      <div className="flex flex-col gap-6">
+    <article className="grid min-w-0 grid-cols-1 gap-8 lg:grid-cols-2 lg:items-start">
+      <ProductGallery
+        imageUrls={galleryImageUrls(product.imageUrl, product.additionalImageUrls)}
+        name={product.name}
+      />
+      <div className="flex min-w-0 flex-col gap-6">
         <div className="flex flex-col gap-3">
           <h1 className="text-3xl font-semibold tracking-tight">{product.name}</h1>
           <p className="max-w-measure text-muted-foreground">{leadSentence(product.description)}</p>
@@ -79,7 +82,11 @@ async function ProductDetails({ params }: { params: ProductPageProps["params"] }
             </Link>
           </p>
         ) : null}
-        <ProductTabs description={product.description} technicalSpecs={product.technicalSpecs} />
+        <ProductTabs
+          description={product.longDescription}
+          technicalSpecs={product.technicalSpecs}
+          inStock={product.availability === "in_stock"}
+        />
         <Link href="/products" className="w-fit text-sm underline underline-offset-4">
           Back to all products
         </Link>
@@ -90,7 +97,7 @@ async function ProductDetails({ params }: { params: ProductPageProps["params"] }
 
 function DetailSkeleton() {
   return (
-    <div aria-label="Loading product" className="grid gap-8 lg:grid-cols-2">
+    <div aria-label="Loading product" className="grid grid-cols-1 gap-8 lg:grid-cols-2">
       <div className="aspect-square animate-pulse rounded-md border bg-muted" />
       <div className="flex flex-col gap-4">
         <div className="h-9 w-2/3 animate-pulse rounded bg-muted" />

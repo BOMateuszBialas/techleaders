@@ -51,6 +51,7 @@ const vortex: AdminProduct = {
   sku: "DEMO-MOU-001",
   stockQuantity: 0,
   imageUrl: null,
+  additionalImageUrls: [],
   status: "published",
   featured: false,
   category: null,

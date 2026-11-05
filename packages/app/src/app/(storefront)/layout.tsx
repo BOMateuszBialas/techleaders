@@ -13,7 +13,6 @@ import { StickyHeader } from "@/components/storefront/sticky-header";
 import { STORE_NAME } from "@/components/storefront/storefront-copy";
 import { readCartLines } from "@/server/cart/cart-cookie";
 import { acceptCartChanges, removeCartLine, updateCartLine } from "@/server/cart/cart.action";
-import { signOutCustomer } from "@/server/customer-auth/customer-auth.action";
 import { isCustomerSignedIn } from "@/server/customer-auth/require-customer";
 import { loadCartPage } from "./cart/load-cart-page";
 import { loadStorefrontCategories } from "./load-storefront-categories";
@@ -111,13 +110,11 @@ async function LoadedCartLink() {
 }
 
 /**
- * "Sign in" or "My orders" + "Sign out" (A21), read per request from the customer session and
+ * "Sign in" or "My orders" (A21), read per request from the customer session and
  * never cached (A23). A session-read failure shows "Sign in" (A24): the header never breaks.
  */
 async function LoadedAccountLink() {
-  return (
-    <AccountHeaderLink signedIn={await isCustomerSignedIn()} signOutAction={signOutCustomer} />
-  );
+  return <AccountHeaderLink signedIn={await isCustomerSignedIn()} />;
 }
 
 async function LoadedFooterCategoryLinks() {

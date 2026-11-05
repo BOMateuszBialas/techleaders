@@ -29,6 +29,7 @@ import { ImagePreview } from "./image-preview";
 import {
   FEATURED_HINT,
   FEATURED_LABEL,
+  ADDITIONAL_IMAGES_HINT,
   IMAGE_URL_HINT,
   INITIAL_STOCK_HINT,
   NO_CATEGORY_LABEL,
@@ -48,6 +49,7 @@ export type ProductFormProduct = Pick<
   | "currency"
   | "sku"
   | "imageUrl"
+  | "additionalImageUrls"
   | "status"
   | "featured"
 > & { categoryId: string | null };
@@ -216,6 +218,28 @@ export function ProductFormView({
         {product?.imageUrl ? (
           <ImagePreview key={product.imageUrl} url={product.imageUrl} name={product.name} />
         ) : null}
+      </Field>
+      <Field>
+        <FieldLabel htmlFor="product-additional-images">Additional photos</FieldLabel>
+        <Textarea
+          id="product-additional-images"
+          name="additionalImageUrls"
+          rows={4}
+          defaultValue={fieldDefault(
+            state,
+            "additionalImageUrls",
+            (product?.additionalImageUrls ?? []).join("\n"),
+          )}
+          {...fieldA11y("product-additional-images-error", errors.additionalImageUrls, [
+            "product-additional-images-hint",
+          ])}
+        />
+        <FieldDescription id="product-additional-images-hint">
+          {ADDITIONAL_IMAGES_HINT}
+        </FieldDescription>
+        <FieldError id="product-additional-images-error">
+          {errors.additionalImageUrls?.join(" ")}
+        </FieldError>
       </Field>
       <Field orientation="horizontal">
         <Checkbox

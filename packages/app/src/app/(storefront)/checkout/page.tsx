@@ -58,20 +58,20 @@ async function CheckoutContents() {
   // What the page shows is what the order becomes: placeOrder reads the session again (A24).
   const mode = checkoutModeFor(await getCurrentCustomerId());
   return (
-    <div className="grid gap-8 md:grid-cols-checkout">
-      <CheckoutForm
-        action={placeOrder}
-        idempotencyKey={idempotencyKey}
-        cartFingerprint={cartFingerprint}
-        expectedTotalMinor={cart.subtotal.amountMinor}
-        mode={mode}
-      />
-      <OrderSummary
-        items={cart.lines}
-        subtotal={cart.subtotal}
-        shipping={money(0, cart.subtotal.currency)}
-        total={cart.subtotal}
-      />
-    </div>
+    <CheckoutForm
+      action={placeOrder}
+      idempotencyKey={idempotencyKey}
+      cartFingerprint={cartFingerprint}
+      expectedTotalMinor={cart.subtotal.amountMinor}
+      mode={mode}
+      summary={
+        <OrderSummary
+          items={cart.lines}
+          subtotal={cart.subtotal}
+          shipping={money(0, cart.subtotal.currency)}
+          total={cart.subtotal}
+        />
+      }
+    />
   );
 }

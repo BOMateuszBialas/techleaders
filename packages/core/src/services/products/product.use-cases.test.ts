@@ -47,6 +47,7 @@ const phantom: ProductWrite = {
   sku: "DEMO-MOU-009",
   categoryId: MICE_CATEGORY.id,
   imageUrl: null,
+  additionalImageUrls: [],
   featured: false,
 };
 const newPhantom: ProductCreate = { ...phantom, status: "draft", stockQuantity: 5 };

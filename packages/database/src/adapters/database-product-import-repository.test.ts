@@ -20,6 +20,7 @@ const phantom: ProductCreate = {
   sku: "PHM-001",
   categoryId: MICE_ID,
   imageUrl: null,
+  additionalImageUrls: [],
   featured: false,
   status: "draft",
   stockQuantity: 5,

@@ -52,7 +52,7 @@ describe("storefront at 390 px", () => {
     await browser().screenshot(`${ARTIFACTS_DIR}/storefront-home-390.png`);
   });
 
-  // E07 A21: the signed-in header adds "My orders" and "Sign out"; both stay in view on a phone.
+  // E07 A21: the signed-in header shows "My orders" (sign-out is on the orders page); it stays in view on a phone.
   it("keeps the signed-in customer header within the viewport", async () => {
     await useCustomerSession(browser(), "a");
     await browser().open("/account/orders");
@@ -69,14 +69,14 @@ describe("storefront at 390 px", () => {
       `order tables overflow by ${JSON.stringify(overflows)} px at 390 px`,
     ).toBe(true);
     const measured = z
-      .object({ scrollWidth: z.number(), innerWidth: z.number(), signOutRight: z.number() })
+      .object({ scrollWidth: z.number(), innerWidth: z.number(), accountRight: z.number() })
       .parse(
         await browser().evaluate(
-          "({ scrollWidth: document.documentElement.scrollWidth, innerWidth: window.innerWidth, signOutRight: [...document.querySelectorAll('header button')].find((b) => b.textContent.includes('Sign out')).getBoundingClientRect().right })",
+          "({ scrollWidth: document.documentElement.scrollWidth, innerWidth: window.innerWidth, accountRight: [...document.querySelectorAll('header a')].find((a) => a.textContent.includes('My orders')).getBoundingClientRect().right })",
         ),
       );
     expect(measured.scrollWidth).toBe(measured.innerWidth);
-    expect(measured.signOutRight).toBeLessThanOrEqual(measured.innerWidth);
+    expect(measured.accountRight).toBeLessThanOrEqual(measured.innerWidth);
     expect((await layout()).cartRight).toBeLessThanOrEqual(measured.innerWidth);
   });
 });
@@ -92,7 +92,7 @@ describe("cart at 320 px", () => {
     await browser().setViewport(320, 640);
   });
 
-  it("keeps the cart page within the viewport, with 44 px Update, Remove and Checkout", async () => {
+  it("keeps the cart page within the viewport, with 44 px Remove and Checkout", async () => {
     await browser().open("/products/vortex-wireless-mouse");
     await browser().waitForText("Vortex Wireless Mouse");
     await browser().clickRole("button", "Add to cart");
@@ -104,17 +104,15 @@ describe("cart at 320 px", () => {
       .object({
         scrollWidth: z.number(),
         innerWidth: z.number(),
-        update: z.number(),
         remove: z.number(),
         checkout: z.number(),
       })
       .parse(
         await browser().evaluate(
-          "(() => { const find = (sel, test) => [...document.querySelectorAll(sel)].find(test); const h = (el) => (el ? el.getBoundingClientRect().height : 0); return { scrollWidth: document.documentElement.scrollWidth, innerWidth: window.innerWidth, update: h(find('button', (b) => b.textContent.trim() === 'Update')), remove: h(find('button', (b) => (b.getAttribute('aria-label') || '').startsWith('Remove'))), checkout: h(find('a', (a) => a.textContent.trim() === 'Checkout')) }; })()",
+          "(() => { const find = (sel, test) => [...document.querySelectorAll(sel)].find(test); const h = (el) => (el ? el.getBoundingClientRect().height : 0); return { scrollWidth: document.documentElement.scrollWidth, innerWidth: window.innerWidth, remove: h(find('button', (b) => (b.getAttribute('aria-label') || '').startsWith('Remove'))), checkout: h(find('a', (a) => a.textContent.trim() === 'Checkout')) }; })()",
         ),
       );
     expect(measured.scrollWidth).toBe(measured.innerWidth);
-    expect(measured.update).toBeGreaterThanOrEqual(44);
     expect(measured.remove).toBeGreaterThanOrEqual(44);
     expect(measured.checkout).toBeGreaterThanOrEqual(44);
   });

@@ -66,23 +66,27 @@ async function PayContents({ params }: { params: PayPageProps["params"] }) {
   const { order } = result.data;
   if (order.paidAt) redirect(orderPaths.order(order.reference));
   return (
-    <div className="flex flex-col gap-4">
-      <p className="text-sm">
-        Order reference: <span className="font-mono font-semibold">{order.reference}</span>
-      </p>
-      <OrderSummary
-        items={order.items}
-        subtotal={order.subtotal}
-        shipping={order.shipping}
-        total={order.total}
-      />
-      {order.status === "pending_payment" ? (
-        <PayForm action={confirmDemoPayment} reference={order.reference} />
-      ) : (
-        <Alert variant="warning" role="alert">
-          <AlertDescription>{NOT_PAYABLE_MESSAGE}</AlertDescription>
-        </Alert>
-      )}
+    <div className="grid items-start gap-8 md:grid-cols-checkout">
+      <div className="flex flex-col gap-4">
+        <p className="text-sm">
+          Order reference: <span className="font-mono font-semibold">{order.reference}</span>
+        </p>
+        {order.status === "pending_payment" ? (
+          <PayForm action={confirmDemoPayment} reference={order.reference} />
+        ) : (
+          <Alert variant="warning" role="alert">
+            <AlertDescription>{NOT_PAYABLE_MESSAGE}</AlertDescription>
+          </Alert>
+        )}
+      </div>
+      <div className="self-start">
+        <OrderSummary
+          items={order.items}
+          subtotal={order.subtotal}
+          shipping={order.shipping}
+          total={order.total}
+        />
+      </div>
     </div>
   );
 }

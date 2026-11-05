@@ -121,6 +121,7 @@ async function ProductDetails({ params, searchParams }: ProductPageProps) {
             currency: product.currency,
             sku: product.sku,
             imageUrl: product.imageUrl,
+            additionalImageUrls: product.additionalImageUrls,
             status: product.status,
             featured: product.featured,
             categoryId: product.category?.id ?? null,

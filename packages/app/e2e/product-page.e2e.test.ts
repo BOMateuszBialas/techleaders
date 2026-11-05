@@ -12,12 +12,12 @@ import { useBrowser } from "./support/browser-test";
 
 const TECHNICAL_PRODUCT = "vortex-wireless-mouse";
 const NO_PHOTO_PRODUCT = "pulse-ultralight-mouse";
-const NO_ROWS_PRODUCT = "arena-fight-stick";
+const NO_ROWS_PRODUCT = "control-cloth-mousepad";
 const SPECS = [
   { label: "Sensor", value: "Optical, 26,000 DPI" },
   { label: "Connection", value: "2.4 GHz wireless" },
 ];
-const DELIVERY = "Example policy: delivery in 1–3 working days, 14-day returns.";
+const DELIVERY = "Delivery time";
 
 const layoutSchema = z.object({
   scrollWidth: z.number(),
@@ -101,10 +101,26 @@ describe("storefront product page (storefront v2, Phase 3)", () => {
     return z.array(z.string()).parse(await browser().evaluate(VISIBLE_PANELS_SCRIPT));
   }
 
+  /**
+   * Opens a tab and waits for its panel. A click made before the page is hydrated does nothing, so the
+   * click is repeated until the panel with `marker` is visible.
+   */
+  async function selectTab(name: string, marker: string) {
+    await expect
+      .poll(
+        async () => {
+          await browser().clickRole("tab", name);
+          return (await visiblePanels()).some((panel) => panel.includes(marker));
+        },
+        { timeout: 20_000 },
+      )
+      .toBe(true);
+  }
+
   it("shows the gallery and the details side by side from 1024 px", async () => {
     await browser().setViewport(1280, 800);
     await browser().open(`/products/${TECHNICAL_PRODUCT}`);
-    await browser().waitForText("Wireless gaming mouse with a 26,000 DPI");
+    await browser().waitForText("The Vortex is a wireless gaming mouse");
 
     const layout = await readLayout();
     expect(layout.infoLeft).toBeGreaterThan(layout.galleryLeft);
@@ -115,7 +131,7 @@ describe("storefront product page (storefront v2, Phase 3)", () => {
   it("stacks the gallery above the details below 1024 px", async () => {
     await browser().setViewport(390, 844);
     await browser().open(`/products/${TECHNICAL_PRODUCT}`);
-    await browser().waitForText("Wireless gaming mouse with a 26,000 DPI");
+    await browser().waitForText("The Vortex is a wireless gaming mouse");
 
     const layout = await readLayout();
     expect(layout.infoTop).toBeGreaterThanOrEqual(layout.galleryBottom - 1);
@@ -126,7 +142,7 @@ describe("storefront product page (storefront v2, Phase 3)", () => {
   it("has no sideways scroll at 320 px", async () => {
     await browser().setViewport(320, 640);
     await browser().open(`/products/${TECHNICAL_PRODUCT}`);
-    await browser().waitForText("Wireless gaming mouse with a 26,000 DPI");
+    await browser().waitForText("The Vortex is a wireless gaming mouse");
 
     const layout = await readLayout();
     expect(layout.scrollWidth).toBe(320);
@@ -136,9 +152,9 @@ describe("storefront product page (storefront v2, Phase 3)", () => {
   it("switches tabs by click and by the arrow keys, showing the technical data and the labelled delivery text", async () => {
     await browser().setViewport(1280, 800);
     await browser().open(`/products/${TECHNICAL_PRODUCT}`);
-    await browser().waitForText("Wireless gaming mouse with a 26,000 DPI");
+    await browser().waitForText("The Vortex is a wireless gaming mouse");
 
-    await browser().clickRole("tab", "Technical data");
+    await selectTab("Technical data", "Optical, 26,000 DPI");
     await browser().waitForText("Example values for the demo store.");
     const technical = await browser().text("main");
     expect(technical).toContain("Sensor");
@@ -148,15 +164,21 @@ describe("storefront product page (storefront v2, Phase 3)", () => {
     // stay mounted for a moment after the new one appears, so poll until only the delivery panel
     // is visible.
     await browser().press("ArrowRight");
-    await expect.poll(visiblePanels, { timeout: 5_000 }).toEqual([DELIVERY]);
+    await expect
+      .poll(visiblePanels, { timeout: 5_000 })
+      .toEqual([expect.stringContaining(DELIVERY)]);
   });
 
   it("shows the neutral line for a product without technical rows", async () => {
     await browser().setViewport(1280, 800);
+    // The seeded demo rows are cleared for this product only, so the page has no technical data.
+    await runOnE2eDatabase("update products set technical_specs = '[]'::jsonb where slug = $1", [
+      NO_ROWS_PRODUCT,
+    ]);
     await browser().open(`/products/${NO_ROWS_PRODUCT}`);
-    await browser().waitForText("Arcade fight stick with a ball-top lever");
+    await browser().waitForText("Control Cloth Mousepad");
 
-    await browser().clickRole("tab", "Technical data");
+    await selectTab("Technical data", "Technical data is not available");
     await browser().waitForText("Technical data is not available for this product yet.");
   });
 

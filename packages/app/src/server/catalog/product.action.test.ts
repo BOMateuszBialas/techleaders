@@ -61,6 +61,7 @@ const parsed = {
   sku: "DEMO-MOU-009",
   categoryId: MICE_ID,
   imageUrl: null,
+  additionalImageUrls: [],
   featured: true,
 };
 
@@ -74,6 +75,7 @@ const saved: AdminProduct = {
   sku: "DEMO-MOU-009",
   stockQuantity: 5,
   imageUrl: null,
+  additionalImageUrls: [],
   status: "draft",
   featured: true,
   category: { id: MICE_ID, slug: "mice", name: "Mice" },
@@ -148,7 +150,13 @@ describe("createProduct", () => {
       status: "error",
       message: "Check the highlighted fields.",
       fieldErrors: { sku: ["This SKU is already used by another product."] },
-      values: { ...fields, slug: "phantom-pro-mouse", status: "", stockQuantity: "5" },
+      values: {
+        ...fields,
+        slug: "phantom-pro-mouse",
+        status: "",
+        stockQuantity: "5",
+        additionalImageUrls: "",
+      },
     });
   });
 });

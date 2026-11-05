@@ -62,7 +62,10 @@ export function CartSummary({ cart, updateAction, removeAction, acceptAction }: 
             <p className="text-sm text-muted-foreground">{PRICES_CONFIRMED_NOTE}</p>
             {/* Closed while the stored cart still needs the correction above. */}
             {cart.changed ? null : (
-              <Link href="/checkout" className={buttonVariants({ variant: "action" })}>
+              <Link
+                href="/checkout"
+                className={buttonVariants({ variant: "action", size: "lg", className: "min-w-64" })}
+              >
                 {CHECKOUT_LINK}
               </Link>
             )}

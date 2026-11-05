@@ -26,14 +26,14 @@ export function HeaderSearch() {
         type="search"
         maxLength={CATALOG_SEARCH_MAX_LENGTH}
         placeholder="Search products"
-        className="h-9 w-full rounded-full border-transparent bg-muted pr-9 pl-4 text-sm shadow-none focus-visible:bg-background sm:w-56"
+        className="h-9 w-full rounded-full border-transparent bg-muted pr-11 pl-4 text-sm shadow-none focus-visible:border-transparent focus-visible:bg-background focus-visible:shadow-none focus-visible:ring-1 focus-visible:ring-muted-foreground/30 focus-visible:outline-none sm:w-56"
       />
       <Button
         type="submit"
         variant="ghost"
         size="icon-sm"
         aria-label="Search"
-        className="-ml-9 rounded-full"
+        className="-ml-11 rounded-full"
       >
         <IconSearch aria-hidden="true" />
       </Button>

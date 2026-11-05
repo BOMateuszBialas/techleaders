@@ -35,6 +35,14 @@ export function cartDrawerReducer(
   return { ...state, open: false, notice: null };
 }
 
+/**
+ * A link inside the drawer that leaves the page (the full cart, the checkout, the catalogue) closes
+ * the drawer, so it is not still open over the next page.
+ */
+export function closeDrawerOnNavigate(dispatch: (action: CartDrawerAction) => void) {
+  return (): void => dispatch({ type: "close" });
+}
+
 /** The drawer's title, "Your cart (n)" (spec UI/UX "Drawer"). */
 export function drawerTitle(itemCount: number): string {
   return `${CART_HEADING} (${itemCount})`;

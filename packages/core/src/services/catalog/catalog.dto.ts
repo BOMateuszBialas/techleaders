@@ -21,6 +21,10 @@ export type CatalogProductSummary = {
 
 export type CatalogProductDetail = CatalogProductSummary & {
   description: string;
+  /** The longer description; the short one when there is none. */
+  longDescription: string;
+  /** Further photos after `imageUrl`, for the gallery (empty when there are none). */
+  additionalImageUrls: string[];
   /** Example values for the demo store (Q10); the page shows them with that note. */
   technicalSpecs: TechnicalSpec[];
 };
@@ -50,6 +54,8 @@ export function toCatalogProductDetail(record: CatalogProductRecord): CatalogPro
   return {
     ...toCatalogProductSummary(record),
     description: record.description,
+    longDescription: record.longDescription || record.description,
+    additionalImageUrls: record.additionalImageUrls,
     technicalSpecs: technicalSpecsSchema.parse(record.technicalSpecs),
   };
 }

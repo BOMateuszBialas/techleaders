@@ -31,16 +31,14 @@ describe("storefront copy", () => {
 });
 
 describe("HeaderMenu", () => {
-  it("renders the menu inline for wide screens and behind a Categories disclosure for narrow ones", () => {
+  it("renders the menu inline for wide screens and a burger button for narrow ones", () => {
     const html = renderToStaticMarkup(createElement(HeaderMenu, { categories }));
-    expect(html.match(/aria-label="Main"/g)).toHaveLength(2);
-    expect(html.match(/>Shop all</g)).toHaveLength(2);
-    expect(html.match(/href="\/products\?category=mice"/g)).toHaveLength(2);
-    expect(html.match(/href="\/products\?category=keyboards"/g)).toHaveLength(2);
-    expect(html).toMatch(
-      /<details[^>]*data-slot="disclosure"[^>]*><summary[^>]*data-slot="disclosure-trigger"[^>]*>Categories<svg/,
-    );
-    expect(html).toContain('data-slot="disclosure-content"');
+    expect(html.match(/aria-label="Main"/g)).toHaveLength(1);
+    expect(html).toContain(">Shop all<");
+    expect(html).toContain('href="/products?category=mice"');
+    expect(html).toContain('href="/products?category=keyboards"');
+    expect(html).toContain('aria-label="Categories"');
+    expect(html).not.toContain("<details");
     expect(html).not.toContain("/admin");
   });
 

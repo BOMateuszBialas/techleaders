@@ -14,51 +14,59 @@ import { ACCOUNT_COPY, ACCOUNT_ORDERS_PATH, formatAccountDate } from "./account-
 export function AccountOrderDetailView({ order }: { order: CustomerOrderDto }) {
   const address = order.shippingAddress;
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="text-3xl font-semibold tracking-tight">{ACCOUNT_COPY.orderDetailsHeading}</h1>
-      <div className="flex flex-col gap-2">
-        <p className="text-sm text-muted-foreground">Order reference</p>
-        <p className="font-mono text-lg font-semibold select-all wrap-anywhere">
-          {order.reference}
-        </p>
-        <p className="text-sm">
-          Placed{" "}
-          <time dateTime={order.createdAt.toISOString()}>{formatAccountDate(order.createdAt)}</time>
-        </p>
-        <div className="flex items-center gap-2 text-sm">
-          Status: <OrderStatusBadge status={order.status} />
+    <div className="grid items-start gap-8 md:grid-cols-checkout">
+      <div className="flex flex-col gap-6">
+        <h1 className="text-3xl font-semibold tracking-tight">
+          {ACCOUNT_COPY.orderDetailsHeading}
+        </h1>
+        <div className="flex flex-col gap-2">
+          <p className="text-sm text-muted-foreground">Order reference</p>
+          <p className="font-mono text-lg font-semibold select-all wrap-anywhere">
+            {order.reference}
+          </p>
+          <p className="text-sm">
+            Placed{" "}
+            <time dateTime={order.createdAt.toISOString()}>
+              {formatAccountDate(order.createdAt)}
+            </time>
+          </p>
+          <div className="flex items-center gap-2 text-sm">
+            Status: <OrderStatusBadge status={order.status} />
+          </div>
         </div>
-      </div>
-      <OrderSummary
-        items={order.items}
-        subtotal={order.subtotal}
-        shipping={order.shipping}
-        total={order.total}
-      />
-      {order.paidAt && order.paymentProvider === "demo" ? (
-        <p className="text-sm font-medium">{PAID_WITH_TEST}</p>
-      ) : null}
-      <section aria-label="Shipping address" className="flex flex-col gap-1 text-sm">
-        <h2 className="font-medium">Shipping to</h2>
-        <p className="wrap-anywhere">{order.contact.name}</p>
-        <p className="wrap-anywhere">{order.contact.email}</p>
-        <p className="wrap-anywhere">{address.line1}</p>
-        {address.line2 ? <p className="wrap-anywhere">{address.line2}</p> : null}
-        <p className="wrap-anywhere">
-          {address.postalCode} {address.city}, {address.country}
-        </p>
-      </section>
-      {order.status === "pending_payment" ? (
-        <Link
-          href={orderPaths.pay(order.reference)}
-          className="w-fit text-sm font-medium underline underline-offset-4"
-        >
-          {COMPLETE_PAYMENT_LINK}
+        {order.paidAt && order.paymentProvider === "demo" ? (
+          <p className="text-sm font-medium">{PAID_WITH_TEST}</p>
+        ) : null}
+        <section aria-label="Shipping address" className="flex flex-col gap-1 text-sm">
+          <h2 className="font-medium">Shipping to</h2>
+          <p className="wrap-anywhere">{order.contact.name}</p>
+          <p className="wrap-anywhere">{order.contact.email}</p>
+          <p className="wrap-anywhere">{address.line1}</p>
+          {address.line2 ? <p className="wrap-anywhere">{address.line2}</p> : null}
+          <p className="wrap-anywhere">
+            {address.postalCode} {address.city}, {address.country}
+          </p>
+        </section>
+        {order.status === "pending_payment" ? (
+          <Link
+            href={orderPaths.pay(order.reference)}
+            className="w-fit text-sm font-medium underline underline-offset-4"
+          >
+            {COMPLETE_PAYMENT_LINK}
+          </Link>
+        ) : null}
+        <Link href={ACCOUNT_ORDERS_PATH} className="w-fit text-sm underline underline-offset-4">
+          {ACCOUNT_COPY.backToOrders}
         </Link>
-      ) : null}
-      <Link href={ACCOUNT_ORDERS_PATH} className="w-fit text-sm underline underline-offset-4">
-        {ACCOUNT_COPY.backToOrders}
-      </Link>
+      </div>
+      <div className="self-start">
+        <OrderSummary
+          items={order.items}
+          subtotal={order.subtotal}
+          shipping={order.shipping}
+          total={order.total}
+        />
+      </div>
     </div>
   );
 }

@@ -121,7 +121,7 @@ describe("storefront home page (Phase 1b)", () => {
     }
   });
 
-  it("opens the header menu on a narrow screen with a native disclosure", async () => {
+  it("opens the header menu on a narrow screen in a sheet from the left", async () => {
     await browser().setViewport(390, 844);
     try {
       await browser().open("/");
@@ -129,12 +129,25 @@ describe("storefront home page (Phase 1b)", () => {
       const closed = Object.values((await browser().snapshot()).refs);
       expect(closed).not.toContainEqual({ role: "navigation", name: "Main" });
 
-      await browser().click("header summary");
+      // The sheet slides in from the left; the link is clicked only once it has arrived.
+      await expect
+        .poll(
+          async () => {
+            const hasSheet = await browser().evaluate(
+              "(() => { const d = document.querySelector('[role=\"dialog\"]'); return !!d && d.getBoundingClientRect().left >= 0; })()",
+            );
+            if (hasSheet) return true;
+            await browser().click('header button[aria-label="Categories"]');
+            return false;
+          },
+          { timeout: 20_000 },
+        )
+        .toBe(true);
       const open = Object.values((await browser().snapshot()).refs);
       expect(open).toContainEqual({ role: "navigation", name: "Main" });
       expect(open).toContainEqual({ role: "link", name: "Shop all" });
 
-      await browser().click('header details a[href="/products?category=keyboards"]');
+      await browser().click('[role="dialog"] a[href="/products?category=keyboards"]');
       await browser().waitForUrl("**/products?category=keyboards");
       await browser().waitForText("Strike 60 Keyboard");
     } finally {
