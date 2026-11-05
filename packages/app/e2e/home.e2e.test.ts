@@ -151,8 +151,8 @@ describe("storefront home page (Phase 1b)", () => {
       expect(elements).toContainEqual(expect.objectContaining({ role: "heading", name }));
     }
     const main = await browser().text("main");
-    expect(main).toContain("Mousepads for every desk setup.");
-    expect(main).toContain("Gaming headsets for PC and consoles.");
+    expect(main).toContain("Mousepads for every desk setup:");
+    expect(main).toContain("Gaming headsets for PC and consoles,");
     expect(main).toContain("Example policy: delivery in 1–3 working days, 14-day returns.");
 
     // Tiles omit a category with no published product (the [E2E] drafts-only and empty ones).

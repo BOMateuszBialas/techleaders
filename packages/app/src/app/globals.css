@@ -666,9 +666,17 @@
     grid-template-areas:
       "menu logo cart account"
       "search search search search";
+    gap: 0.5rem;
   }
   .storefront-header .header-logo {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .storefront-header .header-cart > a {
+    padding-inline: 0.75rem;
   }
   .storefront-header .header-actions {
     display: contents;
