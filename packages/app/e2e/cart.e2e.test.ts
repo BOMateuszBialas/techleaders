@@ -71,11 +71,14 @@ describe("storefront cart (E02-S01)", () => {
 
     await addFromProductPage("pulse-ultralight-mouse", "Pulse Ultralight Mouse");
     await openCart();
+    // Stock is 3 and one Pulse costs 189,00: two more clicks reach 3 (567,00); the third is refused.
     await browser().clickRole("button", "Increase quantity of Pulse Ultralight Mouse");
-    await browser().waitForText("189,00");
+    await browser().waitForText("378,00");
+    await browser().clickRole("button", "Increase quantity of Pulse Ultralight Mouse");
+    await browser().waitForText("567,00");
     await browser().clickRole("button", "Increase quantity of Pulse Ultralight Mouse");
     await browser().waitForText("Only 3 left in stock.");
-    expect(await browser().text('[data-testid="cart-subtotal"]')).toMatch(/189,00\s*zł/);
+    expect(await browser().text('[data-testid="cart-subtotal"]')).toMatch(/567,00\s*zł/);
   });
 
   it("cannot add an out-of-stock product (AC4)", async () => {

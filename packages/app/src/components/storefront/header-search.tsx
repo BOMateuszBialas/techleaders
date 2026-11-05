@@ -15,7 +15,7 @@ export function HeaderSearch() {
       aria-label="Site search"
       method="get"
       action="/products"
-      className="relative flex min-w-0 items-center"
+      className="flex min-w-0 items-center"
     >
       <label htmlFor="header-search-q" className="sr-only">
         Search products
@@ -33,7 +33,7 @@ export function HeaderSearch() {
         variant="ghost"
         size="icon-sm"
         aria-label="Search"
-        className="absolute top-1/2 right-3 -translate-y-1/2 rounded-full"
+        className="-ml-11 rounded-full"
       >
         <IconSearch aria-hidden="true" />
       </Button>

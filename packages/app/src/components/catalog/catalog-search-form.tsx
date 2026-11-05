@@ -60,7 +60,7 @@ export function CatalogSearchForm({
           variant="ghost"
           size="icon-sm"
           aria-label="Search"
-          className="absolute top-1/2 right-3 -translate-y-1/2 rounded-full"
+          className="-ml-11 rounded-full"
         >
           <IconSearch aria-hidden="true" />
         </Button>

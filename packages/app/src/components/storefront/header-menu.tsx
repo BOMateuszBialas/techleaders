@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { MenuLinks } from "./header-menu-links";
 import { MobileCategoriesMenu } from "./mobile-categories-menu";
 import type { CatalogCategory } from "@commerceos/core";
@@ -21,7 +22,10 @@ export function HeaderMenu({ categories }: HeaderMenuProps) {
         </ul>
       </nav>
       <div className="md:hidden">
-        <MobileCategoriesMenu categories={categories} />
+        {/* The menu reads the route, so it streams: the static shell keeps a button-sized gap. */}
+        <Suspense fallback={<span className="block size-11" aria-hidden="true" />}>
+          <MobileCategoriesMenu categories={categories} />
+        </Suspense>
       </div>
       {/* The cart link with its count (cart spec) goes here. No placeholder ships before it
           works (spec G22). The search box sits beside this menu in the layout. */}

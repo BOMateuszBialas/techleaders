@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { IconMenu2 } from "@tabler/icons-react";
 import type { CatalogCategory } from "@commerceos/core";
 import { Button } from "@/components/ui/button";
@@ -14,17 +15,18 @@ import {
 import { MenuLinks } from "./header-menu-links";
 import { HEADER_MENU_TRIGGER_LABEL } from "./storefront-copy";
 
-/** A link that leaves the page closes the menu: the handler for `onNavigate`. */
-export function closeMenuOnNavigate(setOpen: (open: boolean) => void) {
-  return (): void => setOpen(false);
-}
-
 /**
  * The phone menu (storefront visual polish, 2026-11-05): a burger button that opens the categories
  * in a sheet from the left edge, the same way the cart drawer opens from the right. The sheet
  * closes when a category link is followed, so it is not left open over the next page.
  */
 export function MobileCategoriesMenu({ categories }: { categories: CatalogCategory[] }) {
+  // A new page remounts the panel, so it is closed after a link is followed.
+  const pathname = usePathname();
+  return <MobileCategoriesPanel key={pathname} categories={categories} />;
+}
+
+function MobileCategoriesPanel({ categories }: { categories: CatalogCategory[] }) {
   const [open, setOpen] = useState(false);
   return (
     <Drawer open={open} onOpenChange={setOpen}>
@@ -46,7 +48,7 @@ export function MobileCategoriesMenu({ categories }: { categories: CatalogCatego
         </DrawerHeader>
         <nav aria-label="Main">
           <ul className="flex flex-col gap-3 text-base text-foreground">
-            <MenuLinks categories={categories} onNavigate={closeMenuOnNavigate(setOpen)} />
+            <MenuLinks categories={categories} />
           </ul>
         </nav>
       </DrawerContent>

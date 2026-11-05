@@ -33,7 +33,10 @@ describe("admin orders (E04-S01)", () => {
   async function placeOrder(quantity: number): Promise<string> {
     await browser().open("/products/retro-wired-controller");
     await browser().waitForText(PRODUCT);
-    await browser().fillLabel("Quantity", String(quantity));
+    // The quantity starts at 1; "+" adds one per click, as a shopper does.
+    for (let click = 1; click < quantity; click++) {
+      await browser().clickRole("button", "Increase quantity");
+    }
     await browser().clickRole("button", "Add to cart");
     await browser().waitForText("Added to cart.");
     await browser().open("/cart");
@@ -156,6 +159,13 @@ describe("admin orders (E04-S01)", () => {
     await browser().clickRole("button", "Keep order");
     await browser().waitForText("Cancel order…");
     expect(await browser().text("main")).toContain("Awaiting payment");
+
+    // The dialog's backdrop fades out after "Keep order"; the trigger is covered until it is gone.
+    await expect
+      .poll(() => browser().evaluate("!document.querySelector('div.fixed.inset-0')"), {
+        timeout: 10_000,
+      })
+      .toBe(true);
 
     // Escape closes the dialog without a change, and focus returns to the trigger.
     await browser().clickRole("button", "Cancel order…");

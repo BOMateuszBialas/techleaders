@@ -129,7 +129,20 @@ describe("storefront home page (Phase 1b)", () => {
       const closed = Object.values((await browser().snapshot()).refs);
       expect(closed).not.toContainEqual({ role: "navigation", name: "Main" });
 
-      await browser().click('header button[aria-label="Categories"]');
+      // The sheet slides in from the left; the link is clicked only once it has arrived.
+      await expect
+        .poll(
+          async () => {
+            const hasSheet = await browser().evaluate(
+              "(() => { const d = document.querySelector('[role=\"dialog\"]'); return !!d && d.getBoundingClientRect().left >= 0; })()",
+            );
+            if (hasSheet) return true;
+            await browser().click('header button[aria-label="Categories"]');
+            return false;
+          },
+          { timeout: 20_000 },
+        )
+        .toBe(true);
       const open = Object.values((await browser().snapshot()).refs);
       expect(open).toContainEqual({ role: "navigation", name: "Main" });
       expect(open).toContainEqual({ role: "link", name: "Shop all" });
