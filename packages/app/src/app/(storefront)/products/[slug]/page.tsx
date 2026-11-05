@@ -83,7 +83,7 @@ async function ProductDetails({ params }: { params: ProductPageProps["params"] }
           </p>
         ) : null}
         <ProductTabs
-          description={product.description}
+          description={product.longDescription}
           technicalSpecs={product.technicalSpecs}
           inStock={product.availability === "in_stock"}
         />

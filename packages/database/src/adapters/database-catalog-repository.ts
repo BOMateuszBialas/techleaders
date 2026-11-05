@@ -40,6 +40,7 @@ function toProductRecord(product: Product): CatalogProductRecord {
     slug: product.slug,
     name: product.name,
     description: product.description,
+    longDescription: product.longDescription,
     priceMinor: product.priceMinor,
     currency: product.currency,
     stockQuantity: product.stockQuantity,

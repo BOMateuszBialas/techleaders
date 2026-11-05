@@ -26,6 +26,8 @@ export type CatalogProductRecord = {
   slug: string;
   name: string;
   description: string;
+  /** The longer description for the product page's Description tab; empty when there is none. */
+  longDescription: string;
   priceMinor: number;
   currency: CurrencyCode;
   stockQuantity: number;

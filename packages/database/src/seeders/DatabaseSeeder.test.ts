@@ -81,7 +81,8 @@ describe("seedCatalog (insert-only, A18)", () => {
       currency: "PLN",
       imageUrl: "/photos/product-mouse-black.jpg",
       technicalSpecs: expect.arrayContaining([expect.objectContaining({ label: "Sensor" })]),
-      description: expect.stringMatching(/^The Vortex is a wireless gaming mouse/),
+      description: expect.stringMatching(/^Wireless gaming mouse with a 26,000 DPI optical sensor/),
+      longDescription: expect.stringMatching(/^The Vortex is a wireless gaming mouse/),
     });
   });
 

@@ -27,6 +27,7 @@ export function productRecord(overrides: Partial<CatalogProductRecord> = {}): Ca
     slug: "vortex-wireless-mouse",
     name: "Vortex Wireless Mouse",
     description: "A wireless mouse.",
+    longDescription: "",
     priceMinor: 24900,
     currency: "PLN",
     stockQuantity: 8,

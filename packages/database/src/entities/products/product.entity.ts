@@ -11,6 +11,11 @@ export const ProductSchema = defineEntity({
     name: p.string().length(200),
     slug: p.string().length(220).unique(),
     description: p.text().default(""),
+    /**
+     * The longer description (storefront visual polish, 2026-11-07): paragraphs for the product page's
+     * Description tab. `description` stays the short text the description drafting is built on.
+     */
+    longDescription: p.text().default(""),
     /** Price in integer minor currency units (e.g. grosze). Never a float. */
     priceMinor: p.integer().check("price_minor >= 0"),
     currency: p.enum(SUPPORTED_CURRENCIES).default("PLN"),

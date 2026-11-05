@@ -196,7 +196,7 @@ describe("DatabaseCatalogRepository (PostgreSQL)", () => {
   it("searches descriptions and counts every match", async () => {
     const byDescription = await repository().findProducts({
       status: "published",
-      search: "favourite move",
+      search: "hall-effect",
       limit: 48,
     });
     expect(byDescription.items.map((product) => product.slug)).toEqual([

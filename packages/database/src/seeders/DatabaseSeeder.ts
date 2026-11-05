@@ -318,12 +318,12 @@ export async function seedCatalog(
       const content = DEMO_PRODUCT_CONTENT.find(
         (item) => item.slug === product.slug && item.sku === product.sku,
       );
-      const text =
-        content?.description ?? description ?? `${product.name}. Seed data for local development.`;
+      const text = description ?? `${product.name}. Seed data for local development.`;
       return [
         {
           ...product,
           description: text,
+          longDescription: content?.longDescription ?? "",
           currency: "PLN" as const,
           status: status ?? ("published" as const),
           featured: featured ?? false,
