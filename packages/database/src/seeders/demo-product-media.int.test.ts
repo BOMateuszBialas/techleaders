@@ -108,7 +108,12 @@ describe("demo product media migration (PostgreSQL)", () => {
   });
 
   it("sets the photos and the Vortex technical rows, keeps owner edits and changes nothing else", async () => {
-    // Puts the database back to the state before this update.
+    // Puts the database back to the state before this update: the rows this update fills are empty
+    // here. Later migrations (the longer demo content) have written other values since, so they are
+    // reset by hand, then this migration's own down reverts the photos.
+    await query(
+      "update products set technical_specs = '[]'::jsonb where sku in ('DEMO-MOU-001', 'DEMO-HEA-001', 'DEMO-MOU-002')",
+    );
     await orm.migrator.down({ migrations: [MIGRATION] });
     const oldRows = await mediaRows();
     expect(rowFor(oldRows, MOUSE.slug)).toMatchObject({

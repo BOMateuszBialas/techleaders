@@ -94,6 +94,7 @@ describe("DatabaseProductRepository (PostgreSQL)", () => {
       sku: "DEMO-MOU-009",
       stockQuantity: 7,
       imageUrl: null,
+      additionalImageUrls: [],
       status: "published",
       featured: true,
       category: { id: mice, slug: "mice", name: "Mice" },
