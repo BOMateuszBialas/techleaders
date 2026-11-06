@@ -112,3 +112,55 @@
 ### Ocena
 
 Dokumentacja wystarczyła, żeby **zbudować ekran w postaci opisanej przez decyzje**: każda część ma przynajmniej jedną regułę albo przykład dla 32 z 50 decyzji. Nie wystarczyła, żeby ekran był w pełni określony: 18 decyzji to zgadywanie, a cztery z nich dotyczą zasad, które właściciel musi zatwierdzić (L1, L2, L4, L5).
+
+## Część wizualna (2026-11-06)
+
+- Status: **wykonana, z jednym ograniczeniem.** Ekran zbudowano jako tymczasową historię Storybooka (nie zacommitowana, usunięta z drzewa), złożoną wyłącznie z komponentów `ui` i tokenów, zgodnie z 50 decyzjami z części dokumentacyjnej. Zrzuty i pomiary zrobiono w Chrome (Playwright-core z zainstalowanym Chrome), a nie przez rozszerzenie Chrome, bo rozszerzenie nie było podłączone.
+- Ograniczenie: rozszerzenie Claude in Chrome nie połączyło się, więc przeglądarka sterowana jest skryptem. Nie sprawdzano fokusu klawiatury, czytnika ekranu ani atrybutów `role` w DOM. Build Storybooka nie był uruchamiany (serwer dev, `storybook dev` na porcie 6006). Krok seeda nie dotyczy: ekran nie czyta danych.
+- Zakres pomiarów: cztery stany (Pending, Loading, Unavailable, Not found) × motyw jasny i ciemny × szerokości 320, 768 i 1440 px, czyli 24 zrzuty. Dla każdego zmierzono `scrollWidth` względem `clientWidth`, kolor tła, rozmiar h1, kolor h1 i padding `main`. Surowe dane: `.ai/design/test-agentem-shots/report.json`.
+
+### Wyniki pomiarów
+
+| Co | Wynik | Źródło reguły |
+| --- | --- | --- |
+| Przewijanie w bok | brak we wszystkich 24 zrzutach (`scrollWidth` = `clientWidth`) | **REGUŁA**: Usage and accessibility, Layout, wiersz 1 |
+| Gutter boczny | 16 / 24 / 32 px przy 320 / 768 / 1440 px | **REGUŁA**: Usage and accessibility, Layout, wiersz 1 (`px-gutter`) |
+| Rozmiar h1 | 28 px przy 320, 32,5 px przy 768, 40 px przy 1440 | **REGUŁA**: tokeny §4, styl `h1`. Zmierzono wysokość liniową tylko pośrednio; wartość 44 px z dokumentacji nie została zweryfikowana |
+| Tło i tekst h1, motyw ciemny | tło `oklch(0.17 …)`, h1 `oklch(0.97 …)`; motyw jasny odwrotnie | **REGUŁA**: tokeny §1, tokeny rule 8 (tylko tokeny) |
+| Badge `warning` | jasny: tło `oklch(0.96 0.04 95)`; ciemny: `oklch(0.28 0.05 75)`, tekst „Pending payment” w obu | **REGUŁA**: tokeny rule 10; status jest słowem, nie samym kolorem |
+| Alert `demo` | żółte tło z obrysem i ikoną kolby w obu motywach | **REGUŁA**: tokeny rule 11, §1d |
+
+### Wizualne decyzje: REGUŁA / PRZYKŁAD / ZGADUJĘ
+
+| # | Decyzja, którą zobaczono na zrzucie | Typ | Uwaga |
+| --- | --- | --- | --- |
+| V1 | Pole „Order summary” jako karta, pozycje jako `ul`, cena wyrównana do prawej | **PRZYKŁAD** (How to choose, Card; Table/list) | Układ czytelny przy 320 px, bez przewijania |
+| V2 | Podwójny odstęp wewnątrz karty: nad tytułem „Order summary” pasmo ok. 50 px, większe niż panel 24 px | **ZGADUJĘ** | Błąd mojej kompozycji: użyłem `p-panel` na `CardContent`, który prawdopodobnie ma już padding. Dokumentacja nie mówi, czy `CardContent` dokłada własny odstęp. To luka L-V2 |
+| V3 | Przy 320 px link „View my orders” nad przyciskiem „Continue shopping”, przycisk na pełną szerokość | **ZGADUJĘ** | Brak reguły układu rzędu akcji (L3 potwierdzone wizualnie). Wybrałem stos i pełną szerokość samodzielnie |
+| V4 | Przy 768 i 1440 px oba przyciski w jednym rzędzie, link i przycisk przy sobie | **ZGADUJĘ** | Wynik tego samego wyboru co V3 |
+| V5 | Ceny w formacie `398,00 zł` przy angielskim interfejsie | **REGUŁA** (Content, Numbers, money) | Potwierdza P12 (locale pl-PL przy angielskim UI), które nie zostało przyjęte |
+| V6 | Ilość zapisana jako „× 2” przy nazwie | **ZGADUJĘ** | Dokumentacja nie ma przykładu ilości (L19 z części dokumentacyjnej, zostaje otwarte) |
+| V7 | Stan Unavailable: czerwony tytuł h1 w `ErrorState` (dziedziczy kolor `destructive`) | **REGUŁA** (B2.20: tytuł przyjmuje kolor wariantu) dla koloru; **ZGADUJĘ** dla samego h1 | Dokumentacja nie mówi, czy tytuł strony w `ErrorState` ma być czerwony, czy neutralny |
+| V8 | Stan Not found: `Empty` jako szare pole z h1 w środku, wygląda jak karta, nie jak strona | **ZGADUJĘ** | Reguła „not found” (How to choose, Empty) nie mówi, czy nagłówek strony jest w pustym polu |
+| V9 | Stan Loading: same szare bloki, etykieta „Loading …” nie widoczna na zrzucie | **ZGADUJĘ** | Etykieta `SkeletonGroup` prawdopodobnie jest dla czytników (nie sprawdzono w DOM). Dokumentacja nie mówi, czy etykieta jest widoczna |
+| V10 | Długa nazwa produktu z `[DEMO]` zawija się w linii przy 320 px, bez przewijania | **REGUŁA** (Layout, wiersz 1) | Zawijanie długich nazw nie ma reguły (L10 dla identyfikatorów, nie dla nazw) |
+| V11 | Numer „DEMO-000123” w kroju mono obok badge, w jednym wierszu przy 320 i 1440 px | **REGUŁA** (tokeny §1c) | Zawijanie identyfikatorów przy 320 px wciąż nieopisane (L10) |
+| V12 | Dark frame (nagłówek i stopka sklepu) nie była sprawdzana | **nie sprawdzono** | Ekran to samodzielna historia bez ramy sklepu; L4 zostaje otwarte |
+
+### Luki wizualne (nowe, do listy P)
+
+- **V-L1** (V2): docs nie mówią, czy `CardContent` ma padding. Sugerowane zdanie: „CardContent carries the panel padding (24 px store); do not add p-panel to it.”
+- **V-L2** (V3, V4): brak reguły układu dwóch akcji przy szerokościach; wizualny wybór stosu i pełnej szerokości nie ma podstawy w docs. Połączyć z L3.
+- **V-L3** (V7): kolor tytułu h1 w `ErrorState` nieopisany. Sugerowane zdanie: „A page heading inside ErrorState uses the variant color only through the Alert title; prefer a neutral heading.”
+- **V-L4** (V8): stan „not found” nie mówi, czy nagłówek jest w polu `Empty`, czy poza nim.
+- **V-L5** (V9): etykieta `SkeletonGroup` jest niewidoczna wizualnie; docs nie mówią, czy ma być widoczna.
+- **V-L6** (V6): ilość przy pozycji zamówienia (L19, nadal otwarta).
+- **V-L7** (V12): brak zrzutu ramy sklepu dla potwierdzenia (L4 bez zmian).
+
+### Liczby (część wizualna)
+
+- Zrzuty: 24 (4 stany × 2 motywy × 3 szerokości), zapisane 6 w `test-agentem-shots/` (łącznie ok. 400 KB).
+- Przewijanie w bok: 0 z 24.
+- Decyzje wizualne: 12 (V1–V12). REGUŁA: 4. PRZYKŁAD: 1. ZGADUJĘ: 6. Nie sprawdzone: 1.
+- Nowe luki: 7 (V-L1 do V-L7).
+- Nieprzyjęte P12 (locale) potwierdzone wizualnie: tak.
