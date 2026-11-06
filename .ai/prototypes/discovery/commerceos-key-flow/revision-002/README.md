@@ -87,3 +87,7 @@ Run on 2026-11-06 in headless Chrome (the Claude in Chrome extension was not con
 3. Whether the tile headings in C should be tested before they are used anywhere (a usability walk with a real person, after the owner has chosen a direction).
 4. Whether any element of one variant should move into another before a final pick (for example the stock line on every card from B, or the hero from A).
 5. When a real person walks the chosen variant, record it in `.ai/design/POSTEP.md` (P5 is still open).
+
+## Status (2026-11-06)
+
+No variant is chosen in this prototype. The owner closed the choice because the store home and the Copilot screen are already built in the application (retrofit and storefront specs). This revision stays as the record of the options that were compared.
