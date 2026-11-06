@@ -18,6 +18,12 @@ The owner's decision on one recommendation: the next actions for its status, and
 
 <Canvas of={RecommendationStatusStories.SavedActions} />
 
+## Pending
+
+While an action is in flight, both buttons are disabled (no double submit) and the form is `aria-busy`. The view has no pending label, so the wait is shown by the disabled buttons only.
+
+<Canvas of={RecommendationStatusStories.SavePending} />
+
 ## Result of an action
 
 <Canvas of={RecommendationStatusStories.SaveSucceeded} />

@@ -20,17 +20,18 @@ const CONFLICT_MESSAGE = "This recommendation is already completed. Nothing was 
 type Props = {
   status: RecommendationStatus;
   state: RecommendationStatusState;
+  pending?: boolean;
 };
 
 const meta = {
   title: "Patterns/Copilot/Recommendation status",
   parameters: { layout: "padded", a11y: { test: "error" } },
-  render: ({ status, state }: Props) => (
+  render: ({ status, state, pending }: Props) => (
     <div className="max-w-3xl">
       <RecommendationStatusFormView
         action={() => undefined}
         state={state}
-        pending={false}
+        pending={pending ?? false}
         recommendation={{ ...RECOMMENDATION, status }}
       />
     </div>
@@ -46,6 +47,23 @@ export const SavedActions: Story = {
   play: async ({ canvas }) => {
     await expect(canvas.getByRole("button", { name: /^Dismiss:/ })).toBeVisible();
     await expect(canvas.getByRole("button", { name: /^Mark completed:/ })).toBeVisible();
+  },
+};
+
+/**
+ * A status change is in flight: both actions are disabled so a second click cannot submit again,
+ * and the form is marked busy. No result is shown until the action settles.
+ */
+export const SavePending: Story = {
+  args: { status: "saved", state: { status: "idle" }, pending: true },
+  play: async ({ canvas }) => {
+    const dismiss = canvas.getByRole("button", { name: /^Dismiss:/ });
+    const complete = canvas.getByRole("button", { name: /^Mark completed:/ });
+    await expect(dismiss).toBeDisabled();
+    await expect(complete).toBeDisabled();
+    await expect(dismiss.closest("form")).toHaveAttribute("aria-busy", "true");
+    await expect(canvas.queryByRole("status")).toBeNull();
+    await expect(canvas.queryByRole("alert")).toBeNull();
   },
 };
 
