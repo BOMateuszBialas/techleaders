@@ -102,9 +102,9 @@ In the om-auto-* pipeline (issues, PR comments and CSV content in, `gh` / `git p
 
 ## 9. CODEOWNERS and branch protection
 
-`.github/CODEOWNERS` assigns `.claude/`, `.mcp.json`, `.agents/`, `.codex/`, `skills-lock.json`, `CLAUDE.md`, both `AGENTS.md`, `.github/workflows/` and `CODEOWNERS` to `@BOMateuszBialas`. It is inert until the ruleset requires code-owner review. The current ruleset "main protection" requires a PR with 0 approvals, the five CI checks, no bypass actors, and `require_code_owner_review: false`.
+`.github/CODEOWNERS` assigns `.claude/`, `.mcp.json`, `.agents/`, `.codex/`, `skills-lock.json`, `CLAUDE.md`, both `AGENTS.md`, `.github/workflows/` and `CODEOWNERS` to `@BOMateuszBialas`. It is inert until the ruleset requires code-owner review. The current ruleset "main protection" requires a PR with 0 approvals and the CI checks; the Repository admin role can bypass; `require_code_owner_review: true` (checked with `gh api` on 2026-11-06, owner enabled it).
 
-To turn it on: GitHub → repository **Settings** → **Rules** → **Rulesets** → **main protection** → under *Require a pull request before merging* tick **Require review from Code Owners** → **Save changes**.
+Enabled 2026-11-06. To turn it on (history): GitHub → repository **Settings** → **Rules** → **Rulesets** → **main protection** → under *Require a pull request before merging* tick **Require review from Code Owners** → **Save changes**.
 
 Effect, read before enabling: every PR here is opened by the same account (`BOMateuszBialas`, used by you and by the agents), and GitHub never lets an author approve their own PR. With you as the only code owner, every PR that touches those paths could then not be merged by anyone, you included, unless you add a bypass actor (for example *Repository admin*) and merge with "bypass rules". But the agents act with your admin token, so they could bypass too. Recommendation: enable it only if you accept merging those PRs yourself through the bypass, and preferably once agents use a separate, non-admin bot account or fine-grained token. Then the rule binds the agents and not you. Until then, the existing policy (risk-high PRs and specs are merged by the user, never self-merged by agents) is the control that actually holds.
 
