@@ -707,12 +707,13 @@
       "search search search search";
     gap: 0.5rem;
   }
+  /* The store name is one word, so it cannot wrap at a space. At 320 px its column is about 116 px,
+     which fits "CommerceOS" at 18 px; from 24 rem it grows back to 20 px. The name is never clipped:
+     `overflow-wrap: anywhere` is the fallback if a font is wider than measured. */
   .storefront-header .header-logo {
-    font-size: 1.25rem;
+    font-size: 1.125rem;
     min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
   }
   .storefront-header .header-cart > a {
     padding-inline: 0.75rem;
@@ -729,6 +730,11 @@
   .storefront-header .header-search {
     grid-area: search;
     min-width: 0;
+  }
+}
+@media (min-width: 24rem) and (max-width: 40rem) {
+  .storefront-header .header-logo {
+    font-size: 1.25rem;
   }
 }
 
