@@ -108,8 +108,6 @@
 
   var ui = { theme: "light", selected: 0, statuses: {}, note: "" };
 
-  var app = document.getElementById("app");
-
   function esc(text) {
     return String(text).replace(/[&<>"']/g, function (c) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
@@ -175,7 +173,7 @@
     return '<dl class="why-grid ' + (extraClass || "") + '">' + items + "</dl>";
   }
 
-  function skeletonBlock(cls) {
+  function skeletonBlock() {
     return (
       '<div class="skeleton-grid" aria-busy="true"><p class="sr-only">Loading products</p>' +
       '<div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div>' +
