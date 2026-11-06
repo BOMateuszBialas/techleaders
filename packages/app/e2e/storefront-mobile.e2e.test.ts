@@ -82,6 +82,39 @@ describe("storefront at 390 px", () => {
 });
 
 /**
+ * The store name in the header at 320 px is not clipped: the logo is as wide as its text, so the
+ * full "CommerceOS" is visible and no ellipsis cuts it.
+ */
+describe("storefront header logo at 320 px", () => {
+  const browser = useBrowser();
+
+  beforeAll(async () => {
+    await browser().setViewport(320, 640);
+  });
+
+  it("shows the whole store name without clipping", async () => {
+    await browser().open("/");
+    await browser().waitForText("Vortex Wireless Mouse");
+    const measured = z
+      .object({
+        text: z.string(),
+        scrollWidth: z.number(),
+        clientWidth: z.number(),
+        textWidth: z.number(),
+        boxWidth: z.number(),
+      })
+      .parse(
+        await browser().evaluate(
+          "(() => { const logo = document.querySelector('.storefront-header .header-logo'); const range = document.createRange(); range.selectNodeContents(logo); return { text: logo.textContent, scrollWidth: logo.scrollWidth, clientWidth: logo.clientWidth, textWidth: range.getBoundingClientRect().width, boxWidth: logo.getBoundingClientRect().width }; })()",
+        ),
+      );
+    expect(measured.text).toBe("CommerceOS");
+    expect(measured.scrollWidth).toBe(measured.clientWidth);
+    expect(measured.textWidth).toBeLessThanOrEqual(measured.boxWidth);
+  });
+});
+
+/**
  * The cart page and the cart drawer at 320 px (retrofit Phase 1, A-items and T16): no sideways
  * scroll, and the buttons a shopper presses on a phone are at least 44 px tall.
  */
