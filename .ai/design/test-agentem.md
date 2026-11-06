@@ -185,3 +185,10 @@ Decyzje dla właściciela (kod nie zmieniany):
 - **D2 (V-L2): pełna szerokość przycisku akcji przy 320 px. Decyzja właściciela (2026-11-06): nie wprowadzać reguły pełnej szerokości.** Komponenty zawijają akcje (`flex-wrap`), nie rozciągają, z `gap-related`.
 
 Testy: zmiana tylko w dokumencie. Bramki: `npm run format:check` i `npm run check:tokens`.
+
+### F1: ciemna rama sklepu (2026-11-06)
+
+- Ustalenie: nagłówek i stopka sklepu były jasne w motywie jasnym (także na stronie głównej), ciemne tylko w ciemnym. Źródło: `.ai/design/tokeny.md` §1 (ciemna rama), `docs/design-system.md` linia 14, R02.1.
+- Decyzja właściciela (2026-11-06): rama ciemna w obu motywach, jasne ciało strony.
+- **F1 naprawione** w gałęzi `fix/storefront-dark-frame` (PR do main). Zmiana: klasa `.storefront-frame` w `globals.css` przepisuje tokeny sterujące na pary `--frame*`; nagłówek i stopka używają `bg-frame`. Obejmuje całą ramę sklepu (listing, produkt, koszyk, checkout, potwierdzenie), nie tylko potwierdzenie.
+- Kontrast i szczegóły: `.ai/design/tokeny.md`, wiersz `--frame-accent` i akapit o ramie. E2e: `packages/app/e2e/storefront-frame.e2e.test.ts`.

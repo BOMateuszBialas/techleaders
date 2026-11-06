@@ -35,7 +35,7 @@ export function FooterCategoryLinks({ categories }: { categories: CatalogCategor
  */
 export function SiteFooter({ categoryLinks }: { categoryLinks: ReactNode }) {
   return (
-    <footer className="border-t bg-muted/40">
+    <footer className="storefront-frame border-t bg-frame">
       <div className="mx-auto grid w-full max-w-(--storefront-width) gap-8 px-4 py-10 text-sm text-muted-foreground sm:grid-cols-3">
         <div className="flex flex-col gap-2">
           <p className="font-semibold text-foreground">{STORE_NAME}</p>

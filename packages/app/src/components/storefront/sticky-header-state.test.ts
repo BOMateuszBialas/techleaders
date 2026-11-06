@@ -67,4 +67,10 @@ describe("headerClassName", () => {
     expect(headerClassName(false)).toContain("sticky top-0");
     expect(headerClassName(false)).toContain("-translate-y-full");
   });
+
+  it("paints the header as the dark store frame in both themes (owner decision 2026-11-06)", () => {
+    expect(headerClassName(true)).toContain("storefront-frame");
+    expect(headerClassName(true)).toContain("bg-frame");
+    expect(headerClassName(true)).not.toContain("bg-background");
+  });
 });

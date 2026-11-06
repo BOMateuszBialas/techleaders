@@ -26,7 +26,7 @@ export function HeaderSearch() {
         type="search"
         maxLength={CATALOG_SEARCH_MAX_LENGTH}
         placeholder="Search products"
-        className="h-9 w-full rounded-full border-transparent bg-muted pr-11 pl-4 text-sm shadow-none focus-visible:border-transparent focus-visible:bg-background focus-visible:shadow-none focus-visible:ring-1 focus-visible:ring-muted-foreground/30 focus-visible:outline-none sm:w-56"
+        className="h-9 w-full rounded-full bg-muted pr-11 pl-4 text-sm shadow-none sm:w-56"
       />
       <Button
         type="submit"

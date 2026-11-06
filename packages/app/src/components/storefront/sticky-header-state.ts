@@ -55,6 +55,7 @@ export function createHeaderController(setVisible: (visible: boolean) => void): 
 
 /** The classes of the header in each state: pinned to the top, sliding out of view when hidden. */
 export function headerClassName(visible: boolean): string {
-  const base = "sticky top-0 z-40 border-b bg-background transition-transform duration-300";
+  const base =
+    "storefront-frame sticky top-0 z-40 border-b bg-frame transition-transform duration-300";
   return visible ? base : `${base} -translate-y-full`;
 }
