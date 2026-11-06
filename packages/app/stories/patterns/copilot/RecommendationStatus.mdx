@@ -1,0 +1,29 @@
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+import * as RecommendationStatusStories from "./RecommendationStatus.stories";
+
+<Meta of={RecommendationStatusStories} />
+
+# Recommendation status
+
+## What it is for
+
+The owner's decision on one recommendation: the next actions for its status, and the result of the last action.
+
+## Rules
+
+- The actions match the status: a saved recommendation can be dismissed or completed; a completed or dismissed one has no further actions, and the card says so.
+- A success is a `success` alert with `role="status"`. A conflict (another tab changed the status first) is an alert with `role="alert"`, and the card shows the status the server reports.
+- Each button's name starts with its visible text and ends with the recommendation's title, so screen-reader users can tell the cards apart.
+- The actions only record the owner's decision. Copilot changes nothing in the store.
+
+<Canvas of={RecommendationStatusStories.SavedActions} />
+
+## Result of an action
+
+<Canvas of={RecommendationStatusStories.SaveSucceeded} />
+
+<Canvas of={RecommendationStatusStories.CompletedNoFurtherActions} />
+
+## Conflict
+
+<Canvas of={RecommendationStatusStories.Conflict} />
