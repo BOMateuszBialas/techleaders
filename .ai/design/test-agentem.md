@@ -182,6 +182,6 @@ Każda luka sprawdzona w kodzie (`packages/app/src/components/ui/`, użycia w ap
 Decyzje dla właściciela (kod nie zmieniany):
 
 - **D1 (V-L6): format ilości.** Opcje: „nazwa × N” (jak w `order-summary.tsx`) albo inny format. Rekomendacja: zapisać „nazwa × N” jako konwencję w docs, bo kod już tak robi.
-- **D2 (V-L2): pełna szerokość przycisku akcji przy 320 px.** Komponenty zawijają akcje (`flex-wrap`), nie rozciągają. Rekomendacja: nie dodawać reguły pełnej szerokości; zostać przy zawijaniu z `gap-related`.
+- **D2 (V-L2): pełna szerokość przycisku akcji przy 320 px. Decyzja właściciela (2026-11-06): nie wprowadzać reguły pełnej szerokości.** Komponenty zawijają akcje (`flex-wrap`), nie rozciągają, z `gap-related`.
 
 Testy: zmiana tylko w dokumencie. Bramki: `npm run format:check` i `npm run check:tokens`.
