@@ -91,3 +91,5 @@ Run on 2026-11-06 in headless Chrome (the Claude in Chrome extension was not con
 ## Status (2026-11-06)
 
 No variant is chosen in this prototype. The owner closed the choice because the store home and the Copilot screen are already built in the application (retrofit and storefront specs). This revision stays as the record of the options that were compared.
+
+A real person clicked through the prototype before this status was written (owner report, 2026-11-06). No comments were recorded.
