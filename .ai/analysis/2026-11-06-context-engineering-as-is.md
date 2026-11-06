@@ -74,3 +74,28 @@
 
 - `AGENTS.md` is 96% of its budget, and the session-start load (about 3 k tokens) is small next to the task-start load of the three large files (about 17 k tokens). The large files are the next candidates to route, not the router.
 - Skill descriptions (about 12.6 k tokens est. across 131 files, most of it personal) are a larger session-start cost than the instruction files. They are a candidate for the owner's decision on which skills stay enabled.
+
+## Live measurement with /context (owner, 2026-11-06)
+
+A fresh Claude Code session, `/context`, model claude-haiku-5-5, window 1M tokens:
+
+| Category | Tokens | Share of window |
+| --- | --- | --- |
+| System prompt | 4.9k | 0.5
+## Live measurement with /context (owner, 2026-11-06)
+
+A fresh Claude Code session, `/context`, model claude-haiku-5-5, window 1M tokens:
+
+| Category | Tokens | Share of window |
+| --- | --- | --- |
+| System prompt | 4.9k | 0.5% |
+| System tools | 19.9k | 2.0% |
+| MCP tools (75 tools, loaded on demand) | 598 | 0.1% |
+| MCP server instructions | 1.1k | 0.1% |
+| Memory files (3 files) | 5.9k | 0.6% |
+| Skills (90 skills) | 9.9k | 1.0% |
+| Messages | 10 | 0.0% |
+| Free space | 924.7k | 92.5% |
+| Autocompact buffer | 33k | 3.3% |
+
+Total used at the start: 42.3k tokens (4%). The start of a session is therefore smaller than the chars/4 estimate above for AGENTS.md, ENGINEERING_STANDARDS, SDLC and lessons together, because the measurement above counts files that the session reads on demand, not at start.
