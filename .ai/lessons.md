@@ -7,6 +7,7 @@ Long-term memory for LLM agents: an index. Add an entry after fixing a bug, or w
 
 ## Lessons
 <!-- Newest first -->
+- **2026-11-06 — A visual check that finds doubled spacing must read the component's own padding first: the doubling was the test's composition, not a component gap** — test-agent visual run (PR #198, triage in PR #201).
 - **2026-11-06 — A percentage width on a slide inside a scroll track is the track's width, so one card fills the row: size slides against the viewport (`min(24rem, 80vw)`)** — featured slider, `packages/app/src/app/globals.css` (`.featured-slide`, from #190).
 - **2026-11-05 — Storefront layout and e2e: six lessons (sticky header, in-flow buttons, hydration waits, Suspense, copied migration data, short vs long copy)** — details in `lessons/2026-11-05-storefront-layout-and-e2e.md`.
 - **2026-11-03 — Storybook docs overflow can be its own layout, not our tables** — check `table-layout` and the generated props table before changing components (see `.ai/design/detector-l06.md`).
@@ -64,7 +65,6 @@ Long-term memory for LLM agents: an index. Add an entry after fixing a bug, or w
 - **2026-10-17 — A branch stacked on a squash-merged PR: replay only its own commits** — [details](lessons/2026-10-17-stacked-branch-squash-merge-cherry-pick.md)
 - **2026-10-17 — An e2e wait satisfied by the page you are leaving** — [details](lessons/2026-10-17-e2e-wait-satisfied-by-leaving-page.md)
 - **2026-10-17 — Windows Python cannot open Git Bash's `/tmp`** — [details](lessons/2026-10-17-windows-python-git-bash-tmp.md)
-- **2026-10-17 — A server action refreshes the page itself after a no-write conflict**: `runAdminAction` refreshes the page only after a change; when a conflict means the page is out of date (a stale order status), the action calls `refresh()` itself so the page re-renders with the current state.
 - **2026-10-17 — The e2e sign-in budget is spent: share the setup's owner session; a generic double-click selector can pay the order** — [details](lessons/2026-10-17-e2e-sign-in-budget.md)
 - **2026-10-17 — `Intl` month abbreviations differ between ICU versions; bind instants as ISO strings in raw SQL** — [details](lessons/2026-10-17-intl-month-abbreviations.md)
 - **2026-10-16 — MikroORM driver exceptions carry the failed SQL with its parameters** — [details](lessons/2026-10-16-driver-exceptions-carry-sql-parameters.md)
