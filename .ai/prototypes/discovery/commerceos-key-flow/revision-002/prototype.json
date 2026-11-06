@@ -1,0 +1,22 @@
+{
+  "format": "discovery-prototype-v1",
+  "skill": "om-mockup-prototype",
+  "slug": "commerceos-key-flow",
+  "revision": 2,
+  "revisionPath": ".ai/prototypes/discovery/commerceos-key-flow/revision-002",
+  "previousRevision": "revision-001",
+  "brief": ".ai/specs/product-brief.md",
+  "flow": "Key screens in three variants each: storefront home (s01) and Commerce Copilot answer (s18), built on the design-system tokens",
+  "panelReport": null,
+  "verification": "headless Chrome walk, 55 checks passed (evidence/results.json); browser extension and configured browser provider not run",
+  "files": [
+    { "path": "index.html", "sha256": "6da40e91d0bbff882fae84d11016ee16d861e36a8796542647cf0729bcabf0e2" },
+    { "path": "app.js", "sha256": "78c4efaf23a5cfc3aef1301ee33691d15deb0bbe052c234d28b277e52296452b" },
+    { "path": "styles.css", "sha256": "ed0f7dbadac48e5b670ee23504331f6b9711e5c50bb007fe032857ee7fdc2622" },
+    { "path": "tokens.css", "sha256": "8f0ddcd41cecb7f8d98da685660bf64832664bc16168acdc1ecf61f9e926addf" },
+    { "path": "README.md", "sha256": "6335449ec11281ea92eb7c4b590ffdbf66a98bf001e1b33b871a1e9ae3ce547a" },
+    { "path": "evidence/browser-walk/run.mjs", "sha256": "a825d9e4e890d49f53fdda40d295c4314c0315ded8cd0ff3851dd75275ccda64" },
+    { "path": "evidence/results.json", "sha256": "fe30c6b942e4b8cf188d832332e5a8af99ccdc92240ff96b1b36eaf4dc877ab7" },
+    { "path": "evidence/home-a-1440.png", "sha256": "cd6d072e871a8d290b5d34850a0f8f15e5d11a7a9790cd709b86d8860a6dfe5e" }
+  ]
+}

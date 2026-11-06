@@ -1,0 +1,277 @@
+[
+  {
+    "name": "home A renders h1",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "review bar shows variant A current",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "switch to B via review bar",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "switch to C",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "state select to empty",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "nav to Copilot from review bar",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "admin side Storefront link goes home",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "home error state has alert",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "retry returns to default",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "loading skeleton",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "copilot a answer lists 3 recs",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "copilot a shows AI source",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "copilot b answer lists 3 recs",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "copilot b shows AI source",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "copilot c answer lists 3 recs",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "copilot c shows AI source",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "save changes status to Saved",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "C next moves to rec 2",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "C dismiss shows Dismissed",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "B table and 3 details present",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "fallback answer-not-configured shows rule-based source and recs",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "fallback answer-timed-out shows rule-based source and recs",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "fallback answer-daily-limit shows rule-based source and recs",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "fallback answer-failed-checks shows rule-based source and recs",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "copilot empty store sentence and 3 suggestions",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "copilot error alert",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "ask again returns to answer",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "ask form does not send, shows note",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "unknown route recovery page",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "dark theme applies .dark on html",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "no overflow 320 #/home/a/default",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "no overflow 320 #/home/b/default",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "no overflow 320 #/home/c/default",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "no overflow 320 #/copilot/a/answer-ai",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "no overflow 320 #/copilot/b/answer-ai",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "no overflow 320 #/copilot/c/answer-ai",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "no overflow 390 #/home/a/default",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "no overflow 390 #/home/b/default",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "no overflow 390 #/home/c/default",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "no overflow 390 #/copilot/a/answer-ai",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "no overflow 390 #/copilot/b/answer-ai",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "no overflow 390 #/copilot/c/answer-ai",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "no overflow 768 #/home/a/default",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "no overflow 768 #/home/b/default",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "no overflow 768 #/home/c/default",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "no overflow 768 #/copilot/a/answer-ai",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "no overflow 768 #/copilot/b/answer-ai",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "no overflow 768 #/copilot/c/answer-ai",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "no overflow 1440 #/home/a/default",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "no overflow 1440 #/home/b/default",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "no overflow 1440 #/home/c/default",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "no overflow 1440 #/copilot/a/answer-ai",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "no overflow 1440 #/copilot/b/answer-ai",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "no overflow 1440 #/copilot/c/answer-ai",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "name": "no console errors or exceptions",
+    "ok": true,
+    "detail": ""
+  }
+]
