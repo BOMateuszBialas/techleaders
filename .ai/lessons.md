@@ -7,10 +7,10 @@ Long-term memory for LLM agents: an index. Add an entry after fixing a bug, or w
 
 ## Lessons
 <!-- Newest first -->
+- **2026-11-06 — A percentage width on a slide inside a scroll track is the track's width, so one card fills the row: size slides against the viewport (`min(24rem, 80vw)`)** — featured slider, `packages/app/src/app/globals.css` (`.featured-slide`, from #190).
 - **2026-11-05 — Storefront layout and e2e: six lessons (sticky header, in-flow buttons, hydration waits, Suspense, copied migration data, short vs long copy)** — details in `lessons/2026-11-05-storefront-layout-and-e2e.md`.
 - **2026-11-03 — Storybook docs overflow can be its own layout, not our tables** — check `table-layout` and the generated props table before changing components (see `.ai/design/detector-l06.md`).
 - **2026-11-03 — A prototype screen needs its h1 in every state, not only the default: the h1 check fails on loading and error blocks too, so keep the heading above them** — prototype s08–s10, `.ai/prototypes/ds/evidence/account-screens.mjs`.
-
 - **2026-10-28 — An inline ref callback is a new function on every render, so React calls it again with the same state: a focus side effect in it must fire once per state (a WeakSet keyed by the state), not on each call** — Copilot phase 2 review (PR #144)
 
 - **2026-10-27 — Focus after a refused form needs no wrapper effect: a ref callback in the hook-free view (`ref={(el) => focusX(state, el)}`) runs at commit, and the React Compiler lint rejects passing a ref object into a function in render; a `switch` with a `never` default leaves an uncovered branch under V8, so use a `Record` typed on the union** — run log `.ai/runs/2026-10-27-retrofit-copilot-phase-2.md`.

@@ -625,9 +625,10 @@
   object-position: 50% 68%;
 }
 
-/* A featured card: 24 rem on a wide screen, and never wider than the track (the phone width). */
+/* A featured card: 24 rem on a wide screen, and at most 80% of the viewport on a phone. A percentage
+   of the track would be the whole row, so one card filled it and the rest were pushed off-screen. */
 .featured-slide {
-  width: min(24rem, 100%);
+  width: min(24rem, 80vw);
 }
 
 /* Featured carousel track: the buttons and touch or trackpad scrolling replace the scrollbar. */
