@@ -1,0 +1,22 @@
+import { Canvas, Meta } from "@storybook/addon-docs/blocks";
+import * as FailedStatesStories from "./FailedStates.stories";
+
+<Meta of={FailedStatesStories} />
+
+# Failed states
+
+## What it is for
+
+What the owner sees when the AI cannot answer: the provider failed, timed out, refused or returned an answer that failed our checks. The rule-based answer still works, so the owner is never left with nothing.
+
+## Rules
+
+- A failed AI call is an information state, not an error: a `warning` or `info` notice above the rule-based answer, never `ErrorState` and never `destructive`.
+- The notice names the reason in the owner's words. It never shows a raw provider error, a status code or a token.
+- The rule-based summary and its figures stay on the page under the notice.
+
+<Canvas of={FailedStatesStories.LlmProviderError} />
+
+## Every fallback reason
+
+<Canvas of={FailedStatesStories.AllFallbackReasons} />
