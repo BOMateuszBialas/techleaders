@@ -1,0 +1,188 @@
+:root {
+  --raw-gray-0: oklch(1 0 0);
+  --raw-gray-25: oklch(0.985 0.002 285);
+  --raw-gray-50: oklch(0.97 0.003 285);
+  --raw-gray-100: oklch(0.965 0.004 285);
+  --raw-gray-150: oklch(0.955 0.004 285);
+  --raw-gray-200: oklch(0.93 0.004 285);
+  --raw-gray-250: oklch(0.91 0.004 285);
+  --raw-gray-300: oklch(0.85 0.006 285);
+  --raw-gray-400: oklch(0.74 0.01 285);
+  --raw-gray-500: oklch(0.62 0.012 285);
+  --raw-gray-550: oklch(0.55 0.01 285);
+  --raw-gray-600: oklch(0.49 0.012 285);
+  --raw-gray-700: oklch(0.3 0.006 285);
+  --raw-gray-800: oklch(0.25 0.006 285);
+  --raw-gray-850: oklch(0.21 0.005 285);
+  --raw-gray-900: oklch(0.17 0.005 285);
+  --raw-gray-950: oklch(0.12 0.004 285);
+  --raw-red-50: oklch(0.95 0.02 25);
+  --raw-red-300: oklch(0.72 0.16 25);
+  --raw-red-400: oklch(0.66 0.19 25);
+  --raw-red-500: oklch(0.55 0.2 25);
+  --raw-red-600: oklch(0.5 0.19 25);
+  --raw-red-700: oklch(0.44 0.17 25);
+  --raw-red-950: oklch(0.27 0.06 25);
+  --raw-violet-400: oklch(0.7 0.2 300);
+  --raw-violet-500: oklch(0.6 0.23 300);
+  --raw-violet-600: oklch(0.52 0.23 300);
+  --raw-violet-700: oklch(0.45 0.21 300);
+  --raw-fuchsia-400: oklch(0.72 0.23 330);
+  --raw-fuchsia-500: oklch(0.66 0.25 335);
+  --raw-fuchsia-600: oklch(0.6 0.25 340);
+  --raw-green-50: oklch(0.96 0.04 150);
+  --raw-green-300: oklch(0.78 0.13 150);
+  --raw-green-700: oklch(0.46 0.11 150);
+  --raw-green-950: oklch(0.27 0.05 150);
+  --raw-amber-50: oklch(0.96 0.04 95);
+  --raw-amber-100: oklch(0.94 0.07 90);
+  --raw-amber-200: oklch(0.88 0.1 85);
+  --raw-amber-300: oklch(0.82 0.12 80);
+  --raw-amber-500: oklch(0.62 0.12 70);
+  --raw-amber-700: oklch(0.48 0.1 65);
+  --raw-amber-900: oklch(0.38 0.08 60);
+  --raw-amber-950: oklch(0.28 0.05 75);
+  --raw-blue-300: oklch(0.76 0.11 258);
+  --raw-blue-600: oklch(0.48 0.17 258);
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * Layer 2: semantic tokens, light theme (default; decision "Motyw": light first, dark optional).
+ * `.light` lets documentation show the light theme inside a dark page.
+ * ------------------------------------------------------------------------------------------- */
+:root,
+.light {
+  /* Surfaces and text */
+  --background: var(--raw-gray-0); /* R02.1: light commerce surfaces; owner decision 4 */
+  --foreground: var(--raw-gray-900); /* main text, prices and headings (R03.1: price is not red) */
+  --card: var(--raw-gray-0); /* R02.2: summary on a white card; R04.1 admin cards */
+  --card-foreground: var(--raw-gray-900);
+  --popover: var(--raw-gray-0); /* menus, popovers, dialogs */
+  --popover-foreground: var(--raw-gray-900);
+  /* Stage 2 batch 4, Q4 (B4.5): dims the page under a dialog; the text graphite at 50%, no blur.
+     A white dialog is 3.58:1 to the dimmed page (verify-css.mjs). */
+  --backdrop: oklch(0.17 0.005 285 / 50%);
+  --surface-product: var(--raw-gray-100); /* R01.3: product on a light card, no shadow */
+  --muted: var(--raw-gray-100); /* R04.1: table header; skeleton; empty state */
+  --muted-foreground: var(--raw-gray-600); /* captions and metadata; audit: 4.35:1 fixed */
+
+  /* Actions */
+  --primary: var(--raw-gray-850); /* R04.2: neutral main action in admin, K7 */
+  --primary-hover: var(--raw-gray-700); /* P7: states as colors, not opacity */
+  --primary-foreground: var(--raw-gray-25);
+  --action: var(--raw-gray-900); /* R03.1, K1: purchase actions only (rule 2): black */
+  --action-hover: var(--raw-gray-700); /* R03.1 + P7 */
+  --action-foreground: var(--raw-gray-25); /* R03.1: text #fbfbfb on the black */
+  --secondary: var(--raw-gray-150); /* R03, R04.1: secondary actions, neutral status badge */
+  --secondary-hover: var(--raw-gray-200); /* stage 2 Q1: hover of the secondary button (P7) */
+  --secondary-foreground: var(--raw-gray-850);
+  --accent: var(--raw-gray-150); /* hover of ghost/outline, selected row; not a brand accent */
+  --accent-foreground: var(--raw-gray-850);
+  --link: var(--raw-blue-600); /* P1, R04.2: links in text and resource names in admin tables */
+
+  /* Lines and focus */
+  --border: var(--raw-gray-250); /* decorative only: separators, card outline (rule 12) */
+  --input: var(--raw-gray-500); /* control outline, WCAG 1.4.11 (audit: was 1.26:1) */
+  --ring: var(--raw-gray-900); /* owner decision 2: neutral focus ring, WCAG 2.4.7 / 2.4.13 */
+
+  /* Meaning (audit decision 4: tokens instead of the Tailwind palette) */
+  --destructive: var(--raw-red-600); /* owner decision 1: same red as the action; form differs */
+  --destructive-surface: var(--raw-red-50); /* error alert, "Cancelled" badge */
+  --success: var(--raw-green-700); /* "Added to cart.", "Paid", "Published" (R04.2) */
+  --success-surface: var(--raw-green-50);
+  --warning: var(--raw-amber-700); /* slug and AI-draft warnings, "Pending payment" */
+  --warning-surface: var(--raw-amber-50);
+  --warning-border: var(--raw-amber-500);
+  --demo: var(--raw-amber-900); /* P3, AGENTS.md principle 6: demo is always visibly marked */
+  --demo-surface: var(--raw-amber-100);
+
+  /* Store frame: dark header and footer (R02.1, R03) */
+  --frame: var(--raw-gray-900);
+  --frame-foreground: var(--raw-gray-25);
+  --frame-muted-foreground: var(--raw-gray-400);
+  --frame-border: var(--raw-gray-700);
+  --frame-input: var(--raw-gray-550); /* WCAG 1.4.11 inside the frame */
+  --frame-ring: var(--raw-gray-25);
+  --frame-accent: var(
+    --raw-fuchsia-400
+  ); /* R03.1 + K7: brand mark only, never text on it (rule 3) */
+
+  /* Admin sidebar (R04.1); red only as the active marker (R04.2, K7) */
+  --sidebar: var(--raw-gray-850);
+  --sidebar-foreground: var(--raw-gray-200);
+  --sidebar-muted-foreground: var(--raw-gray-400);
+  --sidebar-accent: var(--raw-gray-700);
+  --sidebar-accent-foreground: var(--raw-gray-25);
+  --sidebar-primary: var(--raw-fuchsia-400);
+  --sidebar-primary-foreground: var(--raw-gray-900);
+  --sidebar-border: var(--raw-gray-700);
+  --sidebar-ring: var(--raw-gray-25);
+
+  /* Depth (P8, R01: one shadow; A01: no shadow on every card) */
+  --elevation-card: none;
+  --elevation-overlay: 0 8px 24px oklch(0.17 0.005 285 / 12%);
+}
+
+/* Layer 2: semantic tokens, dark theme (decision "Motyw"; P14: frame darker than the page). */
+.dark {
+  --background: var(--raw-gray-900);
+  --foreground: var(--raw-gray-50);
+  --card: var(--raw-gray-850);
+  --card-foreground: var(--raw-gray-50);
+  --popover: var(--raw-gray-800); /* overlays lighter than the page in dark */
+  --popover-foreground: var(--raw-gray-50);
+  --backdrop: oklch(0 0 0 / 60%); /* B4.5: the page is dark already; the dialog keeps its outline */
+  --surface-product: var(--raw-gray-850); /* tokeny.md §2: action on it 3.28:1 */
+  --muted: var(--raw-gray-800);
+  --muted-foreground: var(--raw-gray-400);
+
+  --primary: var(--raw-gray-200);
+  --primary-hover: var(--raw-gray-300);
+  --primary-foreground: var(--raw-gray-900);
+  --action: var(
+    --raw-gray-100
+  ); /* dark mode: a light button with dark text (black on the light surface) */
+  --action-hover: var(--raw-gray-300);
+  --action-foreground: var(--raw-gray-900);
+  --secondary: var(--raw-gray-800);
+  --secondary-hover: var(--raw-gray-700);
+  --secondary-foreground: var(--raw-gray-50);
+  --accent: var(--raw-gray-800);
+  --accent-foreground: var(--raw-gray-50);
+  --link: var(--raw-blue-300);
+
+  --border: var(--raw-gray-700);
+  --input: var(--raw-gray-550);
+  --ring: var(--raw-gray-200);
+
+  --destructive: var(--raw-red-300);
+  --destructive-surface: var(--raw-red-950);
+  --success: var(--raw-green-300);
+  --success-surface: var(--raw-green-950);
+  --warning: var(--raw-amber-300);
+  --warning-surface: var(--raw-amber-950);
+  --warning-border: var(--raw-amber-500);
+  --demo: var(--raw-amber-200);
+  --demo-surface: var(--raw-amber-950);
+
+  --frame: var(--raw-gray-950);
+  --frame-foreground: var(--raw-gray-25);
+  --frame-muted-foreground: var(--raw-gray-400);
+  --frame-border: var(--raw-gray-700);
+  --frame-input: var(--raw-gray-550);
+  --frame-ring: var(--raw-gray-25);
+  --frame-accent: var(--raw-fuchsia-400);
+
+  --sidebar: var(--raw-gray-950);
+  --sidebar-foreground: var(--raw-gray-200);
+  --sidebar-muted-foreground: var(--raw-gray-400);
+  --sidebar-accent: var(--raw-gray-800);
+  --sidebar-accent-foreground: var(--raw-gray-25);
+  --sidebar-primary: var(--raw-fuchsia-400);
+  --sidebar-primary-foreground: var(--raw-gray-900);
+  --sidebar-border: var(--raw-gray-700);
+  --sidebar-ring: var(--raw-gray-25);
+
+  --elevation-card: none;
+  --elevation-overlay: 0 8px 24px oklch(0 0 0 / 50%); /* overlays also keep a --border outline */
+}
