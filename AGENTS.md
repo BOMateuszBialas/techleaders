@@ -19,7 +19,7 @@ Product principles: (1) working end-to-end flows beat feature count; (2) real, t
 
 ### Stack
 
-Node.js ≥ 22.17, **npm workspaces**; Next.js 16.4 (App Router, `cacheComponents`), React 19.3, TypeScript 5.9 strict; PostgreSQL 17 with **MikroORM 7**; **Awilix 13** DI; Tailwind CSS v4 and shadcn/ui; **Zod 4**; Vitest 5, Testcontainers, agent-browser, ESLint 9, Prettier 3. Admin and customer auth are two Better Auth instances (`~1.7.10`). The LLM is optional (Gemini, free tier). Stripe is not chosen; do not add it silently. Do not add libraries without a stated reason.
+**npm workspaces**; Next.js (App Router, `cacheComponents`), React, TypeScript strict; PostgreSQL with **MikroORM**; **Awilix** DI; Tailwind CSS and shadcn/ui; **Zod**; Vitest, Testcontainers, agent-browser, ESLint, Prettier. Exact versions are in `package.json` files, not here. Admin and customer auth are two Better Auth instances. The LLM is optional (Gemini, free tier). Stripe is not chosen; do not add it silently. Do not add libraries without a stated reason.
 
 ## Packages and boundaries
 
@@ -48,7 +48,7 @@ Dependency direction is enforced by ESLint (`no-restricted-imports` in `eslint.c
 
 Agent guardrails: `.claude/settings.json` denies `.env` files (except `.env.example` and `.env.template`) and credential folders. The hook `.claude/hooks/pre-tool-use.sh` blocks recursive deletes, download-to-shell pipes and `.env` names. If the hook blocks a command, ask the user. Never read or copy `.env`. Write a commit message or PR body that names a `.env` file to a file and pass it with `git commit -F` / `gh pr create --body-file`. `.claude/`, `.agents/`, `.mcp.json`, `.github/workflows/` and the agent instructions belong to the maintainer (`.github/CODEOWNERS`).
 
-Testing: **100% unit coverage is mandatory** (`npm run test:coverage`). Do not lower thresholds or add an exclusion without a written reason and the user's approval (`vitest.config.mts`). Unit tests are `*.test.ts` (no network or DB), integration tests `*.int.test.ts` (Testcontainers), e2e tests `packages/app/e2e/**/*.e2e.test.ts`. A behaviour change ships with tests; a bug fix ships with a regression test that fails before the fix.
+Testing: **100% unit coverage is mandatory** (`npm run test:coverage`). Do not lower thresholds or add an exclusion without a written reason and the user's approval (`vitest.config.mts`). Unit tests run without network or DB; test file suffixes are set in `vitest.config.mts`. A behaviour change ships with tests; a bug fix ships with a regression test that fails before the fix.
 
 Reference files (patterns to copy): `packages/app/src/server/catalog/category.action.ts` (admin action), `packages/database/src/adapters/database-stock-repository.ts` (transactional, audited write), `packages/core/src/domain/orders/order-status.ts` (transition table).
 
