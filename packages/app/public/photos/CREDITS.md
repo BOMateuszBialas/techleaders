@@ -81,7 +81,7 @@ Searches that gave no usable Pexels result: a monitor stand, and a plain gaming 
 - Slot reuse (owner decision, no new downloads): the keyboard category tile uses the existing `product-keyboard-rgb.jpg` (already on main, not copied). The monitor stand slot uses `product-monitor.jpg`, the same file as the monitor product. No separate file was added for either slot.
 - product-monitor.jpg is the weakest of the new picks (laptop-style keyboard, code on screen). Replace it with a plain monitor shot if one turns up.
 - category-mice.jpg and category-mouse-pads.jpg show mice with no visible logo at 1600 px. A mouse shape can still be a branded product, so the owner should look at full size before publishing.
-- Page titles for 9128853 (category-monitors.jpg) and 1933900 (product-monitor.jpg) differ from the listing titles in the rows. Confirm at full size that each file shows the image on its source page before publishing.
+- Page titles for 9128853 (category-monitors.jpg) and 1933900 (product-monitor.jpg) differ from the listing titles in the rows. Accepted by the owner on 2026-11-06 after review; the files stay.
 - Source URLs use the Pexels id form and loaded on 2026-11-06; the slugs were not recorded.
 
 ## Open before the photos ship
