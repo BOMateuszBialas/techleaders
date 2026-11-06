@@ -51,7 +51,7 @@ The full table is in "Repository decisions" below and is enforced by ESLint. Two
 
 ### Concept folders
 
-Create a concept folder only when its first real file is needed; do not pre-create empty directories. Examples:
+Examples of concept folders:
 
 - `packages/database/src/entities/products/product.entity.ts`
 - `packages/core/src/services/products/product.service.ts`
@@ -68,7 +68,7 @@ Do not create a generic module runtime, auto-discovery mechanism, or per-concept
 - **Presentation:** Next.js pages, route handlers, forms, tables, and UI state.
 - **Commerce Copilot:** gathers only the approved context needed for a request, calls constrained tools, validates output, and returns grounded recommendations. It does not own or duplicate order/product business rules.
 
-A product page must not execute a raw MikroORM query. An order service must not construct a `NextResponse`. An AI prompt must not be used as a substitute for deterministic business validation.
+An AI prompt must not be used as a substitute for deterministic business validation.
 
 ## 4. Reusable API, validation, and UI patterns
 
@@ -226,7 +226,6 @@ Use these principles to guide actual implementation decisions, not as a reason t
 
 ## 10. Code quality rules
 
-- Use strict TypeScript. Avoid `any`; narrow `unknown` at runtime instead of disabling type checks.
 - Prefer clear, self-documenting names. Comments should explain non-obvious reasons, not restate the code.
 - Three similar lines can be clearer than a premature abstraction; repeated branching logic should be extracted when it forms a real shared pattern.
 - Prefer early returns to deeply nested conditionals.
@@ -251,17 +250,13 @@ At minimum, test important business behavior rather than implementation details.
 
 For race-sensitive flows, test the concurrent or duplicate-request case, not only the happy path.
 
-A behavior change should include a test for the new behavior. A bug fix should include a regression test that would fail before the fix.
-
 ## 12. Definition of done
 
 A feature is not done merely because the UI renders.
 
 Before marking a task complete:
 
-- [ ] TypeScript type-check passes.
-- [ ] Lint passes.
-- [ ] Relevant tests pass.
+- [ ] The validation gate passes (`SDLC.md`, Validation gate).
 - [ ] Input validation and meaningful error states exist.
 - [ ] Server-side authorization is enforced where required.
 - [ ] Database changes have migrations and appropriate constraints.
@@ -276,9 +271,6 @@ Before marking a task complete:
 
 ### Architecture and conventions
 
-- [ ] Package dependency direction is respected.
-- [ ] Core business logic does not import Next.js or React.
-- [ ] Pages and components do not issue raw ORM queries.
 - [ ] External integrations are accessed through the intended port/adapter boundary.
 - [ ] New concept folders follow existing naming conventions and are not pre-scaffolded empty.
 - [ ] Existing shared API/form/table/feedback patterns are reused where appropriate.
@@ -306,7 +298,6 @@ Before marking a task complete:
 
 ### Verification
 
-- [ ] Lint, type-check, relevant tests, and build pass.
 - [ ] Any failed or skipped command is documented.
 - [ ] README/AGENTS/engineering standards are updated if the change alters documented behavior.
 
@@ -324,7 +315,6 @@ When asked to add a feature such as inventory management:
 8. Add the page/components using existing shadcn and shared UI patterns.
 9. Add tests for business rules, persistence, authorization, and failure cases.
 10. Run relevant checks and update documentation.
-11. Report changed files, key decisions, commands run, results, and known gaps.
 
 Do not create an empty concept folder or speculative abstraction. Do not refactor unrelated modules during a feature task. If the request conflicts with the five-week MVP scope or requires a meaningful architecture change, explain the trade-off and ask for approval before proceeding.
 
