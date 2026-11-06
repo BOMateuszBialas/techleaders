@@ -149,9 +149,9 @@ Dokumentacja wystarczyła, żeby **zbudować ekran w postaci opisanej przez decy
 
 ### Luki wizualne (nowe, do listy P)
 
-- **V-L1** (V2): docs nie mówią, czy `CardContent` ma padding. Sugerowane zdanie: „CardContent carries the panel padding (24 px store); do not add p-panel to it.”
+- **V-L1** (V2): `CardContent` ma tylko poziomy padding (`px-panel`), pionowy daje `Card` (`py-panel`). Sugerowane zdanie, poprawione w triażu: „CardContent adds horizontal padding only; the Card carries the vertical panel padding, so do not add p-panel to CardContent.”
 - **V-L2** (V3, V4): brak reguły układu dwóch akcji przy szerokościach; wizualny wybór stosu i pełnej szerokości nie ma podstawy w docs. Połączyć z L3.
-- **V-L3** (V7): kolor tytułu h1 w `ErrorState` nieopisany. Sugerowane zdanie: „A page heading inside ErrorState uses the variant color only through the Alert title; prefer a neutral heading.”
+- **V-L3** (V7): kolor tytułu h1 w `ErrorState` jest opisany przez regułę wariantu (B2.20). Sugerowane zdanie, poprawione w triażu: „A heading inside the ErrorState title takes the destructive variant color (B2.20), as in the admin error page.”
 - **V-L4** (V8): stan „not found” nie mówi, czy nagłówek jest w polu `Empty`, czy poza nim.
 - **V-L5** (V9): etykieta `SkeletonGroup` jest niewidoczna wizualnie; docs nie mówią, czy ma być widoczna.
 - **V-L6** (V6): ilość przy pozycji zamówienia (L19, nadal otwarta).
@@ -164,3 +164,24 @@ Dokumentacja wystarczyła, żeby **zbudować ekran w postaci opisanej przez decy
 - Decyzje wizualne: 12 (V1–V12). REGUŁA: 4. PRZYKŁAD: 1. ZGADUJĘ: 6. Nie sprawdzone: 1.
 - Nowe luki: 7 (V-L1 do V-L7).
 - Nieprzyjęte P12 (locale) potwierdzone wizualnie: tak.
+
+### Triaż luk V-L1 do V-L7 (2026-11-06)
+
+Każda luka sprawdzona w kodzie (`packages/app/src/components/ui/`, użycia w aplikacji) i w docs. Wynik: (a) 0, (b) 6, (c) 1 (plus jedna decyzja z V-L2). Żadnej luki nie uznano za defekt komponentu z jasną poprawką, więc kod i stories nie zmieniono.
+
+| Luka | Typ | Dowód | Co zrobiono |
+| --- | --- | --- | --- |
+| V-L1 | (b) kompozycja | `card.tsx`: `Card` ma `py-panel`, `CardContent` tylko `px-panel`. Użycia w `admin/sign-in/page.tsx` i `customer-auth-card.tsx` nie dodają `p-panel` | Poprawiono sugerowane zdanie. Test dołożył `p-panel` i podwoił pas pionowy |
+| V-L2 | (b) kompozycja, z decyzją (c) D2 | `error-state.tsx` i `empty.tsx`: rząd akcji to `flex flex-wrap items-center gap-related`. Komponenty nie mają pełnej szerokości przycisku; stos i pełna szerokość przy 320 px były wyborem testu | Zamknięte jako reguła istniejąca w komponentach. Pełna szerokość na telefonie: D2 |
+| V-L3 | (b) zgodne z regułą | `alert.tsx`: tytuł i ikona biorą kolor wariantu (B2.20). `admin/(protected)/error.tsx` ma `<h1 className="type-h1">` w tytule `ErrorState`, czyli czerwony nagłówek jest przyjętym wzorcem | Poprawiono sugerowane zdanie (wyżej). Bez zmiany kodu |
+| V-L4 | (b) kompozycja | `orders/[reference]/not-found.tsx`: h1 wewnątrz `EmptyTitle`, „the title holds the page's only h1” (B3.23). Test powtórzył ten wzorzec | Zamknięte. Nagłówek w `Empty` jest zgodny z istniejącą stroną not-found |
+| V-L5 | (b) dokumentacja już mówi | `skeleton.tsx`: `SkeletonGroup` nazywa stan ładowania ukrytą etykietą (`sr-only`), decyzja właściciela Q3 | Zamknięte. Etykieta ma być niewidoczna; zrzut miał to zachowanie |
+| V-L6 | (c) decyzja właściciela | `checkout/order-summary.tsx`: `{item.name} × {item.quantity}`. Format istnieje w kodzie, nie ma go w docs | Decyzja D1 niżej. Kod bez zmian |
+| V-L7 | (b) kompozycja testu | `docs/design-system.md` (linia 14): strony potwierdzenia mają jasne ciało i ciemną ramę nagłówka i stopki. Historia testowa ramy nie miała | Nie jest luką komponentu. L4 zostaje otwarte do zrzutu z ramą sklepu |
+
+Decyzje dla właściciela (kod nie zmieniany):
+
+- **D1 (V-L6): format ilości.** Opcje: „nazwa × N” (jak w `order-summary.tsx`) albo inny format. Rekomendacja: zapisać „nazwa × N” jako konwencję w docs, bo kod już tak robi.
+- **D2 (V-L2): pełna szerokość przycisku akcji przy 320 px.** Komponenty zawijają akcje (`flex-wrap`), nie rozciągają. Rekomendacja: nie dodawać reguły pełnej szerokości; zostać przy zawijaniu z `gap-related`.
+
+Testy: zmiana tylko w dokumencie. Bramki: `npm run format:check` i `npm run check:tokens`.
