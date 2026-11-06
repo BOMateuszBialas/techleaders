@@ -12,6 +12,7 @@ Backlog epic E02 (issue #9): stories E02-S01 (manage a cart), E02-S02 (checkout 
 2. The cart (`/cart`) lists the lines. The shopper changes a quantity ("Update") or removes a line ("Remove", with the product name in its accessible name). The cart summary shows the subtotal, "Prices are confirmed at checkout." and the "Checkout" link.
 3. If the server changed a line (price, stock), the cart shows "Your cart changed" with the changes and "Update my cart" before checkout continues.
 4. Checkout (`/checkout`) asks for the delivery and contact fields. Errors come back from the server and show as one message and per field.
+   The order summary lists each line as "product name × quantity" (a multiplication sign with spaces, no "x"), then the line total. Use this format for any summary of lines.
 5. "Place order" creates the order with the server's prices and stock. The shopper goes to the demo payment page (`/checkout/pay/[reference]`).
 6. The demo payment page carries a standing demo notice. "Confirm demo payment (no charge)" marks the order paid in demo mode.
 7. The confirmation page (`/orders/[reference]`) shows "Thank you — demo payment received", the order details and the reference: "Save this reference to check your order."
