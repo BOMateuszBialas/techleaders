@@ -1,5 +1,6 @@
-import { ArgTypes, Canvas, Meta } from "@storybook/addon-docs/blocks";
+import { ArgTypes, Canvas, Meta, Unstyled } from "@storybook/addon-docs/blocks";
 import * as DrawerStories from "./drawer.stories";
+import { DoDont } from "./blocks/do-dont";
 
 <Meta of={DrawerStories} />
 
@@ -27,13 +28,26 @@ Looking at or changing a short list that belongs to the current page (the cart) 
 
 1. Trigger: the control that opens it (a link or a button).
 2. Backdrop: `--backdrop`, no blur; a click on it closes the drawer.
-3. Popup: role `dialog`, fixed to the right edge, full height, a 1 px left border, the overlay surface (`--popover`, the overlay shadow), `--space-panel` padding. Full width below `sm` (448 px); at most `max-w-md` from `sm`.
+3. Popup: role `dialog`, fixed to the right edge (or the left, see Variants), full height, a 1 px border on its inner edge, the overlay surface (`--popover`, the overlay shadow), `--space-panel` padding. Width `w-full max-w-md`: the full width of the screen up to 448 px, and 448 px above that.
 4. Header: title (`DrawerTitle`, style `h2`) and an optional description.
 5. Body: the content; it scrolls while the header and the footer stay visible.
 6. Footer: the subtotal or the primary action (the only action-coloured control of the cart), then the secondary links.
 7. X: a `ghost` icon button named "Close" in the corner. It is the first focusable element, so opening the drawer focuses it.
 
-## 5. States
+## 5. Variants
+
+| Variant       | How                         | Default | Where it is used                                                                   |
+| ------------- | --------------------------- | ------- | ---------------------------------------------------------------------------------- |
+| Right side    | `side="right"`              | yes     | the cart (`src/components/cart/cart-drawer.tsx`)                                   |
+| Left side     | `side="left"`               | no      | the category list in the storefront's mobile menu (`mobile-categories-menu.tsx`)   |
+| With the X    | `showCloseButton` (default) | `true`  | every drawer                                                                       |
+| Without the X | `showCloseButton={false}`   | –       | only when the footer has an explicit close action (the story "WithoutCloseButton") |
+
+The left side uses the same surface, mirrored: it slides in from the left and has its border on the right.
+
+<Canvas of={DrawerStories.WithoutCloseButton} />
+
+## 6. States
 
 | State          | What changes                                                       | Source    |
 | -------------- | ------------------------------------------------------------------ | --------- |
@@ -44,13 +58,85 @@ Looking at or changing a short list that belongs to the current page (the cart) 
 
 <Canvas of={DrawerStories.Playground} />
 
-## 6. Behavior and accessibility
+## 7. Behavior and accessibility
 
-- Modal: focus is trapped while it is open, the page behind is inert and does not scroll.
+- Modal: focus is trapped while it is open, the page behind is inert and does not scroll. Tab and Shift+Tab stay inside the drawer.
 - Escape, a click on the backdrop and the X close it. Focus returns to the trigger (`finalFocus`).
 - The page behind is inert, so a status message outside the drawer is not announced; a message that must be read (for example "Added to cart.") is shown inside it.
 - Without JavaScript there is no drawer: the trigger is a real link to a page.
 
 <Canvas of={DrawerStories.FocusAndEscape} />
 
-<ArgTypes of={DrawerStories.Playground} />
+## 8. Content
+
+- Title: the name of the list and its count, for example "Your cart (2)".
+- Description: one short line in muted text, only when the title needs context.
+- Footer: one primary action with a verb ("Checkout"), then the secondary link ("Keep shopping").
+- The close control is an icon: its accessible name is "Close".
+- Long lists: the content scrolls; do not cut the list or shorten it to fit.
+
+## 9. Responsive
+
+- Width: `w-full max-w-md`. On a phone the drawer fills the screen width; from 448 px it stays 448 px wide and sits against the edge.
+- Height: the full viewport (`h-dvh`). The body scrolls; header and footer stay visible.
+- At 320 px: the footer is a column (`flex-col`), so each button takes the full width.
+
+<Canvas of={DrawerStories.ManyLines} />
+
+## 10. API
+
+<ArgTypes of={DrawerStories} />
+
+Parts: `Drawer` (Base UI `Dialog.Root`: `open`, `defaultOpen`, `onOpenChange`), `DrawerTrigger` (use `render` for a button), `DrawerContent` (portal, backdrop and popup; `side`, `showCloseButton`, `finalFocus`), `DrawerHeader`, `DrawerTitle` (style `h2`), `DrawerDescription` (muted body text), `DrawerBody` (the scrolling middle, focusable with the keyboard), `DrawerFooter` (a column with a top border), `DrawerClose` (any element that closes the drawer).
+
+## 11. Code
+
+```tsx
+import { Button } from "@/components/ui/button";
+import {
+  Drawer,
+  DrawerBody,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
+
+<Drawer>
+  <DrawerTrigger render={<Button variant="outline" />}>Open cart</DrawerTrigger>
+  <DrawerContent>
+    <DrawerHeader>
+      <DrawerTitle>Your cart (2)</DrawerTitle>
+      <DrawerDescription>Prices are confirmed at checkout.</DrawerDescription>
+    </DrawerHeader>
+    <DrawerBody>{/* the list */}</DrawerBody>
+    <DrawerFooter>
+      <Button variant="action" size="lg">
+        Checkout
+      </Button>
+      <DrawerClose render={<Button variant="outline" />}>Keep shopping</DrawerClose>
+    </DrawerFooter>
+  </DrawerContent>
+</Drawer>;
+```
+
+## 12. Do and don't
+
+<Unstyled>
+  <DoDont
+    good={<span>One short list, one primary action in the footer, a link to keep shopping.</span>}
+    goodNote="A list the shopper scans and changes without leaving the page."
+    bad={<span>A checkout form with ten fields inside the drawer.</span>}
+    badNote="Forms with many fields need a page with its own address; a drawer has no URL."
+  />
+</Unstyled>
+
+## 13. Related
+
+- **Dialog**: a short task over the page, centred (see When not to use).
+- **Alert dialog**: confirmation of an irreversible action.
+- **Button**: the trigger and the footer actions.
+- **Navigation menu**: moving between pages, never a drawer.
