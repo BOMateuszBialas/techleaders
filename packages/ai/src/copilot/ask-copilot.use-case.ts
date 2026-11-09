@@ -30,8 +30,10 @@ import {
   declinedMessage,
   type ToolPlan,
 } from "./intents";
+import { CopilotDataUnavailableError, isCopilotDataUnavailable } from "./copilot-data-unavailable";
 import { routeQuestion, type RoutedQuestion } from "./route-question";
 import { buildRuleInsights } from "./rule-insights";
+import { incompleteSources } from "./source-gaps";
 
 /** Per owner: 10 questions per 10 minutes (Copilot spec A4). */
 export const ASK_LIMIT = 10;
@@ -127,7 +129,20 @@ export class AskCopilotUseCase {
       ? { kind: "answered", intent: request.intent, period: "7d" }
       : // The schema guarantees a question when no intent is sent.
         routeQuestion(String(request.question));
-    const { answer, tools, generation } = await this.answer(route);
+    let outcome: Outcome;
+    try {
+      outcome = await this.answer(route);
+    } catch (error) {
+      // FALL-02: a failed read is an unavailable answer (the route maps it), logged without text.
+      if (isCopilotDataUnavailable(error)) {
+        this.deps.copilotLog.info("copilot.unavailable", {
+          source: request.intent ? "suggested" : "typed",
+          latencyMs: Date.now() - started,
+        });
+      }
+      throw error;
+    }
+    const { answer, tools, generation } = outcome;
 
     this.deps.copilotLog.info("copilot.answer", {
       kind: answer.kind,
@@ -164,7 +179,7 @@ export class AskCopilotUseCase {
     const period = resolvePeriod(route.period, this.deps.clock());
     const { results, tools } = await this.runPlan(intent.plan, period);
     const table = buildFacts(results);
-    const baseline = buildRuleInsights(intent.id, table, period);
+    const baseline = buildRuleInsights(intent.id, table, period, incompleteSources(results));
     const generation = await generateAnswer(this.deps, {
       question: intent.question,
       period,
@@ -234,6 +249,8 @@ export class AskCopilotUseCase {
     };
     const skip = Promise.resolve(undefined);
 
+    // Any failed read (FALL-02) makes the whole answer unavailable: a partial answer from the
+    // other reads would look complete. A missing source (GR-04) is not a failure; see source-gaps.
     const [sales, orders, topProducts, lowStock, previousSales, previousTopProducts, traffic] =
       await Promise.all([
         plan.sales ? run(getSalesSummaryTool, { period }) : skip,
@@ -247,7 +264,9 @@ export class AskCopilotUseCase {
         plan.traffic
           ? run(getTrafficSummaryTool, { period, productLimit: plan.traffic.productLimit })
           : skip,
-      ]);
+      ]).catch((error: unknown) => {
+        throw new CopilotDataUnavailableError(error);
+      });
     return {
       results: {
         sales,

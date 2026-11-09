@@ -1,3 +1,4 @@
+import { CopilotDataUnavailableError, COPILOT_DATA_UNAVAILABLE_MESSAGE } from "@commerceos/ai";
 import { TooManyRequestsError } from "@commerceos/core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createRequestScope, getAuth } from "@/server/container";
@@ -71,6 +72,20 @@ describe("POST /api/admin/copilot/answers", () => {
     expect(await response.json()).toEqual({
       ok: false,
       error: { code: "RATE_LIMITED", message: "Slow down." },
+    });
+    expect(dispose).toHaveBeenCalledOnce();
+  });
+
+  it("answers 503 COPILOT_DATA_UNAVAILABLE when a store read failed, and disposes the scope", async () => {
+    execute.mockRejectedValue(new CopilotDataUnavailableError(new Error("connect ECONNREFUSED")));
+    const response = await POST(post({ intent: "focus" }));
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({
+      ok: false,
+      error: {
+        code: "COPILOT_DATA_UNAVAILABLE",
+        message: COPILOT_DATA_UNAVAILABLE_MESSAGE,
+      },
     });
     expect(dispose).toHaveBeenCalledOnce();
   });

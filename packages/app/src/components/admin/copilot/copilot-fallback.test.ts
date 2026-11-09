@@ -10,6 +10,7 @@ import {
   RULE_BASED_DESCRIPTION,
   RULE_BASED_LABEL,
   SESSION_ENDED_TEXT,
+  DATA_UNAVAILABLE_TEXT,
   UNAVAILABLE_TEXT,
   type PanelFailure,
 } from "./copilot-copy";
@@ -90,6 +91,7 @@ describe("failureNotice", () => {
       ["session", { message: SESSION_ENDED_TEXT, signIn: true }],
       ["rate_limited", { message: RATE_LIMITED_TEXT, signIn: false }],
       ["unavailable", { message: UNAVAILABLE_TEXT, signIn: false }],
+      ["data_unavailable", { message: DATA_UNAVAILABLE_TEXT, signIn: false }],
       [undefined, { message: UNAVAILABLE_TEXT, signIn: false }],
     ];
     for (const [failure, expected] of cases) {
