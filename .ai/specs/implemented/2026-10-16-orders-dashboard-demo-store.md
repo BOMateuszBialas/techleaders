@@ -389,14 +389,14 @@ Verdicts below are the product owner's decision of 2026-11-09 ("popraw wszystko 
 | DASH-03 | ChatGPT | Empty period not defined | Medium | **accepted** | Empty period: counts 0, revenue 0 minor units, AOV "Not enough data", top products and low stock as the empty states of their panels. |
 | DASH-04 | ChatGPT | `line_total` vs `total` semantics | Medium | **accepted** | With no discounts or tax, line totals sum to the order total (A8). Stated in A8 text. |
 | TEST-01 / TEST-02 | ChatGPT | Acceptance tests not separated from coverage | High / Medium | **accepted** | 100% coverage is the code gate; acceptance cases are the integration and e2e tests named in the Implementation Plan. |
-| ERR-03 | Gemini | Unpaid `pending_payment` orders hold stock forever | High | **open** | Needs a scheduled job; the MVP has none. An admin cancel releases the stock. Owner decision: build the job, or accept the manual process. |
+| ERR-03 | Gemini | Unpaid `pending_payment` orders hold stock forever | High | **decided: manual process** (owner, 2026-11-09) | No scheduled job in the MVP. The admin cancels stale unpaid orders by hand, which restocks in the same transaction. Improvement path recorded in the order admin list (see the orders backlog). |
 | ERR-04 | Gemini | Past-period revenue changes after a refund | Medium | **open** | A8 is the approved definition. A `refunded_at` column would change it. Owner decision. |
 
 Open questions from the reviewers, answered:
-- Pending expiry (Gemini Q1): **open**, see ERR-03.
+- Pending expiry (Gemini Q1): **decided: manual process** (owner, 2026-11-09), see ERR-03.
 - `refunded_at` on `orders` (Gemini Q2): no column exists; A8 uses `paid_at` and the current status (see ERR-04).
 - Separating demo from real customers (Gemini Q3): **by design** (A14): demo orders are labelled and counted, never hidden, so the demo data stays visible.
 - Single owner or staff (ChatGPT Q2): single owner (AUTH-01).
 - Atomic checkout and idempotency (ChatGPT Q3): E02 A3 and A7 (CON-01, CON-02).
 
-Totals: **18** rows. Duplicates across the two replies are grouped (ChatGPT raised 19 findings, Gemini 5, 24 in all). Verdicts by row: **fixed 3** (SEC-01/ERR-01, SEC-02/ERR-02, ORD-01), **accepted 7**, **covered 5**, **rejected 1** (AUTH-01), **open 2** (ERR-03, ERR-04).
+Totals: **18** rows (ERR-03 decided on 2026-11-09 as the manual process). Duplicates across the two replies are grouped (ChatGPT raised 19 findings, Gemini 5, 24 in all). Verdicts by row: **fixed 3** (SEC-01/ERR-01, SEC-02/ERR-02, ORD-01), **accepted 7**, **covered 5**, **rejected 1** (AUTH-01), **open 2** (ERR-03, ERR-04).
