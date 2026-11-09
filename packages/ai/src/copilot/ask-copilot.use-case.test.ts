@@ -31,6 +31,7 @@ import {
   type AskCopilotDeps,
 } from "./ask-copilot.use-case";
 import { FALLBACK_REASONS } from "./copilot-answer";
+import { isCopilotDataUnavailable } from "./copilot-data-unavailable";
 import { NOW, PULSE_ID } from "./copilot-results.fixture";
 import {
   CAUSATION_LIMITATION,
@@ -423,10 +424,64 @@ describe("AskCopilotUseCase", () => {
     expect(serialized).not.toContain("Pulse");
   });
 
-  it("propagates a tool failure (database down) instead of answering", async () => {
-    const { useCase, storeMetrics } = setup();
+  it("answers unavailable when a read fails (database down): no answer, nothing stored, logged without text", async () => {
+    const { useCase, storeMetrics, recommendations, copilotLog } = setup();
     vi.mocked(storeMetrics.salesSummary).mockRejectedValue(new Error("connection refused"));
-    await expect(useCase.execute({ intent: "focus" }, ADMIN)).rejects.toThrow("connection refused");
+    const failure = await useCase
+      .execute({ intent: "focus" }, ADMIN)
+      .catch((error: unknown) => error);
+    expect(isCopilotDataUnavailable(failure)).toBe(true);
+    expect(failure).toMatchObject({ code: "COPILOT_DATA_UNAVAILABLE" });
+    expect(recommendations.saveAnswer).not.toHaveBeenCalled();
+    expect(copilotLog.info).toHaveBeenCalledWith("copilot.unavailable", {
+      source: "suggested",
+      latencyMs: expect.any(Number),
+    });
+    expect(JSON.stringify(vi.mocked(copilotLog.info).mock.calls)).not.toContain(
+      "connection refused",
+    );
+  });
+
+  it("logs an unavailable typed question as typed", async () => {
+    const { useCase, storeMetrics, copilotLog } = setup();
+    vi.mocked(storeMetrics.salesSummary).mockRejectedValue(new Error("connection refused"));
+    await expect(
+      useCase.execute({ question: "What should I focus on?" }, ADMIN),
+    ).rejects.toMatchObject({ code: "COPILOT_DATA_UNAVAILABLE" });
+    expect(copilotLog.info).toHaveBeenCalledWith("copilot.unavailable", {
+      source: "typed",
+      latencyMs: expect.any(Number),
+    });
+  });
+
+  it("omits the recommendations that need missing traffic, each with its note, and keeps the rest (GR-04)", async () => {
+    const { useCase, storeMetrics, trafficStats } = setup();
+    // No demo sessions in the period: the traffic summary has no conversion (null), not 0.
+    vi.mocked(trafficStats.sessionsBySource).mockResolvedValue([]);
+    vi.mocked(trafficStats.funnel).mockResolvedValue({
+      sessions: 0,
+      productViews: 0,
+      addToCarts: 0,
+      checkoutsStarted: 0,
+    });
+    vi.mocked(trafficStats.productViews).mockResolvedValue({
+      rows: [],
+      productsWithoutViewData: 0,
+    });
+    const answer = await useCase.execute({ intent: "focus" }, ADMIN);
+
+    expect(answer.recommendations.map((item) => item.title)).toEqual([
+      "Restock Pulse Ultralight Mouse",
+    ]);
+    expect(answer.limitations).toEqual(
+      expect.arrayContaining([
+        "Traffic data is missing for this period, so the out-of-stock product recommendation is not given.",
+        "Traffic data is missing for this period, so the slow-seller recommendation is not given.",
+        "Traffic data is missing for this period, so the funnel recommendation is not given.",
+      ]),
+    );
+    expect(answer.recommendations[0]?.limitations).toEqual(answer.limitations);
+    expect(storeMetrics.salesSummary).toHaveBeenCalled();
   });
 
   it("shows a grounded AI answer with server-made evidence and limitations, and logs no text", async () => {
