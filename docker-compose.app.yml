@@ -1,0 +1,72 @@
+# Production-style stack: the CommerceOS app image plus its PostgreSQL 17 database.
+# The dev database lives in docker-compose.yml and is not used here.
+#
+# No secret is committed. The operator supplies the variables named below, in the shell or in
+# a `.env` file next to this file (never commit that file). Required variables stop the stack
+# from starting when they are missing.
+#
+#   docker compose -f docker-compose.app.yml --profile migrate run --rm migrate   # once per release
+#   docker compose -f docker-compose.app.yml up -d --build
+#
+# See docs/deployment.md for the full procedure, rollback and the smoke test.
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: commerceos:local
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # Bound to the host loopback only: a reverse proxy (TLS, public name) forwards to it.
+    ports:
+      - "127.0.0.1:${APP_PORT:-3000}:3000"
+    environment:
+      - NODE_ENV=production
+      # Public origin of the app, for example https://shop.example.com (required).
+      - APP_URL=${APP_URL:?set APP_URL to the public https origin of the app}
+      # Connection string built from the postgres service below. The password must be URL-safe.
+      - DATABASE_URL=postgres://postgres:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}@postgres:5432/commerceos
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:?set BETTER_AUTH_SECRET (openssl rand -base64 32)}
+      - CUSTOMER_AUTH_SECRET=${CUSTOMER_AUTH_SECRET:?set CUSTOMER_AUTH_SECRET (openssl rand -base64 32, different from BETTER_AUTH_SECRET)}
+      # Optional. A bare name passes the operator's value through when it is set, and is omitted
+      # when it is not (an empty value would fail validation).
+      - AUTH_TRUSTED_IP_HEADER
+      - LLM_PROVIDER
+      - LLM_API_KEY
+      - LLM_MODEL
+
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: commerceos
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    # Not published to the host: only the app reaches the database.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d commerceos"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # One-off schema migrations: `--profile migrate run --rm migrate`. Uses the same Dockerfile,
+  # target `migrate`, so it runs the migrations of the code it was built from.
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: migrate
+    profiles: ["migrate"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}@postgres:5432/commerceos
+
+volumes:
+  postgres-data:
