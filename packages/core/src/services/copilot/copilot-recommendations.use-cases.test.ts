@@ -35,6 +35,7 @@ function record(overrides: Partial<CopilotRecommendationRecord> = {}): CopilotRe
     origin: "rules",
     model: null,
     title: "Restock Pulse Ultralight Mouse",
+    summary: "Pulse sold 9 units; 3 are left.",
     priority: "high",
     observation: "9 units sold in the last 7 days; 3 left in stock.",
     evidence: [
@@ -82,6 +83,7 @@ const ANSWER: NewCopilotAnswer = {
   promptVersion: null,
   periodFrom: new Date("2026-10-10T22:00:00.000Z"),
   periodTo: new Date("2026-10-17T22:00:00.000Z"),
+  summary: "Pulse sold 9 units; 3 are left.",
   recommendations: [
     {
       title: "Restock Pulse Ultralight Mouse",

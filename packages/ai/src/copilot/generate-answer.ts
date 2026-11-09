@@ -1,6 +1,6 @@
 import type { Clock, MetricPeriod, RateLimiterPort } from "@commerceos/core";
 import { describeGroundingIssues, findGroundingIssues } from "../grounding/find-grounding-issues";
-import { consumeLlmDailyAttempt } from "../llm/llm-daily-cap";
+import { LLM_DAILY_KEY, LLM_DAILY_LIMIT, LLM_DAILY_WINDOW_SECONDS } from "../llm/llm-daily-cap";
 import { addLlmUsage, NO_LLM_USAGE } from "../llm/llm-usage";
 import type { CopilotLogValue } from "../ports/copilot-log.port";
 import {
@@ -69,7 +69,8 @@ export type Generation = {
 /**
  * The generation path (Copilot spec, "AskCopilotUseCase flow"): without a configured provider
  * the rule-based answer is returned at once. Otherwise up to 2 structured-output attempts within
- * one 40 s deadline, each counted against the daily cap; an answer is accepted only when it has
+ * one 40 s deadline; the answer takes one unit of the daily cap up front (LOG-01, Copilot spec A4);
+ * an answer is accepted only when it has
  * no grounding issue. A second attempt carries the problem codes (never the model's text) and
  * runs only when 10 s remain. Provider failures (timeout, 429, 5xx, auth, refusal) are not
  * retried. Every path that does not end in an accepted answer returns the baseline with the
@@ -99,6 +100,13 @@ export async function generateAnswer(
 
   if (!llmProvider.isConfigured) return rules("not_configured");
 
+  // One unit of the store-wide cap for the answer, taken before the first attempt (LOG-01). A
+  // second attempt only checks that a unit is left: it must not take a unit of its own and fail
+  // on the cap, which would replace the real reason (`invalid_output`) with `daily_limit`.
+  const daily = await rateLimiter.consume(LLM_DAILY_KEY, LLM_DAILY_LIMIT, LLM_DAILY_WINDOW_SECONDS);
+  if (!daily.allowed) return rules("daily_limit");
+  const capLeft = daily.remaining > 0;
+
   const deadline = clock().getTime() + DEADLINE_MS;
   const signal = AbortSignal.timeout(DEADLINE_MS);
   const base = buildCopilotMessages(input);
@@ -106,8 +114,7 @@ export async function generateAnswer(
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
     const remaining = deadline - clock().getTime();
-    if (attempt > 1 && remaining < MIN_RETRY_MS) break;
-    if (!(await consumeLlmDailyAttempt(rateLimiter))) return rules("daily_limit");
+    if (attempt > 1 && (remaining < MIN_RETRY_MS || !capLeft)) break;
     attempts += 1;
 
     let output: StructuredGenerationResult<CopilotModelOutput>;

@@ -7,6 +7,7 @@ import "../testing/provided-context";
 import { DatabaseCopilotRecommendationRepository } from "./database-copilot-recommendation-repository";
 
 const MIGRATION = "Migration20261018180016_copilot_recommendations";
+const SUMMARY_MIGRATION = "Migration20261109161321_copilot_recommendation_summary";
 const periodFrom = new Date("2026-10-10T22:00:00.000Z");
 const periodTo = new Date("2026-10-17T22:00:00.000Z");
 
@@ -42,6 +43,7 @@ function answer(overrides: Partial<NewCopilotAnswer> = {}): NewCopilotAnswer {
     promptVersion: null,
     periodFrom,
     periodTo,
+    summary: "Pulse sold 9 units in the last 7 days.",
     recommendations: [recommendation("Restock")],
     ...overrides,
   };
@@ -324,6 +326,37 @@ describe("DatabaseCopilotRecommendationRepository (PostgreSQL)", () => {
       expect(stale[0]).toEqual({ kind: "stale", currentStatus: row?.status });
     });
 
+    // GAP-01: the summary is stored with each row, read back by the list and by a status change,
+    // and a row written before the column existed reads as null.
+    it("round-trips the answer summary through save, status change and list", async () => {
+      const summary = "Pulse sold 9 units this week; 3 are left.";
+      const [id] = (
+        await repository().saveAnswer(
+          answer({ summary, recommendations: [recommendation("Summary row")] }),
+        )
+      ).recommendationIds as [string];
+
+      const changed = await repository().changeStatus({ id, from: "new", to: "saved" });
+      expect(changed).toMatchObject({ kind: "changed", recommendation: { id, summary } });
+      const stored = await query<{ summary: string | null }>(
+        "select summary from copilot_recommendations where id = ?",
+        [id],
+      );
+      expect(stored).toEqual([{ summary }]);
+
+      await query(
+        `insert into copilot_recommendations (answer_id, intent, origin, fallback_reason, period_from, period_to,
+           title, priority, observation, reasoning, suggested_action, evidence, status, status_changed_at)
+         values (gen_random_uuid(), 'focus', 'rules', 'not_configured', '2026-10-10T22:00:00Z', '2026-10-17T22:00:00Z',
+           'Stored before the summary', 'high', 'o', 'r', 's', '[]'::jsonb, 'saved', now())`,
+      );
+      const page = await repository().listByStatus(["saved"], { offset: 0, limit: 1000 });
+      expect(page.rows.find((row) => row.title === "Stored before the summary")).toMatchObject({
+        summary: null,
+      });
+      expect(page.rows.find((row) => row.id === id)).toMatchObject({ summary });
+    });
+
     it("keeps a recommendation readable after its product is deleted", async () => {
       const [category] = await query<{ id: string }>("select id from categories limit 1");
       const [product] = await query<{ id: string }>(
@@ -356,6 +389,8 @@ describe("DatabaseCopilotRecommendationRepository (PostgreSQL)", () => {
       return row?.name ?? null;
     };
     const before = await storeSnapshot();
+    // The summary column's migration runs after this one, so it is reverted first.
+    await orm.migrator.down({ migrations: [SUMMARY_MIGRATION] });
     await orm.migrator.down({ migrations: [MIGRATION] });
     expect(await tableOf("copilot_recommendations")).toBeNull();
     expect(await storeSnapshot()).toEqual(before);

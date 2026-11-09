@@ -430,17 +430,90 @@ describe("findGroundingIssues: causal claims", () => {
     }
   });
 
-  it("lets the reasoning explain consequences", () => {
+  it("lets the reasoning explain why a situation matters", () => {
     const issues = findGroundingIssues(
       draft({
         recommendations: [
-          recommendation({ reasoning: "An empty shelf led to lost sales elsewhere before." }),
+          recommendation({ reasoning: "Empty shelves cost sales that the week will not recover." }),
         ],
       }),
       table,
       OPTIONS,
     );
     expect(issues).toEqual([]);
+  });
+
+  // Regression (GR-02): the reasoning, title, suggested action and limitations were not checked.
+  it.each<[string, Partial<DraftRecommendation>]>([
+    ["reasoning", { reasoning: "An empty shelf led to lost sales." }],
+    ["reasoning", { reasoning: "Sales dropped because of the banner." }],
+    ["title", { title: "Fix the banner, sales dropped due to it" }],
+    ["suggestedAction", { suggestedAction: "Restock, as a result of the low count." }],
+    ["suggestedAction", { suggestedAction: "Restock this, thanks to the demand spike." }],
+    ["limitations", { limitations: ["The fall was caused by the banner."] }],
+  ])("flags a causal claim in the %s", (_field, overrides) => {
+    const issues = findGroundingIssues(
+      draft({ recommendations: [recommendation(overrides)] }),
+      table,
+      OPTIONS,
+    );
+    expect(codes(issues)).toEqual(["causal_claim"]);
+  });
+
+  it.each([
+    "Revenue results from the sale.",
+    "The drop resulted from low stock.",
+    "The gap is attributable to shipping.",
+    "Orders are driven by the banner.",
+    "The rise was triggered by the banner.",
+    "Stock ran out, owing to a bad forecast.",
+    "Low stock causes lost sales.",
+  ])("flags the paraphrase %j in the observation", (observation) => {
+    const issues = findGroundingIssues(
+      draft({ recommendations: [recommendation({ observation })] }),
+      table,
+      OPTIONS,
+    );
+    expect(codes(issues)).toEqual(["causal_claim"]);
+  });
+
+  it("flags a causal claim in a recommendation even when the summary is clean", () => {
+    const issues = findGroundingIssues(
+      draft({
+        summary: "A quiet week.",
+        recommendations: [recommendation({ reasoning: "Sales fell because of stock." })],
+      }),
+      table,
+      OPTIONS,
+    );
+    expect(issues).toEqual([{ code: "causal_claim", recommendation: 1 }]);
+  });
+});
+
+describe("findGroundingIssues: evidence per recommendation", () => {
+  const table = focusTable();
+
+  it("flags a recommendation that cites no fact (GR-03)", () => {
+    const issues = findGroundingIssues(
+      draft({
+        recommendations: [
+          recommendation({ evidenceFactIds: [], observation: "Sales are steady." }),
+        ],
+      }),
+      table,
+      OPTIONS,
+    );
+    expect(issues).toEqual([{ code: "no_evidence", recommendation: 1 }]);
+  });
+
+  it("does not require the summary to cite a fact", () => {
+    expect(findGroundingIssues(draft({ summary: "Quiet." }), table, OPTIONS)).toEqual([]);
+  });
+
+  it("accepts a recommendation that cites one fact for its observation and reasoning", () => {
+    expect(
+      findGroundingIssues(draft({ recommendations: [recommendation()] }), table, OPTIONS),
+    ).toEqual([]);
   });
 });
 
@@ -498,16 +571,41 @@ describe("findGroundingIssues: hidden characters", () => {
     expect(issues).toEqual([]);
   });
 
-  it("allows a format character inside a catalog product name the text quotes", () => {
-    // The owner's name (an emoji joiner, say) is not model text; rule answers quote it too.
+  // Regression (SEC-02, INJ-01): a quoted catalog name used to be blanked before the check, so a
+  // zero-width space or a bidi override inside a name passed. Now the name is sanitized before it
+  // reaches the facts (build-facts), and model text that still carries the raw character is rejected.
+  it.each([
+    ["a zero-width space", "Pulse\u200BMouse"],
+    ["a bidi override", "Pulse\u202EMouse"],
+  ])("flags %s inside a product name the text quotes", (_name, productName) => {
     const named = buildFacts({
-      topProducts: top([{ productId: "a", name: "Pulse\u200DMouse", units: 4, revenueMinor: 20 }]),
+      topProducts: top([{ productId: "a", name: productName, units: 4, revenueMinor: 20 }]),
     });
     const issues = findGroundingIssues(
       draft({
         recommendations: [
           recommendation({
-            observation: "Pulse\u200DMouse sold 4 units.",
+            observation: `${productName} sold 4 units.`,
+            evidenceFactIds: [key(named, "top.units:p1")],
+            relatedProductAliases: ["p1"],
+          }),
+        ],
+      }),
+      named,
+      OPTIONS,
+    );
+    expect(codes(issues)).toEqual(["hidden_character"]);
+  });
+
+  it("accepts the sanitized name that the facts carry", () => {
+    const named = buildFacts({
+      topProducts: top([{ productId: "a", name: "Pulse\u200BMouse", units: 4, revenueMinor: 20 }]),
+    });
+    const issues = findGroundingIssues(
+      draft({
+        recommendations: [
+          recommendation({
+            observation: "PulseMouse sold 4 units.",
             evidenceFactIds: [key(named, "top.units:p1")],
             relatedProductAliases: ["p1"],
           }),

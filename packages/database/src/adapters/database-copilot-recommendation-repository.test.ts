@@ -31,6 +31,7 @@ const row = {
   periodFrom: createdAt,
   periodTo: changedAt,
   title: "Restock Pulse",
+  summary: "Pulse sold 9 units.",
   priority: "high",
   observation: "9 sold, 3 left.",
   reasoning: "Best seller.",
@@ -51,6 +52,7 @@ const record = {
   origin: "llm",
   model: "gemini-flash",
   title: "Restock Pulse",
+  summary: "Pulse sold 9 units.",
   priority: "high",
   observation: "9 sold, 3 left.",
   evidence,
@@ -75,6 +77,7 @@ const ANSWER: NewCopilotAnswer = {
   promptVersion: null,
   periodFrom: createdAt,
   periodTo: changedAt,
+  summary: "Summary.",
   recommendations: [1, 2].map((n) => ({
     title: `Title ${n}`,
     priority: "medium" as const,
@@ -127,6 +130,7 @@ describe("DatabaseCopilotRecommendationRepository.saveAnswer", () => {
       promptVersion: null,
       periodFrom: createdAt,
       periodTo: changedAt,
+      summary: "Summary.",
       ...ANSWER.recommendations[0],
     });
     expect(rows[1]?.answerId).toBe(saved.answerId);
@@ -171,13 +175,27 @@ describe("DatabaseCopilotRecommendationRepository.listByStatus", () => {
   it("runs no product query when no row names a product, and maps a missing model to null", async () => {
     const { findAndCount, execute, repository } = setup();
     findAndCount.mockResolvedValueOnce([
-      [{ ...row, model: undefined, statusChangedAt: undefined, relatedProductIds: [] }],
+      [
+        {
+          ...row,
+          model: undefined,
+          statusChangedAt: undefined,
+          relatedProductIds: [],
+          summary: undefined,
+        },
+      ],
       1,
     ] as never);
 
     const page = await repository.listByStatus(["saved"], { offset: 0, limit: 20 });
 
-    expect(page.rows[0]).toMatchObject({ model: null, statusChangedAt: null, relatedProducts: [] });
+    // A row stored before the summary column existed has no summary (GAP-01).
+    expect(page.rows[0]).toMatchObject({
+      model: null,
+      statusChangedAt: null,
+      summary: null,
+      relatedProducts: [],
+    });
     expect(execute).not.toHaveBeenCalled();
   });
 

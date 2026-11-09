@@ -18,6 +18,7 @@ import {
   type TrafficSource,
   type TrafficSummary,
 } from "@commerceos/core";
+import { catalogText } from "../grounding/catalog-text";
 
 /** What the intent's tool plan returned (Copilot spec, "Intent tool plans"). */
 export type CopilotToolResults = {
@@ -106,7 +107,10 @@ class FactTableBuilder {
   }
 
   /** The alias of a product, created on first sight; a deleted product is keyed by its name. */
-  alias(id: string | null, name: string, sku: string | null = null): string {
+  alias(id: string | null, rawName: string, rawSku: string | null = null): string {
+    // The name and SKU the model and the checks see are sanitized here, once (SEC-02, INJ-01).
+    const name = catalogText(rawName);
+    const sku = rawSku === null ? null : catalogText(rawSku) || null;
     const key = id === null ? `deleted:${name}` : `id:${id}`;
     const known = this.products.get(key);
     if (known) {
@@ -169,7 +173,7 @@ function addTopProducts(
     const productAlias = table.alias(row.productId, row.name);
     table.add({
       key: `${prefix}top.units:${productAlias}`,
-      metric: `Units sold: ${row.name}`,
+      metric: `Units sold: ${catalogText(row.name)}`,
       value: String(row.units),
       number: row.units,
       period,
@@ -179,7 +183,7 @@ function addTopProducts(
     });
     table.add({
       key: `${prefix}top.revenue:${productAlias}`,
-      metric: `Revenue: ${row.name}`,
+      metric: `Revenue: ${catalogText(row.name)}`,
       value: amount(row.revenueMinor, top.currency),
       number: row.revenueMinor / 100,
       period,
@@ -204,7 +208,7 @@ function addLowStock(table: FactTableBuilder, low: LowStockProducts): void {
     const productAlias = table.alias(row.id, row.name, row.sku);
     table.add({
       key: `lowStock.stock:${productAlias}`,
-      metric: `Stock: ${row.name}`,
+      metric: `Stock: ${catalogText(row.name)}`,
       value: String(row.stockQuantity),
       number: row.stockQuantity,
       period: NOW,
@@ -416,7 +420,7 @@ function addTraffic(table: FactTableBuilder, traffic: TrafficSummary): void {
     table.add({
       ...demo,
       key: `traffic.views:${productAlias}`,
-      metric: `Views (demo): ${product.name}`,
+      metric: `Views (demo): ${catalogText(product.name)}`,
       value: String(product.views),
       number: product.views,
       source: `${tool} · viewToPurchaseRateDemo`,
@@ -428,7 +432,7 @@ function addTraffic(table: FactTableBuilder, traffic: TrafficSummary): void {
       table.add({
         period,
         key: `traffic.units:${productAlias}`,
-        metric: `Units sold: ${product.name}`,
+        metric: `Units sold: ${catalogText(product.name)}`,
         value: String(product.unitsSold),
         number: product.unitsSold,
         source: `${tool} · topProducts`,
@@ -440,7 +444,7 @@ function addTraffic(table: FactTableBuilder, traffic: TrafficSummary): void {
       table.add({
         ...demo,
         key: `traffic.rate:${productAlias}`,
-        metric: `View-to-purchase rate (demo): ${product.name}`,
+        metric: `View-to-purchase rate (demo): ${catalogText(product.name)}`,
         ...rateValue(product.viewToPurchaseRate),
         source: `${tool} · viewToPurchaseRateDemo`,
         definitionId: "viewToPurchaseRateDemo",

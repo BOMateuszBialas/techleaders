@@ -33,6 +33,8 @@ export type NewCopilotAnswer = {
   promptVersion: string | null;
   periodFrom: Date;
   periodTo: Date;
+  /** The answer's summary, stored with each of its recommendations (GAP-01). */
+  summary: string;
   /** At least one; an answer without recommendations stores nothing. */
   recommendations: NewCopilotRecommendation[];
 };
@@ -46,6 +48,8 @@ export type CopilotRecommendationRecord = {
   model: string | null;
   title: string;
   priority: RecommendationPriority;
+  /** The answer's summary; null for rows stored before it was kept (GAP-01). */
+  summary: string | null;
   observation: string;
   evidence: RecommendationEvidenceRecord[];
   reasoning: string;

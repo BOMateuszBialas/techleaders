@@ -469,3 +469,95 @@ Each PR: full gate green, 100 % unit coverage, docs updated, no real provider ca
   - `changeRecommendationStatus` returns the status the recommendation has now (`currentStatus`), so the card in the client-side answer updates without a reload; on a stale change it refreshes the page itself, like `changeOrderStatus`.
   - "Your recommendations" pages with `?page=` (20 per page; the order list's page rule). Each status button's accessible name ends with the recommendation's title (`aria-label`).
   - E2E budget (#62): every Copilot suite resets the owner's `copilot:ask:*` buckets in the throwaway e2e database in its `beforeAll` (`resetCopilotQuestionBudget`); a second owner is impossible (exactly one owner, auth spec).
+
+## Recenzja innym modelem (2026-11-09)
+
+Reviewers: **Gemini** and **ChatGPT**, 2026-11-09, run manually by the product owner with the same prompt (section B of `KURS TECHLEADERS/materialy/prompt-recenzja-E04-E05.md`, a staff-level review of the spec text, no repository access). Full replies: [`research/reviews/2026-11-09-commerce-copilot-cross-model.md`](../research/reviews/2026-11-09-commerce-copilot-cross-model.md). The sections above are the text as approved and implemented; this section records the review and the changes it caused. Where it changes a rule stated above, the text here wins and says so.
+
+### Owner decisions (2026-11-09, final)
+
+- **The CommerceOS store is a demo and never runs as a production store.** The free-tier Gemini data-use note (SEC-01, PRIV-02, PRIV-03) is accepted as a documented limitation (see below). No provider switch, no opt-in switch, no paid plan.
+- Production-readiness items (a live evaluation run with thresholds, EVAL-01 and EVAL-02 thresholds, EVAL-03) are **not applicable: demo-only**. The code gate is 100% unit coverage; the evaluation set runs in the unit suite against scripted providers (A19).
+- Fixed in code and tests: LOG-01, SEC-02 with INJ-01, GAP-01, GR-02, GR-03 (deterministic part).
+- Accepted with spec text only: PRIV-01, SPEC-01, AUTH-01, AUTH-02, AUTH-03, INJ-02, FALL-01, SPEC-02, SPEC-03.
+
+### Documented limitation: demo data only (SEC-01, PRIV-02, PRIV-03)
+
+The Copilot sends its payload to Google's Gemini API **free tier**, through `GeminiLlmProvider`, and Google may use free-tier prompts and responses to improve its products. This is acceptable **only** because the store is a demo: the payload is aggregates of the fictional demo store and the demo catalog's product names and SKUs. **The Copilot must never be pointed at a real merchant's data.** Product names and SKUs are not aggregates; they are demo catalog data by this rule. A real store would need a different provider and terms, a new decision, and a new spec; none is planned.
+
+### Data sent (PRIV-01, SPEC-01)
+
+No data of individual sessions or session identifiers is sent; only aggregated traffic statistics, listed explicitly: the session total and the sessions per traffic source; the funnel counts (sessions, product views, add-to-carts, checkouts started, paid orders); the store conversion rate; and per product the views, units sold and view-to-purchase rate. The order and stock facts (paid orders, revenue, average order value, orders placed, units sold, stock, the period-over-period changes) are sent too, as aggregates. Product names and SKUs are sent as the catalog holds them, sanitized (see SEC-02). Nothing else is sent: no customer, address, email, order reference, product id or session id (A3).
+
+### Model boundary (AUTH-01, AUTH-02, AUTH-03, INJ-02)
+
+- The model receives **no tools** and no ability to call one. The server runs the read planned for the routed intent (the intent tables above) before the model is called; the model only returns text in the structured output.
+- Saving a generated answer (`SaveCopilotAnswerUseCase`) and changing a recommendation's status (`ChangeRecommendationStatusUseCase`) are server actions of the owner, never model actions. The model cannot call them. Neither changes orders, products, prices, stock or any store table (D02); they write `copilot_recommendations` only.
+- Clicking a status button is the owner's explicit command. It needs no further confirmation, and it changes only the status of that recommendation.
+- Routing picks only one declared intent, a declined category or "unsupported" (A5, A6). The question never sets a tool argument, a limit or a product. The one argument taken from the question text is the period preset, `7d` or `30d` (A9), a two-value choice.
+
+### Fallback (FALL-01)
+
+Kept as written: no network call without a key; no partial model answer after an error; every fallback is labelled with its reason. Its tests stay as they are.
+
+### Status of this document (SPEC-02, SPEC-03)
+
+- **State before implementation**: the TLDR sentences that begin "Today `/admin` has no Copilot" and the Problem Statement describe the repository before Phase 1. They are history.
+- **Target state**: the TLDR's "Proposed (future behaviour)" wording, the Proposed Solution, the Architecture and the Phasing describe the design that Phases 1–4 implemented. Where the code differs, the review table and the notes below say so.
+- **Implemented**: Phases 1–4 (#54, #64, #61 and the Phase 4 PR), the "Phase 3 implementation notes" and "Phase 4 implementation notes" in the Review log, and this section.
+- **One current contract**: the answer and data contract is the API Contracts section (`CopilotAnswerDto`, the server action) plus the intent tables. Implementation notes refer to it and do not repeat it.
+
+### Changes made by this review (they supersede the text above where they differ)
+
+1. **Daily cap per answer (LOG-01; supersedes A4 "consumed per attempt").** An answer takes one unit of `copilot:llm:day` before its first attempt. A retry does not take a unit; it runs only when a unit is left after the answer's own, and otherwise the answer keeps its real reason (`invalid_output`). Consequence, for the owner to know: the store-wide cap now bounds the answers, and each answer can make up to two attempts, so the worst case is twice the cap in attempts per day. The Edge Case "Daily LLM cap reached mid-answer" keeps its meaning.
+2. **Catalog names and SKUs are sanitized (SEC-02, INJ-01).** Before they reach the fact table, the model or the checks, product names and SKUs have every format character (`\p{Cf}`, bidi overrides and zero-width characters included) and control character (`\p{Cc}`) removed, are trimmed and are capped at 120 characters (`grounding/catalog-text.ts`). The exception in `hidden_character` for quoted product names is removed: the check now runs on the whole text. The owner's product pages keep the stored name.
+3. **The summary is stored (GAP-01).** `copilot_recommendations.summary text null` (migration `Migration20261109161321_copilot_recommendation_summary`, additive). Every row of an answer carries its summary. Rows stored before the migration read as `summary: null`. The saved-recommendations DTO includes it.
+4. **Causal claims are checked in every free-text field (GR-02).** The phrase check now covers the title, observation, reasoning, suggested action, limitations and the summary, and it covers the paraphrases `causes`, `leads to`, `owing to`, `thanks to`, `because`, `results from`, `as a consequence of`, `driven by`, `triggered by` and `attributable to` in addition to the original list. The prompt rule 5 says reasoning explains why a situation matters, never what caused it; prompt version `copilot-2026-11-09.1`.
+5. **Every recommendation cites a fact (GR-03).** `no_evidence`: a recommendation with an empty `evidenceFactIds` is rejected. The schema already requires at least one fact (`min(1)`); the check stands on its own. The summary may cite no fact.
+
+### What the grounding checks verify, and what they do not (GR-01, GR-03)
+
+**Verified deterministically**, per recommendation unless stated: every cited fact id and product alias exists; every number in the title, observation, reasoning, suggested action and limitations is the value of one of the recommendation's own cited facts or the period length (summary numbers: of the summary's facts); every catalog product name or SKU that a text names is listed in its `relatedProductAliases`, and a cited product fact binds its product; no causal phrase in any free-text field; no invisible or control character in any text; every recommendation cites at least one fact; at most 3 recommendations.
+
+**Not verified** (a claim-coverage limit, stated plainly): whether a qualitative sentence (no number, no name) is supported by the cited facts; spelled-out numbers ("nine"); paraphrased product references ("the best seller"); the direction or unit of a number (a wrong sign, "rose" for a fall, "29 zł" for 29 units); and whether the summary's own claims cite facts. A semantic check of claims would need a model judge or a human review; neither is built, and the demo scope does not require one. The prompt, the evaluation set (A19) and the rule-based fallback cover these, and they are not guarantees.
+
+### Verdicts
+
+Verdicts follow the owner decision of 2026-11-09: **fixed** means implemented in this change, **accepted** means the spec text is clarified, **covered** means an existing decision or test answers it (with the limit stated), **rejected** means the spec keeps its behaviour, **open** means a decision for later, **not applicable** means the item applies only to a production store, which this demo is not.
+
+| ID | Reviewer | Finding (short) | Severity | Verdict | Reason and location |
+| --- | --- | --- | --- | --- | --- |
+| SEC-01 | Gemini | Free-tier Gemini may use prompts to improve Google's products | Critical | **accepted** | Demo-only decision (owner, 2026-11-09). Documented limitation above; no provider switch. |
+| SEC-02 | Gemini | Quoted product names could carry zero-width or bidi characters past the checks | High | **fixed** | Exception removed; names and SKUs sanitized before the facts (`grounding/catalog-text.ts`, `copilot/build-facts.ts`, change 2). Tests: `grounding/find-grounding-issues.test.ts` (hidden characters), `copilot/catalog-names.test.ts`. |
+| LOG-01 | Gemini | Retry after `invalid_output` returns `daily_limit` at the cap | Medium | **fixed** | One unit per answer before the first attempt; retry checks availability only (`copilot/generate-answer.ts`, change 1). Regression test: `copilot/generate-answer.test.ts`, "does not spend a second unit of the cap on a retry". The product-description drafts share the cap and have the same retry shape: see open items. |
+| EVAL-01 | Gemini | No live evaluation against the real model | Medium | **not applicable** | Demo-only: a live run with thresholds is a production-readiness item and is not required. The unit-suite evaluation set (A19) stays. |
+| GAP-01 | Gemini | The summary is not stored with the saved recommendations | Low | **fixed** | Nullable `summary` column, migration `Migration20261109161321_copilot_recommendation_summary`, entity, adapter, port and DTO (change 3). Integration test "round-trips the answer summary through save, status change and list" (`database-copilot-recommendation-repository.int.test.ts`). |
+| GR-01 | ChatGPT | Claims that no rule checks (coverage of qualitative claims) | Critical | **covered** | Deterministic part enforced (fact ids, numbers per recommendation, product names and SKUs, `no_evidence`); the qualitative remainder is a stated limit (section above, "What the grounding checks verify"). A semantic check is not feasible deterministically. |
+| GR-02 | ChatGPT | Causal check covers only observation and summary, English list only | High | **fixed** | Checked in every free-text field; paraphrases added; prompt rule 5 (change 4). Tests: `grounding/find-grounding-issues.test.ts`, "causal claims". |
+| GR-03 | ChatGPT | No requirement that each observation and reasoning cites a source | High | **fixed** | `no_evidence` check; the schema already requires one fact per recommendation (change 5). Test: "evidence per recommendation". The summary may cite none (limit stated). |
+| GR-04 | ChatGPT | No full rule for partial tool results (incomplete, stale or partly unavailable data) | Medium | **open** | Partly covered: truncated low-stock list, products without demo view data (no rate, never 0), `unitsSold: null` for products outside a full ranking, other-currency orders, each attached as a limitation (`copilot/expand-response.ts`). A complete rule (which recommendations to omit or mark when a source is partial) would change which rules fire. Owner decision. |
+| AUTH-01 | ChatGPT | The model's tool boundary is correct but not written down | Medium | **accepted** | Spec text, "Model boundary" above. The test for the dependency list of `AskCopilotUseCase` is not added (owner: spec text only). |
+| AUTH-02 | ChatGPT | Save and status change not separated from store changes | Low | **accepted** | Spec text, "Model boundary": server actions on `copilot_recommendations` only; no store table is written. |
+| AUTH-03 | ChatGPT | No confirmation before a status change | Low | **accepted** | Spec text, "Model boundary": the click is the owner's command; it changes only the recommendation's status. |
+| INJ-01 | ChatGPT | Product names and SKUs reach the model as data, with no length or control-character limit | High | **fixed** | Structured data (JSON string fields, canonical question, the prompt's data rule) was already in place; the length cap and the sanitization are new (change 2). Tests: `copilot/catalog-names.test.ts`, `grounding/catalog-text.test.ts`. |
+| INJ-02 | ChatGPT | The question text affects routing by keywords | Low | **accepted** | Spec text, "Model boundary": routing picks only a declared intent, a declined category or "unsupported"; the period preset is the only argument taken from the text. |
+| PRIV-01 | ChatGPT | "No session data" is unclear: aggregated session statistics are sent | High | **accepted** | Spec text, "Data sent", with the wording the owner approved. |
+| PRIV-02 | ChatGPT | Product names and SKUs are not aggregates, and go to the provider | Medium | **accepted** | Demo-only decision: the catalog is demo data, and this limitation is written down (above). |
+| PRIV-03 | ChatGPT | A single consent for third-party processing; no switch in the UI | Medium | **accepted** | Demo-only decision: no opt-in or opt-out switch is built; the limitation is documented (above). |
+| FALL-01 | ChatGPT | Fallback design (no change requested) | Low | **accepted** | Kept as is (owner); "Fallback" above. |
+| FALL-02 | ChatGPT | A data-source error ends in a 500, not an "unavailable" answer | Low | **open** | The approved behaviour is a 500 with a generic message (Edge Cases: "DB down"; API Contracts). An "unavailable" answer changes the response contract (a 200 with a message instead of a 500) and needs an owner decision; not changed here. |
+| EVAL-01 | ChatGPT | No measurable quality thresholds for the evaluation set | High | **not applicable** | Demo-only: thresholds are a production-readiness item, not required. The evaluation set asserts properties in the unit suite (A19). |
+| EVAL-02 | ChatGPT | Evaluation runs only against a scripted provider | High | **not applicable** | Demo-only: a live evaluation before a production provider is not required (owner). |
+| EVAL-03 | ChatGPT | 100% unit coverage is not a quality measure for AI answers | Medium | **not applicable** | Demo-only: coverage is the code gate; answer quality is covered by the property checks and the fallback (owner). |
+| SPEC-01 | ChatGPT | "No session data" and the aggregated traffic data contradict each other | High | **accepted** | Spec text, "Data sent": no individual session data or session ids; only the listed aggregates. |
+| SPEC-02 | ChatGPT | Implementation status mixed with the target design | Medium | **accepted** | Spec text, "Status of this document": the sections are labelled as the state before, the target state and what is implemented. |
+| SPEC-03 | ChatGPT | Limits spread across assumptions, rules and phase notes | Low | **accepted** | Spec text, "Status of this document": one current contract (API Contracts and intent tables), referenced by the notes and not repeated. |
+
+Totals: **25** rows (Gemini 5, ChatGPT 20; EVAL-01 appears once in each reply and is listed twice). Verdicts: **fixed 6** (SEC-02, LOG-01, GAP-01, GR-02, GR-03, INJ-01), **accepted 12** (SEC-01, AUTH-01, AUTH-02, AUTH-03, INJ-02, PRIV-01, PRIV-02, PRIV-03, FALL-01, SPEC-01, SPEC-02, SPEC-03), **covered 1** (GR-01), **not applicable 4** (EVAL-01 twice, EVAL-02, EVAL-03), **open 2** (GR-04, FALL-02) and **rejected 0**.
+
+### Open items (for the owner)
+
+- **GR-04**: which recommendations to omit or mark when a tool result is partial. Owner decision; see the table.
+- **FALL-02**: an "unavailable" answer instead of a 500 on a data-source error. Changes the response contract; owner decision.
+- **Product descriptions** (`descriptions/draft-product-description.use-case.ts`, descriptions spec A2): the same retry shape consumes a shared daily unit per attempt and can report `daily_limit` in place of the rejected output. It is outside this review's scope and was not changed here.
+- **Daily cap semantics**: change 1 counts answers, not attempts (above). Confirm that this bound is acceptable for the demo.

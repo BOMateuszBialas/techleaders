@@ -25,6 +25,7 @@ function toRecord(
     origin: row.origin,
     model: row.model ?? null,
     title: row.title,
+    summary: row.summary ?? null,
     priority: row.priority,
     observation: row.observation,
     evidence: row.evidence,
@@ -68,6 +69,7 @@ export class DatabaseCopilotRecommendationRepository implements CopilotRecommend
       promptVersion: answer.promptVersion,
       periodFrom: answer.periodFrom,
       periodTo: answer.periodTo,
+      summary: answer.summary,
       ...recommendation,
     }));
     await withSanitizedErrors("Copilot answer save", () =>

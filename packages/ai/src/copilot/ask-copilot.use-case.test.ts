@@ -215,6 +215,8 @@ describe("AskCopilotUseCase", () => {
       promptVersion: null,
       periodFrom: new Date("2026-10-10T22:00:00.000Z"),
       periodTo: new Date("2026-10-17T22:00:00.000Z"),
+      // GAP-01: the summary is stored with the recommendations.
+      summary: answer.summary,
     });
     expect(stored?.recommendations[0]).toEqual({
       title: answer.recommendations[0]?.title,
