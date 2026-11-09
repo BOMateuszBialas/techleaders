@@ -46,6 +46,8 @@ describe("parseDashboardRange (date-range spec A6–A8)", () => {
     [{ from: "2026-10-14", to: "2026-10-01" }, DASHBOARD_RANGE_MESSAGES.endBeforeStart],
     [{ from: "2026-10-01", to: "2026-10-20" }, DASHBOARD_RANGE_MESSAGES.future],
     [{ from: "1999-12-31", to: "2000-01-02" }, DASHBOARD_RANGE_MESSAGES.tooEarly],
+    [{ from: "0099-01-01", to: "0099-01-02" }, DASHBOARD_RANGE_MESSAGES.tooEarly],
+    [{ from: "0001-01-01", to: "0001-01-01" }, DASHBOARD_RANGE_MESSAGES.tooEarly],
     [{ from: "2025-10-18", to: TODAY }, DASHBOARD_RANGE_MESSAGES.tooLong],
   ])("falls back to the preset and reports %j", (raw, message) => {
     expect(parseDashboardRange({ period: "30d", ...raw }, TODAY)).toMatchObject({

@@ -268,7 +268,11 @@ describe("GetDashboardUseCase", () => {
       .filter((call) => call.method === "orderSummary")
       .map((call) => call.args[0] as MetricRange);
     expect(ranges).toContainEqual(
-      expect.objectContaining({ from: new Date(0), to: previousPeriod(PERIOD).from }),
+      // 2000-01-01 in the store time zone (UTC+1 in winter), the validator's first day (A6).
+      expect.objectContaining({
+        from: new Date("1999-12-31T23:00:00Z"),
+        to: previousPeriod(PERIOD).from,
+      }),
     );
   });
 
@@ -306,8 +310,10 @@ describe("GetDashboardUseCase", () => {
   it("withholds percentages when no order exists before the comparison period (A9)", async () => {
     const storeMetrics = new FakeStoreMetrics();
     const orderSummary = storeMetrics.orderSummary.bind(storeMetrics);
+    // The start of "before the comparison period": 2000-01-01 in the store time zone.
+    const earliest = new Date("1999-12-31T23:00:00Z").getTime();
     storeMetrics.orderSummary = async (range: MetricRange) =>
-      range.from.getTime() === 0 ? [] : orderSummary(range);
+      range.from.getTime() === earliest ? [] : orderSummary(range);
     storeMetrics.sales = { paidOrders: 0, revenueMinor: 0, otherCurrencyOrders: 0 };
 
     const { comparison } = await useCases(storeMetrics).getDashboard.execute();
