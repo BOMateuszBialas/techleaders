@@ -207,7 +207,7 @@ Non-`focus` intents get a deterministic summary sentence (for example the top 3 
 ask(input, admin):
   rateLimiter.consume("copilot:ask:"+admin.id, 10, 600) not allowed → TooManyRequestsError (429)
   route = routeQuestion(...)            -- declined / unsupported → deterministic answer, no tools
-  results = await Promise.all(plan.tools.map(run))   -- tool error (DB down) → 500 path, logged
+  results = await Promise.all(plan.tools.map(run))   -- tool error (DB down) → unavailable (503), logged (FALL-02)
   facts = buildFacts(results); baseline = buildRuleInsights(intent, facts)
   if !llm.isConfigured → return rules(baseline, "not_configured")
   deadline = now + 40 s
@@ -285,7 +285,7 @@ type CopilotAnswerDto = {
 };
 ```
 
-Statuses: 200; 400 invalid body; 401 no session; 429 rate limited; 500 generic (database down). An LLM failure is **never** an HTTP error: it is a 200 with `origin: "rules"` and a `fallbackReason`.
+Statuses: 200; 400 invalid body; 401 no session; 429 rate limited; 503 `COPILOT_DATA_UNAVAILABLE` when a store read failed (FALL-02, change 7); 500 generic. An LLM failure is **never** an HTTP error: it is a 200 with `origin: "rules"` and a `fallbackReason`.
 
 ### Server Action `changeRecommendationStatus` (Phase 4)
 
@@ -304,7 +304,7 @@ Statuses: 200; 400 invalid body; 401 no session; 429 rate limited; 500 generic (
 | Element | Content and states |
 | ------- | ------------------ |
 | Advisory banner (always) | "Copilot suggests; you decide. It reads your store's orders, products and stock (and fictional demo traffic data) and never changes anything. Recommendations can be incomplete." |
-| Question form | Seven suggested-question buttons (D09 wording) and a textarea (500 max, counter) with "Ask". Pending: button disabled, "Analysing your store data… this can take up to 45 seconds", `aria-busy`. Errors: 400 field message; 429 "You asked many questions in a short time. Try again in a few minutes."; 500 "Copilot is temporarily unavailable." |
+| Question form | Seven suggested-question buttons (D09 wording) and a textarea (500 max, counter) with "Ask". Pending: button disabled, "Analysing your store data… this can take up to 45 seconds", `aria-busy`. Errors: 400 field message; 429 "You asked many questions in a short time. Try again in a few minutes."; 503 `COPILOT_DATA_UNAVAILABLE` "Data is temporarily unavailable. Try again in a moment." (no recommendation); other 500 "Copilot is temporarily unavailable." |
 | Answer header | Origin badge: "AI-generated · <model>" or "Rule-based insights" plus, when AI was expected or is not set up, the reason in words ("AI is not configured", "AI timed out", "Daily AI limit reached", "The AI answer failed our checks"). Period "Last 7 days: 9–16 Oct 2026 (Europe/Warsaw)" |
 | Recommendation card (≤ 3) | Priority badge (text, not colour only), title, "What we see", **evidence table** (metric, value, period, source; "Fictional demo data" tag on demo rows), "Why it matters", "Suggested next step (your decision)", limitations, related product links (`/admin/products/<id>`). Phase 4: Save / Dismiss / Mark completed and a status badge |
 | Declined | "Copilot can't answer this. It needs <missing data>, which this store does not record." and the suggested questions |
@@ -358,7 +358,7 @@ Accessibility: answer region `aria-live="polite"`; evidence as a `<table>` with 
 | Two tabs change one recommendation | Conditional update → second gets `ConflictError` |
 | Owner spams Ask | 429 message |
 | Daily LLM cap reached mid-answer | Remaining attempt skipped; rule-based, "Daily AI limit reached" |
-| DB down | 500 generic message; nothing sent to the provider |
+| DB down | 503 `COPILOT_DATA_UNAVAILABLE`: "Data is temporarily unavailable" and no recommendation (FALL-02, change 7); nothing sent to the provider |
 | Browser aborts the request | Server finishes; from Phase 4 the rows are stored as `new` (audit) |
 
 ## 📝 Risks & Impact Review
@@ -478,8 +478,9 @@ Reviewers: **Gemini** and **ChatGPT**, 2026-11-09, run manually by the product o
 
 - **The CommerceOS store is a demo and never runs as a production store.** The free-tier Gemini data-use note (SEC-01, PRIV-02, PRIV-03) is accepted as a documented limitation (see below). No provider switch, no opt-in switch, no paid plan.
 - Production-readiness items (a live evaluation run with thresholds, EVAL-01 and EVAL-02 thresholds, EVAL-03) are **not applicable: demo-only**. The code gate is 100% unit coverage; the evaluation set runs in the unit suite against scripted providers (A19).
-- Fixed in code and tests: LOG-01, SEC-02 with INJ-01, GAP-01, GR-02, GR-03 (deterministic part).
+- Fixed in code and tests: SEC-02 with INJ-01, GAP-01, GR-02, GR-03 (deterministic part).
 - Accepted with spec text only: PRIV-01, SPEC-01, AUTH-01, AUTH-02, AUTH-03, INJ-02, FALL-01, SPEC-02, SPEC-03.
+- Owner decision, 2026-11-09 (second round): the daily cap counts answers, not attempts (LOG-01, accepted: worst case twice the cap in attempts per day; change 1). GR-04 and FALL-02 are fixed as described in changes 6 and 7; the product-description drafts are fixed in their own spec note.
 
 ### Documented limitation: demo data only (SEC-01, PRIV-02, PRIV-03)
 
@@ -514,6 +515,8 @@ Kept as written: no network call without a key; no partial model answer after an
 3. **The summary is stored (GAP-01).** `copilot_recommendations.summary text null` (migration `Migration20261109161321_copilot_recommendation_summary`, additive). Every row of an answer carries its summary. Rows stored before the migration read as `summary: null`. The saved-recommendations DTO includes it.
 4. **Causal claims are checked in every free-text field (GR-02).** The phrase check now covers the title, observation, reasoning, suggested action, limitations and the summary, and it covers the paraphrases `causes`, `leads to`, `owing to`, `thanks to`, `because`, `results from`, `as a consequence of`, `driven by`, `triggered by` and `attributable to` in addition to the original list. The prompt rule 5 says reasoning explains why a situation matters, never what caused it; prompt version `copilot-2026-11-09.1`.
 5. **Every recommendation cites a fact (GR-03).** `no_evidence`: a recommendation with an empty `evidenceFactIds` is rejected. The schema already requires at least one fact (`min(1)`); the check stands on its own. The summary may cite no fact.
+6. **Partial tool results (GR-04).** A source is incomplete when its figures are missing, which the tools report as `null` and never as 0. Today only the traffic source can be incomplete: its store conversion is `null` when the period has no demo sessions. A rule that reads an incomplete source does not run, and its note is added to the answer's limitations ("Traffic data is missing for this period, so the … recommendation is not given."). The rules that do not read it still run; a rule-based answer whose rules were all left out says that data is missing and does not say "No action stands out". Sources that never return `null` (sales, orders, top products, stock) are unchanged; a truncated stock list keeps its existing limitation. **Scope:** when every source of an intent is missing, the model still runs on the (empty) facts; grounding keeps it from citing anything, but no separate fallback reason was added (that would need a migration, not planned for the demo).
+7. **Unavailable state (FALL-02).** A failed read in the answer's tool plan (database or tool) makes the answer unavailable: no answer is built and nothing is stored. The route answers `503` with `{ ok: false, error: { code: "COPILOT_DATA_UNAVAILABLE", message } }` (an additive code; the other error paths are unchanged), and the page shows "Data is temporarily unavailable. Try again in a moment." with no recommendation. A failed insert of a finished answer is still a 500, and any other unexpected error is still a generic 500.
 
 ### What the grounding checks verify, and what they do not (GR-01, GR-03)
 
@@ -529,13 +532,13 @@ Verdicts follow the owner decision of 2026-11-09: **fixed** means implemented in
 | --- | --- | --- | --- | --- | --- |
 | SEC-01 | Gemini | Free-tier Gemini may use prompts to improve Google's products | Critical | **accepted** | Demo-only decision (owner, 2026-11-09). Documented limitation above; no provider switch. |
 | SEC-02 | Gemini | Quoted product names could carry zero-width or bidi characters past the checks | High | **fixed** | Exception removed; names and SKUs sanitized before the facts (`grounding/catalog-text.ts`, `copilot/build-facts.ts`, change 2). Tests: `grounding/find-grounding-issues.test.ts` (hidden characters), `copilot/catalog-names.test.ts`. |
-| LOG-01 | Gemini | Retry after `invalid_output` returns `daily_limit` at the cap | Medium | **fixed** | One unit per answer before the first attempt; retry checks availability only (`copilot/generate-answer.ts`, change 1). Regression test: `copilot/generate-answer.test.ts`, "does not spend a second unit of the cap on a retry". The product-description drafts share the cap and have the same retry shape: see open items. |
+| LOG-01 | Gemini | Retry after `invalid_output` returns `daily_limit` at the cap | Medium | **accepted (owner, 2026-11-09): cap counts answers; worst case twice the cap in attempts per day** | One unit per answer before the first attempt; retry checks availability only (`copilot/generate-answer.ts`, change 1). Regression test: `copilot/generate-answer.test.ts`, "does not spend a second unit of the cap on a retry". The product-description drafts share the cap and have the same retry shape: see open items. |
 | EVAL-01 | Gemini | No live evaluation against the real model | Medium | **not applicable** | Demo-only: a live run with thresholds is a production-readiness item and is not required. The unit-suite evaluation set (A19) stays. |
 | GAP-01 | Gemini | The summary is not stored with the saved recommendations | Low | **fixed** | Nullable `summary` column, migration `Migration20261109161321_copilot_recommendation_summary`, entity, adapter, port and DTO (change 3). Integration test "round-trips the answer summary through save, status change and list" (`database-copilot-recommendation-repository.int.test.ts`). |
 | GR-01 | ChatGPT | Claims that no rule checks (coverage of qualitative claims) | Critical | **covered** | Deterministic part enforced (fact ids, numbers per recommendation, product names and SKUs, `no_evidence`); the qualitative remainder is a stated limit (section above, "What the grounding checks verify"). A semantic check is not feasible deterministically. |
 | GR-02 | ChatGPT | Causal check covers only observation and summary, English list only | High | **fixed** | Checked in every free-text field; paraphrases added; prompt rule 5 (change 4). Tests: `grounding/find-grounding-issues.test.ts`, "causal claims". |
 | GR-03 | ChatGPT | No requirement that each observation and reasoning cites a source | High | **fixed** | `no_evidence` check; the schema already requires one fact per recommendation (change 5). Test: "evidence per recommendation". The summary may cite none (limit stated). |
-| GR-04 | ChatGPT | No full rule for partial tool results (incomplete, stale or partly unavailable data) | Medium | **open** | Partly covered: truncated low-stock list, products without demo view data (no rate, never 0), `unitsSold: null` for products outside a full ranking, other-currency orders, each attached as a limitation (`copilot/expand-response.ts`). A complete rule (which recommendations to omit or mark when a source is partial) would change which rules fire. Owner decision. |
+| GR-04 | ChatGPT | No full rule for partial tool results (incomplete, stale or partly unavailable data) | Medium | **fixed (owner, 2026-11-09)** | Change 6. A source is incomplete when its figures are missing (the traffic summary's `storeConversion` is `null`: no demo sessions in the period). Each recommendation that source feeds is not run, and its note becomes a limitation of the answer ("Traffic data is missing for this period, so … recommendation is not given."). The other recommendations stay. Missing figures are never 0; a real zero is shown as zero (`copilot/source-gaps.ts`, `copilot/rule-insights.ts`). Tests: `copilot/source-gaps.test.ts`, `copilot/rule-insights-gaps.test.ts`, "omits the recommendations that need missing traffic" in `copilot/ask-copilot.use-case.test.ts`. |
 | AUTH-01 | ChatGPT | The model's tool boundary is correct but not written down | Medium | **accepted** | Spec text, "Model boundary" above. The test for the dependency list of `AskCopilotUseCase` is not added (owner: spec text only). |
 | AUTH-02 | ChatGPT | Save and status change not separated from store changes | Low | **accepted** | Spec text, "Model boundary": server actions on `copilot_recommendations` only; no store table is written. |
 | AUTH-03 | ChatGPT | No confirmation before a status change | Low | **accepted** | Spec text, "Model boundary": the click is the owner's command; it changes only the recommendation's status. |
@@ -545,7 +548,7 @@ Verdicts follow the owner decision of 2026-11-09: **fixed** means implemented in
 | PRIV-02 | ChatGPT | Product names and SKUs are not aggregates, and go to the provider | Medium | **accepted** | Demo-only decision: the catalog is demo data, and this limitation is written down (above). |
 | PRIV-03 | ChatGPT | A single consent for third-party processing; no switch in the UI | Medium | **accepted** | Demo-only decision: no opt-in or opt-out switch is built; the limitation is documented (above). |
 | FALL-01 | ChatGPT | Fallback design (no change requested) | Low | **accepted** | Kept as is (owner); "Fallback" above. |
-| FALL-02 | ChatGPT | A data-source error ends in a 500, not an "unavailable" answer | Low | **open** | The approved behaviour is a 500 with a generic message (Edge Cases: "DB down"; API Contracts). An "unavailable" answer changes the response contract (a 200 with a message instead of a 500) and needs an owner decision; not changed here. |
+| FALL-02 | ChatGPT | A data-source error ends in a 500, not an "unavailable" answer | Low | **fixed (owner, 2026-11-09)** | Change 7. A failed read (database or tool) is `CopilotDataUnavailableError`; the route answers 503 with the additive code `COPILOT_DATA_UNAVAILABLE` and no recommendation, and the page shows "Data is temporarily unavailable. Try again in a moment." Any other error stays a generic 500. Tests: "answers unavailable when a read fails" (`copilot/ask-copilot.use-case.test.ts`), `answers/route.test.ts` (503 and 500), `copilot-components.test.ts` and `copilot-fallback.test.ts` (the mapping). |
 | EVAL-01 | ChatGPT | No measurable quality thresholds for the evaluation set | High | **not applicable** | Demo-only: thresholds are a production-readiness item, not required. The evaluation set asserts properties in the unit suite (A19). |
 | EVAL-02 | ChatGPT | Evaluation runs only against a scripted provider | High | **not applicable** | Demo-only: a live evaluation before a production provider is not required (owner). |
 | EVAL-03 | ChatGPT | 100% unit coverage is not a quality measure for AI answers | Medium | **not applicable** | Demo-only: coverage is the code gate; answer quality is covered by the property checks and the fallback (owner). |
@@ -553,11 +556,9 @@ Verdicts follow the owner decision of 2026-11-09: **fixed** means implemented in
 | SPEC-02 | ChatGPT | Implementation status mixed with the target design | Medium | **accepted** | Spec text, "Status of this document": the sections are labelled as the state before, the target state and what is implemented. |
 | SPEC-03 | ChatGPT | Limits spread across assumptions, rules and phase notes | Low | **accepted** | Spec text, "Status of this document": one current contract (API Contracts and intent tables), referenced by the notes and not repeated. |
 
-Totals: **25** rows (Gemini 5, ChatGPT 20; EVAL-01 appears once in each reply and is listed twice). Verdicts: **fixed 6** (SEC-02, LOG-01, GAP-01, GR-02, GR-03, INJ-01), **accepted 12** (SEC-01, AUTH-01, AUTH-02, AUTH-03, INJ-02, PRIV-01, PRIV-02, PRIV-03, FALL-01, SPEC-01, SPEC-02, SPEC-03), **covered 1** (GR-01), **not applicable 4** (EVAL-01 twice, EVAL-02, EVAL-03), **open 2** (GR-04, FALL-02) and **rejected 0**.
+Totals: **25** rows (Gemini 5, ChatGPT 20; EVAL-01 appears once in each reply and is listed twice). Verdicts: **fixed 7** (SEC-02, GAP-01, GR-02, GR-03, INJ-01, GR-04, FALL-02), **accepted 13** (SEC-01, AUTH-01, AUTH-02, AUTH-03, INJ-02, PRIV-01, PRIV-02, PRIV-03, FALL-01, SPEC-01, SPEC-02, SPEC-03, LOG-01), **covered 1** (GR-01), **not applicable 4** (EVAL-01 twice, EVAL-02, EVAL-03), **open 0** and **rejected 0**. The count is 7 + 13 + 1 + 4 = 25. (Totals as of 2026-11-09, owner decisions included.)
 
 ### Open items (for the owner)
 
-- **GR-04**: which recommendations to omit or mark when a tool result is partial. Owner decision; see the table.
-- **FALL-02**: an "unavailable" answer instead of a 500 on a data-source error. Changes the response contract; owner decision.
 - **Product descriptions**: fixed on 2026-11-09 (owner decision, descriptions spec, dated note): one cap unit per draft, and a refused retry keeps `invalid_output`. Regression tests in `descriptions/draft-product-description.use-case.test.ts`.
-- **Daily cap semantics**: change 1 counts answers, not attempts (above). Confirm that this bound is acceptable for the demo.
+- **Daily cap semantics**: decided by the owner on 2026-11-09 (LOG-01, accepted): change 1 counts answers, not attempts; the worst case is twice the cap in attempts per day.
