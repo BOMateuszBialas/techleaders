@@ -5,16 +5,21 @@ import {
   ConflictError,
   STALE_CHECKOUT_FORM_MESSAGE,
   ValidationError,
+  decideCheckoutAccount,
   normalizeOrderReference,
+  type CheckoutAccountDecision,
 } from "@commerceos/core";
+import { refresh } from "next/cache";
 import { headers } from "next/headers";
 import { ACCOUNT_COPY } from "@/components/account/account-copy";
 import {
+  CHECKOUT_ACCOUNT_FIELD,
+  CHECKOUT_ACCOUNT_SWITCHED,
   CHECKOUT_AS_FIELD,
   CHECKOUT_SESSION_LOST,
   parseCheckoutAs,
 } from "@/components/checkout/checkout-mode";
-import type { ActionState } from "@/lib/action-state";
+import type { ActionState, FormValues } from "@/lib/action-state";
 import { readCartLines, writeCartLines } from "../cart/cart-cookie";
 import { readFormValue, readFormValues } from "../catalog/form-data";
 import { getCurrentCustomerId, toOrderViewer } from "../customer-auth/require-customer";
@@ -38,7 +43,9 @@ import { REFERENCE_FORMAT_MESSAGE, orderPaths } from "./order-paths";
  * - `account`: the session is read now; a confirmed customer places an account order with the
  *   session's id (never a form field, A14, A16). No session, or a session-read failure, stops
  *   **before** the use case (no order, no stock change) and returns the guest-mode state, so the
- *   shopper sees the change and submits again as a guest or signs in first;
+ *   shopper sees the change and submits again as a guest or signs in first. A session of another
+ *   account than the one the form was rendered for (`checkoutAccountId`, E07 issue 105) stops the same
+ *   way with `checkout_account_switched`: the form shows that account, empty, and submits again;
  * - anything else (missing, unknown): the form was not rendered by this app, a validation error.
  */
 export async function placeOrder(_previous: ActionState, formData: FormData): Promise<ActionState> {
@@ -46,20 +53,16 @@ export async function placeOrder(_previous: ActionState, formData: FormData): Pr
   const checkoutAs = parseCheckoutAs(readFormValue(formData, CHECKOUT_AS_FIELD));
   let customerId: string | null = null;
   if (checkoutAs === "account") {
+    // The account the form was rendered for must be the session's account (E07 issue 105): a switch
+    // in another tab stops here, before the use case, with the new account shown.
     const session = await getCurrentCustomerId();
-    if (session.status !== "customer") {
-      logger.warn("Account checkout without a confirmed customer session", {
-        event: "order.place.session_lost",
-        outcome: session.status,
-      });
-      return {
-        status: "error",
-        code: CHECKOUT_SESSION_LOST,
-        message: ACCOUNT_COPY.sessionLost,
-        values,
-      };
-    }
-    customerId = session.customerId;
+    const decision = decideCheckoutAccount(
+      { kind: "account", customerId: readFormValue(formData, CHECKOUT_ACCOUNT_FIELD) || null },
+      session,
+    );
+    if (decision.outcome !== "account")
+      return stopAccountCheckout(decision, session.status, values);
+    customerId = decision.customerId;
   }
   return runAction(
     "orders.place",
@@ -80,6 +83,45 @@ export async function placeOrder(_previous: ActionState, formData: FormData): Pr
     },
     { refreshOnError: true },
   );
+}
+
+/**
+ * The state of an account checkout that must not place an order (E07 A24, issue 105). A switch shows
+ * the new account with an empty form (no values are returned, so nothing typed for the old
+ * account survives) and refreshes the page, so the next render reads the new session too.
+ */
+function stopAccountCheckout(
+  decision: Exclude<CheckoutAccountDecision, { outcome: "account" }>,
+  sessionStatus: string,
+  values: FormValues,
+): ActionState {
+  // A guest outcome cannot reach here (the caller only passes account forms); the last branch is
+  // the session-lost case, the only one left.
+  if (decision.outcome === "switched") {
+    logger.warn("Account checkout submitted after an account switch", {
+      event: "order.place.account_switched",
+    });
+    refresh();
+    return {
+      status: "error",
+      code: CHECKOUT_ACCOUNT_SWITCHED,
+      message: ACCOUNT_COPY.accountSwitched,
+      account: decision.account,
+    };
+  }
+  if (decision.outcome === "stale") {
+    return { status: "error", message: STALE_CHECKOUT_FORM_MESSAGE, values };
+  }
+  logger.warn("Account checkout without a confirmed customer session", {
+    event: "order.place.session_lost",
+    outcome: sessionStatus,
+  });
+  return {
+    status: "error",
+    code: CHECKOUT_SESSION_LOST,
+    message: ACCOUNT_COPY.sessionLost,
+    values,
+  };
 }
 
 /**

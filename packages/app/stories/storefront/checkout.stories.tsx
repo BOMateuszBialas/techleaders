@@ -20,7 +20,11 @@ import { IDLE_ACTION_STATE, type ActionState } from "@/lib/action-state";
 
 const KEY = "0b7e6a9c-1d2f-4a3b-8c4d-5e6f7a8b9c0d";
 const GUEST: CheckoutMode = { kind: "guest", sessionError: false };
-const ACCOUNT: CheckoutMode = { kind: "account", email: "ada@shop.example" };
+const ACCOUNT: CheckoutMode = {
+  kind: "account",
+  customerId: "c0000000-0000-4000-8000-00000000000a",
+  email: "ada@shop.example",
+};
 
 const baseArgs = {
   idempotencyKey: KEY,

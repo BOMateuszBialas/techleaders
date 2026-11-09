@@ -20,6 +20,11 @@ export type ActionState = {
    * `checkout_session_lost` (E07 spec A24). Never free text or data from the request.
    */
   code?: string;
+  /**
+   * The account a checkout now shows, set with `checkout_account_switched` (E07 issue 105): the form
+   * re-renders for it. Client-safe: the shopper's own id and email, never the session.
+   */
+  account?: { id: string; email: string };
 };
 
 /** The signature `useActionState` expects from a form action (admin or shopper). */
