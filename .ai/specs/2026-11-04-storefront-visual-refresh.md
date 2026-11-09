@@ -1,6 +1,6 @@
 # Storefront visual refresh (2026-11-04)
 
-Status: implemented on the working tree, not yet merged. Owner: product owner (requests in the
+Status: implemented and merged as #188 on 2026-11-04; follow-ups #189, #190, #193. Owner: product owner (requests in the
 session of 2026-11-04). Scope: the storefront only (`packages/app/src/app/(storefront)`, storefront
 components, product card, one data migration). The admin keeps its scale and layout.
 
