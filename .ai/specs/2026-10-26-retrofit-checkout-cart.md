@@ -1,7 +1,7 @@
 # Retrofit: checkout and cart to the design system (lesson 08, phase 2)
 
 - Backlog: none yet. The stories are filed with `om-backlog` after the owner approves this spec (epic E02, `packages/app/stories/design-system/EpicE02CartAndCheckout.mdx`).
-- Status: **draft for owner review (design-only PR). No application code is changed by this spec.** Written 2026-10-26 on `origin/main` at `59cfc48`. Implementation starts only after the owner answers the open questions (Q1 to Q12) and approves the items in "Owner approvals needed".
+- Status: **phases 1–4 merged (#134, #135, #146, #145). Whether the spec is complete and moves to `implemented/` is the owner's decision** (audit 2026-11-09, F02). Design-only spec: no application code is changed by this spec. Written 2026-10-26 on `origin/main` at `59cfc48`. Implementation starts only after the owner answers the open questions (Q1 to Q12) and approves the items in "Owner approvals needed".
 - Risk: **risk-high** for this spec PR and for implementation Phases 2 and 3 (the checkout is the money path: SDLC.md, "money"; the checkout also changes focus behaviour). Phases 1 and 4 are **risk-medium**.
 - Baseline check: the request said storefront v2 phases 1, 2 and 4 are merged. On `main` only **Phase 1 (#120)** and **Phase 2 (#121)** are merged. Phase 3 (product technical data, migration) and Phase 4 (home sections, category images, migration) are not in `main`. This spec does not depend on Phases 3 and 4. Both PR titles still say "DO NOT MERGE"; the owner should confirm that is no longer the status.
 

@@ -1,6 +1,6 @@
 # Orders audit trail and restock movements (2026-11-09)
 
-- Status: **implemented** in `fix/orders-audit-trail`. Supersedes A5 and A6 of `2026-10-16-orders-dashboard-demo-store.md`.
+- Status: **implemented** in PR #221 (merged 2026-11-09; branch `fix/orders-audit-trail`). Supersedes A5 and A6 of `2026-10-16-orders-dashboard-demo-store.md`.
 - Trigger: cross-model review of E04 (ChatGPT and Gemini, 2026-11-09, `research/reviews/2026-11-09-orders-dashboard-cross-model.md`). Both reviews flagged that a status change and a restock left no audit trail, which breaks the product rule that every status transition and every stock change is traceable.
 - Scope: this spec covers only the audit trail. Other review findings are decided in the E04 review log.
 

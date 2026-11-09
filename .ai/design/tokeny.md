@@ -135,7 +135,7 @@ Wszystkie wartości mieszczą się w gamucie sRGB (sprawdzone skryptem). `--raw-
 | 1 | `(storefront)/layout.tsx:23` | `bg-amber-100 text-amber-950` | `bg-demo-surface text-demo` |
 | 2 | `admin/(protected)/orders/[id]/page.tsx:84` | `border-amber-500/50 bg-amber-50 dark:bg-amber-950/30` | `border-warning-border bg-warning-surface` (albo `--demo*`, jeśli to notka demo; do sprawdzenia przy retroficie) |
 | 3 | `category-form-view.tsx:64` | `text-amber-700 dark:text-amber-400` | `text-warning` |
-| 4 | `form-feedback.tsx:17` | `text-emerald-700 dark:text-emerald-400` | `text-success` |
+| 4 | `form-feedback.tsx:17` (file deleted in #159; no longer applies) | `text-emerald-700 dark:text-emerald-400` | `text-success` |
 | 5 | `order-badges.tsx:26` | `border-amber-500 text-amber-700` | `bg-demo-surface text-demo` (badge DEMO) |
 | 6 | `description-draft-panel-view.tsx:92` | `text-amber-700` | `text-warning` |
 | 7 | `product-form-view.tsx:114` | `text-amber-700` | `text-warning` |
