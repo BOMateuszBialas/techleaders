@@ -559,5 +559,5 @@ Totals: **25** rows (Gemini 5, ChatGPT 20; EVAL-01 appears once in each reply an
 
 - **GR-04**: which recommendations to omit or mark when a tool result is partial. Owner decision; see the table.
 - **FALL-02**: an "unavailable" answer instead of a 500 on a data-source error. Changes the response contract; owner decision.
-- **Product descriptions** (`descriptions/draft-product-description.use-case.ts`, descriptions spec A2): the same retry shape consumes a shared daily unit per attempt and can report `daily_limit` in place of the rejected output. It is outside this review's scope and was not changed here.
+- **Product descriptions**: fixed on 2026-11-09 (owner decision, descriptions spec, dated note): one cap unit per draft, and a refused retry keeps `invalid_output`. Regression tests in `descriptions/draft-product-description.use-case.test.ts`.
 - **Daily cap semantics**: change 1 counts answers, not attempts (above). Confirm that this bound is acceptable for the demo.
