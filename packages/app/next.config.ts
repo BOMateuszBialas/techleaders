@@ -33,6 +33,11 @@ const nextConfig: NextConfig = {
   },
   cacheComponents: true,
   partialPrefetching: true,
+  // Self-contained server for the Docker image (`node .next/standalone/packages/app/server.js`).
+  output: "standalone",
+  // Monorepo: trace from the repository root, so the workspace packages (TypeScript source,
+  // no build step) and the hoisted node_modules are included in the standalone output.
+  outputFileTracingRoot: resolve(import.meta.dirname, "../.."),
   // Hide the framework name (X-Powered-By: Next.js) from every response.
   poweredByHeader: false,
   async headers() {

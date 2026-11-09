@@ -1,0 +1,38 @@
+# Build context for the production image (see Dockerfile).
+
+# Secrets: environment files never enter the image. .env.example is the only committed one.
+**/.env
+**/.env.*
+!**/.env.example
+
+# Dependencies and build output: installed or built inside the image.
+**/node_modules
+**/.next
+**/storybook-static
+**/coverage
+**/*.tsbuildinfo
+
+# Version control, agent tooling and project metadata: not needed at run time.
+.git
+.claude
+.agents
+.ai
+.github
+.uxproof
+docs
+
+# Test-only code and Storybook (the build does not need them).
+**/*.test.ts
+**/*.test.tsx
+**/*.test.mts
+**/*.spec.ts
+**/*.spec.tsx
+**/vitest*.config.mts
+test
+packages/app/e2e
+packages/app/stories
+**/.storybook
+
+# Local tooling state.
+**/.DS_Store
+npm-debug.log*

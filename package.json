@@ -35,7 +35,8 @@
     "test:storybook:dark": "npm run test:storybook:dark -w @commerceos/app",
     "test:storybook:themes": "npm run test:storybook:themes -w @commerceos/app",
     "check:tokens": "npm run check:tokens -w @commerceos/app",
-    "check:agents": "tsx scripts/check-agents.ts"
+    "check:agents": "tsx scripts/check-agents.ts",
+    "smoke": "tsx scripts/smoke.ts"
   },
   "devDependencies": {
     "@testcontainers/postgresql": "^12.2.1",
