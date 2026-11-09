@@ -1,5 +1,7 @@
 # Orders, dashboard and demo store
 
+Superseded by: `.ai/specs/implemented/2026-11-09-orders-audit-trail.md` (PR #221), for rows A5 and A6 only.
+
 - Backlog: epic E04 ([#11](https://github.com/BOMateuszBialas/techleaders/issues/11)): E04-S01 ([#22](https://github.com/BOMateuszBialas/techleaders/issues/22)) orders list, detail and status workflow; E04-S02 ([#23](https://github.com/BOMateuszBialas/techleaders/issues/23)) dashboard of real metrics with visible definitions; E04-S03 ([#24](https://github.com/BOMateuszBialas/techleaders/issues/24)) populated, clearly labelled demo store on first run
 - Status: **implemented** 2026-10-17 (Phase 1: PR #50, Phase 3: PR #51, Phase 2: run log `.ai/runs/2026-10-17-demo-store-phase-2.md`). Originally a draft written autonomously (`om-spec-writing --autonomous`) on 2026-10-16. The product owner accepted every default in "Resolved assumptions" on 2026-10-16; the three ⚠ items (A3, A8, A18) were confirmed by the product owner on 2026-10-16 with the stated defaults. Issue #22's acceptance criterion "pending payment → paid" is amended accordingly (A3: `paid` comes only from the payment flow).
 - Design authority: `.ai/specs/product-brief.md` (R02, R03, R05, R07, N02, N04, D02, D06, D08, D10), `.ai/specs/2026-10-13-commerceos-mvp.md` §3, §6 "Analytics definitions", §7, §9, AGENTS.md "Database conventions", "Security and validation", "Commerce Copilot rules"

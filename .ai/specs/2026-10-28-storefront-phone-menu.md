@@ -1,6 +1,6 @@
 # Storefront phone category menu (P4)
 
-- Status: ready for implementation (owner choice P4: "Rozwijany przycisk Kategorie"). Branch `feat/storefront-phone-menu`.
+- Status: implemented and merged as #160 on 2026-10-28 (owner choice P4: "Rozwijany przycisk Kategorie").
 - Risk: low. It changes only the storefront header menu markup and one label. No server code, prices, stock or routes change.
 - Authority: `.ai/specs/2026-10-26-storefront-design-implementation.md` (G13 menu, the phone-menu open item P4), `.ai/design/POSTEP.md` (open P4), `packages/app/AGENTS.md`.
 

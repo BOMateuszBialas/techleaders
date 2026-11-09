@@ -28,7 +28,7 @@ When principles conflict, prefer the smallest explicit solution that protects co
 | Awilix registration key | camelCase, explicit and typed | `orderService` |
 | Zod schema | camelCase variable + `Schema`; file `<name>.schema.ts` | `productCreateSchema` |
 | Domain event | `concept.entity.action`, past tense | `orders.order.created` |
-| API route | Next.js App Router `route.ts` under a resource path | `app/api/products/route.ts` |
+| API route | Next.js App Router `route.ts` under a resource path | `app/api/admin/products/description-drafts/route.ts` |
 | Page | `<segment>/page.tsx`, default export `<Segment>Page` | `admin/products/page.tsx` |
 | UI component | PascalCase; filename matches component | `ProductTable.tsx` |
 | Domain error | PascalCase + `Error`, extends `AppError` | `NotFoundError` |
@@ -54,9 +54,9 @@ The full table is in "Repository decisions" below and is enforced by ESLint. Two
 Examples of concept folders:
 
 - `packages/database/src/entities/products/product.entity.ts`
-- `packages/core/src/services/products/product.service.ts`
-- `packages/core/src/validators/products/product-create.schema.ts`
-- `packages/app/src/app/api/products/route.ts`
+- `packages/core/src/services/products/create-product.use-case.ts`
+- `packages/core/src/validators/products/product-input.schema.ts`
+- `packages/app/src/app/api/admin/products/description-drafts/route.ts`
 
 Do not create a generic module runtime, auto-discovery mechanism, or per-concept setup/ACL file for this MVP.
 
@@ -387,4 +387,4 @@ Deviation from the original AGENTS.md: `core` now depends on **Zod**, because sh
 
 ### Deferred until a real consumer exists
 
-Client-side `/api` helper, `makeCrudRoute`, domain events, shared table components. (Auth helpers and sign-in rate limiting now exist: `packages/app/src/server/auth/`. Admin form feedback (`FormMessage`, `FieldError`) exists since the admin catalog: `packages/app/src/components/admin/form-feedback.tsx`. Public (shopper) server actions run through `runAction` (`packages/app/src/server/http/run-action.ts`, the session-free twin of `runAdminAction`; both map errors with `toActionErrorState`) since the cart, and each such file is listed in `admin-guard-inventory.test.ts`.)
+Client-side `/api` helper, `makeCrudRoute`, domain events, shared table components. (Auth helpers and sign-in rate limiting now exist: `packages/app/src/server/auth/`. Admin form feedback exists since the admin catalog (the `form-feedback.tsx` component was deleted in #159; the shared input attributes are in `packages/app/src/lib/field-a11y.ts`). Public (shopper) server actions run through `runAction` (`packages/app/src/server/http/run-action.ts`, the session-free twin of `runAdminAction`; both map errors with `toActionErrorState`) since the cart, and each such file is listed in `admin-guard-inventory.test.ts`.)

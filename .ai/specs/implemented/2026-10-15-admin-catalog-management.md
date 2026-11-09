@@ -2,7 +2,7 @@
 
 - Backlog: E03-S02 ([#20](https://github.com/BOMateuszBialas/techleaders/issues/20)) and E03-S03 ([#21](https://github.com/BOMateuszBialas/techleaders/issues/21)), epic E03 (#10)
 - Depends on: E03-S01 (#19), spec `.ai/specs/implemented/2026-10-15-admin-authentication.md`, implemented in PR #32, merged 2026-10-15 (`server/auth/require-admin.ts`, `app/admin/(protected)/`, `server/auth/admin-guard-inventory.test.ts`)
-- Status: draft, written in autonomous mode (2026-10-15); cross-model review and grill-me applied (2026-10-15). The defaults in "Resolved assumptions" need the product owner's review. The two items that gated a phase, A4 (no product deletion) and A7 (shared availability rule; the storefront check of #21 waits for E01-S01), were confirmed by the product owner on 2026-10-15. Implemented: Phase 1a in PR #39, Phase 1b in PR #40 and Phase 2 in its own PR (2026-10-16, see the three "Implementation notes" sections); moved to `implemented/`
+- Status: **implemented** (Phase 1a #39, Phase 1b #40, Phase 2 #42; 2026-10-16). Written in autonomous mode (2026-10-15); cross-model review and grill-me applied (2026-10-15). The defaults in "Resolved assumptions" need the product owner's review. The two items that gated a phase, A4 (no product deletion) and A7 (shared availability rule; the storefront check of #21 waits for E01-S01), were confirmed by the product owner on 2026-10-15. Implemented: Phase 1a in PR #39, Phase 1b in PR #40 and Phase 2 in its own PR (2026-10-16, see the three "Implementation notes" sections); moved to `implemented/`
 - Design authority: `.ai/specs/product-brief.md` (D05, R04, R05), `.ai/specs/2026-10-13-commerceos-mvp.md` §3, §5, §8
 
 ## 📝 TLDR

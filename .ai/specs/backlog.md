@@ -7,11 +7,11 @@ Last filed: 2026-10-24
 
 | Id          | Issue | Title                                                                                       | Epic | Depends on                   | Adopted |
 | ----------- | ----- | ------------------------------------------------------------------------------------------- | ---- | ---------------------------- | ------- |
-| E01         | #8    | Catalog browsing for shoppers                                                               | —    | —                            | no      |
-| E02         | #9    | Cart and demo checkout                                                                      | —    | —                            | no      |
-| E03         | #10   | Store owner access and catalog management                                                   | —    | —                            | no      |
-| E04         | #11   | Orders and dashboard for the store owner                                                    | —    | —                            | no      |
-| E05         | #12   | Commerce Copilot                                                                            | —    | —                            | no      |
+| E01         | #8    | Catalog browsing for shoppers                                                               | —    | —                            | yes     |
+| E02         | #9    | Cart and demo checkout                                                                      | —    | —                            | yes     |
+| E03         | #10   | Store owner access and catalog management                                                   | —    | —                            | yes     |
+| E04         | #11   | Orders and dashboard for the store owner                                                    | —    | —                            | yes     |
+| E05         | #12   | Commerce Copilot                                                                            | —    | —                            | yes     |
 | E06         | #13   | Later (parked)                                                                              | —    | —                            | no      |
 | E01-S01     | #14   | A shopper browses published products by category and sees their details                     | #8   | —                            | no      |
 | E01-S02     | #15   | A shopper finds products by search and category filter                                      | #8   | E01-S01 (#14)                | no      |
@@ -29,7 +29,7 @@ Last filed: 2026-10-24
 | E05-S02     | #26   | A store owner saves, dismisses or completes a recommendation, and the action is recorded    | #12  | E05-S01 (#25)                | no      |
 | E05-S03     | #27   | A store owner sees an explicit fallback when the AI provider is unavailable                 | #12  | E05-S01 (#25)                | no      |
 | E05-S04     | #28   | Copilot answers traffic, funnel and views-without-sales questions from fictional demo data  | #12  | E05-S01 (#25), E04-S03 (#24) | no      |
-| E07         | #91   | Customer accounts (D11)                                                                     | —    | E02-S02 (#17), E03-S01 (#19) | no      |
+| E07         | #91   | Customer accounts (D11)                                                                     | —    | E02-S02 (#17), E03-S01 (#19) | yes     |
 | E07-S01     | #92   | A customer registers, signs in and signs out                                                | #91  | —                            | no      |
 | E07-S02     | #93   | A signed-in customer's order is attached to their account; guest checkout is unchanged      | #91  | E07-S01 (#92)                | no      |
 | E07-S03     | #94   | A customer sees the list and detail of "My orders"                                          | #91  | E07-S02 (#93)                | no      |
@@ -43,6 +43,4 @@ E07 filed on 2026-10-24 by `om-backlog`: epic #91, stories #92–#97. Spec: `.ai
 
 ### Where work starts
 
-1. **E03-S01 (#19), sign-in.** `priority-high`, no dependencies, and spec §11 week 1 ends with "protected admin shell works". Write its spec first, because it must choose the auth library (an open stack decision).
-2. **E01-S01 (#14), catalog**, then **E03-S02 (#20)**. They unblock the cart, checkout and admin catalog.
-3. **The E02 checkout chain (#16 → #17/#29 → #18)**, then E04 and E05. The Copilot's LLM provider is chosen in the E05-S01 spec.
+Epics E01–E05 and E07 are implemented (Adopted = yes on the epic rows; their specs are in `implemented/`). E06 is parked. This list no longer names a next item: further work follows the owner's decisions in `.ai/maintenance/2026-11-09-audit.md`, section 8 (audit 2026-11-09, F11).

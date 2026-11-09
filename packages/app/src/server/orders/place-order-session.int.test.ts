@@ -5,7 +5,10 @@ import { promisify } from "node:util";
 import { Pool } from "pg";
 import { afterAll, beforeAll, beforeEach, describe, expect, inject, it, vi } from "vitest";
 import { IDLE_ACTION_STATE } from "@/lib/action-state";
-import { CHECKOUT_SESSION_LOST } from "@/components/checkout/checkout-mode";
+import {
+  CHECKOUT_ACCOUNT_SWITCHED,
+  CHECKOUT_SESSION_LOST,
+} from "@/components/checkout/checkout-mode";
 import type * as ContainerModule from "../container";
 import type * as OrderActions from "./order.action";
 
@@ -63,7 +66,7 @@ async function state() {
 }
 
 const keys: string[] = [];
-function checkoutForm(checkoutAs: string): FormData {
+function checkoutForm(checkoutAs: string, checkoutAccountId = ""): FormData {
   const key = randomUUID();
   keys.push(key);
   const data = new FormData();
@@ -79,6 +82,7 @@ function checkoutForm(checkoutAs: string): FormData {
     expectedTotalMinor: "1000",
     cartFingerprint: `${productId}:1`,
     checkoutAs,
+    checkoutAccountId,
   })) {
     data.set(name, value);
   }
@@ -125,7 +129,7 @@ describe("placeOrder and the customer session (E07 A24, integration)", () => {
       .mockRejectedValue(new Error("database unavailable"));
     const before = await state();
 
-    const lost = await actions.placeOrder(IDLE_ACTION_STATE, checkoutForm("account"));
+    const lost = await actions.placeOrder(IDLE_ACTION_STATE, checkoutForm("account", customerId));
     expect(lost).toMatchObject({ status: "error", code: CHECKOUT_SESSION_LOST });
     expect(getSession).toHaveBeenCalledOnce();
     expect(await state()).toEqual(before);
@@ -149,13 +153,38 @@ describe("placeOrder and the customer session (E07 A24, integration)", () => {
       session: { token: "t" },
       user: { id: customerId, email: "a24@int.test", role: "customer" },
     } as never);
-    await expect(actions.placeOrder(IDLE_ACTION_STATE, checkoutForm("account"))).rejects.toThrow(
-      /^NEXT_REDIRECT \/checkout\/pay\/CO-/,
-    );
+    await expect(
+      actions.placeOrder(IDLE_ACTION_STATE, checkoutForm("account", customerId)),
+    ).rejects.toThrow(/^NEXT_REDIRECT \/checkout\/pay\/CO-/);
     const { rows } = await pool.query<{ customer_id: string | null }>(
       "select customer_id from orders where idempotency_key = $1",
       [keys.at(-1)],
     );
     expect(rows).toEqual([{ customer_id: customerId }]);
+  });
+
+  it("saves nothing when another account is signed in than the form was rendered for (issue 105)", async () => {
+    const other = await pool.query<{ id: string }>(
+      `insert into customer_users (name, email, email_verified) values ('Other', 'a24-other@int.test', false)
+       on conflict (email) do update set name = excluded.name returning id`,
+    );
+    const otherId = other.rows[0]?.id ?? "";
+    vi.spyOn(container.getCustomerAuth().api, "getSession").mockResolvedValue({
+      session: { token: "t" },
+      user: { id: otherId, email: "a24-other@int.test", role: "customer" },
+    } as never);
+    const before = await state();
+
+    const switched = await actions.placeOrder(
+      IDLE_ACTION_STATE,
+      checkoutForm("account", customerId),
+    );
+    expect(switched).toMatchObject({
+      status: "error",
+      code: CHECKOUT_ACCOUNT_SWITCHED,
+      account: { id: otherId, email: "a24-other@int.test" },
+    });
+    expect(await state()).toEqual(before);
+    expect(cartLines).toHaveLength(1);
   });
 });

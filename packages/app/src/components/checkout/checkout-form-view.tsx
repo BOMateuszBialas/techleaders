@@ -14,6 +14,8 @@ import {
   SHIPPING_COUNTRY_NAME,
 } from "./checkout-copy";
 import {
+  CHECKOUT_ACCOUNT_FIELD,
+  CHECKOUT_ACCOUNT_SWITCHED,
   CHECKOUT_AS_FIELD,
   CHECKOUT_SESSION_LOST,
   shownCheckoutMode,
@@ -119,8 +121,10 @@ export function CheckoutFormView({
 }: CheckoutFormViewProps) {
   const mode = shownCheckoutMode(pageMode, state);
   const sessionLost = state.code === CHECKOUT_SESSION_LOST;
+  const switched = state.code === CHECKOUT_ACCOUNT_SWITCHED;
   const errors = state.fieldErrors ?? {};
-  const isConflict = state.status === "error" && Object.keys(errors).length === 0 && !sessionLost;
+  const isConflict =
+    state.status === "error" && Object.keys(errors).length === 0 && !sessionLost && !switched;
   const stored: Record<string, string> =
     mode.kind === "account" ? { customerEmail: mode.email } : {};
   return (
@@ -131,6 +135,9 @@ export function CheckoutFormView({
         <input type="hidden" name="expectedTotalMinor" value={String(expectedTotalMinor)} />
         <input type="hidden" name="shippingCountry" value="PL" />
         <input type="hidden" name={CHECKOUT_AS_FIELD} value={mode.kind} />
+        {mode.kind === "account" ? (
+          <input type="hidden" name={CHECKOUT_ACCOUNT_FIELD} value={mode.customerId} />
+        ) : null}
         {FIELDS.map((field) => {
           const id = `checkout-${field.name}`;
           const errorId = `${id}-error`;

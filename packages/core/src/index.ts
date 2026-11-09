@@ -8,6 +8,7 @@ export * from "./domain/metrics/metric-change";
 export * from "./domain/metrics/metric-definitions";
 export * from "./domain/metrics/metric-period";
 export * from "./domain/money";
+export * from "./domain/orders/checkout-account";
 export * from "./domain/orders/demo-order";
 export * from "./domain/orders/order";
 export * from "./domain/orders/order-access";

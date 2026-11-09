@@ -6,7 +6,11 @@ import {
   STALE_CHECKOUT_FORM_MESSAGE,
 } from "@commerceos/core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { CHECKOUT_SESSION_LOST } from "@/components/checkout/checkout-mode";
+import { ACCOUNT_COPY } from "@/components/account/account-copy";
+import {
+  CHECKOUT_ACCOUNT_SWITCHED,
+  CHECKOUT_SESSION_LOST,
+} from "@/components/checkout/checkout-mode";
 import { IDLE_ACTION_STATE } from "@/lib/action-state";
 import type * as RequireCustomer from "../customer-auth/require-customer";
 import { readCartLines, writeCartLines } from "../cart/cart-cookie";
@@ -146,7 +150,12 @@ describe("placeOrder checkout modes (E07 A24)", () => {
     await expect(
       placeOrder(
         IDLE_ACTION_STATE,
-        form({ checkoutAs: "account", customerId: CUSTOMER_B, customerEmail: "typed@x.test" }),
+        form({
+          checkoutAs: "account",
+          checkoutAccountId: CUSTOMER_A,
+          customerId: CUSTOMER_B,
+          customerEmail: "typed@x.test",
+        }),
       ),
     ).rejects.toThrow(`NEXT_REDIRECT /checkout/pay/${REFERENCE}`);
     const call = placeOrderUseCase.execute.mock.calls[0]?.[0];
@@ -166,7 +175,7 @@ describe("placeOrder checkout modes (E07 A24)", () => {
       vi.spyOn(logger, "warn").mockImplementation(() => {});
       const state = await placeOrder(
         IDLE_ACTION_STATE,
-        form({ checkoutAs: "account", customerName: "Ada" }),
+        form({ checkoutAs: "account", checkoutAccountId: CUSTOMER_A, customerName: "Ada" }),
       );
       expect(state).toEqual({
         status: "error",
@@ -195,6 +204,76 @@ describe("placeOrder checkout modes (E07 A24)", () => {
       expect(getCurrentCustomerId).not.toHaveBeenCalled();
     },
   );
+});
+
+describe("placeOrder after an account switch (E07 issue 105)", () => {
+  const SESSION_B = { status: "customer", customerId: CUSTOMER_B, email: "b@x.test" } as const;
+
+  it("places no order when the session is another account, and shows that account empty", async () => {
+    getCurrentCustomerId.mockResolvedValue(SESSION_B);
+    vi.spyOn(logger, "warn").mockImplementation(() => {});
+    const state = await placeOrder(
+      IDLE_ACTION_STATE,
+      form({ checkoutAs: "account", checkoutAccountId: CUSTOMER_A, customerName: "Ada" }),
+    );
+    expect(state).toEqual({
+      status: "error",
+      code: CHECKOUT_ACCOUNT_SWITCHED,
+      message: ACCOUNT_COPY.accountSwitched,
+      account: { id: CUSTOMER_B, email: "b@x.test" },
+    });
+    // The typed details of the old account are not returned: the form starts empty.
+    expect(state.values).toBeUndefined();
+    expect(createRequestScope).not.toHaveBeenCalled();
+    expect(placeOrderUseCase.execute).not.toHaveBeenCalled();
+    expect(writeCartLines).not.toHaveBeenCalled();
+    expect(refresh).toHaveBeenCalledOnce();
+    expect(logger.warn).toHaveBeenCalledWith(expect.any(String), {
+      event: "order.place.account_switched",
+    });
+  });
+
+  it("places the order for the new account once the form shows it", async () => {
+    getCurrentCustomerId.mockResolvedValue(SESSION_B);
+    placeOrderUseCase.execute.mockResolvedValue({
+      orderId: "order-2",
+      reference: REFERENCE,
+      replayed: false,
+    });
+    await expect(
+      placeOrder(
+        IDLE_ACTION_STATE,
+        form({ checkoutAs: "account", checkoutAccountId: CUSTOMER_B, customerName: "Ada" }),
+      ),
+    ).rejects.toThrow(`NEXT_REDIRECT /checkout/pay/${REFERENCE}`);
+    expect(placeOrderUseCase.execute.mock.calls[0]?.[0].customerId).toBe(CUSTOMER_B);
+    expect(refresh).not.toHaveBeenCalled();
+  });
+
+  it("keeps a guest form a guest order, even when another account is signed in now", async () => {
+    getCurrentCustomerId.mockResolvedValue(SESSION_B);
+    placeOrderUseCase.execute.mockResolvedValue({
+      orderId: "order-3",
+      reference: REFERENCE,
+      replayed: false,
+    });
+    await expect(
+      placeOrder(IDLE_ACTION_STATE, form({ checkoutAs: "guest", customerName: "Ada" })),
+    ).rejects.toThrow("NEXT_REDIRECT");
+    expect(placeOrderUseCase.execute.mock.calls[0]?.[0].customerId).toBeNull();
+    expect(getCurrentCustomerId).not.toHaveBeenCalled();
+  });
+
+  it("refuses an account form without the id it was rendered for as a stale form", async () => {
+    getCurrentCustomerId.mockResolvedValue(SESSION_A);
+    const state = await placeOrder(
+      IDLE_ACTION_STATE,
+      form({ checkoutAs: "account", customerName: "Ada" }),
+    );
+    expect(state).toMatchObject({ status: "error", message: STALE_CHECKOUT_FORM_MESSAGE });
+    expect(placeOrderUseCase.execute).not.toHaveBeenCalled();
+    expect(createRequestScope).not.toHaveBeenCalled();
+  });
 });
 
 describe("confirmDemoPayment", () => {
