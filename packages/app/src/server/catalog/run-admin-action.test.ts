@@ -87,8 +87,10 @@ describe("runAdminAction", () => {
   });
 
   it("runs the handler on the request scope, then updates the catalog and refreshes", async () => {
-    const handler = vi.fn(async (received: Cradle) => {
+    const handler = vi.fn(async (received: Cradle, admin: { id: string }) => {
       expect(received === cradle).toBe(true);
+      // The handler gets the session admin, so an action can record who made the change.
+      expect(admin.id).toBe("u-1");
       return { event: "catalog.category.updated", id: "c-1", message: "Saved." };
     });
 

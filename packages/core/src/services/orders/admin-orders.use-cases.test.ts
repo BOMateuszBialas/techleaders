@@ -245,13 +245,19 @@ describe("ChangeOrderStatusUseCase", () => {
     const changeStatus = vi.fn(async () => changed("cancelled", 2));
     const result = await new ChangeOrderStatusUseCase({
       orderAdminRepository: fakePort({ changeStatus }),
-    }).execute({ orderId: ` ${ORDER_ID} `, from: "pending_payment", to: "cancelled" });
+    }).execute({
+      orderId: ` ${ORDER_ID} `,
+      from: "pending_payment",
+      to: "cancelled",
+      actorId: "u-1",
+    });
 
     expect(changeStatus).toHaveBeenCalledWith({
       orderId: ORDER_ID,
       from: "pending_payment",
       to: "cancelled",
       restock: true,
+      actorId: "u-1",
     });
     expect(result).toMatchObject({
       from: "pending_payment",
@@ -270,8 +276,14 @@ describe("ChangeOrderStatusUseCase", () => {
     const changeStatus = vi.fn(async () => changed(to));
     await new ChangeOrderStatusUseCase({
       orderAdminRepository: fakePort({ changeStatus }),
-    }).execute({ orderId: ORDER_ID, from, to });
-    expect(changeStatus).toHaveBeenCalledWith({ orderId: ORDER_ID, from, to, restock: false });
+    }).execute({ orderId: ORDER_ID, from, to, actorId: "u-1" });
+    expect(changeStatus).toHaveBeenCalledWith({
+      orderId: ORDER_ID,
+      from,
+      to,
+      restock: false,
+      actorId: "u-1",
+    });
   });
 
   const disallowed = ORDER_STATUSES.flatMap((from) =>
@@ -293,6 +305,7 @@ describe("ChangeOrderStatusUseCase", () => {
         orderId: ORDER_ID,
         from,
         to,
+        actorId: "u-1",
       }),
     );
     expect(hasAppErrorCode(error, "VALIDATION_FAILED")).toBe(true);
@@ -301,9 +314,9 @@ describe("ChangeOrderStatusUseCase", () => {
   });
 
   it.each([
-    { orderId: ORDER_ID, from: "paid", to: "teleported" },
-    { orderId: ORDER_ID, from: "PAID", to: "processing" },
-    { orderId: ORDER_ID, from: "", to: "" },
+    { orderId: ORDER_ID, from: "paid", to: "teleported", actorId: "u-1" },
+    { orderId: ORDER_ID, from: "PAID", to: "processing", actorId: "u-1" },
+    { orderId: ORDER_ID, from: "", to: "", actorId: "u-1" },
   ])("refuses unknown statuses %j with the same message", async (request) => {
     const port = fakePort();
     const error = await rejection(
@@ -317,13 +330,13 @@ describe("ChangeOrderStatusUseCase", () => {
     const port = fakePort();
     const useCase = new ChangeOrderStatusUseCase({ orderAdminRepository: port });
     const malformed = await rejection(
-      useCase.execute({ orderId: "x", from: "paid", to: "processing" }),
+      useCase.execute({ orderId: "x", from: "paid", to: "processing", actorId: "u-1" }),
     );
     expect(isNotFoundError(malformed)).toBe(true);
     expect(port.changeStatus).not.toHaveBeenCalled();
 
     const unknown = await rejection(
-      useCase.execute({ orderId: ORDER_ID, from: "paid", to: "processing" }),
+      useCase.execute({ orderId: ORDER_ID, from: "paid", to: "processing", actorId: "u-1" }),
     );
     expect(isNotFoundError(unknown)).toBe(true);
   });
@@ -337,6 +350,7 @@ describe("ChangeOrderStatusUseCase", () => {
         orderId: ORDER_ID,
         from: "pending_payment",
         to: "cancelled",
+        actorId: "u-1",
       }),
     );
     expect(error).toBeInstanceOf(StaleOrderStatusError);

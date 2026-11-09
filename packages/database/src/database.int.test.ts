@@ -420,6 +420,8 @@ describe("database (PostgreSQL)", () => {
     expect(before.length).toBeGreaterThan(0);
     expect(await tableOf("stock_adjustments")).toBe("stock_adjustments");
 
+    // The audit-trail migration added columns to this table, so it is reverted first (newest first).
+    await orm.migrator.down({ migrations: ["Migration20261109090000_order_audit_trail"] });
     await orm.migrator.down({ migrations: ["Migration20261016115407_stock_adjustments"] });
     expect(await tableOf("stock_adjustments")).toBeNull();
     expect(await products()).toEqual(before);

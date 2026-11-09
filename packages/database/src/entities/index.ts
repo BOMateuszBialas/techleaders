@@ -12,6 +12,7 @@ import { CustomerUserSchema } from "./customers/customer-user.entity";
 import { CustomerVerificationSchema } from "./customers/customer-verification.entity";
 import { StockAdjustmentSchema } from "./inventory/stock-adjustment.entity";
 import { OrderItemSchema } from "./orders/order-item.entity";
+import { OrderStatusHistorySchema } from "./orders/order-status-history.entity";
 import { OrderSchema } from "./orders/order.entity";
 import { ProductSchema } from "./products/product.entity";
 import { RateLimitBucketSchema } from "./rate-limits/rate-limit-bucket.entity";
@@ -45,6 +46,7 @@ export const entities = [
   StockAdjustmentSchema,
   OrderSchema,
   OrderItemSchema,
+  OrderStatusHistorySchema,
   RateLimitBucketSchema,
   TrafficDailyStatSchema,
   ProductViewDailyStatSchema,

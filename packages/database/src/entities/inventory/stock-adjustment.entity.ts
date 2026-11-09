@@ -1,11 +1,14 @@
 import { defineEntity, p, type InferEntity } from "@mikro-orm/core";
 import { ProductSchema } from "../products/product.entity";
+import { OrderSchema } from "../orders/order.entity";
 
 /**
- * One manual stock change (admin catalog spec, Phase 2, Data Model): the product, the
- * quantity before and after, and when. No reason, actor or source column (spec A6, G3); the
- * delta is derived. The initial stock of a new product is not recorded. The checks and the
- * history index are declared here, not only in the migration, so the drift test sees them.
+ * One stock change: the product, the quantity before and after, and when. The delta is derived.
+ * `source` says why it happened: `manual` (admin stock panel, catalog spec) or
+ * `order_cancellation` (a cancel returned the units; `order` names the order). Orders spec
+ * (audit trail, supersedes A5): every restock writes a row in the same transaction as the status
+ * change. The initial stock of a new product is not recorded. The checks and the history index
+ * are declared here, not only in the migration, so the drift test sees them.
  */
 export const StockAdjustmentSchema = defineEntity({
   name: "StockAdjustment",
@@ -15,6 +18,12 @@ export const StockAdjustmentSchema = defineEntity({
     product: p.manyToOne(ProductSchema).deleteRule("cascade"),
     previousQuantity: p.integer().check("previous_quantity >= 0"),
     newQuantity: p.integer().check("new_quantity >= 0"),
+    source: p
+      .string()
+      .length(32)
+      .defaultRaw("'manual'")
+      .check("source in ('manual', 'order_cancellation')"),
+    order: p.manyToOne(OrderSchema).nullable().deleteRule("set null"),
     createdAt: p
       .datetime()
       .defaultRaw("now()")
