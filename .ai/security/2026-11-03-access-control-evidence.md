@@ -58,9 +58,28 @@ Odrzucone na tym etapie: wyliczanie zamówień po ID (ID to UUID, a 404 dla obce
 - Rzeczywisty wynik: **8 z 8 testów zielone**, 31,7 s (`Test Files 1 passed`, log w scratchpadzie sesji).
 - Czego to nie dowodzi: jeden przebieg, jeden seed, jedna przeglądarka. Nie testuje współbieżnych żądań ani konta właściciela (to D3). Nie dowodzi, że każda nowa trasa będzie chroniona; to zadanie testów przy kolejnych zmianach.
 
+### D6. SAST (Semgrep) i DAST (OWASP ZAP baseline)
+
+**Karta dowodu**
+- Wymaganie / hipoteza: skan kodu i działającej aplikacji znajdzie problemy klasy wstrzyknięć, sekretów w kodzie i braków w nagłówkach, których ręczny przegląd nie objął.
+- Zakres i ryzyko: cały kod `packages/` (bez testów i stories), działający serwer dev na `localhost:3000`. Ryzyko niskie: skan pasywny, bez logowania i bez wysyłania ataków.
+- Baza i commit: `main` po #215 (`ee40b1b`).
+- Środowisko: Semgrep 1.184.0 w osobnym venv poza repo (nie dodany do `package.json`). ZAP `ghcr.io/zaproxy/zaproxy:stable` w Dockerze. Serwer dev, nie build produkcyjny.
+- Sprawdzenie SAST: `semgrep scan --config p/typescript --config p/nextjs --config p/owasp-top-ten --exclude node_modules --exclude "*.test.ts*" --exclude "*.stories.tsx" packages/`.
+- Sprawdzenie DAST: `zap-baseline.py -t http://host.docker.internal:3000 -I -m 2`.
+- Rzeczywisty wynik SAST: **0 znalezisk**, 83 reguły, 596 plików, 0 błędów skanera.
+- Rzeczywisty wynik DAST: **0 FAIL**, 14 WARN, 54 PASS. Ostrzeżenia:
+  - Brak nagłówka CSP (5 stron), brak `X-Frame-Options` / anti-clickjacking (5), brak `X-Content-Type-Options` (5), brak `Permissions-Policy` (5), brak `Cross-Origin-Resource-Policy` (5), nagłówek `X-Powered-By: Next.js` ujawnia framework (5).
+  - Brak tokenów anty-CSRF w formularzach logowania i rejestracji klienta i admina (5). Do sprawdzenia: Better Auth chroni ciasteczka `SameSite`, ale tego nie zweryfikowałem osobnym testem.
+  - Pozostałe (informacyjne, głównie tryb dev): komentarze w bundlach JS, „Dangerous JS functions” w bundlu dev, znacznik czasu w JS, „Storable and cacheable content”.
+- Oczekiwane zachowanie: brak FAIL; ostrzeżenia zapisane z oceną.
+- Czego to nie dowodzi: SAST nie widzi błędów autoryzacji wynikających z logiki (to D1–D5). ZAP baseline nie testuje zalogowanych ścieżek ani IDOR. Skan był na dev, a nagłówki na buildzie produkcyjnym mogą wyglądać inaczej. Nagłówki nie są ustawione w `packages/app/next.config.ts` ani w proxy, więc ostrzeżenia dotyczą też produkcji.
+- Decyzja: **nie poprawiam w tym PR**. Nagłówki CSP i anti-clickjacking zmieniają zachowanie aplikacji (skrypty Next, osadzanie). Wymagają osobnego PR z testem i Twojej decyzji, który zestaw nagłówków wdrażamy.
+
 ## Co nie zostało zrobione (uczciwie)
 
-- **SAST i DAST z ćwiczenia 2:** nie uruchomione. Nie ma zainstalowanego skanera SAST w repo (np. semgrep). Do zrobienia po zgodzie właściciela na narzędzie.
+- **Nagłówki bezpieczeństwa (D6):** ustawienie CSP, `X-Frame-Options`, `X-Content-Type-Options`, `Permissions-Policy` i usunięcie `X-Powered-By`. Osobny PR po decyzji właściciela.
+- **Tokeny anty-CSRF (D6):** do zweryfikowania testem, czy Better Auth i `SameSite` wystarczają.
 - **Pozytywna kontrola admina:** zrobiona (patrz D3, sweep 24/24). Otwarte zostaje tylko wywołanie `/api/admin/me` z sesją właściciela.
 
 ## Wynik
