@@ -7,6 +7,7 @@ import {
   RATE_LIMITED_TEXT,
   SUMMARY_EVIDENCE_CAPTION,
   SESSION_ENDED_TEXT,
+  DATA_UNAVAILABLE_TEXT,
   UNAVAILABLE_TEXT,
 } from "@/components/admin/copilot/copilot-copy";
 import { answerNotice, failureNotice } from "@/components/admin/copilot/copilot-fallback";
@@ -164,7 +165,13 @@ export const FallbackNotices: Story = {
     const timeout = answerNotice({ ...ANSWER, origin: "rules", fallbackReason: "timeout" });
     const rateLimited = failureNotice("rate_limited");
     const unavailable = failureNotice("unavailable");
-    if (timeout === null || rateLimited === null || unavailable === null) {
+    const dataUnavailable = failureNotice("data_unavailable");
+    if (
+      timeout === null ||
+      rateLimited === null ||
+      unavailable === null ||
+      dataUnavailable === null
+    ) {
       throw new Error("these fallbacks have a notice");
     }
     return (
@@ -172,11 +179,13 @@ export const FallbackNotices: Story = {
         <AnswerNoticeView notice={timeout} />
         <FailureNoticeView notice={rateLimited} />
         <FailureNoticeView notice={unavailable} />
+        <FailureNoticeView notice={dataUnavailable} />
       </div>
     );
   },
   play: async ({ canvas }) => {
     await expect(canvas.getByText(RATE_LIMITED_TEXT)).toBeVisible();
     await expect(canvas.getByText(UNAVAILABLE_TEXT)).toBeVisible();
+    await expect(canvas.getByText(DATA_UNAVAILABLE_TEXT)).toBeVisible();
   },
 };

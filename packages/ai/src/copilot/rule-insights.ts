@@ -12,6 +12,7 @@ import {
   type CopilotProduct,
   type FactTable,
 } from "./build-facts";
+import type { CopilotSource } from "./source-gaps";
 
 /**
  * An answer before expansion: it cites fact ids and product aliases, never values or ids. Rules
@@ -259,24 +260,55 @@ function largestFunnelDropOff({ table, periodText }: RuleContext): DraftRecommen
   ];
 }
 
+type RuleRun = (context: RuleContext) => DraftRecommendation[];
+
+/**
+ * A rule and the source it reads. When that source is incomplete (GR-04) the rule does not run,
+ * and its note says the recommendation is not given: it never runs on a substituted zero.
+ */
+type Rule = { run: RuleRun; source?: CopilotSource; omittedNote?: string };
+
+const rule = (run: RuleRun): Rule => ({ run });
+const trafficRule = (run: RuleRun, omittedNote: string): Rule => ({
+  run,
+  source: "traffic",
+  omittedNote,
+});
+
+const TRAFFIC_MISSING = "Traffic data is missing for this period, so";
+const OMITTED_OUT_OF_STOCK = `${TRAFFIC_MISSING} the out-of-stock product recommendation is not given.`;
+const OMITTED_SLOW_SELLER = `${TRAFFIC_MISSING} the slow-seller recommendation is not given.`;
+const OMITTED_FUNNEL = `${TRAFFIC_MISSING} the funnel recommendation is not given.`;
+
 /** The rules each intent runs, in order; the sort keeps that order within a priority. */
-const RULES_BY_INTENT: Readonly<
-  Record<CopilotIntentId, ((context: RuleContext) => DraftRecommendation[])[]>
-> = {
+const RULES_BY_INTENT: Readonly<Record<CopilotIntentId, Rule[]>> = {
   focus: [
-    restockBestSellers,
-    noPaidOrders,
-    restockViewedOutOfStock,
-    reviewSlowSellers,
-    largestFunnelDropOff,
+    rule(restockBestSellers),
+    rule(noPaidOrders),
+    trafficRule(restockViewedOutOfStock, OMITTED_OUT_OF_STOCK),
+    trafficRule(reviewSlowSellers, OMITTED_SLOW_SELLER),
+    trafficRule(largestFunnelDropOff, OMITTED_FUNNEL),
   ],
-  top_products: [noPaidOrders],
-  low_stock: [restockBestSellers],
-  sales_change: [noPaidOrders, salesChanged],
+  top_products: [rule(noPaidOrders)],
+  low_stock: [rule(restockBestSellers)],
+  sales_change: [rule(noPaidOrders), rule(salesChanged)],
   traffic_sources: [],
-  funnel: [largestFunnelDropOff],
-  views_without_sales: [restockViewedOutOfStock, reviewSlowSellers],
+  funnel: [trafficRule(largestFunnelDropOff, OMITTED_FUNNEL)],
+  views_without_sales: [
+    trafficRule(restockViewedOutOfStock, OMITTED_OUT_OF_STOCK),
+    trafficRule(reviewSlowSellers, OMITTED_SLOW_SELLER),
+  ],
 };
+
+/** The notes of the rules an incomplete source keeps from running (GR-04), in rule order. */
+export function omittedRecommendationNotes(
+  intent: CopilotIntentId,
+  incomplete: ReadonlySet<CopilotSource>,
+): string[] {
+  return RULES_BY_INTENT[intent].flatMap((item) =>
+    item.source && incomplete.has(item.source) && item.omittedNote ? [item.omittedNote] : [],
+  );
+}
 
 type Summary = { text: string; factIds: string[] };
 
@@ -429,17 +461,22 @@ export function buildRuleInsights(
   intent: CopilotIntentId,
   table: FactTable,
   period: MetricPeriod,
+  incomplete: ReadonlySet<CopilotSource> = new Set(),
 ): CopilotDraft {
   const context: RuleContext = {
     table,
     periodText: METRIC_PERIOD_LABELS[period.preset].toLowerCase(),
   };
-  const recommendations = RULES_BY_INTENT[intent]
-    .flatMap((rule) => rule(context))
+  const rules = RULES_BY_INTENT[intent];
+  const active = rules.filter((item) => !item.source || !incomplete.has(item.source));
+  const recommendations = active
+    .flatMap((item) => item.run(context))
     .sort((a, b) => PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority])
     .slice(0, MAX_RECOMMENDATIONS);
   const summary = SUMMARY_BY_INTENT[intent](context);
-  const parts = [summary.text, recommendations.length === 0 ? NOTHING_STANDS_OUT : ""];
+  // A rule left out for missing data is not "nothing stands out": its note says what is missing.
+  const omitted = active.length < rules.length;
+  const parts = [summary.text, recommendations.length === 0 && !omitted ? NOTHING_STANDS_OUT : ""];
   return {
     summary: parts.filter((part) => part !== "").join(" "),
     summaryFactIds: summary.factIds,
