@@ -120,7 +120,7 @@ Stack: Next.js 16.4 (App Router, Turbopack, Cache Components) · React 19.3 · T
 
 - **Agent safety:** [`.ai/security-notes.md`](.ai/security-notes.md) records the agent's permissions, skills, MCP servers, the secret scan, the PreToolUse hook and the prompt-injection test.
 - **Project review rules:** [`.ai/skills/om-code-review/SKILL.md`](.ai/skills/om-code-review/SKILL.md) is the CommerceOS checklist that the review skill applies on top of its own rules.
-- **Rollback:** not defined yet. The app has no public deployment, so there is no release to roll back. Before the first public deploy, this section must name the previous release and the steps to return to it.
+- **Release and rollback:** the release steps, the rollback steps and the post-deploy checks are in [`docs/releases/procedure.md`](docs/releases/procedure.md). The 1.0.0 operator notes (environment variables, migrations, version question) are in [`docs/releases/1.0.0.md`](docs/releases/1.0.0.md). Hosting is not chosen yet: the platform steps are marked and must be filled in before the first public deploy.
 
 ## Reference
 
