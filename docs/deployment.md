@@ -133,3 +133,7 @@ Before the first public release, practise the procedure once on a non-public cop
 - The migration job is manual; no automatic migration on deploy.
 - The smoke test does not sign in or place an order.
 - The image has no image signing and no vulnerability scan in CI.
+
+## Known limitation: no production error tracking
+
+The app has no error-tracking service (no Sentry, PostHog or Datadog). Errors reach the application logs only. This is accepted for the demo, which runs on fictional data. Before a real store runs on this image, choose an error tool and wire it in; the lesson 25 maintenance loop depends on it.
