@@ -5,7 +5,8 @@ import {
 } from "../schemas/copilot-response.schema";
 import type { CopilotFact, CopilotToolResults, FactTable } from "./build-facts";
 import type { CopilotAnswerRecommendation } from "./copilot-answer";
-import type { CopilotDraft } from "./rule-insights";
+import { omittedRecommendationNotes, type CopilotDraft } from "./rule-insights";
+import { incompleteSources } from "./source-gaps";
 
 /** D08 and R07: every answer that reads the demo traffic says what it is. */
 export const DEMO_TRAFFIC_LIMITATION =
@@ -61,6 +62,8 @@ export function serverLimitations(intent: CopilotIntentId, results: CopilotToolR
   if (current > 0) limitations.push(otherCurrencyLimitation(current));
   const previous = results.previousSales?.otherCurrencyOrders ?? 0;
   if (previous > 0) limitations.push(otherCurrencyLimitation(previous, true));
+  // GR-04: each recommendation a missing source kept from running is replaced by its note.
+  limitations.push(...omittedRecommendationNotes(intent, incompleteSources(results)));
   return limitations;
 }
 

@@ -1,5 +1,6 @@
 import type { CopilotAnswerDto, FallbackReason } from "@commerceos/ai";
 import {
+  DATA_UNAVAILABLE_TEXT,
   FALLBACK_REASON_TEXT,
   RATE_LIMITED_TEXT,
   RULE_BASED_DESCRIPTION,
@@ -77,6 +78,7 @@ const FAILURE_NOTICE: Readonly<Record<PanelFailure, FailureNotice | null>> = {
   session: { message: SESSION_ENDED_TEXT, signIn: true },
   rate_limited: { message: RATE_LIMITED_TEXT, signIn: false },
   unavailable: { message: UNAVAILABLE_TEXT, signIn: false },
+  data_unavailable: { message: DATA_UNAVAILABLE_TEXT, signIn: false },
 };
 
 export function failureNotice(failure: PanelFailure | undefined): FailureNotice | null {

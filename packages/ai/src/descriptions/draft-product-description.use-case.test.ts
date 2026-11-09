@@ -53,18 +53,19 @@ function setup(
     provider?: LlmProviderPort;
     script?: ScriptStep[];
     perOwner?: boolean;
-    daily?: boolean[];
+    /** The answers of the shared daily cap, in call order; a call after them is allowed. */
+    daily?: { allowed: boolean; remaining: number }[];
     clockSteps?: number[];
     getCategoryUseCase?: GetCategoryUseCase;
   } = {},
 ) {
   const provider = options.provider ?? new ScriptedLlmProvider(options.script ?? []);
-  const daily = [...(options.daily ?? [true, true])];
+  const daily = [...(options.daily ?? [])];
   const consume = vi.fn<RateLimiterPort["consume"]>(async (key) => {
-    const allowed = key.startsWith("descriptions:draft:")
-      ? (options.perOwner ?? true)
-      : (daily.shift() ?? true);
-    return { allowed, remaining: allowed ? 1 : 0 };
+    if (key.startsWith("descriptions:draft:")) {
+      return { allowed: options.perOwner ?? true, remaining: 99 };
+    }
+    return daily.shift() ?? { allowed: true, remaining: 99 };
   });
   // Each clock read moves time on by the next step (ms), so a test can spend the deadline.
   const steps = [...(options.clockSteps ?? [])];
@@ -278,7 +279,8 @@ describe("DraftProductDescriptionUseCase", () => {
     expect(note).not.toContain("16,000");
     expect(note).not.toContain(BAD);
     expect(requests[1]?.messages.slice(0, 2)).toEqual(requests[0]?.messages);
-    expect(consume).toHaveBeenCalledTimes(3);
+    // The owner's limit and one unit of the daily cap for the draft: the retry takes no unit.
+    expect(consume).toHaveBeenCalledTimes(2);
     expect(events[0]?.data).toMatchObject({
       attempts: 2,
       issueCodes: ["unsupported_feature", "ungrounded_number"],
@@ -346,20 +348,66 @@ describe("DraftProductDescriptionUseCase", () => {
     });
   });
 
-  it("counts every attempt against the shared daily cap and stops when it is spent", async () => {
-    const first = setup({ script: [reply(GOOD)], daily: [false] });
-    expect(await first.useCase.execute(INPUT, OWNER)).toEqual({
+  it("stops before any attempt when the shared daily cap is spent", async () => {
+    const { useCase, provider, consume } = setup({
+      script: [reply(GOOD)],
+      daily: [{ allowed: false, remaining: 0 }],
+    });
+    expect(await useCase.execute(INPUT, OWNER)).toEqual({
       kind: "unavailable",
       reason: "daily_limit",
     });
-    expect((first.provider as ScriptedLlmProvider).requests).toHaveLength(0);
+    expect((provider as ScriptedLlmProvider).requests).toHaveLength(0);
+    expect(consume).toHaveBeenCalledWith("copilot:llm:day", 100, 86_400);
+  });
 
-    const second = setup({ script: [reply(BAD), reply(GOOD)], daily: [true, false] });
-    expect(await second.useCase.execute(INPUT, OWNER)).toEqual({
-      kind: "unavailable",
-      reason: "daily_limit",
+  it("takes one unit of the daily cap per draft, even when the retry succeeds (LOG-01)", async () => {
+    const { useCase, consume } = setup({
+      script: [reply(BAD), reply(GOOD)],
+      daily: [{ allowed: true, remaining: 1 }],
     });
-    expect((second.provider as ScriptedLlmProvider).requests).toHaveLength(1);
-    expect(second.events[0]?.data.attempts).toBe(1);
+    expect(await useCase.execute(INPUT, OWNER)).toMatchObject({ kind: "draft" });
+    const dailyCalls = consume.mock.calls.filter(([key]) => key === "copilot:llm:day");
+    expect(dailyCalls).toHaveLength(1);
+  });
+
+  it("keeps invalid_output when a refused retry would have hit the cap, not daily_limit (LOG-01)", async () => {
+    // Regression: the retry used to take its own unit, and the refusal reported daily_limit.
+    const { useCase, provider, consume, events } = setup({
+      script: [reply(BAD), reply(BAD)],
+      daily: [
+        { allowed: true, remaining: 1 },
+        { allowed: false, remaining: 0 },
+      ],
+    });
+    expect(await useCase.execute(INPUT, OWNER)).toEqual({
+      kind: "unavailable",
+      reason: "invalid_output",
+    });
+    expect((provider as ScriptedLlmProvider).requests).toHaveLength(2);
+    expect(consume.mock.calls.filter(([key]) => key === "copilot:llm:day")).toHaveLength(1);
+    expect(events[0]?.data).toMatchObject({
+      outcome: "unavailable",
+      fallbackReason: "invalid_output",
+      attempts: 2,
+    });
+  });
+
+  it("does not retry when the draft's own unit left no cap, and keeps invalid_output", async () => {
+    const { useCase, provider, consume, events } = setup({
+      script: [reply(BAD), reply(GOOD)],
+      daily: [{ allowed: true, remaining: 0 }],
+    });
+    expect(await useCase.execute(INPUT, OWNER)).toEqual({
+      kind: "unavailable",
+      reason: "invalid_output",
+    });
+    expect((provider as ScriptedLlmProvider).requests).toHaveLength(1);
+    expect(consume.mock.calls.filter(([key]) => key === "copilot:llm:day")).toHaveLength(1);
+    expect(events[0]?.data).toMatchObject({
+      outcome: "unavailable",
+      fallbackReason: "invalid_output",
+      attempts: 1,
+    });
   });
 });
