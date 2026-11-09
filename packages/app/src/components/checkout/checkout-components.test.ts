@@ -9,7 +9,12 @@ import { CartChanges } from "../cart/cart-changes";
 import { orderStatusLabel, PAYMENT_TEST_NOTE } from "./checkout-copy";
 import { CheckoutForm } from "./checkout-form";
 import { CHECKOUT_FIELD_NAMES, CheckoutFormView } from "./checkout-form-view";
-import { CHECKOUT_SESSION_LOST, type CheckoutMode } from "./checkout-mode";
+import { ACCOUNT_COPY } from "../account/account-copy";
+import {
+  CHECKOUT_ACCOUNT_SWITCHED,
+  CHECKOUT_SESSION_LOST,
+  type CheckoutMode,
+} from "./checkout-mode";
 import {
   CheckoutPageSkeleton,
   CheckoutPageUnavailable,
@@ -22,6 +27,7 @@ import { OrderSummary } from "./order-summary";
 
 const REFERENCE = "CO-0DT7M-1EV8N-2FW9P-3GXAQ";
 const KEY = "0b7e6a9c-1d2f-4a3b-8c4d-5e6f7a8b9c0d";
+const CUSTOMER_ID = "c0000000-0000-4000-8000-00000000000a";
 const action = vi.fn();
 const serverAction = vi.fn(async (state: ActionState) => state);
 
@@ -216,7 +222,11 @@ describe("CheckoutFormView", () => {
 });
 
 describe("CheckoutFormView modes (E07 A24, A16)", () => {
-  const ACCOUNT: CheckoutMode = { kind: "account", email: "a@shop.example" };
+  const ACCOUNT: CheckoutMode = {
+    kind: "account",
+    customerId: CUSTOMER_ID,
+    email: "a@shop.example",
+  };
   // From the mode block to the end of the form: the block holds an `Alert`, which has its own divs.
   const modeLine = (html: string) => html.slice(html.indexOf('data-testid="checkout-mode"'));
 
@@ -249,6 +259,38 @@ describe("CheckoutFormView modes (E07 A24, A16)", () => {
     );
     expect(modeLine(html)).not.toContain('role="alert"');
     expect(html).toMatch(/name="customerEmail"[^>]*value=""/);
+  });
+
+  it("carries the account id only in account mode, never in a guest form", () => {
+    expect(renderCheckout(IDLE_ACTION_STATE, false, ACCOUNT)).toContain(
+      `name="checkoutAccountId" value="${CUSTOMER_ID}"`,
+    );
+    expect(renderCheckout(IDLE_ACTION_STATE)).not.toContain("checkoutAccountId");
+  });
+
+  it("after an account switch, shows the new account with an empty form and the message (E07 issue 105)", () => {
+    const B_ID = "c0000000-0000-4000-8000-00000000000b";
+    const html = renderCheckout(
+      {
+        status: "error",
+        code: CHECKOUT_ACCOUNT_SWITCHED,
+        message: ACCOUNT_COPY.accountSwitched,
+        account: { id: B_ID, email: "b@shop.example" },
+      },
+      false,
+      ACCOUNT,
+    );
+    expect(html).toContain(
+      "You signed in as another account. Review your details and submit again.",
+    );
+    expect(html).toMatch(/<div[^>]*role="alert"[^>]*>/);
+    expect(modeLine(html)).toContain("b@shop.example");
+    expect(modeLine(html)).not.toContain("a@shop.example");
+    expect(html).toContain(`name="checkoutAccountId" value="${B_ID}"`);
+    expect(html).toMatch(/name="customerEmail"[^>]*value="b@shop.example"/);
+    expect(html).toMatch(/name="customerName"[^>]*value=""/);
+    // Not a stock conflict: no link back to the cart.
+    expect(html).not.toContain('href="/cart"');
   });
 
   it("adds the banner when the page could not confirm the sign-in", () => {

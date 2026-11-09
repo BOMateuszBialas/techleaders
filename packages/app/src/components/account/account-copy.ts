@@ -20,6 +20,7 @@ export const ACCOUNT_COPY = {
   accountOrderNote: "This order will appear under My orders.",
   sessionLost:
     "We could not confirm your sign-in, so you are checking out as a guest. Sign in to attach this order to your account.",
+  accountSwitched: "You signed in as another account. Review your details and submit again.",
   ordersTableCaption: "Your orders, newest first",
   ordersCapped: "Showing your 50 most recent orders.",
   ordersUnavailable: "Your orders are unavailable right now. Try again.",

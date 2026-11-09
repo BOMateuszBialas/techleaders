@@ -7,6 +7,7 @@ Long-term memory for LLM agents: an index. Add an entry after fixing a bug, or w
 
 ## Lessons
 <!-- Newest first -->
+- **2026-11-09 — A `#105` issue reference in a comment fails the design-token gate (a colour literal); write `issue 105`. A form that switches account must `refresh()` the page too, or the next submit carries the old page's account id** — run log `.ai/runs/2026-11-09-checkout-account-switch.md` (issue #105).
 - **2026-11-09 — A worktree with an empty `node_modules` resolves `@commerceos/*` up the tree to the main checkout's packages, so tests pass against stale code; run `npm install` in the worktree first** — run log `.ai/runs/2026-11-09-copilot-partial-unavailable.md`.
 - **2026-11-09 — Copilot review: a blank-then-scan exemption hid a zero-width space; a retry must not draw a second cap unit; edit tools can write raw invisible characters into test strings** — [details](lessons/2026-11-09-copilot-review-fixes.md); for backslash-heavy strings, write them with the Write/Edit tool and confirm the bytes with `od -c` ([2026-10-16](lessons/2026-10-16-backslash-heavy-test-strings.md), [2026-10-19](lessons/2026-10-19-agent-edits-invisible-escape.md))
 - **2026-11-09 — `Date.UTC` maps years 0–99 to 1900–1999, and the ISO-date round-trip then rejected every year below 1000 as "Enter real dates"**: use `setUTCFullYear` for calendar arithmetic and pad the year to four digits when formatting (`packages/core/src/domain/metrics/metric-period.ts`, #83).
