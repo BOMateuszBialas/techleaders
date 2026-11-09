@@ -7,6 +7,7 @@ Long-term memory for LLM agents: an index. Add an entry after fixing a bug, or w
 
 ## Lessons
 <!-- Newest first -->
+- **2026-11-09 — `Date.UTC` maps years 0–99 to 1900–1999, and the ISO-date round-trip then rejected every year below 1000 as "Enter real dates"**: use `setUTCFullYear` for calendar arithmetic and pad the year to four digits when formatting (`packages/core/src/domain/metrics/metric-period.ts`, #83).
 - **2026-11-06 — A visual check that finds doubled spacing must read the component's own padding first: the doubling was the test's composition, not a component gap** — test-agent visual run (PR #198, triage in PR #201).
 - **2026-11-06 — A percentage width on a slide inside a scroll track is the track's width, so one card fills the row: size slides against the viewport (`min(24rem, 80vw)`)** — featured slider, `packages/app/src/app/globals.css` (`.featured-slide`, from #190).
 - **2026-11-05 — Storefront layout and e2e: six lessons (sticky header, in-flow buttons, hydration waits, Suspense, copied migration data, short vs long copy)** — details in `lessons/2026-11-05-storefront-layout-and-e2e.md`.
@@ -97,4 +98,3 @@ Long-term memory for LLM agents: an index. Add an entry after fixing a bug, or w
 - **2026-10-13 — Next 16 Cache Components** — [details](lessons/2026-10-13-next-16-cache-components.md)
 - **2026-10-13 — shadcn/ui 4 uses the `cn` package** — [details](lessons/2026-10-13-shadcn-ui-4-cn-package.md)
 - **2026-10-13 — Monorepo gitignore**: create-next-app patterns are root-anchored (`/.next/`, `/node_modules`). In the monorepo they must be unanchored (`.next/`) or `packages/app/.next` gets tracked.
-- **2026-10-13 — Writing many files at once**: one long Bash chain with several heredocs failed to parse as a whole (nothing ran). Use the Write tool per file instead.
