@@ -8,6 +8,7 @@ import {
   IDLE_COPILOT_STATE,
   RATE_LIMITED_TEXT,
   SESSION_ENDED_TEXT,
+  DATA_UNAVAILABLE_TEXT,
   UNAVAILABLE_TEXT,
   createAskCopilotAction,
   focusRefusedQuestion,
@@ -220,6 +221,13 @@ describe("createAskCopilotAction", () => {
         UNAVAILABLE_TEXT,
         "unavailable",
       ],
+      [
+        503,
+        { ok: false, error: { code: "COPILOT_DATA_UNAVAILABLE", message: "x" } },
+        DATA_UNAVAILABLE_TEXT,
+        "data_unavailable",
+      ],
+      [503, { ok: false, error: { code: "OTHER", message: "x" } }, UNAVAILABLE_TEXT, "unavailable"],
       [200, { ok: false, error: { code: "X", message: "x" } }, UNAVAILABLE_TEXT, "unavailable"],
     ];
     for (const [status, body, message, failure] of cases) {

@@ -1,6 +1,7 @@
 export * from "./adapters/gemini-llm-provider";
 export * from "./adapters/unconfigured-llm-provider";
 export * from "./copilot/ask-copilot.use-case";
+export * from "./copilot/copilot-data-unavailable";
 export * from "./copilot/copilot-answer";
 export * from "./copilot/intents";
 export * from "./descriptions/description-draft.dto";

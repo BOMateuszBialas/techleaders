@@ -7,7 +7,7 @@ Long-term memory for LLM agents: an index. Add an entry after fixing a bug, or w
 
 ## Lessons
 <!-- Newest first -->
-- **2026-11-09 — The migration CLI has `up` and `create` only, so no npm script runs a migration's `down`: the rollback of a schema change is a restore from a backup taken before the migration, and the release procedure must say so** — `docs/releases/procedure.md`, section 5.
+- **2026-11-09 — A worktree with an empty `node_modules` resolves `@commerceos/*` up the tree to the main checkout's packages, so tests pass against stale code; run `npm install` in the worktree first** — run log `.ai/runs/2026-11-09-copilot-partial-unavailable.md`.
 - **2026-11-09 — Copilot review: a blank-then-scan exemption hid a zero-width space; a retry must not draw a second cap unit; edit tools can write raw invisible characters into test strings** — [details](lessons/2026-11-09-copilot-review-fixes.md)
 - **2026-11-09 — `Date.UTC` maps years 0–99 to 1900–1999, and the ISO-date round-trip then rejected every year below 1000 as "Enter real dates"**: use `setUTCFullYear` for calendar arithmetic and pad the year to four digits when formatting (`packages/core/src/domain/metrics/metric-period.ts`, #83).
 - **2026-11-06 — A visual check that finds doubled spacing must read the component's own padding first: the doubling was the test's composition, not a component gap** — test-agent visual run (PR #198, triage in PR #201).

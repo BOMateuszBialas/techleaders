@@ -13,7 +13,7 @@ import {
   describeDescriptionIssues,
   findDescriptionIssues,
 } from "../grounding/find-description-issues";
-import { consumeLlmDailyAttempt } from "../llm/llm-daily-cap";
+import { takeLlmDailyUnit } from "../llm/llm-daily-cap";
 import { addLlmUsage, NO_LLM_USAGE } from "../llm/llm-usage";
 import type { CopilotLogPort, CopilotLogValue } from "../ports/copilot-log.port";
 import {
@@ -81,8 +81,9 @@ type Trace = {
 /**
  * Drafts a product description from the values in the product form (descriptions spec,
  * "DraftProductDescriptionUseCase flow"): no call without a configured provider or with too
- * little input; a per-owner limit; up to 2 attempts within one 30 s deadline, each counted
- * against the store's shared daily LLM cap; a draft is returned only when it passes
+ * little input; a per-owner limit; one unit of the store's shared daily LLM cap per draft (LOG-01,
+ * owner 2026-11-09), taken before its first attempt; up to 2 attempts within one 30 s deadline,
+ * the second only while a unit is left; a draft is returned only when it passes
  * `findDescriptionIssues`. It reads one category's name and writes nothing but the rate-limit
  * counters: it has no catalog-writing dependency (D02, N04), and the owner saves a draft only
  * through the product form.
@@ -151,6 +152,11 @@ export class DraftProductDescriptionUseCase {
     );
     if (!limit.allowed) throw new TooManyRequestsError(DRAFT_RATE_LIMITED_MESSAGE);
 
+    // One unit of the shared cap for the draft, before its first attempt (LOG-01, as Copilot).
+    const daily = await takeLlmDailyUnit(rateLimiter);
+    if (!daily.allowed) return unavailable("daily_limit");
+    const capLeft = daily.remaining > 0;
+
     const deadline = clock().getTime() + DRAFT_DEADLINE_MS;
     const signal = AbortSignal.timeout(DRAFT_DEADLINE_MS);
     const base = buildProductDescriptionMessages(sources);
@@ -158,8 +164,8 @@ export class DraftProductDescriptionUseCase {
 
     for (let attempt = 1; attempt <= DRAFT_MAX_ATTEMPTS; attempt += 1) {
       const remaining = deadline - clock().getTime();
-      if (attempt > 1 && remaining < DRAFT_MIN_RETRY_MS) break;
-      if (!(await consumeLlmDailyAttempt(rateLimiter))) return unavailable("daily_limit");
+      // A retry only checks that a unit is left; when none is, the draft keeps its real reason.
+      if (attempt > 1 && (remaining < DRAFT_MIN_RETRY_MS || !capLeft)) break;
       trace.attempts += 1;
 
       let output: StructuredGenerationResult<ProductDescriptionOutput>;
