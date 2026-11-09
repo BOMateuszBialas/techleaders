@@ -77,11 +77,38 @@ Odrzucone na tym etapie: wyliczanie zamówień po ID (ID to UUID, a 404 dla obce
 - Decyzja (2026-11-09, właściciel: „robimy”): wdrożony bezpieczny zestaw nagłówków w `packages/app/next.config.ts` (test e2e `packages/app/e2e/security-headers.e2e.test.ts`, sprawdza build produkcyjny na trzech trasach): `nosniff`, `X-Frame-Options: DENY`, `frame-ancestors 'none'` w CSP, `Referrer-Policy`, `Permissions-Policy`, `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`, i wyłączony `X-Powered-By`. Pełna polityka skryptów (`script-src` z nonce) nie jest wdrożona: wymaga proxy z nonce, a to wymusza renderowanie dynamiczne, co koliduje z `cacheComponents`.
 - **Po zmianie (ZAP baseline na buildzie produkcyjnym, `next start`):** znikły ostrzeżenia o braku `X-Frame-Options`, `X-Content-Type-Options`, `Permissions-Policy` i `X-Powered-By`. Pojawiły się nowe ostrzeżenia dotyczące polityki skryptów (`script-src`/`style-src` `unsafe-inline`, `CSP: Wildcard`), bo CSP ma tylko dyrektywy ramek i nie ogranicza skryptów. To ten sam otwarty punkt, nie nowa luka. COEP i COOP są raportowane jako brakujące (niskie ryzyko, nie ustawiane).
 
+### D7. Anty-CSRF
+
+**Karta dowodu**
+- Wymaganie / hipoteza: żądanie zmieniające stan, wysłane z obcego źródła (`Origin: https://evil.example`) z ważnym ciasteczkiem sesji, nie zmienia stanu aplikacji (D6: brak tokenów anty-CSRF w formularzach).
+- Zakres i ryzyko: wszystkie endpointy zmieniające stan: Better Auth (`/api/auth/*` admin, `/api/customer-auth/*` klient: logowanie, rejestracja, wylogowanie) oraz 22 server actions z `server-reference-manifest.json` (koszyk, checkout, płatność demo, status zamówienia, produkty, kategorie, zapas, import, rekomendacje Copilot, logowanie i wylogowanie). Poza zakresem: `api/admin/copilot/answers` i `api/admin/products/description-drafts` (POST bez zapisu stanu, Copilot tylko czyta, szkic nic nie zapisuje) oraz `api/account/orders/[id]` (tylko GET).
+- Baza i commit: build produkcyjny z gałęzi `feat/security-headers-csrf-check` (po `main` c16605e), lokalna baza PostgreSQL w kontenerze, globalny setup e2e.
+- Środowisko: `npx vitest run --project e2e packages/app/e2e/anti-csrf.e2e.test.ts` (32 testy, zielone).
+- Mechanizmy, na których opiera się wynik:
+  - Better Auth: `advanced.disableOriginCheck: false`, `trustedOrigins: [APP_URL]` (obie instancje, `create-auth.ts` i `create-customer-auth.ts`). Ciasteczko sesji klienta ustawiane z domyślnym `SameSite=Lax` i `HttpOnly` (test kontrolny sprawdza `Set-Cookie`); ciasteczko admina ma tę samą konfigurację, ale nie sprawdzałem jego `Set-Cookie` osobno.
+  - Server actions: Next.js porównuje nagłówek `Origin` z `Host` przed wykonaniem akcji (`node_modules/next/dist/server/app-render/action-handler.js`, dokumentacja `01-app/02-guides/server-actions.md`).
+- Sprawdzenie i wyniki (kod HTTP zaobserwowany w teście, każdy z ciasteczkiem właściciela lub klienta A):
+
+| Trasa | Żądanie | Kontrola (ten sam request z własnego origin) | Wynik z obcym origin | Werdykt |
+|---|---|---|---|---|
+| `POST /api/customer-auth/sign-in/email` | logowanie klienta | 200, `Set-Cookie` z `SameSite=Lax; HttpOnly` | **403**, bez `Set-Cookie` | odrzucone |
+| `POST /api/customer-auth/sign-up/email` | rejestracja klienta | (nie wykonano, tworzyłaby konto) | **403**, bez `Set-Cookie` | odrzucone |
+| `POST /api/customer-auth/sign-out` | wylogowanie klienta | (nie wykonano, zakończyłaby sesję) | **403**; sesja nadal działa (`get-session` 200) | odrzucone |
+| `POST /api/auth/sign-in/email` | logowanie właściciela | 200 | **403**, bez `Set-Cookie` | odrzucone |
+| `POST /api/auth/sign-up/email` | rejestracja admina (wyłączona w konfiguracji) | (nie dotyczy) | **403** | odrzucone |
+| `POST /api/auth/sign-out` | wylogowanie właściciela | (nie wykonano) | **403**; sesja nadal działa (`/api/admin/me` 200) | odrzucone |
+| 22 server actions (`POST /` z nagłówkiem `Next-Action`) | m.in. `placeOrder`, `confirmDemoPayment`, `changeOrderStatus`, `setProductStatus`, `createProduct`, `updateProduct`, `adjustStock`, `submitProductImport`, `createCategory`, `updateCategory`, `deleteCategory`, `changeRecommendationStatus`, `addToCart`, `updateCartLine`, `removeCartLine`, `acceptCartChanges`, `signIn`, `signOut`, `signInCustomer`, `signUpCustomer`, `signOutCustomer`, `lookupOrder` | `lookupOrder` z własnego origin: **200** | **500** w każdym z 22 przypadków (komunikat „Invalid Server Actions request.”, akcja się nie wykonuje) | odrzucone |
+
+- Uwaga o kodzie 500: Next.js zwraca 500 (nie 403) dla odrzuconego żądania akcji fetch z obcym `Origin`. To mechanizm frameworka, nie błąd; test sprawdza dokładnie 500 i kontrolę 200.
+- Co to dowodzi: każda trasa zmieniająca stan w zakresie odrzuca żądanie z obcego origin nawet z ważną sesją, a żądanie z własnego origin przechodzi (kontrola). Ciasteczko sesji ma `SameSite=Lax`, więc przeglądarka nie wysyła go w cross-site POST, co daje drugą warstwę.
+- Czego to nie dowodzi: nie sprawdza przeglądarki (żądania są z Node `fetch`, nie z formularza cross-site); nie sprawdza akcji wywoływanych tylko z kodu klienta bez wpisu w manifeście (manifest obejmuje wszystkie `"use server"` w buildzie); jeden build, jedna baza.
+- **Otwarte ustalenia (nie naprawiane w tym PR):** nie znaleziono niechronionej trasy zmieniającej stan. Obserwacja: `api/admin/copilot/answers` i `api/admin/products/description-drafts` nie mają własnego sprawdzenia `Origin` (`adminApiHandler` go nie robi). Nie zmieniają stanu, więc nie są luką; ochronę daje tu `SameSite=Lax`.
+
 ## Co nie zostało zrobione (uczciwie)
 
-- **Pełny CSP ze skryptami (D6):** nonce przez proxy, osobna decyzja, bo zmienia renderowanie stron.
-- **CORP, COEP, COOP (D6):** nieustawione, zgłoszone przez ZAP jako niskie.
-- **Tokeny anty-CSRF (D6):** do zweryfikowania testem, czy Better Auth i `SameSite` wystarczają.
+- **Pełny CSP ze skryptami (D6):** częściowo zrobione 2026-11-09 w tym PR jako **świadomy bazowy CSP** (decyzja koordynatora): `default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'`. Skrypty i style z `'unsafe-inline'` są celowe (skrypt motywu w layoucie i inline dane hydracji Next.js). Polityka oparta na nonce wymaga proxy i renderowania dynamicznego, więc jest osobną, późniejszą decyzją. Konsekwencja: `img-src 'self'` blokuje obrazy produktów z zewnętrznych adresów URL (admin może je wpisać); demo używa lokalnych obrazów.
+- **CORP, COEP, COOP (D6):** zrobione 2026-11-09 w tym samym PR: `Cross-Origin-Opener-Policy: same-origin`, `Cross-Origin-Embedder-Policy: credentialless`, `Cross-Origin-Resource-Policy: same-origin`. `credentialless`, a nie `require-corp`, bo admin może wpisać dowolny adres zdjęcia produktu, a storefront wyświetla go zwykłym `<img>`: `require-corp` zablokowałby takie obrazy (bez nagłówka CORP). Fonty są samohostowane przez `next/font`, skrypty są własne. Po dodaniu bazowego CSP (`img-src 'self'`) zewnętrzne obrazy są blokowane przez CSP, więc o wyborze decyduje teraz głównie polityka obrazów, a `credentialless` zostaje jako bezpieczniejsza wartość na przyszłość.
+- **Tokeny anty-CSRF (D6):** sprawdzone w D7 (2026-11-09): Better Auth i Next.js odrzucają obcy origin, ciasteczko `SameSite=Lax`. Bez tokenów w formularzach.
 - **Pozytywna kontrola admina:** zrobiona (patrz D3, sweep 24/24). Wywołanie `/api/admin/me` z sesją właściciela zrobione 2026-11-09 w przeglądarce (dev, `fetch('/api/admin/me')` po zalogowaniu na `/admin/sign-in`): **status 200**, odpowiedź `{"ok":true,"data":{"role":"owner", …}}`. Kontrola negatywna: D3 pokazuje 401 dla konta klienta. Ten sam request bez żadnej sesji (okno incognito, dev): **status 401** (2026-11-09, ręcznie przez testera właściciela).
 
 ## Wynik
