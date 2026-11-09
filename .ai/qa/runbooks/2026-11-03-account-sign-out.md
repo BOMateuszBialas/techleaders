@@ -1,6 +1,8 @@
 # Runbook: wylogowanie z „Moje zamówienia” (PR #184)
 
-Cel: sprawdzić ręcznie to, czego test nie pokaże: że przycisk wylogowania działa dla klienta, a nagłówek sklepu nadal wylogowuje tak samo. Czas: ok. 10 minut.
+Cel: sprawdzić ręcznie to, czego test nie pokaże: że przycisk wylogowania działa dla klienta na desktopie i mobile w obu motywach. Czas: ok. 10 minut.
+
+**Zmiana po przeglądzie właściciela (2026-11-09):** nagłówek sklepu nie ma już wylogowania. Po zmianie układu nagłówka wylogowanie jest tylko na stronie „Moje zamówienia”, i tak ma być. Krok 4 poniżej opisuje to zachowanie.
 
 ## Przygotowanie
 
@@ -14,7 +16,7 @@ Cel: sprawdzić ręcznie to, czego test nie pokaże: że przycisk wylogowania dz
 | 1 | Zaloguj się jako klient A, wejdź w „Moje zamówienia” | Widać e-mail, przycisk „Sign out” obok niego |
 | 2 | Kliknij „Sign out” na stronie zamówień | Wracasz na stronę główną, w nagłówku widać „Sign in”, nie „My orders” |
 | 3 | Wejdź ręcznie na `/account/orders` | Przekierowanie do logowania, bez danych klienta A |
-| 4 | Zaloguj się jako klient B, wejdź w „Moje zamówienia”, kliknij „Sign out” z nagłówka sklepu | Wylogowanie działa też z nagłówka |
+| 4 | Zaloguj się jako klient B, wejdź w „Moje zamówienia”, kliknij „Sign out” na tej stronie | Wylogowanie działa; w nagłówku sklepu nie ma wylogowania (zamierzone) |
 | 5 | Powtórz krok 1 na szerokości 320 px, potem w ciemnym motywie | Przycisk widoczny, nie wychodzi poza ekran, czytelny |
 
 ## Karta dowodu
@@ -25,9 +27,9 @@ Cel: sprawdzić ręcznie to, czego test nie pokaże: że przycisk wylogowania dz
 - Środowisko, seed, konto i czas: lokalnie, konta A i B z kroku przygotowania.
 - Sprawdzenie: kroki 1–5 powyżej.
 - Oczekiwane zachowanie: tabela wyżej.
-- Rzeczywisty wynik i miejsce dowodu: ___ (wpisz, zrzut ekranu: `.ai/qa/runbooks/…`)
+- Rzeczywisty wynik i miejsce dowodu: tester (właściciel) przeszedł kroki 1–5 lokalnie (`npm run dev`, baza z migracjami) na desktopie i mobile, w jasnym i ciemnym motywie. Wylogowanie działa na stronie „Moje zamówienia”. Nagłówek nie ma wylogowania (zmiana układu, zamierzona). Zrzuty nie były zapisywane w repo.
 - Czego to sprawdzenie nie dowodzi: nie sprawdza kont właściciela (admin) ani innych przeglądarek.
-- Decyzja i osoba odpowiedzialna: ___ (werdykt tester).
+- Decyzja i osoba odpowiedzialna: **przeszedł**, właściciel (werdykt tester, 2026-11-09).
 
 ## Porównanie z testem automatycznym
 
