@@ -560,5 +560,5 @@ Totals: **25** rows (Gemini 5, ChatGPT 20; EVAL-01 appears once in each reply an
 
 ### Open items (for the owner)
 
-- **Product descriptions** (`descriptions/draft-product-description.use-case.ts`, descriptions spec A2): the same retry shape consumes a shared daily unit per attempt and can report `daily_limit` in place of the rejected output. It is outside this review's scope and was not changed here.
+- **Product descriptions**: fixed on 2026-11-09 (owner decision, descriptions spec, dated note): one cap unit per draft, and a refused retry keeps `invalid_output`. Regression tests in `descriptions/draft-product-description.use-case.test.ts`.
 - **Daily cap semantics**: decided by the owner on 2026-11-09 (LOG-01, accepted): change 1 counts answers, not attempts; the worst case is twice the cap in attempts per day.
