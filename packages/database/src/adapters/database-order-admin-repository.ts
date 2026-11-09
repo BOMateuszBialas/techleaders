@@ -53,10 +53,11 @@ function toRecord(order: Order, items: readonly OrderItem[]): AdminOrderRecord {
  *
  * `changeStatus` runs in one transaction under READ COMMITTED. The conditional update takes
  * the order's row lock, so a concurrent `markPaid` (also conditional on `pending_payment`)
- * waits and then matches nothing: exactly one of a cancel and a payment wins. A cancel then
- * adds each line's quantity back to its product, in product-id order (the same lock order as
- * checkout, so the two cannot deadlock); lines of deleted products are skipped. Any failure
- * rolls the status change back with the stock.
+ * waits and then matches nothing: exactly one of a cancel and a payment wins. Each applied change
+ * writes a status-history row with the actor. A cancel then adds each line's quantity back to its
+ * product, in product-id order (the same lock order as checkout, so the two cannot deadlock), and
+ * writes a stock-adjustment row for it; lines of deleted products are skipped. Any failure rolls
+ * the status change, its history row and the stock back together.
  */
 export class DatabaseOrderAdminRepository implements OrderAdminPort {
   constructor(private readonly deps: { em: EntityManager }) {}
@@ -102,7 +103,7 @@ export class DatabaseOrderAdminRepository implements OrderAdminPort {
 
   private async changeStatusIn(
     em: EntityManager,
-    { orderId, from, to, restock }: ChangeOrderStatusCommand,
+    { orderId, from, to, restock, actorId }: ChangeOrderStatusCommand,
   ): Promise<ChangeOrderStatusOutcome> {
     const updated = await em.execute<QueryResult>(
       "update orders set status = ?, updated_at = now() where id = ? and status = ?",
@@ -119,6 +120,13 @@ export class DatabaseOrderAdminRepository implements OrderAdminPort {
       return current ? { kind: "stale", currentStatus: current.status } : { kind: "not_found" };
     }
 
+    // Audit trail (orders spec, supersedes A6): the change and its row commit or roll back together.
+    await em.execute<QueryResult>(
+      `insert into order_status_history (id, order_id, from_status, to_status, changed_by, changed_at)
+       values (gen_random_uuid(), ?, ?, ?, ?, now())`,
+      [orderId, from, to, actorId],
+      "run",
+    );
     const restockedUnits = restock ? await this.restock(em, orderId) : 0;
     const order = await this.load(em, orderId);
     // The update above matched this row inside the same transaction, so it exists.
@@ -126,7 +134,10 @@ export class DatabaseOrderAdminRepository implements OrderAdminPort {
     return { kind: "changed", order, restockedUnits };
   }
 
-  /** Adds each line's quantity back to its product (deleted products skipped); returns the units. */
+  /**
+   * Adds each line's quantity back to its product and records the change in `stock_adjustments`
+   * (source `order_cancellation`, with the order). Deleted products are skipped; returns the units.
+   */
   private async restock(em: EntityManager, orderId: string): Promise<number> {
     const lines = await em.execute<{ product_id: string; quantity: number }[]>(
       `select product_id, quantity from order_items
@@ -135,13 +146,22 @@ export class DatabaseOrderAdminRepository implements OrderAdminPort {
     );
     let units = 0;
     for (const line of lines) {
-      const result = await em.execute<QueryResult>(
-        "update products set stock_quantity = stock_quantity + ?, updated_at = now() where id = ?",
+      const updated = await em.execute<{ stock_quantity: number }[]>(
+        `update products set stock_quantity = stock_quantity + ?, updated_at = now()
+          where id = ? returning stock_quantity`,
         [line.quantity, line.product_id],
-        "run",
       );
       // A product deleted between the select and this update (set null on its lines) is skipped.
-      if (result.affectedRows > 0) units += line.quantity;
+      const current = updated[0];
+      if (!current) continue;
+      await em.execute<QueryResult>(
+        `insert into stock_adjustments
+           (id, product_id, previous_quantity, new_quantity, source, order_id, created_at)
+         values (gen_random_uuid(), ?, ?, ?, 'order_cancellation', ?, now())`,
+        [line.product_id, current.stock_quantity - line.quantity, current.stock_quantity, orderId],
+        "run",
+      );
+      units += line.quantity;
     }
     return units;
   }

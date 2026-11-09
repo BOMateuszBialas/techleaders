@@ -67,6 +67,8 @@ export type ChangeOrderStatusCommand = {
   to: OrderStatus;
   /** True only for `pending_payment → cancelled` (`restocksOnTransition`). */
   restock: boolean;
+  /** The admin who made the change (session id). Written to the status history. */
+  actorId: string;
 };
 
 /**

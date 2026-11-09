@@ -35,6 +35,14 @@ describe("DatabaseOrderAdminRepository (PostgreSQL)", () => {
     return orm.em.fork().execute<T[]>(sql, params);
   }
 
+  async function historyOf(orderId: string) {
+    return query<{ from_status: string; to_status: string; changed_by: string | null }>(
+      `select from_status, to_status, changed_by from order_status_history
+        where order_id = ? order by changed_at`,
+      [orderId],
+    );
+  }
+
   async function idOf(slug: string): Promise<string> {
     const rows = await query<{ id: string }>("select id from products where slug = ?", [slug]);
     return rows[0]?.id ?? "";
@@ -247,10 +255,13 @@ describe("DatabaseOrderAdminRepository (PostgreSQL)", () => {
         from: "pending_payment",
         to: "cancelled",
         restock: true,
+        actorId: "owner-1",
       }),
     ).toEqual({ kind: "stale", currentStatus: "paid" });
     expect(await stockOf(VORTEX)).toBe(19);
     expect((await statusOf(orderId)).status).toBe("paid");
+    // A refused change leaves no history row (paid came from markPaid, not a status change).
+    expect(await historyOf(orderId)).toEqual([]);
 
     expect(
       await admin().changeStatus({
@@ -258,6 +269,7 @@ describe("DatabaseOrderAdminRepository (PostgreSQL)", () => {
         from: "paid",
         to: "processing",
         restock: false,
+        actorId: "owner-1",
       }),
     ).toEqual({ kind: "not_found" });
   });
@@ -276,6 +288,7 @@ describe("DatabaseOrderAdminRepository (PostgreSQL)", () => {
       from: "pending_payment",
       to: "cancelled",
       restock: true,
+      actorId: "owner-1",
     });
 
     expect(result).toMatchObject({
@@ -285,6 +298,38 @@ describe("DatabaseOrderAdminRepository (PostgreSQL)", () => {
     });
     expect([await stockOf(VORTEX), await stockOf(PULSE)]).toEqual([20, 20]);
     expect(await statusOf(orderId)).toEqual({ status: "cancelled", paid_at: null });
+    // Audit trail: the change is recorded with its actor, and each restock is a stock movement.
+    expect(await historyOf(orderId)).toEqual([
+      { from_status: "pending_payment", to_status: "cancelled", changed_by: "owner-1" },
+    ]);
+    const movements = await query<{
+      product_slug: string;
+      previous_quantity: number;
+      new_quantity: number;
+      source: string;
+      order_id: string;
+    }>(
+      `select p.slug as product_slug, a.previous_quantity, a.new_quantity, a.source, a.order_id
+         from stock_adjustments a join products p on p.id = a.product_id
+        where a.order_id = ? order by p.slug`,
+      [orderId],
+    );
+    expect(movements).toEqual([
+      {
+        product_slug: PULSE,
+        previous_quantity: 17,
+        new_quantity: 20,
+        source: "order_cancellation",
+        order_id: orderId,
+      },
+      {
+        product_slug: VORTEX,
+        previous_quantity: 18,
+        new_quantity: 20,
+        source: "order_cancellation",
+        order_id: orderId,
+      },
+    ]);
     // A cancelled order can never be paid afterwards.
     expect(await orders().markPaid(orderId, { provider: "demo", reference: "late" })).toBe(
       "not_payable",
@@ -297,7 +342,13 @@ describe("DatabaseOrderAdminRepository (PostgreSQL)", () => {
     await query("update products set stock_quantity = 2147483647 where slug = ?", [VORTEX]);
 
     await expect(
-      admin().changeStatus({ orderId, from: "pending_payment", to: "cancelled", restock: true }),
+      admin().changeStatus({
+        orderId,
+        from: "pending_payment",
+        to: "cancelled",
+        restock: true,
+        actorId: "owner-1",
+      }),
     ).rejects.toThrow(/^Order status change failed: /);
     expect((await statusOf(orderId)).status).toBe("pending_payment");
     expect(await stockOf(VORTEX)).toBe(2147483647);
@@ -309,7 +360,13 @@ describe("DatabaseOrderAdminRepository (PostgreSQL)", () => {
       const orderId = await place([[VORTEX, 1]]);
 
       const [cancel, payment] = await Promise.allSettled([
-        admin().changeStatus({ orderId, from: "pending_payment", to: "cancelled", restock: true }),
+        admin().changeStatus({
+          orderId,
+          from: "pending_payment",
+          to: "cancelled",
+          restock: true,
+          actorId: "owner-1",
+        }),
         orders().markPaid(orderId, { provider: "demo", reference: `PAY-${orderId}` }),
       ]);
       if (cancel.status !== "fulfilled" || payment.status !== "fulfilled") {
@@ -338,7 +395,13 @@ describe("DatabaseOrderAdminRepository (PostgreSQL)", () => {
       ["processing", "shipped"],
       ["shipped", "refunded"],
     ] as const) {
-      const result = await admin().changeStatus({ orderId, from, to, restock: false });
+      const result = await admin().changeStatus({
+        orderId,
+        from,
+        to,
+        restock: false,
+        actorId: "owner-1",
+      });
       expect(result).toMatchObject({ kind: "changed", restockedUnits: 0, order: { status: to } });
     }
     expect(await statusOf(orderId)).toEqual({ status: "refunded", paid_at: paidAt });
@@ -349,7 +412,13 @@ describe("DatabaseOrderAdminRepository (PostgreSQL)", () => {
     const orderId = await place([[VORTEX, 1]]);
     // A pending order has no payment: "refunded" without paid_at violates orders_paid_at_check.
     await expect(
-      admin().changeStatus({ orderId, from: "pending_payment", to: "refunded", restock: false }),
+      admin().changeStatus({
+        orderId,
+        from: "pending_payment",
+        to: "refunded",
+        restock: false,
+        actorId: "owner-1",
+      }),
     ).rejects.toThrow(/^Order status change failed: .*constraint orders_paid_at_check/);
     expect((await statusOf(orderId)).status).toBe("pending_payment");
   });
@@ -364,11 +433,11 @@ describe("DatabaseOrderAdminRepository (PostgreSQL)", () => {
 
       // Cancelling a paid order would restock it, so the table refuses it before any write.
       await expect(
-        changeStatus.execute({ orderId, from: "paid", to: "cancelled" }),
+        changeStatus.execute({ orderId, from: "paid", to: "cancelled", actorId: "owner-1" }),
       ).rejects.toMatchObject({ message: "This status change is not allowed." });
       // Payment is the payment flow's job, never an admin status change (A3).
       await expect(
-        changeStatus.execute({ orderId, from: "pending_payment", to: "paid" }),
+        changeStatus.execute({ orderId, from: "pending_payment", to: "paid", actorId: "owner-1" }),
       ).rejects.toMatchObject({ message: "This status change is not allowed." });
 
       expect(await statusOf(orderId)).toEqual(before);

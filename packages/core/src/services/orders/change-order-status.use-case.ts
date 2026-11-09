@@ -31,12 +31,15 @@ export type ChangeOrderStatusResult = {
  * `changeOrderStatus`). Unknown values and pairs outside the table are one `ValidationError`
  * ("This status change is not allowed."); nothing reaches the port. The change applies only
  * while the order is still in `from`; otherwise `StaleOrderStatusError` names the status it
- * has now. A cancel of an unpaid order asks the port to restock in the same transaction.
+ * has now. A cancel of an unpaid order asks the port to restock in the same transaction. Every
+ * applied change is recorded with its actor in the status history (orders spec, audit trail).
  */
 export class ChangeOrderStatusUseCase {
   constructor(private readonly deps: { orderAdminRepository: OrderAdminPort }) {}
 
-  async execute(request: OrderStatusChangeRequest): Promise<ChangeOrderStatusResult> {
+  async execute(
+    request: OrderStatusChangeRequest & { actorId: string },
+  ): Promise<ChangeOrderStatusResult> {
     const parsed = orderStatusChangeSchema.safeParse(request);
     if (!parsed.success) throw new ValidationError(TRANSITION_NOT_ALLOWED_MESSAGE);
     const { orderId, from, to } = parsed.data;
@@ -48,6 +51,7 @@ export class ChangeOrderStatusUseCase {
       from,
       to,
       restock: restocksOnTransition(from, to),
+      actorId: request.actorId,
     });
     if (result.kind === "not_found") throw new NotFoundError(ADMIN_ORDER_NOT_FOUND_MESSAGE);
     if (result.kind === "stale") throw new StaleOrderStatusError(result.currentStatus);

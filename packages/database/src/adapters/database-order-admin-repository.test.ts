@@ -238,7 +238,9 @@ describe("DatabaseOrderAdminRepository.findOrderById", () => {
 describe("DatabaseOrderAdminRepository.changeStatus", () => {
   it("changes the status conditionally and restocks nothing unless asked", async () => {
     const { txExecute, txFindOne, txFind, repository } = setup();
-    txExecute.mockResolvedValueOnce({ affectedRows: 1 } as never);
+    txExecute
+      .mockResolvedValueOnce({ affectedRows: 1 } as never)
+      .mockResolvedValueOnce({ affectedRows: 1 } as never);
     txFindOne.mockResolvedValueOnce({ ...orderRow, status: "shipped", paidAt: createdAt } as never);
     txFind.mockResolvedValueOnce([] as never);
 
@@ -247,6 +249,7 @@ describe("DatabaseOrderAdminRepository.changeStatus", () => {
       from: "processing",
       to: "shipped",
       restock: false,
+      actorId: "u-1",
     });
 
     expect(result).toMatchObject({
@@ -254,21 +257,26 @@ describe("DatabaseOrderAdminRepository.changeStatus", () => {
       restockedUnits: 0,
       order: { status: "shipped" },
     });
-    expect(txExecute).toHaveBeenCalledOnce();
+    expect(txExecute).toHaveBeenCalledTimes(2);
     expect(String(txExecute.mock.calls[0]?.[0])).toContain("where id = ? and status = ?");
     expect(txExecute.mock.calls[0]?.[1]).toEqual(["shipped", ORDER_ID, "processing"]);
+    // Audit trail: the status change is recorded with its actor, in the same transaction.
+    expect(String(txExecute.mock.calls[1]?.[0])).toContain("insert into order_status_history");
+    expect(txExecute.mock.calls[1]?.[1]).toEqual([ORDER_ID, "processing", "shipped", "u-1"]);
   });
 
   it("restocks every line of a cancelled order in product-id order, skipping a vanished product", async () => {
     const { txExecute, txFindOne, txFind, repository } = setup();
     txExecute
       .mockResolvedValueOnce({ affectedRows: 1 } as never)
+      .mockResolvedValueOnce({ affectedRows: 1 } as never)
       .mockResolvedValueOnce([
         { product_id: P1, quantity: 2 },
         { product_id: P2, quantity: 4 },
       ] as never)
+      .mockResolvedValueOnce([{ stock_quantity: 10 }] as never)
       .mockResolvedValueOnce({ affectedRows: 1 } as never)
-      .mockResolvedValueOnce({ affectedRows: 0 } as never);
+      .mockResolvedValueOnce([] as never);
     txFindOne.mockResolvedValueOnce(orderRow as never);
     txFind.mockResolvedValueOnce(itemRows as never);
 
@@ -277,17 +285,22 @@ describe("DatabaseOrderAdminRepository.changeStatus", () => {
       from: "pending_payment",
       to: "cancelled",
       restock: true,
+      actorId: "u-1",
     });
 
     expect(result).toMatchObject({ kind: "changed", restockedUnits: 2 });
-    expect(String(txExecute.mock.calls[1]?.[0])).toContain(
+    expect(String(txExecute.mock.calls[2]?.[0])).toContain(
       "product_id is not null order by product_id",
     );
-    expect(txExecute.mock.calls.slice(2).map((call) => call[1])).toEqual([
-      [2, P1],
-      [4, P2],
-    ]);
-    expect(String(txExecute.mock.calls[2]?.[0])).toContain("stock_quantity = stock_quantity + ?");
+    // P1: the stock goes 8 → 10, and the movement is recorded as an order cancellation.
+    expect(txExecute.mock.calls[3]?.[1]).toEqual([2, P1]);
+    expect(String(txExecute.mock.calls[3]?.[0])).toContain("stock_quantity = stock_quantity + ?");
+    expect(String(txExecute.mock.calls[4]?.[0])).toContain("insert into stock_adjustments");
+    expect(String(txExecute.mock.calls[4]?.[0])).toContain("'order_cancellation'");
+    expect(txExecute.mock.calls[4]?.[1]).toEqual([P1, 8, 10, ORDER_ID]);
+    // P2 was deleted meanwhile: its update matches nothing, so no movement is written for it.
+    expect(txExecute.mock.calls[5]?.[1]).toEqual([4, P2]);
+    expect(txExecute).toHaveBeenCalledTimes(6);
   });
 
   it("reports a stale status or a missing order without writing", async () => {
@@ -297,6 +310,7 @@ describe("DatabaseOrderAdminRepository.changeStatus", () => {
       from: "pending_payment",
       to: "cancelled",
       restock: true,
+      actorId: "u-1",
     } as const;
 
     txExecute
@@ -316,8 +330,16 @@ describe("DatabaseOrderAdminRepository.changeStatus", () => {
 
   it("fails loudly if the changed order cannot be read back, and sanitizes driver errors", async () => {
     const { txExecute, txFindOne, em, repository } = setup();
-    const command = { orderId: ORDER_ID, from: "paid", to: "processing", restock: false } as const;
-    txExecute.mockResolvedValueOnce({ affectedRows: 1 } as never);
+    const command = {
+      orderId: ORDER_ID,
+      from: "paid",
+      to: "processing",
+      restock: false,
+      actorId: "u-1",
+    } as const;
+    txExecute
+      .mockResolvedValueOnce({ affectedRows: 1 } as never)
+      .mockResolvedValueOnce({ affectedRows: 1 } as never);
     txFindOne.mockResolvedValueOnce(null);
     await expect(repository.changeStatus(command)).rejects.toThrow(
       "A changed order could not be read back",

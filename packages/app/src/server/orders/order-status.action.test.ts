@@ -95,6 +95,7 @@ describe("changeOrderStatus", () => {
       orderId: ORDER_ID,
       from: "processing",
       to: "shipped",
+      actorId: "u-1",
     });
     expect(state).toEqual({ status: "success", message: "Order marked as shipped." });
     expect(logger.info).toHaveBeenCalledWith("orders.status.changed", { id: ORDER_ID });
@@ -181,6 +182,7 @@ describe("changeOrderStatus", () => {
       orderId: "",
       from: "paid",
       to: "processing",
+      actorId: "u-1",
     });
     expect(refresh).not.toHaveBeenCalled();
   });

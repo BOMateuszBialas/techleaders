@@ -4,7 +4,7 @@ import type { AwilixContainer } from "awilix";
 import { refresh, updateTag } from "next/cache";
 import { redirect, unstable_rethrow } from "next/navigation";
 import type { ActionState, FormValues } from "@/lib/action-state";
-import { requireAdmin, SIGN_IN_PAGE } from "../auth/require-admin";
+import { requireAdmin, SIGN_IN_PAGE, type AdminPrincipal } from "../auth/require-admin";
 import { createRequestScope, type Cradle } from "../container";
 import { GENERIC_ACTION_ERROR, toActionErrorState } from "../http/action-error-state";
 import { logger } from "../logger";
@@ -48,14 +48,14 @@ type Outcome =
 export async function runAdminAction(
   name: string,
   values: FormValues,
-  handler: (cradle: Cradle) => Promise<AdminActionSuccess>,
+  handler: (cradle: Cradle, admin: AdminPrincipal) => Promise<AdminActionSuccess>,
 ): Promise<ActionState> {
   let outcome: Outcome;
   let scope: AwilixContainer<Cradle> | undefined;
   try {
-    await requireAdmin();
+    const admin = await requireAdmin();
     scope = createRequestScope();
-    const success = await handler(scope.cradle);
+    const success = await handler(scope.cradle, admin);
     logger.info(success.event, { ...success.details, id: success.id });
     const changed = success.unchanged !== true;
     outcome =

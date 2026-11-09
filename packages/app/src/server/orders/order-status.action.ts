@@ -42,12 +42,12 @@ export async function changeOrderStatus(
   const state = await runAdminAction(
     "orders.status.change",
     {},
-    async ({ changeOrderStatusUseCase }) => {
+    async ({ changeOrderStatusUseCase }, admin) => {
       if (CONFIRMED_TARGETS.includes(to) && readFormValue(formData, "confirm") !== "yes") {
         throw new ValidationError(CONFIRM_REQUIRED_MESSAGE);
       }
       const result = await changeOrderStatusUseCase
-        .execute({ orderId, from, to })
+        .execute({ orderId, from, to, actorId: admin.id })
         .catch((error: unknown) => {
           stale = isStaleOrderStatusError(error);
           throw error;

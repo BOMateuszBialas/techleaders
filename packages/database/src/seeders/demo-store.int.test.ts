@@ -177,6 +177,7 @@ describe("demo store seed (PostgreSQL)", () => {
       from: "pending_payment",
       to: "cancelled",
       restock: true,
+      actorId: "owner-1",
     });
     expect(cancelled.kind).toBe("changed");
     expect((await product("retro-wired-controller"))?.stock_quantity).toBe(start);
