@@ -11,6 +11,7 @@ export const GROUNDING_ISSUE_CODES = [
   "causal_claim",
   "too_many",
   "hidden_character",
+  "no_evidence",
 ] as const;
 export type GroundingIssueCode = (typeof GROUNDING_ISSUE_CODES)[number];
 
@@ -32,8 +33,13 @@ export type GroundingOptions = {
 
 export const MAX_ANSWER_RECOMMENDATIONS = 3;
 
-/** Attribution phrases that claim a cause (R05). Checked in observation and summary only. */
-const CAUSAL_PHRASE = /\b(?:caused|led to|due to|as a result of|because of|drove)\b/i;
+/**
+ * Attribution phrases that claim a cause (R05). Checked in every free-text field that states
+ * something about the store: title, observation, reasoning, suggested action, limitations and
+ * the summary (GR-02). English only, as the admin UI is.
+ */
+const CAUSAL_PHRASE =
+  /\b(?:caus(?:e|es|ed|ing)|led to|leads to|due to|owing to|thanks to|because|because of|as a result of|as a consequence of|results? (?:of|from)|resulted from|drove|driven by|triggered by|attributable to)\b/i;
 
 /** A run of digits with single separators inside: "29", "9 847,00", "1,234.5", "2026". */
 const NUMBER_TOKEN = /\d+(?:[ \u00a0\u202f.,]\d+)*/g;
@@ -156,12 +162,13 @@ function checkScope(
 
   const mentioned = new Set<string>();
   for (const text of scope.texts) {
-    const mention = findProducts(text, table.products);
-    mention.products.forEach((alias) => mentioned.add(alias));
-    // Checked after catalog names are blanked: an owner's name is not model text.
-    if (HIDDEN_CHARACTER.test(mention.text)) {
+    // On the whole text: catalog names are sanitized before they reach the checks (SEC-02), so
+    // no exception for quoted names is needed, and one would hide a character inside a name.
+    if (HIDDEN_CHARACTER.test(text)) {
       issues.push({ code: "hidden_character", recommendation: at });
     }
+    const mention = findProducts(text, table.products);
+    mention.products.forEach((alias) => mentioned.add(alias));
     const tokens = withoutLabels(mention.text, labels).match(NUMBER_TOKEN) ?? [];
     if (tokens.some((token) => !isGrounded(token, allowed))) {
       issues.push({ code: "ungrounded_number", recommendation: at });
@@ -197,18 +204,24 @@ function recommendationIssues(
       issues.push({ code: "unlisted_product", recommendation: position, ref: alias });
     }
   }
+  // Observation and reasoning are the recommendation's claims about the store: each rests on
+  // at least one cited fact (GR-03). The schema requires it too; this keeps the check standing alone.
+  if (recommendation.evidenceFactIds.length === 0) {
+    issues.push({ code: "no_evidence", recommendation: position });
+  }
+  const texts = [
+    recommendation.title,
+    recommendation.observation,
+    recommendation.reasoning,
+    recommendation.suggestedAction,
+    ...(recommendation.limitations ?? []),
+  ];
   return [
     ...issues,
     ...checkScope(
       {
-        texts: [
-          recommendation.title,
-          recommendation.observation,
-          recommendation.reasoning,
-          recommendation.suggestedAction,
-          ...(recommendation.limitations ?? []),
-        ],
-        causalTexts: [recommendation.observation],
+        texts,
+        causalTexts: texts,
         factIds: recommendation.evidenceFactIds,
         allowedProducts: listed,
         recommendation: position,
@@ -235,12 +248,17 @@ function dedupe(issues: GroundingIssue[]): GroundingIssue[] {
  * spec, "Grounding rules"): every cited fact and product exists; every number in a
  * recommendation is a value of one of that recommendation's own cited facts (or the period
  * length), and summary numbers come from the summary's facts; every product a text names, or
- * whose fact it cites, is listed; observation and summary claim no cause; no text holds an
- * invisible or control character other than a line feed (outside catalog names), which could
- * hide a number or phrase from these checks; at most 3 recommendations. An empty list means the draft may be shown.
+ * whose fact it cites, is listed; no free-text field (title, observation, reasoning, suggested
+ * action, limitations; the summary) claims a cause; no text holds an invisible or control
+ * character other than a line feed, which could hide a number or phrase from these checks
+ * (catalog names are sanitized before they reach the draft, see `catalog-text.ts`); every
+ * recommendation cites at least one fact; at most 3 recommendations. An empty list means the
+ * draft may be shown.
  *
  * Not machine-checked (covered by the prompt, evals and the fallback): spelled-out numbers,
- * paraphrased product references and qualitative claims no number backs. A number is compared
+ * paraphrased product references, qualitative claims no number backs (whether a sentence is
+ * supported by the cited facts), and whether the summary's own claims cite facts (the summary
+ * may cite none). This is a claim-coverage limit, stated in the spec. A number is compared
  * by absolute value in either decimal reading ("9 847,00" or "9,847.00"), so a wrong sign or
  * direction ("rose" for a fall), a misplaced decimal separator ("2,5" for 25) or a wrong unit
  * ("29 zł" for 29 units) is not caught.
@@ -284,7 +302,10 @@ const PROBLEM_TEXT: Readonly<Record<GroundingIssueCode, string>> = {
     "states a number that is not the value of a fact it cites (cite the fact, or write it in words)",
   unlisted_product:
     "names a product, or cites a fact about a product, without listing its alias in relatedProductAliases (the summary may only name products of the facts it cites)",
-  causal_claim: "claims a cause in the observation or summary; state only what the data shows",
+  causal_claim:
+    "claims a cause in the title, observation, reasoning, suggested action, limitations or summary; state only what the data shows, and explain why a situation matters, not what caused it",
+  no_evidence:
+    "cites no fact; every recommendation needs at least one fact id in evidenceFactIds for its observation and reasoning",
   too_many: "has more than 3 recommendations",
   hidden_character:
     "contains an invisible or control character (zero-width, bidi, soft hyphen, tab); write plain text, line feeds only",

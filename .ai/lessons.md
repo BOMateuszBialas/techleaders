@@ -7,6 +7,7 @@ Long-term memory for LLM agents: an index. Add an entry after fixing a bug, or w
 
 ## Lessons
 <!-- Newest first -->
+- **2026-11-09 — Copilot review: a blank-then-scan exemption hid a zero-width space; a retry must not draw a second cap unit; edit tools can write raw invisible characters into test strings** — [details](lessons/2026-11-09-copilot-review-fixes.md)
 - **2026-11-09 — `Date.UTC` maps years 0–99 to 1900–1999, and the ISO-date round-trip then rejected every year below 1000 as "Enter real dates"**: use `setUTCFullYear` for calendar arithmetic and pad the year to four digits when formatting (`packages/core/src/domain/metrics/metric-period.ts`, #83).
 - **2026-11-06 — A visual check that finds doubled spacing must read the component's own padding first: the doubling was the test's composition, not a component gap** — test-agent visual run (PR #198, triage in PR #201).
 - **2026-11-06 — A percentage width on a slide inside a scroll track is the track's width, so one card fills the row: size slides against the viewport (`min(24rem, 80vw)`)** — featured slider, `packages/app/src/app/globals.css` (`.featured-slide`, from #190).
@@ -14,7 +15,6 @@ Long-term memory for LLM agents: an index. Add an entry after fixing a bug, or w
 - **2026-11-03 — Storybook docs overflow can be its own layout, not our tables** — check `table-layout` and the generated props table before changing components (see `.ai/design/detector-l06.md`).
 - **2026-11-03 — A prototype screen needs its h1 in every state, not only the default: the h1 check fails on loading and error blocks too, so keep the heading above them** — prototype s08–s10, `.ai/prototypes/ds/evidence/account-screens.mjs`.
 - **2026-10-28 — An inline ref callback is a new function on every render, so React calls it again with the same state: a focus side effect in it must fire once per state (a WeakSet keyed by the state), not on each call** — Copilot phase 2 review (PR #144)
-
 - **2026-10-27 — Focus after a refused form needs no wrapper effect: a ref callback in the hook-free view (`ref={(el) => focusX(state, el)}`) runs at commit, and the React Compiler lint rejects passing a ref object into a function in render; a `switch` with a `never` default leaves an uncovered branch under V8, so use a `Record` typed on the union** — run log `.ai/runs/2026-10-27-retrofit-copilot-phase-2.md`.
 - **2026-10-27 — Next 16 error boundaries get both `retry` and `reset`; the docs use `retry` (re-fetch) for a failed server render, and `reset` only re-renders the cached tree. A store `error.tsx` that calls `reset` needs the owner's confirmation before it is treated as a working "Try again"** — the approved OA-6 wording says `reset()`; the admin `error.tsx` uses `retry`. A boundary that is a hook-free wrapper is unit-tested by calling it as a function (its `error.tsx` is in coverage, not excluded).
 - **2026-10-28 — `npm audit fix` without `--force` can drop a dev tool's whole subtree: shadcn 4.23 lost its MCP dependencies while fixing undici and zod; check the removed names in the lockfile diff and re-audit** — run log `.ai/runs/2026-10-28-npm-audit-high-fixes.md`

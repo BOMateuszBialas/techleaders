@@ -43,11 +43,14 @@ const fabricatedReply: ScriptStep = (request) => {
   return { ...reply, summary: "Revenue rose 40% because of great work." };
 };
 
-function setup(options: { provider?: LlmProviderPort; allowed?: boolean[] } = {}) {
+type Cap = { allowed: boolean; remaining: number };
+
+/** The daily-cap answers in call order; once they run out, the cap has room. */
+function setup(options: { provider?: LlmProviderPort; caps?: Cap[] } = {}) {
   let now = NOW.getTime();
-  const allowed = [...(options.allowed ?? [])];
+  const caps = [...(options.caps ?? [])];
   const rateLimiter: RateLimiterPort = {
-    consume: vi.fn(async () => ({ allowed: allowed.shift() ?? true, remaining: 1 })),
+    consume: vi.fn(async () => caps.shift() ?? { allowed: true, remaining: 99 }),
   };
   const deps = {
     llmProvider: options.provider ?? new UnconfiguredLlmProvider(),
@@ -122,7 +125,8 @@ describe("generateAnswer", () => {
       issueCodes: ["ungrounded_number", "causal_claim"],
       usage: { inputTokens: 2000, outputTokens: 400, thinkingTokens: null },
     });
-    expect(rateLimiter.consume).toHaveBeenCalledTimes(2);
+    // One unit of the daily cap per answer, not per attempt (LOG-01).
+    expect(rateLimiter.consume).toHaveBeenCalledTimes(1);
     const retry = provider.requests[1]?.messages ?? [];
     expect(retry).toHaveLength(3);
     expect(retry.slice(0, 2)).toEqual(provider.requests[0]?.messages);
@@ -216,24 +220,42 @@ describe("generateAnswer", () => {
     expect(await generateAnswer(deps, INPUT)).toMatchObject({ fallbackReason: "provider_error" });
   });
 
-  it("stops at the daily cap, before the first call or between attempts", async () => {
+  it("stops at the daily cap before the first call", async () => {
     const first = new ScriptedLlmProvider([groundedReply]);
-    const spent = setup({ provider: first, allowed: [false] });
+    const spent = setup({ provider: first, caps: [{ allowed: false, remaining: 0 }] });
     expect(await generateAnswer(spent.deps, INPUT)).toMatchObject({
       fallbackReason: "daily_limit",
       attempts: 0,
     });
     expect(first.requests).toHaveLength(0);
+  });
 
-    const second = new ScriptedLlmProvider([fabricatedReply, groundedReply]);
-    const midway = setup({ provider: second, allowed: [true, false] });
-    expect(await generateAnswer(midway.deps, INPUT)).toMatchObject({
+  it("does not spend a second unit of the cap on a retry, and keeps the real reason", async () => {
+    // Regression (LOG-01): the retry used to consume a unit, got `allowed: false` on the last
+    // unit of the day and reported `daily_limit` instead of the rejected first attempt's reason.
+    const provider = new ScriptedLlmProvider([fabricatedReply, groundedReply]);
+    const { deps, rateLimiter } = setup({
+      provider,
+      caps: [
+        { allowed: true, remaining: 0 },
+        { allowed: false, remaining: 0 },
+      ],
+    });
+    const generation = await generateAnswer(deps, INPUT);
+    expect(generation).toMatchObject({
       origin: "rules",
-      fallbackReason: "daily_limit",
+      fallbackReason: "invalid_output",
       attempts: 1,
       issueCodes: ["ungrounded_number", "causal_claim"],
     });
-    expect(second.requests).toHaveLength(1);
+    expect(provider.requests).toHaveLength(1);
+    expect(rateLimiter.consume).toHaveBeenCalledTimes(1);
+  });
+
+  it("runs the retry only when a unit is left after the answer's own", async () => {
+    const provider = new ScriptedLlmProvider([fabricatedReply, groundedReply]);
+    const { deps } = setup({ provider, caps: [{ allowed: true, remaining: 1 }] });
+    expect(await generateAnswer(deps, INPUT)).toMatchObject({ origin: "llm", attempts: 2 });
   });
 
   it("keeps usage unknown when the provider reports none", async () => {

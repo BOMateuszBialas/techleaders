@@ -33,6 +33,8 @@ export const CopilotRecommendationSchema = defineEntity({
     periodFrom: p.datetime(),
     periodTo: p.datetime(),
     title: p.string().length(160),
+    /** The answer's summary (GAP-01); null for rows stored before the column existed. */
+    summary: p.text().nullable(),
     priority: p.enum(RECOMMENDATION_PRIORITIES),
     observation: p.text(),
     reasoning: p.text(),

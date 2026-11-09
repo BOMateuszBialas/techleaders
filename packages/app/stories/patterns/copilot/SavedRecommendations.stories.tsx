@@ -23,6 +23,7 @@ const SAVED: CopilotRecommendationRecord = {
   origin: "rules",
   model: null,
   title: "Restock the mouse pad before the weekend",
+  summary: "Glide XL mouse pad is nearly out of stock.",
   priority: "high",
   observation: "Glide XL mouse pad has 3 units left and sold 9 units in the last 7 days.",
   evidence: [

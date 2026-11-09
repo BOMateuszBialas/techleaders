@@ -62,6 +62,7 @@ function record(overrides: Partial<CopilotRecommendationRecord> = {}): CopilotRe
   return {
     id: ID,
     answerId: "9a8b7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d",
+    summary: "Pulse sold 9 units; 3 are left.",
     intent: "focus",
     origin: "rules",
     model: null,

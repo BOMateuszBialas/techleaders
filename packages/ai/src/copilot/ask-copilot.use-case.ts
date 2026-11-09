@@ -185,6 +185,7 @@ export class AskCopilotUseCase {
       promptVersion: llm ? COPILOT_PROMPT_VERSION : null,
       periodFrom: period.from,
       periodTo: period.to,
+      summary: expanded.summary,
       recommendations: expanded.recommendations.map(toNewRecommendation),
     });
     return {

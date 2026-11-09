@@ -1,0 +1,5 @@
+# Copilot cross-model review fixes (2026-11-09)
+
+1. **A check that blanks a known name before scanning exempts that name's characters.** The hidden-character check ran after quoted product names were blanked, so a zero-width space or a bidi override inside a name passed. Sanitize the source once (strip `\p{Cf}` and `\p{Cc}`, cap the length) and scan the whole text. Code: `packages/ai/src/grounding/catalog-text.ts`, `packages/ai/src/grounding/find-grounding-issues.ts`.
+2. **A retry must not draw a second unit of a daily cap.** The retry consumed a unit, hit the cap on the last unit of the day and reported `daily_limit` instead of the rejected output's real reason. Take one unit per answer before the loop; the retry only checks what is left. Code: `packages/ai/src/copilot/generate-answer.ts`.
+3. **The edit tools can store `​`-style escapes as the raw invisible character.** One test file and one new test file came out with raw format characters. Build such strings with `String.fromCodePoint`, and grep touched files for raw format characters before committing. Example: `packages/ai/src/copilot/catalog-names.test.ts`.
