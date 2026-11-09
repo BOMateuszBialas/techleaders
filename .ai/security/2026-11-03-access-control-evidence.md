@@ -82,7 +82,7 @@ Odrzucone na tym etapie: wyliczanie zamówień po ID (ID to UUID, a 404 dla obce
 - **Pełny CSP ze skryptami (D6):** nonce przez proxy, osobna decyzja, bo zmienia renderowanie stron.
 - **CORP, COEP, COOP (D6):** nieustawione, zgłoszone przez ZAP jako niskie.
 - **Tokeny anty-CSRF (D6):** do zweryfikowania testem, czy Better Auth i `SameSite` wystarczają.
-- **Pozytywna kontrola admina:** zrobiona (patrz D3, sweep 24/24). Otwarte zostaje tylko wywołanie `/api/admin/me` z sesją właściciela.
+- **Pozytywna kontrola admina:** zrobiona (patrz D3, sweep 24/24). Wywołanie `/api/admin/me` z sesją właściciela zrobione 2026-11-09 w przeglądarce (dev, `fetch('/api/admin/me')` po zalogowaniu na `/admin/sign-in`): **status 200**, odpowiedź `{"ok":true,"data":{"role":"owner", …}}`. Kontrola negatywna: D3 pokazuje 401 dla konta klienta. Ten sam request bez żadnej sesji nie został sprawdzony ręcznie (do zrobienia w oknie incognito, oczekiwane 401).
 
 ## Wynik
 
