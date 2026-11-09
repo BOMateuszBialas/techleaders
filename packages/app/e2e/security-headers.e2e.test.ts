@@ -13,7 +13,10 @@ const EXPECTED: Record<string, string> = {
   "referrer-policy": "strict-origin-when-cross-origin",
   "permissions-policy": "camera=(), microphone=(), geolocation=(), payment=()",
   "content-security-policy":
-    "frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'",
+    "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
+  "cross-origin-opener-policy": "same-origin",
+  "cross-origin-embedder-policy": "credentialless",
+  "cross-origin-resource-policy": "same-origin",
 };
 
 describe("security response headers", () => {
