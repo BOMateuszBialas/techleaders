@@ -46,3 +46,13 @@ A refund (`refunded`) is a recorded status. No money moves and no stock returns 
 
 - Automatic expiry of unpaid `pending_payment` orders (review finding ERR-03). It needs a scheduled job, which the MVP does not have. Stock held by an unpaid order is released only by an admin cancel. Open decision for the owner.
 - Revenue of a past period after a refund (review ERR-04). A8 is the approved definition; a `refunded_at` column would change it. Open question for the owner.
+
+## Unpaid orders: visibility (2026-11-09)
+
+Unpaid orders (`pending_payment`) hold stock until they are paid or cancelled. There is no background job, so the owner handles them by hand. This section adds the view that makes them visible; it changes no status rule.
+
+- **Admin orders list** (`/admin/orders`): a view switch "All orders | Unpaid". The unpaid view lists `pending_payment` orders oldest first, 25 per page. Any other `view` value shows all orders.
+- **Dashboard card** (`/admin`, above the metrics): the unpaid count, how many are older than 24 hours (`UNPAID_STALE_AFTER_HOURS` in core), and the oldest creation time. It shows an empty state when no order is unpaid.
+- **Manual process:** check the unpaid view daily. Cancel an order older than 24 hours on its order page (the cancel dialog returns its stock). Restock is automatic on cancel; nothing else is released.
+- **Not automated:** no expiry, no reminder, no email to the shopper. Automatic expiry remains the open decision above.
+- **Core:** `UnpaidOrdersSummaryUseCase` (`clock() - 24 h` as the cut-off) and `ListAdminOrdersUseCase` with `view`. The database adapter runs one aggregate query for the summary.

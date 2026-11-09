@@ -1,5 +1,5 @@
 import "server-only";
-import type { Dashboard } from "@commerceos/core";
+import type { Dashboard, UnpaidOrdersSummary } from "@commerceos/core";
 import { loadWithRequestScope, type LoadResult } from "@/server/load-with-request-scope";
 
 /**
@@ -13,5 +13,12 @@ export function loadDashboard(params: {
 }): Promise<LoadResult<Dashboard>> {
   return loadWithRequestScope({ page: "/admin" }, (cradle) =>
     cradle.getDashboardUseCase.execute(params),
+  );
+}
+
+/** The unpaid-orders card on `/admin`: the count, the stale count and the oldest creation time. */
+export function loadUnpaidOrders(): Promise<LoadResult<UnpaidOrdersSummary>> {
+  return loadWithRequestScope({ page: "/admin" }, (cradle) =>
+    cradle.unpaidOrdersSummaryUseCase.execute(),
   );
 }

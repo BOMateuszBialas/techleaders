@@ -5,6 +5,7 @@ import type {
   ChangeOrderStatusOutcome,
   OrderAdminPort,
   OrderStatus,
+  UnpaidOrdersSummary,
 } from "@commerceos/core";
 import type { EntityManager, QueryResult } from "@mikro-orm/postgresql";
 import { OrderItemSchema, type OrderItem } from "../entities/orders/order-item.entity";
@@ -65,13 +66,17 @@ export class DatabaseOrderAdminRepository implements OrderAdminPort {
   async listOrders(page: {
     offset: number;
     limit: number;
+    status?: OrderStatus;
+    oldestFirst?: boolean;
   }): Promise<{ rows: AdminOrderListRecord[]; total: number }> {
     return withSanitizedErrors("Order list", async () => {
       const [orders, total] = await this.deps.em.findAndCount(
         OrderSchema,
-        {},
+        page.status ? { status: page.status } : {},
         {
-          orderBy: { createdAt: "desc", id: "desc" },
+          orderBy: page.oldestFirst
+            ? { createdAt: "asc", id: "asc" }
+            : { createdAt: "desc", id: "desc" },
           limit: page.limit,
           offset: page.offset,
         },
@@ -88,6 +93,29 @@ export class DatabaseOrderAdminRepository implements OrderAdminPort {
         placedWithAccount: order.customer != null,
       }));
       return { rows, total };
+    });
+  }
+
+  /**
+   * Unpaid orders (`pending_payment`) in one query: the count, the count created before
+   * `staleBefore`, and the oldest creation time (null when there are none).
+   */
+  async summarizeUnpaid(staleBefore: Date): Promise<UnpaidOrdersSummary> {
+    return withSanitizedErrors("Unpaid order summary", async () => {
+      const [row] = await this.deps.em.execute<
+        { count: number; stale_count: number; oldest: Date | string | null }[]
+      >(
+        `select count(*)::int as count,
+                count(*) filter (where created_at < ?)::int as stale_count,
+                min(created_at) as oldest
+           from orders where status = 'pending_payment'`,
+        [staleBefore],
+      );
+      return {
+        count: row?.count ?? 0,
+        staleCount: row?.stale_count ?? 0,
+        oldestCreatedAt: row?.oldest == null ? null : new Date(row.oldest),
+      };
     });
   }
 

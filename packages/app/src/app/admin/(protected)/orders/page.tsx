@@ -10,19 +10,22 @@ import {
 } from "@/components/admin/orders/order-badges";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader } from "@/components/ui/empty";
 import { Skeleton, SkeletonGroup } from "@/components/ui/skeleton";
+import { TabsNav, TabsNavLink } from "@/components/ui/tabs";
 import { TextLink } from "@/components/ui/text-link";
 import {
-  EMPTY_ORDERS_MESSAGE,
   EMPTY_ORDERS_PAGE_MESSAGE,
   FIRST_PAGE_LINK,
-  NEWER_LINK,
-  OLDER_LINK,
   ORDERS_HEADING,
-  ORDERS_INTRO,
+  ORDER_VIEWS_LABEL,
+  emptyOrdersMessage,
   formatOrderDateTime,
-  orderPath,
+  ordersCaption,
+  ordersIntro,
   ordersPageHref,
+  ordersViewLinks,
+  orderPath,
   pageLabel,
+  pageNavLabels,
 } from "@/components/admin/orders/order-copy";
 import { ownerLocale } from "@/components/admin/products/stock-copy";
 import {
@@ -40,13 +43,11 @@ import { loadAdminOrders } from "./load-orders";
 
 export const metadata: Metadata = { title: "Orders" };
 
+/** `/admin/orders`: all orders newest first, or `?view=unpaid` (oldest first), 25 per page. */
 export default function OrdersPage({ searchParams }: PageProps<"/admin/orders">) {
   return (
     <div className="flex max-w-5xl flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">{ORDERS_HEADING}</h1>
-        <p className="text-sm text-muted-foreground">{ORDERS_INTRO}</p>
-      </div>
+      <h1 className="text-2xl font-semibold tracking-tight">{ORDERS_HEADING}</h1>
       <Suspense
         fallback={
           <SkeletonGroup label="Loading orders…">
@@ -62,38 +63,60 @@ export default function OrdersPage({ searchParams }: PageProps<"/admin/orders">)
 
 async function OrderList({ searchParams }: Pick<PageProps<"/admin/orders">, "searchParams">) {
   await requireAdminPage();
-  const result = await loadAdminOrders((await searchParams).page);
+  const params = await searchParams;
+  const result = await loadAdminOrders(params.page, params.view);
   if (result.kind !== "ok") throw new AdminPageLoadError();
-  const { rows, page, pageCount, total } = result.data;
+  const { rows, page, pageCount, total, view } = result.data;
   const locale = ownerLocale((await headers()).get("accept-language"));
+  const labels = pageNavLabels(view);
+
+  const views = (
+    <TabsNav aria-label={ORDER_VIEWS_LABEL}>
+      {ordersViewLinks(view).map((link) => (
+        <TabsNavLink key={link.view} href={link.href} active={link.current}>
+          {link.label}
+        </TabsNavLink>
+      ))}
+    </TabsNav>
+  );
 
   if (total === 0) {
     return (
-      <Empty>
-        <EmptyHeader>
-          <EmptyDescription>{EMPTY_ORDERS_MESSAGE}</EmptyDescription>
-        </EmptyHeader>
-      </Empty>
+      <div className="flex flex-col gap-4">
+        <p className="text-sm text-muted-foreground">{ordersIntro(view)}</p>
+        {views}
+        <Empty>
+          <EmptyHeader>
+            <EmptyDescription>{emptyOrdersMessage(view)}</EmptyDescription>
+          </EmptyHeader>
+        </Empty>
+      </div>
     );
   }
   if (rows.length === 0) {
     return (
-      <Empty>
-        <EmptyHeader>
-          <EmptyDescription>{EMPTY_ORDERS_PAGE_MESSAGE}</EmptyDescription>
-        </EmptyHeader>
-        <EmptyContent>
-          <TextLink href={ordersPageHref(1)} variant="standalone">
-            {FIRST_PAGE_LINK}
-          </TextLink>
-        </EmptyContent>
-      </Empty>
+      <div className="flex flex-col gap-4">
+        <p className="text-sm text-muted-foreground">{ordersIntro(view)}</p>
+        {views}
+        <Empty>
+          <EmptyHeader>
+            <EmptyDescription>{EMPTY_ORDERS_PAGE_MESSAGE}</EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <TextLink href={ordersPageHref(1, view)} variant="standalone">
+              {FIRST_PAGE_LINK}
+            </TextLink>
+          </EmptyContent>
+        </Empty>
+      </div>
     );
   }
   return (
     <div className="flex flex-col gap-4">
+      <p className="text-sm text-muted-foreground">{ordersIntro(view)}</p>
+      {views}
       <Table>
-        <TableCaption className="sr-only">Orders, newest first</TableCaption>
+        <TableCaption className="sr-only">{ordersCaption(view)}</TableCaption>
         <TableHeader>
           <TableRow>
             <TableHead>Reference</TableHead>
@@ -131,14 +154,14 @@ async function OrderList({ searchParams }: Pick<PageProps<"/admin/orders">, "sea
       </Table>
       <nav aria-label="Order pages" className="flex items-center gap-4 text-sm">
         {page > 1 ? (
-          <Link href={ordersPageHref(page - 1)} className="underline underline-offset-4">
-            {NEWER_LINK}
+          <Link href={ordersPageHref(page - 1, view)} className="underline underline-offset-4">
+            {labels.back}
           </Link>
         ) : null}
         <span className="text-muted-foreground">{pageLabel(page, pageCount)}</span>
         {page < pageCount ? (
-          <Link href={ordersPageHref(page + 1)} className="underline underline-offset-4">
-            {OLDER_LINK}
+          <Link href={ordersPageHref(page + 1, view)} className="underline underline-offset-4">
+            {labels.forward}
           </Link>
         ) : null}
       </nav>

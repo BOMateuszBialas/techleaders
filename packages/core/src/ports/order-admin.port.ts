@@ -81,6 +81,13 @@ export type ChangeOrderStatusOutcome =
   | { kind: "stale"; currentStatus: OrderStatus }
   | { kind: "not_found" };
 
+/** The unpaid view's summary (unpaid-orders visibility): see `summarizeUnpaid`. */
+export type UnpaidOrdersSummary = {
+  count: number;
+  staleCount: number;
+  oldestCreatedAt: Date | null;
+};
+
 /**
  * Order administration, implemented by the database package (orders spec, Phase 1).
  * `changeStatus` is one transaction: a conditional `update … where id = :id and status = :from`
@@ -88,11 +95,24 @@ export type ChangeOrderStatusOutcome =
  * restock of every line whose product still exists.
  */
 export interface OrderAdminPort {
-  /** Newest first (`created_at desc, id desc`), with the total number of orders. */
-  listOrders(page: { offset: number; limit: number }): Promise<{
+  /**
+   * Newest first (`created_at desc, id desc`) by default, oldest first when asked, with the total
+   * number of matching orders. `status` narrows the list to one status (the unpaid view).
+   */
+  listOrders(page: {
+    offset: number;
+    limit: number;
+    status?: OrderStatus;
+    oldestFirst?: boolean;
+  }): Promise<{
     rows: AdminOrderListRecord[];
     total: number;
   }>;
+  /**
+   * Unpaid orders (`pending_payment`) that hold stock: how many, how many were created before
+   * `staleBefore`, and the oldest creation time (null when there are none).
+   */
+  summarizeUnpaid(staleBefore: Date): Promise<UnpaidOrdersSummary>;
   findOrderById(id: string): Promise<AdminOrderRecord | null>;
   changeStatus(command: ChangeOrderStatusCommand): Promise<ChangeOrderStatusOutcome>;
 }

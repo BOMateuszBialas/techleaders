@@ -16,9 +16,14 @@ import {
   formatOrderDateTime,
   itemsLabel,
   needsConfirmation,
+  emptyOrdersMessage,
   orderPath,
+  ordersCaption,
+  ordersIntro,
   ordersPageHref,
+  ordersViewLinks,
   pageLabel,
+  pageNavLabels,
   statusChangedMessage,
   transitionButtonLabel,
 } from "./order-copy";
@@ -81,6 +86,30 @@ describe("order copy", () => {
     expect(ordersPageHref(1)).toBe("/admin/orders");
     expect(ordersPageHref(3)).toBe("/admin/orders?page=3");
     expect(pageLabel(2, 5)).toBe("Page 2 of 5");
+  });
+
+  it("keeps the unpaid view in the URL and its page", () => {
+    expect(ordersPageHref(1, "unpaid")).toBe("/admin/orders?view=unpaid");
+    expect(ordersPageHref(2, "unpaid")).toBe("/admin/orders?view=unpaid&page=2");
+    expect(ordersPageHref(2, "all")).toBe("/admin/orders?page=2");
+  });
+
+  it("marks the active view and describes each view", () => {
+    expect(ordersViewLinks("unpaid")).toEqual([
+      { view: "all", label: "All orders", href: "/admin/orders", current: false },
+      { view: "unpaid", label: "Unpaid", href: "/admin/orders?view=unpaid", current: true },
+    ]);
+    expect(ordersViewLinks("all")[0]?.current).toBe(true);
+    expect(ordersCaption("unpaid")).toBe("Unpaid orders, oldest first");
+    expect(ordersCaption("all")).toBe("Orders, newest first");
+    expect(pageNavLabels("all")).toEqual({ back: "Newer", forward: "Older" });
+    expect(pageNavLabels("unpaid")).toEqual({ back: "Earlier", forward: "Later" });
+    expect(ordersIntro("unpaid")).toContain("older than 24 hours");
+    expect(ordersIntro("all")).toContain("newest first");
+    expect(emptyOrdersMessage("unpaid")).toBe(
+      "No unpaid orders. Every order has been paid or cancelled.",
+    );
+    expect(emptyOrdersMessage("all")).toBe("No orders yet. Orders appear here after a checkout.");
   });
 
   it("counts items in words", () => {

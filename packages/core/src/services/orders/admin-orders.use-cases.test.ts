@@ -16,6 +16,10 @@ import { ADMIN_ORDER_NOT_FOUND_MESSAGE } from "./admin-order.dto";
 import { ChangeOrderStatusUseCase } from "./change-order-status.use-case";
 import { GetAdminOrderUseCase } from "./get-admin-order.use-case";
 import { ListAdminOrdersUseCase } from "./list-admin-orders.use-case";
+import {
+  UNPAID_STALE_AFTER_HOURS,
+  UnpaidOrdersSummaryUseCase,
+} from "./unpaid-orders-summary.use-case";
 
 const ORDER_ID = "0d2f1d6e-5b1c-4a55-9e2a-3f1b6c0d9a01";
 const PRODUCT_ID = "7a2d3b63-7e1f-4b9c-8b62-4a4b2c2c3e01";
@@ -70,6 +74,7 @@ function record(overrides: Partial<AdminOrderRecord> = {}): AdminOrderRecord {
 function fakePort(overrides: Partial<OrderAdminPort> = {}): OrderAdminPort {
   return {
     listOrders: vi.fn(async () => ({ rows: [], total: 0 })),
+    summarizeUnpaid: vi.fn(async () => ({ count: 0, staleCount: 0, oldestCreatedAt: null })),
     findOrderById: vi.fn(async () => null),
     changeStatus: vi.fn(async (): Promise<ChangeOrderStatusOutcome> => ({ kind: "not_found" })),
     ...overrides,
@@ -110,11 +115,16 @@ describe("ListAdminOrdersUseCase", () => {
       orderAdminRepository: fakePort({ listOrders }),
     }).execute({ page: "2" });
 
-    expect(listOrders).toHaveBeenCalledWith({ offset: 25, limit: ADMIN_ORDERS_PAGE_SIZE });
+    expect(listOrders).toHaveBeenCalledWith({
+      offset: 25,
+      limit: ADMIN_ORDERS_PAGE_SIZE,
+      oldestFirst: false,
+    });
     expect(result).toEqual({
       page: 2,
       pageCount: 3,
       total: 51,
+      view: "all",
       rows: [
         {
           id: ORDER_ID,
@@ -136,8 +146,42 @@ describe("ListAdminOrdersUseCase", () => {
   it("falls back to page 1 and reports one page for an empty store", async () => {
     const port = fakePort();
     const result = await new ListAdminOrdersUseCase({ orderAdminRepository: port }).execute();
-    expect(result).toEqual({ rows: [], page: 1, pageCount: 1, total: 0 });
-    expect(port.listOrders).toHaveBeenCalledWith({ offset: 0, limit: 25 });
+    expect(result).toEqual({ rows: [], page: 1, pageCount: 1, total: 0, view: "all" });
+    expect(port.listOrders).toHaveBeenCalledWith({ offset: 0, limit: 25, oldestFirst: false });
+  });
+
+  it("lists only pending-payment orders, oldest first, in the unpaid view", async () => {
+    const listOrders = vi.fn(async () => ({
+      rows: [row("CO-UNPAID", "pending_payment")],
+      total: 1,
+    }));
+    const result = await new ListAdminOrdersUseCase({
+      orderAdminRepository: fakePort({ listOrders }),
+    }).execute({ page: "1", view: "unpaid" });
+
+    expect(listOrders).toHaveBeenCalledWith({
+      offset: 0,
+      limit: ADMIN_ORDERS_PAGE_SIZE,
+      status: "pending_payment",
+      oldestFirst: true,
+    });
+    expect(result).toMatchObject({ view: "unpaid", total: 1, rows: [{ reference: "CO-UNPAID" }] });
+  });
+
+  it("treats any other view value as all orders", async () => {
+    for (const view of ["paid", "UNPAID", 7, ["unpaid"], null]) {
+      const port = fakePort();
+      const result = await new ListAdminOrdersUseCase({ orderAdminRepository: port }).execute({
+        view,
+      });
+      expect(result.view).toBe("all");
+      expect(port.listOrders).toHaveBeenCalledWith({
+        offset: 0,
+        limit: ADMIN_ORDERS_PAGE_SIZE,
+        status: undefined,
+        oldestFirst: false,
+      });
+    }
   });
 });
 
@@ -368,5 +412,21 @@ describe("ChangeOrderStatusUseCase", () => {
       ),
     ).toBe(false);
     expect(isStaleOrderStatusError(new Error("x"))).toBe(false);
+  });
+});
+
+describe("UnpaidOrdersSummaryUseCase", () => {
+  it("asks for the summary with the stale cut-off 24 hours before now", async () => {
+    const now = new Date("2026-11-09T12:00:00.000Z");
+    const summary = { count: 3, staleCount: 1, oldestCreatedAt: new Date("2026-11-07T08:00:00Z") };
+    const summarizeUnpaid = vi.fn(async () => summary);
+    const result = await new UnpaidOrdersSummaryUseCase({
+      orderAdminRepository: fakePort({ summarizeUnpaid }),
+      clock: () => now,
+    }).execute();
+
+    expect(UNPAID_STALE_AFTER_HOURS).toBe(24);
+    expect(summarizeUnpaid).toHaveBeenCalledWith(new Date("2026-11-08T12:00:00.000Z"));
+    expect(result).toEqual(summary);
   });
 });

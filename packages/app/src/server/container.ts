@@ -34,6 +34,7 @@ import {
   GetSalesSummaryUseCase,
   GetSystemHealthUseCase,
   ListAdminOrdersUseCase,
+  UnpaidOrdersSummaryUseCase,
   GetTopProductsUseCase,
   GetTrafficSummaryUseCase,
   ImportProductsUseCase,
@@ -172,6 +173,7 @@ export type Cradle = {
   getCustomerOrderUseCase: GetCustomerOrderUseCase;
   orderAdminRepository: OrderAdminPort;
   listAdminOrdersUseCase: ListAdminOrdersUseCase;
+  unpaidOrdersSummaryUseCase: UnpaidOrdersSummaryUseCase;
   getAdminOrderUseCase: GetAdminOrderUseCase;
   changeOrderStatusUseCase: ChangeOrderStatusUseCase;
   clock: Clock;
@@ -271,6 +273,8 @@ function buildContainer(): AwilixContainer<Cradle> {
     // transaction on the request's EntityManager.
     orderAdminRepository: asClass(DatabaseOrderAdminRepository).scoped(),
     listAdminOrdersUseCase: asClass(ListAdminOrdersUseCase).scoped(),
+    // Unpaid orders card on `/admin` (unpaid-orders visibility): a count and the 24 h cut-off.
+    unpaidOrdersSummaryUseCase: asClass(UnpaidOrdersSummaryUseCase).scoped(),
     getAdminOrderUseCase: asClass(GetAdminOrderUseCase).scoped(),
     changeOrderStatusUseCase: asClass(ChangeOrderStatusUseCase).scoped(),
     // Store metrics (orders spec, Phase 3): aggregate SQL on the request's EntityManager. The

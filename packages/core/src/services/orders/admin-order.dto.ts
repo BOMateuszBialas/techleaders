@@ -32,6 +32,8 @@ export type AdminOrderList = {
   /** At least 1, also for an empty store. */
   pageCount: number;
   total: number;
+  /** The view shown: `unpaid` lists pending-payment orders, oldest first. */
+  view: "all" | "unpaid";
 };
 
 /** A status the owner may move the order to, with what the change does. */

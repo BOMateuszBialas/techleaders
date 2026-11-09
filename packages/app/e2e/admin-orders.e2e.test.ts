@@ -217,4 +217,28 @@ describe("admin orders (E04-S01)", () => {
     expect(main).not.toContain("[DEMO]");
     expect(main).toMatch(/demo\.shopper\d{2}@example\.com/);
   });
+
+  it("switches the list to the unpaid view and links it from the dashboard card", async () => {
+    // Keeps the owner session. An order placed but not paid stays pending_payment: it is unpaid.
+    const reference = await placeOrder(1);
+    expect(reference).toMatch(REFERENCE);
+
+    // The unpaid view lists pending-payment orders, oldest first, and the tab is marked current.
+    await browser().open("/admin/orders?view=unpaid");
+    await browser().waitForText("Unpaid orders, oldest first.");
+    expect(await browser().text(ORDERS_TABLE)).toContain(reference);
+    await browser().clickRole("link", "All orders");
+    await browser().waitForText("Every order, newest first.");
+    await browser().clickRole("link", "Unpaid");
+    await browser().waitForText("Unpaid orders, oldest first.");
+    expect(new URL(await browser().url()).searchParams.get("view")).toBe("unpaid");
+
+    // The dashboard card counts it; its stale line appears once an unpaid order exists.
+    await browser().open("/admin");
+    await browser().waitForText("Orders waiting for payment");
+    const card = await browser().text("main");
+    expect(card).toContain("Older than 24 hours");
+    expect(card).toContain("View unpaid orders");
+    expect(card).not.toContain("No unpaid orders.");
+  });
 });
