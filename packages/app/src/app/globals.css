@@ -644,6 +644,29 @@
   display: none;
 }
 
+/* The store frame (owner decision 2026-11-06, R02.1): the storefront header and footer are dark in
+   BOTH themes, on a light body. The controls inside the frame read the semantic tokens (search, menu,
+   account, cart, theme switch), so this class remaps those tokens to the frame pair. Portals (the
+   phone menu sheet) sit outside the frame and keep the page theme. */
+.storefront-frame {
+  color: var(--frame-foreground);
+  --background: var(--frame);
+  --foreground: var(--frame-foreground);
+  --muted: var(--frame-border);
+  --muted-foreground: var(--frame-muted-foreground);
+  --border: var(--frame-border);
+  --input: var(--frame-input);
+  --ring: var(--frame-ring);
+  --accent: var(--frame-border);
+  --accent-foreground: var(--frame-foreground);
+  --secondary: var(--frame-border);
+  --secondary-hover: var(--frame-border);
+  --secondary-foreground: var(--frame-foreground);
+  --primary: var(--frame-foreground);
+  --primary-hover: var(--frame-muted-foreground);
+  --primary-foreground: var(--frame);
+}
+
 /* The storefront header (owner request, 2026-11-04): the menu on the left, the store name in the
    middle, and the cart, the account and the search on the right (one grid, named areas). On a phone the cart and the account
    stay in the top row and the search takes a full row under them. */
