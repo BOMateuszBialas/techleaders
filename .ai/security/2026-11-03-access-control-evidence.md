@@ -74,11 +74,13 @@ Odrzucone na tym etapie: wyliczanie zamówień po ID (ID to UUID, a 404 dla obce
   - Pozostałe (informacyjne, głównie tryb dev): komentarze w bundlach JS, „Dangerous JS functions” w bundlu dev, znacznik czasu w JS, „Storable and cacheable content”.
 - Oczekiwane zachowanie: brak FAIL; ostrzeżenia zapisane z oceną.
 - Czego to nie dowodzi: SAST nie widzi błędów autoryzacji wynikających z logiki (to D1–D5). ZAP baseline nie testuje zalogowanych ścieżek ani IDOR. Skan był na dev, a nagłówki na buildzie produkcyjnym mogą wyglądać inaczej. Nagłówki nie są ustawione w `packages/app/next.config.ts` ani w proxy, więc ostrzeżenia dotyczą też produkcji.
-- Decyzja: **nie poprawiam w tym PR**. Nagłówki CSP i anti-clickjacking zmieniają zachowanie aplikacji (skrypty Next, osadzanie). Wymagają osobnego PR z testem i Twojej decyzji, który zestaw nagłówków wdrażamy.
+- Decyzja (2026-11-09, właściciel: „robimy”): wdrożony bezpieczny zestaw nagłówków w `packages/app/next.config.ts` (test e2e `packages/app/e2e/security-headers.e2e.test.ts`, sprawdza build produkcyjny na trzech trasach): `nosniff`, `X-Frame-Options: DENY`, `frame-ancestors 'none'` w CSP, `Referrer-Policy`, `Permissions-Policy`, `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`, i wyłączony `X-Powered-By`. Pełna polityka skryptów (`script-src` z nonce) nie jest wdrożona: wymaga proxy z nonce, a to wymusza renderowanie dynamiczne, co koliduje z `cacheComponents`.
+- **Po zmianie (ZAP baseline na buildzie produkcyjnym, `next start`):** znikły ostrzeżenia o braku `X-Frame-Options`, `X-Content-Type-Options`, `Permissions-Policy` i `X-Powered-By`. Pojawiły się nowe ostrzeżenia dotyczące polityki skryptów (`script-src`/`style-src` `unsafe-inline`, `CSP: Wildcard`), bo CSP ma tylko dyrektywy ramek i nie ogranicza skryptów. To ten sam otwarty punkt, nie nowa luka. COEP i COOP są raportowane jako brakujące (niskie ryzyko, nie ustawiane).
 
 ## Co nie zostało zrobione (uczciwie)
 
-- **Nagłówki bezpieczeństwa (D6):** ustawienie CSP, `X-Frame-Options`, `X-Content-Type-Options`, `Permissions-Policy` i usunięcie `X-Powered-By`. Osobny PR po decyzji właściciela.
+- **Pełny CSP ze skryptami (D6):** nonce przez proxy, osobna decyzja, bo zmienia renderowanie stron.
+- **CORP, COEP, COOP (D6):** nieustawione, zgłoszone przez ZAP jako niskie.
 - **Tokeny anty-CSRF (D6):** do zweryfikowania testem, czy Better Auth i `SameSite` wystarczają.
 - **Pozytywna kontrola admina:** zrobiona (patrz D3, sweep 24/24). Otwarte zostaje tylko wywołanie `/api/admin/me` z sesją właściciela.
 
