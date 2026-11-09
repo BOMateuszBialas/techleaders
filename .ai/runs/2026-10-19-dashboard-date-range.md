@@ -2,7 +2,7 @@
 
 - Date: 2026-10-19
 - Engine: om-auto-create-pr (steps 8 ≤ threshold 20)
-- Source doc: `.ai/specs/2026-10-19-dashboard-date-range-comparison.md` (spec PR #78, merged by the user)
+- Source doc: `.ai/specs/2026-10-19-dashboard-date-range-comparison.md` (spec PR #78, merged 2026-10-23 by the owner, BOMateuszBialas)
 - Branch: `feat/dashboard-date-range-comparison` (worktree `../wt-date-range`)
 
 ## Goal

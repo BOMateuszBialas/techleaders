@@ -5,6 +5,7 @@ import {
   METRIC_PERIOD_LABELS,
   formatMoney,
   money,
+  percentChange,
   type CurrencyCode,
   type LowStockProducts,
   type MetricDefinition,
@@ -94,12 +95,6 @@ function signed(text: string, delta: number): string {
   if (delta > 0) return `+${text}`;
   if (delta < 0) return `-${text}`;
   return text;
-}
-
-/** Whole percent of the change, `null` when the previous value is 0 (no base to compare). */
-function percentChange(current: number, previous: number): number | null {
-  if (previous === 0) return null;
-  return Math.round(((current - previous) / previous) * 100);
 }
 
 class FactTableBuilder {

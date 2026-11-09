@@ -10,6 +10,7 @@ import {
   previousRange,
   resolveCustomPeriod,
   resolvePeriod,
+  storeMidnight,
   storeToday,
 } from "./metric-period";
 
@@ -93,12 +94,17 @@ describe("previousRange", () => {
 
 describe("calendar-day helpers", () => {
   it("accepts only real YYYY-MM-DD dates", () => {
-    for (const valid of ["2026-10-19", "2024-02-29", "2000-01-01"]) {
+    for (const valid of ["2026-10-19", "2024-02-29", "2000-01-01", "0099-01-01", "0001-01-01"]) {
       expect(isIsoDay(valid)).toBe(true);
     }
     for (const invalid of ["2026-02-29", "2026-13-01", "2026-1-1", "19-10-2026", "abc", ""]) {
       expect(isIsoDay(invalid)).toBe(false);
     }
+  });
+
+  it("gives the local midnight of a store day", () => {
+    // Warsaw is UTC+1 in winter, so local midnight is 23:00 UTC the day before.
+    expect(storeMidnight("2000-01-01")).toEqual(new Date("1999-12-31T23:00:00Z"));
   });
 
   it("counts days with both ends included", () => {

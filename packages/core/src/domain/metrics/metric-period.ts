@@ -89,7 +89,9 @@ function localMidnight(day: CalendarDay): Date {
 
 /** The calendar day `days` after `day` (negative goes back); plain date arithmetic in UTC. */
 function addDays(day: CalendarDay, days: number): CalendarDay {
-  const date = new Date(Date.UTC(day.year, day.month - 1, day.day + days));
+  // `Date.UTC` maps years 0–99 to 1900–1999, so set the year explicitly.
+  const date = new Date(0);
+  date.setUTCFullYear(day.year, day.month - 1, day.day + days);
   return { year: date.getUTCFullYear(), month: date.getUTCMonth() + 1, day: date.getUTCDate() };
 }
 
@@ -139,8 +141,8 @@ export function resolvePeriod(preset: MetricPeriodPreset, now: Date): MetricPeri
 
 /** `"2026-10-11"`: an ISO calendar date. */
 function isoDay(day: CalendarDay): string {
-  const pad = (value: number) => String(value).padStart(2, "0");
-  return `${day.year}-${pad(day.month)}-${pad(day.day)}`;
+  const pad = (value: number, width = 2) => String(value).padStart(width, "0");
+  return `${pad(day.year, 4)}-${pad(day.month)}-${pad(day.day)}`;
 }
 
 /** The calendar day of an ISO date, or null when it is not one (`2026-02-30`, `abc`). */
@@ -149,6 +151,11 @@ function parseIsoDay(value: string): CalendarDay | null {
   if (!match) return null;
   const day = { year: Number(match[1]), month: Number(match[2]), day: Number(match[3]) };
   return isoDay(addDays(day, 0)) === value ? day : null;
+}
+
+/** The first instant of a store calendar day (`YYYY-MM-DD`): its local midnight. */
+export function storeMidnight(value: string): Date {
+  return localMidnight(calendarDay(value));
 }
 
 /** True for a real calendar date written `YYYY-MM-DD`. */
