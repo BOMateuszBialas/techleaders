@@ -192,6 +192,44 @@ describe("DatabaseOrderAdminRepository (PostgreSQL)", () => {
     expect(await admin().listOrders({ offset: 4, limit: 2 })).toEqual({ rows: [], total: 3 });
   });
 
+  it("summarizes unpaid orders and lists them oldest first, with a stale order older than 24 hours", async () => {
+    // Other tests share this database, so the summary is compared as a change.
+    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const before = await admin().summarizeUnpaid(cutoff);
+    const ancient = await place([[VORTEX, 1]]);
+    const stale = await place([[PULSE, 1]]);
+    const fresh = await place([[PULSE, 1]]);
+    await query("update orders set created_at = ? where id = ?", [
+      new Date("2000-01-01T00:00:00Z"),
+      ancient,
+    ]);
+    await query("update orders set created_at = ? where id = ?", [
+      new Date(Date.now() - 48 * 3600e3),
+      stale,
+    ]);
+    await query("update orders set created_at = ? where id = ?", [
+      new Date(Date.now() - 3600e3),
+      fresh,
+    ]);
+
+    const after = await admin().summarizeUnpaid(cutoff);
+    expect(after.count - before.count).toBe(3);
+    expect(after.staleCount - before.staleCount).toBe(2);
+    expect(after.oldestCreatedAt).toEqual(new Date("2000-01-01T00:00:00Z"));
+
+    const unpaid = await admin().listOrders({
+      offset: 0,
+      limit: 500,
+      status: "pending_payment",
+      oldestFirst: true,
+    });
+    expect(unpaid.total).toBe(after.count);
+    expect(unpaid.rows.every((row) => row.status === "pending_payment")).toBe(true);
+    expect(unpaid.rows[0]?.id).toBe(ancient);
+    const ids = unpaid.rows.map((row) => row.id);
+    expect(ids.indexOf(stale)).toBeLessThan(ids.indexOf(fresh));
+  });
+
   it("shows the snapshots after a product was renamed and after one was deleted", async () => {
     const orderId = await place([
       [VORTEX, 1],

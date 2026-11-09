@@ -70,6 +70,7 @@ export * from "./services/orders/list-customer-orders.use-case";
 export * from "./services/orders/list-admin-orders.use-case";
 export * from "./services/orders/order.dto";
 export * from "./services/orders/place-order.use-case";
+export * from "./services/orders/unpaid-orders-summary.use-case";
 export * from "./services/payments/confirm-demo-payment.use-case";
 export * from "./services/products/create-product.use-case";
 export * from "./services/products/get-product.use-case";

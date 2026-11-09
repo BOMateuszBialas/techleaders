@@ -1,5 +1,7 @@
 import {
   LOW_STOCK_THRESHOLD,
+  UNPAID_STALE_AFTER_HOURS,
+  type UnpaidOrdersSummary,
   METRIC_PERIOD_LABELS,
   METRIC_PERIOD_PRESETS,
   formatIsoDay,
@@ -14,6 +16,7 @@ import {
   type MetricPeriodPreset,
 } from "@commerceos/core";
 import { orderStatusLabel } from "@/components/checkout/checkout-copy";
+import { formatOrderDateTime } from "@/components/admin/orders/order-copy";
 
 /**
  * Owner-facing copy for the admin dashboard (orders spec, Phase 3, UI/UX). The metric labels and
@@ -167,4 +170,26 @@ export function comparisonNotes(dashboard: Dashboard): string[] {
     );
   }
   return notes;
+}
+
+/* Unpaid orders card (unpaid-orders visibility). */
+export const UNPAID_CARD_TITLE = "Unpaid orders";
+export const UNPAID_CARD_DESCRIPTION =
+  "Orders waiting for payment. They hold stock until they are paid or cancelled.";
+export const UNPAID_EMPTY = "No unpaid orders. Every order has been paid or cancelled.";
+export const UNPAID_COUNT_LABEL = "Unpaid";
+export const UNPAID_STALE_LABEL = `Older than ${UNPAID_STALE_AFTER_HOURS} hours`;
+export const UNPAID_OLDEST_LABEL = "Oldest order";
+export const UNPAID_NOT_AVAILABLE = "Not available";
+export const UNPAID_ACTION_NOTE =
+  "Cancel an order older than 24 hours by hand on its order page. Its stock returns automatically.";
+export const UNPAID_VIEW_LINK = "View unpaid orders";
+export const UNPAID_UNAVAILABLE_MESSAGE =
+  "Unpaid orders are unavailable right now. Check the server logs and try again.";
+
+/** The creation time of the oldest unpaid order, or "Not available" when the summary has none. */
+export function unpaidOldestText(summary: UnpaidOrdersSummary, locale: string): string {
+  return summary.oldestCreatedAt
+    ? formatOrderDateTime(summary.oldestCreatedAt, locale)
+    : UNPAID_NOT_AVAILABLE;
 }

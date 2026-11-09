@@ -1,4 +1,9 @@
-import type { AdminOrderTransition, ChangeOrderStatusResult, OrderStatus } from "@commerceos/core";
+import type {
+  AdminOrderTransition,
+  AdminOrdersView,
+  ChangeOrderStatusResult,
+  OrderStatus,
+} from "@commerceos/core";
 import { STORE_TIME_ZONE } from "../products/stock-copy";
 
 /**
@@ -13,19 +18,34 @@ export function orderPath(id: string): string {
   return `${ORDERS_PATH}/${id}`;
 }
 
-/** `/admin/orders` for page 1, `/admin/orders?page=N` after it. */
-export function ordersPageHref(page: number): string {
-  return page <= 1 ? ORDERS_PATH : `${ORDERS_PATH}?page=${page}`;
+/**
+ * `/admin/orders` for page 1 of all orders, `?page=N` after it; the unpaid view adds
+ * `view=unpaid` (unpaid-orders visibility) and keeps its page.
+ */
+export function ordersPageHref(page: number, view: AdminOrdersView = "all"): string {
+  const params = new URLSearchParams();
+  if (view === "unpaid") params.set("view", "unpaid");
+  if (page > 1) params.set("page", String(page));
+  const query = params.toString();
+  return query ? `${ORDERS_PATH}?${query}` : ORDERS_PATH;
 }
 
 export const ORDERS_HEADING = "Orders";
 export const ORDERS_INTRO =
   "Every order, newest first. Open one to see its items and customer, and to change its status.";
+export const UNPAID_VIEW_INTRO =
+  "Unpaid orders, oldest first. They hold stock until they are paid. Cancel an order older than 24 hours by hand; its stock returns automatically.";
 export const EMPTY_ORDERS_MESSAGE = "No orders yet. Orders appear here after a checkout.";
+export const EMPTY_UNPAID_MESSAGE = "No unpaid orders. Every order has been paid or cancelled.";
 export const EMPTY_ORDERS_PAGE_MESSAGE = "There are no orders on this page.";
 export const FIRST_PAGE_LINK = "Go to the first page";
 export const NEWER_LINK = "Newer";
 export const OLDER_LINK = "Older";
+export const UNPAID_EARLIER_LINK = "Earlier";
+export const UNPAID_LATER_LINK = "Later";
+export const ALL_ORDERS_VIEW_LABEL = "All orders";
+export const UNPAID_VIEW_LABEL = "Unpaid";
+export const ORDER_VIEWS_LABEL = "Order views";
 export const DEMO_BADGE = "Demo";
 /** Who placed the order (E07 spec A18): a flag only, never the account behind it. */
 export const ACCOUNT_ORDER_LABEL = "Account order";
@@ -33,6 +53,41 @@ export const GUEST_ORDER_LABEL = "Guest order";
 
 export function orderOriginLabel(placedWithAccount: boolean): string {
   return placedWithAccount ? ACCOUNT_ORDER_LABEL : GUEST_ORDER_LABEL;
+}
+
+/** The two views of the list as switchable links, the active one marked current. */
+export function ordersViewLinks(active: AdminOrdersView) {
+  return [
+    {
+      view: "all" as const,
+      label: ALL_ORDERS_VIEW_LABEL,
+      href: ordersPageHref(1, "all"),
+      current: active === "all",
+    },
+    {
+      view: "unpaid" as const,
+      label: UNPAID_VIEW_LABEL,
+      href: ordersPageHref(1, "unpaid"),
+      current: active === "unpaid",
+    },
+  ];
+}
+
+/** The list's intro, table caption and empty message for the view shown. */
+export function ordersIntro(view: AdminOrdersView): string {
+  return view === "unpaid" ? UNPAID_VIEW_INTRO : ORDERS_INTRO;
+}
+/** Page links name the neighbouring page in the list's own order (oldest first in the unpaid view). */
+export function pageNavLabels(view: AdminOrdersView): { back: string; forward: string } {
+  return view === "unpaid"
+    ? { back: UNPAID_EARLIER_LINK, forward: UNPAID_LATER_LINK }
+    : { back: NEWER_LINK, forward: OLDER_LINK };
+}
+export function ordersCaption(view: AdminOrdersView): string {
+  return view === "unpaid" ? "Unpaid orders, oldest first" : "Orders, newest first";
+}
+export function emptyOrdersMessage(view: AdminOrdersView): string {
+  return view === "unpaid" ? EMPTY_UNPAID_MESSAGE : EMPTY_ORDERS_MESSAGE;
 }
 export const DEMO_ORDER_NOTE =
   "Seeded demo order: the customer is fictional and no real purchase happened.";

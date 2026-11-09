@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { Suspense } from "react";
-import { DASHBOARD_UNAVAILABLE_MESSAGE } from "@/components/admin/dashboard/dashboard-copy";
+import {
+  DASHBOARD_UNAVAILABLE_MESSAGE,
+  UNPAID_UNAVAILABLE_MESSAGE,
+} from "@/components/admin/dashboard/dashboard-copy";
+import { UnpaidOrdersCard } from "@/components/admin/dashboard/unpaid-orders-card";
+import { ownerLocale } from "@/components/admin/products/stock-copy";
 import {
   DashboardView,
   MetricsSkeleton,
@@ -8,8 +14,9 @@ import {
 } from "@/components/admin/dashboard/dashboard-view";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton, SkeletonGroup } from "@/components/ui/skeleton";
 import { requireAdminPage } from "@/server/auth/require-admin";
-import { loadDashboard } from "./load-dashboard";
+import { loadDashboard, loadUnpaidOrders } from "./load-dashboard";
 import { loadSystemHealth } from "./load-system-health";
 
 export const metadata: Metadata = { title: "Admin" };
@@ -28,6 +35,15 @@ export default function AdminPage({ searchParams }: PageProps<"/admin">) {
           counted.
         </p>
       </div>
+      <Suspense
+        fallback={
+          <SkeletonGroup label="Loading unpaid orders…">
+            <Skeleton className="h-32 rounded-card" />
+          </SkeletonGroup>
+        }
+      >
+        <UnpaidOrders />
+      </Suspense>
       <Suspense fallback={<MetricsSkeleton />}>
         <StoreMetrics searchParams={searchParams} />
       </Suspense>
@@ -56,6 +72,21 @@ async function StoreMetrics({
     );
   }
   return <DashboardView dashboard={result.data} />;
+}
+
+/** The unpaid card above the metrics: the count, the stale count and the oldest order. */
+async function UnpaidOrders() {
+  await requireAdminPage();
+  const result = await loadUnpaidOrders();
+  if (result.kind !== "ok") {
+    return (
+      <p role="alert" className="text-sm text-destructive">
+        {UNPAID_UNAVAILABLE_MESSAGE}
+      </p>
+    );
+  }
+  const locale = ownerLocale((await headers()).get("accept-language"));
+  return <UnpaidOrdersCard summary={result.data} locale={locale} />;
 }
 
 async function SystemStatus() {

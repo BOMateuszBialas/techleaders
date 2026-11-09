@@ -153,6 +153,82 @@ describe("DatabaseOrderAdminRepository.listOrders", () => {
   });
 });
 
+describe("DatabaseOrderAdminRepository.listOrders (unpaid view)", () => {
+  it("filters by status and sorts oldest first when asked", async () => {
+    const { findAndCount, execute, repository } = setup();
+    findAndCount.mockResolvedValueOnce([[], 0] as never);
+    await repository.listOrders({
+      offset: 0,
+      limit: 25,
+      status: "pending_payment",
+      oldestFirst: true,
+    });
+    expect(findAndCount.mock.calls[0]?.[1]).toEqual({ status: "pending_payment" });
+    expect(findAndCount.mock.calls[0]?.[2]).toEqual({
+      orderBy: { createdAt: "asc", id: "asc" },
+      limit: 25,
+      offset: 0,
+    });
+    expect(execute).not.toHaveBeenCalled();
+  });
+});
+
+describe("DatabaseOrderAdminRepository.summarizeUnpaid", () => {
+  const staleBefore = new Date("2026-11-08T12:00:00.000Z");
+
+  it("counts the unpaid orders and the stale ones in one query, with the oldest creation time", async () => {
+    const { execute, repository } = setup();
+    execute.mockResolvedValueOnce([
+      { count: 4, stale_count: 2, oldest: "2026-11-07T08:00:00.000Z" },
+    ] as never);
+
+    expect(await repository.summarizeUnpaid(staleBefore)).toEqual({
+      count: 4,
+      staleCount: 2,
+      oldestCreatedAt: new Date("2026-11-07T08:00:00.000Z"),
+    });
+    expect(execute).toHaveBeenCalledTimes(1);
+    const sql = String(execute.mock.calls[0]?.[0]);
+    expect(sql).toContain("where status = 'pending_payment'");
+    expect(sql).toContain("created_at < ?");
+    expect(execute.mock.calls[0]?.[1]).toEqual([staleBefore]);
+  });
+
+  it("accepts a Date from the driver and reports an empty summary when there are no unpaid orders", async () => {
+    const { execute, repository } = setup();
+    execute.mockResolvedValueOnce([
+      { count: 1, stale_count: 0, oldest: new Date("2026-11-09T09:00:00.000Z") },
+    ] as never);
+    expect(await repository.summarizeUnpaid(staleBefore)).toMatchObject({
+      oldestCreatedAt: new Date("2026-11-09T09:00:00.000Z"),
+    });
+
+    execute.mockResolvedValueOnce([{ count: 0, stale_count: 0, oldest: null }] as never);
+    expect(await repository.summarizeUnpaid(staleBefore)).toEqual({
+      count: 0,
+      staleCount: 0,
+      oldestCreatedAt: null,
+    });
+
+    execute.mockResolvedValueOnce([] as never);
+    expect(await repository.summarizeUnpaid(staleBefore)).toEqual({
+      count: 0,
+      staleCount: 0,
+      oldestCreatedAt: null,
+    });
+  });
+
+  it("sanitizes a driver failure", async () => {
+    const { execute, repository } = setup();
+    execute.mockRejectedValueOnce(
+      Object.assign(new Error("select … ada@example.test"), { name: "DriverException" }),
+    );
+    await expect(repository.summarizeUnpaid(staleBefore)).rejects.toThrow(
+      /^Unpaid order summary failed: DriverException$/,
+    );
+  });
+});
+
 describe("DatabaseOrderAdminRepository.findOrderById", () => {
   it("loads the order with its customer data and item snapshots, fresh from the database", async () => {
     const { findOne, find, repository } = setup();
