@@ -87,7 +87,7 @@
 | L1 | Wzorzec strony potwierdzenia po zakupie (tytuł, status, podsumowanie, notka, akcje). Start here, krok 1, odsyła do stron epickich, których ten test nie mógł użyć. „Patterns” jest oznaczone jako „not yet” | What is missing, wiersz E02-S03, i Start here, krok 1 | „Order confirmation: the h1 states the outcome, the status is one Badge with its word, the summary is one Card, one demo Alert without a role, and at most two actions below it.” |
 | L2 | Konflikt: nawigacja to Text link (How to choose, wiersz 1), ale „Checkout” jako link z `buttonVariants()` jest przykładem (wiersz 21). Nie ma reguły, który wariant dla nawigacji będącej głównym krokiem | How to choose, Button, wiersze 1 i 21 | „A navigation that is the main next step is a link styled with buttonVariants (default); a supporting navigation is the same with secondary; a Text link is for navigation inside running text.” |
 | L3 | Brak wzorca rzędu akcji: kolejność, układ obok siebie, stos na telefonie, odstęp | Usage and accessibility, Layout; Components, Button | „Two or more actions on one screen sit in one row with gap-related (8 px), the main action first; below 768 px they stack, full width, 44 px tall.” |
-| L4 | Powierzchnia strony po zakupie nieopisana: tokeny rule 18 wymienia listing, produkt, koszyk i checkout | Usage and accessibility, Product rules (Storybook); tokeny §7 rule 18 | „Confirmation pages follow checkout: light body, dark frame header and footer.” |
+| L4 | **Zamknięte (2026-11-06): rama sklepu widoczna.** Zrzuty prawdziwej strony głównej (nie historii Storybooka) z `npm run build` i `npm run start`, jasny motyw: `.ai/design/test-agentem-shots/frame-1440.png` i `frame-320.png`. Przy 1440 px nagłówek ma menu sklepu po lewej, logo na środku, wyszukiwarkę, Sign in i koszyk; stopka ma dane sklepu, linki Shop, Store owner i przełącznik motywu. Przy 320 px są nagłówek (ikona menu, logo ucięte do „Commerc…”, wyszukiwarka w drugim wierszu, Sign in i koszyk) i stopka. Nagłówek jest jasny w obu szerokościach, nie ciemny. Otwarte: strona potwierdzenia nie była zrzucona, więc reguła „dark frame” dla potwierdzeń nie jest potwierdzona | Usage and accessibility, Product rules (Storybook); tokeny §7 rule 18 | „Confirmation pages follow checkout: light body, dark frame header and footer.” |
 | L5 | Oznaczenie demo zamówień składanych przez kupującego (Content mówi tylko o seedzie); to zgodność z zasadą 6 AGENTS | Content, Demo data | „Orders placed in demo payment mode carry the DEMO- reference and show the demo Alert on their confirmation and order pages.” (decyzja właściciela) |
 | L6 | Fokus i rola przy wejściu na stronę. Zasady fokusu są tylko dla błędów formularza | Usage and accessibility, Keyboard and focus oraz Forms and messages | „A page reached by an action moves focus to its h1; a status line shown on page load has no role; a status that follows an action uses role=status once.” |
 | L7 | `ErrorState`: czy ma akcję i jaką | How to choose, Error state; Content, Errors | „ErrorState has a title, a description and at most one action, written as a verb and an object (for example ‚Try again’).” |
@@ -145,7 +145,7 @@ Dokumentacja wystarczyła, żeby **zbudować ekran w postaci opisanej przez decy
 | V9 | Stan Loading: same szare bloki, etykieta „Loading …” nie widoczna na zrzucie | **ZGADUJĘ** | Etykieta `SkeletonGroup` prawdopodobnie jest dla czytników (nie sprawdzono w DOM). Dokumentacja nie mówi, czy etykieta jest widoczna |
 | V10 | Długa nazwa produktu z `[DEMO]` zawija się w linii przy 320 px, bez przewijania | **REGUŁA** (Layout, wiersz 1) | Zawijanie długich nazw nie ma reguły (L10 dla identyfikatorów, nie dla nazw) |
 | V11 | Numer „DEMO-000123” w kroju mono obok badge, w jednym wierszu przy 320 i 1440 px | **REGUŁA** (tokeny §1c) | Zawijanie identyfikatorów przy 320 px wciąż nieopisane (L10) |
-| V12 | Dark frame (nagłówek i stopka sklepu) nie była sprawdzana | **nie sprawdzono** | Ekran to samodzielna historia bez ramy sklepu; L4 zostaje otwarte |
+| V12 | Rama sklepu (nagłówek i stopka) na stronie potwierdzenia: docs mówią o ciemnej ramie, zmierzono ramę zależną od motywu | **sprawdzono, rozbieżność** (F1) | Zrzuty prawdziwej strony `/orders/[reference]`, patrz „Ramka potwierdzenia” niżej |
 
 ### Luki wizualne (nowe, do listy P)
 
@@ -177,7 +177,7 @@ Każda luka sprawdzona w kodzie (`packages/app/src/components/ui/`, użycia w ap
 | V-L4 | (b) kompozycja | `orders/[reference]/not-found.tsx`: h1 wewnątrz `EmptyTitle`, „the title holds the page's only h1” (B3.23). Test powtórzył ten wzorzec | Zamknięte. Nagłówek w `Empty` jest zgodny z istniejącą stroną not-found |
 | V-L5 | (b) dokumentacja już mówi | `skeleton.tsx`: `SkeletonGroup` nazywa stan ładowania ukrytą etykietą (`sr-only`), decyzja właściciela Q3 | Zamknięte. Etykieta ma być niewidoczna; zrzut miał to zachowanie |
 | V-L6 | (c) decyzja właściciela | `checkout/order-summary.tsx`: `{item.name} × {item.quantity}`. Format istnieje w kodzie, nie ma go w docs | Decyzja D1 niżej. Kod bez zmian |
-| V-L7 | (b) kompozycja testu | `docs/design-system.md` (linia 14): strony potwierdzenia mają jasne ciało i ciemną ramę nagłówka i stopki. Historia testowa ramy nie miała | Nie jest luką komponentu. L4 zostaje otwarte do zrzutu z ramą sklepu |
+| V-L7 | (b) kompozycja testu | `docs/design-system.md` (linia 14): strony potwierdzenia mają jasne ciało i ciemną ramę nagłówka i stopki. Historia testowa ramy nie miała | Nie jest luką komponentu. Zrzut z ramą zrobiono w sekcji „Ramka potwierdzenia”: rozbieżność z docs, zapisana jako F1 (bez zmiany kodu) |
 
 Decyzje dla właściciela (kod nie zmieniany):
 
@@ -185,6 +185,32 @@ Decyzje dla właściciela (kod nie zmieniany):
 - **D2 (V-L2): pełna szerokość przycisku akcji przy 320 px. Decyzja właściciela (2026-11-06): nie wprowadzać reguły pełnej szerokości.** Komponenty zawijają akcje (`flex-wrap`), nie rozciągają, z `gap-related`.
 
 Testy: zmiana tylko w dokumencie. Bramki: `npm run format:check` i `npm run check:tokens`.
+
+## Ramka potwierdzenia (2026-11-06)
+
+Cel: sprawdzić, czy strona potwierdzenia (`/orders/[reference]` po „Confirm test payment”, komunikat „Thank you — test payment received”) ma ciemną ramę, jak mówią docs (`docs/design-system.md`, linia 14: „Confirmation pages have the light body and the dark frame header and footer, as checkout does”; tokeny §7 rule 18; decyzja R02.1 w `.ai/design/POSTEP.md`, „Ciemna rama sklepu”).
+
+Metoda: zamówienia złożono w lokalnej bazie demo przez przepływ sklepu (koszyk, checkout, „Confirm test payment”). Chrome, Playwright-core, build i `next start` z tego samego commita. Pomiary `getComputedStyle` na `header`, `footer`, `body`.
+
+| Zrzut | Zamówienie | Motyw | Nagłówek | Stopka | Przewijanie w bok |
+| --- | --- | --- | --- | --- | --- |
+| `confirmation-light-1440.png` | CO-ZJP47-71039-M32DJ-HGWD1 | jasny | biały (`lab(100 …)`) | jasnoszara, 40% krycia | brak (1440 = 1440) |
+| `confirmation-dark-1440.png` | CO-RZKCJ-CHFMX-JZQH5-8GY23 | ciemny | ciemny (`lab(4.4 …)`) | ciemnoszara (`lab(25 …)` przy 40% krycia) | brak (1440 = 1440) |
+| `confirmation-320.png` | CO-N8XKX-QTWTY-ZZD4T-QX287 | jasny | biały | jasnoszara | brak (320 = 320), wysokość 1546 px |
+
+Ustalenia:
+
+- **F1 (rozbieżność z docs): rama nie jest ciemna w jasnym motywie.** Nagłówek i stopka na stronie potwierdzenia są jasne, tak samo jak treść. Docs mówią: jasne ciało, ciemna rama. Rama zmienia się z motywem, nie jest stała. Na stronie w ciemnym motywie ciało też jest ciemne, więc reguła „jasne ciało” też nie zachodzi.
+- Zgodne z docs: w ciemnym motywie nagłówek i stopka są ciemne, a tytuł, badge „Paid” i blok „Paid with” są czytelne (kontrast nie mierzono).
+- Zrzuty nie pokazują stanu „payment pending” (zamówienie po wejściu na stronę jest już opłacone). Notka o oczekującej płatności nie była sprawdzana.
+- Nie sprawdzono ramy strony kasy (checkout), na którą docs się powołują („as checkout does”). Stan porównawczy wymaga osobnego zrzutu.
+- Zrzuty 1440 px mają wysokość viewportu (900 px), bo cała strona się mieści. Zrzut 320 px ma pełną wysokość.
+
+Ograniczenie środowiskowe (nie błąd aplikacji): build w worktree z junction `node_modules` dawał nieostylowaną stronę (Tailwind nie wygenerował klas). Zrzuty zrobiono z czystej instalacji `npm ci` w osobnym worktree z tym samym commitem. Build i start szły komendami z `packages/app/AGENTS.md`.
+
+Dane są poza repo: zamówienia testowe zostały w lokalnej bazie demo, a nie w plikach.
+
+Testy: zmiana tylko w dokumencie i zrzutach. Bramki: `npm run format:check` i `npm run check:tokens`.
 
 ### F1: ciemna rama sklepu (2026-11-06)
 
