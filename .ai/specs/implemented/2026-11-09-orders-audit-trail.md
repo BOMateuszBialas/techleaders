@@ -44,7 +44,7 @@ A refund (`refunded`) is a recorded status. No money moves and no stock returns 
 
 ## Not in this change
 
-- Automatic expiry of unpaid `pending_payment` orders (review finding ERR-03). It needs a scheduled job, which the MVP does not have. Stock held by an unpaid order is released only by an admin cancel. Open decision for the owner.
+- Automatic expiry of unpaid `pending_payment` orders (review finding ERR-03). It needs a scheduled job, which the MVP does not have. Stock held by an unpaid order is released only by an admin cancel. Decided 2026-11-09: manual process, the admin cancels stale unpaid orders (restock in the same transaction).
 - Revenue of a past period after a refund (review ERR-04). A8 is the approved definition; a `refunded_at` column would change it. Open question for the owner.
 
 ## Unpaid orders: visibility (2026-11-09)

@@ -10,6 +10,7 @@ import {
   previousRange,
   resolveCustomPeriod,
   resolvePeriod,
+  storeMidnight,
   storeToday,
   type Clock,
   type DashboardPeriod,
@@ -101,13 +102,17 @@ export class GetDashboardUseCase {
         : resolvePeriod(selection.kind === "preset" ? selection.preset : selection.fallback, now);
     const previous = previousRange(period);
     // Everything before the comparison period: is there any order at all? (A9)
+    // Starts where a custom range may start (A6, A9), so the check and the validator agree.
     const before: DashboardPeriod = {
       ...previous,
-      from: new Date(0),
+      from: storeMidnight(MIN_DASHBOARD_DAY),
       to: previous.from,
       label: "Before the comparison period",
     };
 
+    // Two batches, not one: the database pool is shared by every request (max 10, see
+    // packages/database/src/config.ts). Nine queries at once would take almost the whole pool
+    // for one dashboard load, so each batch keeps to at most five concurrent queries.
     const [sales, orders, topProducts, lowStock, demoOrderCount] = await Promise.all([
       this.deps.getSalesSummaryUseCase.execute({ period }),
       this.deps.getOrderSummaryUseCase.execute({ period }),
