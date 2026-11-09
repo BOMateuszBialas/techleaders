@@ -52,7 +52,12 @@ export type SuggestedQuestion = { intent: CopilotIntentId; question: string };
  * Why a question failed: a field message under the question (400), or a notice (session ended,
  * rate limit, unreachable service). Set with `status: "error"`.
  */
-export type PanelFailure = "validation" | "session" | "rate_limited" | "unavailable";
+export type PanelFailure =
+  "validation" | "session" | "rate_limited" | "unavailable" | "data_unavailable";
+
+/** FALL-02: a store read failed; no recommendation is shown. Same value as the server's code. */
+export const DATA_UNAVAILABLE_CODE = "COPILOT_DATA_UNAVAILABLE";
+export const DATA_UNAVAILABLE_TEXT = "Data is temporarily unavailable. Try again in a moment.";
 
 /** What the panel shows: the last answer or error, and the question typed, kept after submit. */
 export type CopilotPanelState = {
@@ -97,6 +102,9 @@ function failureOf(
   }
   if (status === 401) return { failure: "session", message: SESSION_ENDED_TEXT };
   if (status === 429) return { failure: "rate_limited", message: RATE_LIMITED_TEXT };
+  if (status === 503 && result && !result.ok && result.error.code === DATA_UNAVAILABLE_CODE) {
+    return { failure: "data_unavailable", message: DATA_UNAVAILABLE_TEXT };
+  }
   return { failure: "unavailable", message: UNAVAILABLE_TEXT };
 }
 
