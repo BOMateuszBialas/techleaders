@@ -90,3 +90,5 @@ Long-term memory for LLM agents: an index. Add an entry after fixing a bug, or w
 - **2026-10-13 — Next 16 Cache Components** — [details](lessons/2026-10-13-next-16-cache-components.md)
 - **2026-10-13 — shadcn/ui 4 uses the `cn` package** — [details](lessons/2026-10-13-shadcn-ui-4-cn-package.md)
 - **2026-10-13 — Monorepo gitignore**: create-next-app patterns are root-anchored (`/.next/`, `/node_modules`). In the monorepo they must be unanchored (`.next/`) or `packages/app/.next` gets tracked.
+- **2026-11-10 — Prisma Compute runtime facts** — [details](lessons/2026-11-10-prisma-compute-runtime.md)
+- **2026-11-10 — ORM needs an explicit TLS option** — [details](lessons/2026-11-10-orm-tls-option.md)
