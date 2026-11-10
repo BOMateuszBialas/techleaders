@@ -21,5 +21,18 @@ export function createOrmConfig(input: DatabaseConfigInput): Options {
     // A global EntityManager must never be used directly. Every request or job forks its own.
     allowGlobalContext: false,
     pool: { min: 0, max: 10 },
+    // MikroORM builds the pg client from discrete fields, so the sslmode query parameter of the
+    // URL is not applied on its own. Managed hosts (Prisma Postgres) require TLS.
+    driverOptions: { ssl: sslOptionsFor(input.databaseUrl) },
   });
+}
+
+/**
+ * TLS options for the pg client, read from the URL `sslmode` parameter.
+ * `disable` or no parameter: plain connection (local development). Any other mode: TLS with
+ * certificate verification.
+ */
+export function sslOptionsFor(databaseUrl: string): { rejectUnauthorized: true } | undefined {
+  const mode = new URL(databaseUrl).searchParams.get("sslmode");
+  return mode === null || mode === "disable" ? undefined : { rejectUnauthorized: true };
 }

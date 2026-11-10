@@ -53,3 +53,6 @@ packages/app/e2e/artifacts/
 
 # Storybook static build (npm run build-storybook)
 **/storybook-static/
+.prisma/
+.alchemy/
+.prisma-composer/

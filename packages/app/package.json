@@ -37,6 +37,8 @@
   },
   "devDependencies": {
     "@commerceos/config": "*",
+    "@prisma/composer": "0.38.0",
+    "@prisma/composer-prisma-cloud": "0.38.0",
     "@storybook/addon-a11y": "10.6.5",
     "@storybook/addon-docs": "10.6.5",
     "@storybook/addon-vitest": "10.6.5",
@@ -49,6 +51,7 @@
     "@vitest/browser": "5.0.5",
     "@vitest/browser-playwright": "5.0.5",
     "playwright": "^1.64.1",
+    "prisma": "8.0.0-rc.33",
     "remark-gfm": "^4.0.1",
     "storybook": "10.6.5",
     "tailwindcss": "^4",
