@@ -2,6 +2,8 @@
 
 > **Project type:** AI Engineering capstone / portfolio MVP  
 > **Timeline:** 5 weeks  
+> **Status:** in progress. Built and tested locally; not publicly deployed yet (the course certificate requires a public deploy, planned at the end of the course).
+>
 > **Primary goal:** Build a working, extensible e-commerce application with an AI-powered merchant advisor.  
 > **Working product name:** CommerceOS  
 > **AI feature name:** Commerce Copilot  

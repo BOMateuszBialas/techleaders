@@ -45,7 +45,6 @@ Long-term memory for LLM agents: an index. Add an entry after fixing a bug, or w
 - **2026-10-24 — Design system primitives: Tailwind v4 focus outline, Base UI disabled, Storybook test viewport and docs ids** — [details](lessons/2026-10-24-design-system-primitives-tailwind-focus.md)
 - **2026-10-24 — E07 Phase 1 surprises: Next answers 308 before a route allowlist; a form fallback must not drop request-time fields; a returned mock is a Vitest teardown** — [details](lessons/2026-10-24-e07-phase-1-surprises.md)
 - **2026-10-24 — Storybook story tests break under a non-ASCII Windows path; stories must not live in a dot-directory; the hook flags some shell text as a .env glob** — [details](lessons/2026-10-24-storybook-non-ascii-windows-path.md)
-- **2026-10-23 — Agent guardrails: only exit 2 blocks; deny ≠ denyRead; a `Bash`-only matcher missed PowerShell (fixed: the matcher is `Bash|PowerShell|Monitor` in `.claude/settings.json`)** — [details](lessons/2026-10-23-agent-guardrails-exit-2.md)
 - **2026-10-23 — `useActionState` posts the previous state back; one `pending` flag for two forms; `next build` may stop once on a security nudge** — [details](lessons/2026-10-23-useactionstate-previous-state.md)
 - **2026-10-23 — `next upgrade --agent=security` prints a prompt, it does not upgrade** — [details](lessons/2026-10-23-next-upgrade-agent-security-prompt.md)
 - **2026-10-19 — Live evals: assert safety, report outcome; "absent" lists must survive faithful output; show the cause code** — [details](lessons/2026-10-19-live-evals-assert-safety.md)
