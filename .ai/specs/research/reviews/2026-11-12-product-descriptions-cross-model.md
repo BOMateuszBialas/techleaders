@@ -64,5 +64,6 @@ Recenzent zaznacza, że na podstawie samej specyfikacji nie da się potwierdzić
   - **F-12 (częściowo):** A1 potwierdzone, A2 potwierdzone, A3 potwierdzone (D12 w briefie). Brak formalnej tabeli zatwierdzeń.
   - **F-04: opcja A, ryzyko resztkowe zaakceptowane.** Brak ścieżki zapisu i czytanie draftu przez właściciela są zabezpieczeniem. Zapisane w review logu specyfikacji (osobny PR).
   - **F-09: progi zatwierdzone** (wynik testu z prawdziwym modelem jeszcze nie zapisany).
-  - F-05, F-06, F-07, F-10, F-11, F-13 do F-15 oraz uwagi Gemini: **do decyzji właściciela**.
+  - **F-07: opcja A, jeden globalny wyłącznik AI.** Wyłączenie klucza wyłącza drafty i odpowiedzi AI Copilota. Zapisane w review logu specyfikacji (osobny PR).
+  - F-05, F-06, F-10, F-11, F-13 do F-15 oraz uwagi Gemini: **do decyzji właściciela**.
 - Zgłoszone sprzeczności wewnątrz dokumentu (F-08, F-11, F-12) są konkretne i sprawdzalne w tekście specyfikacji.
