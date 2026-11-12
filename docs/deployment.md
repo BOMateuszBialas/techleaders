@@ -156,7 +156,7 @@ The redeploy path was practised once on the live host on 2026-11-10 (see Rollbac
 ## Platform facts (Prisma Compute, free plan)
 
 - Account owner: the project owner. Cost: free plan; check the console for limits before a traffic test.
-- Project `commerceos-app` (eu-central-1) and database `commerceos-db` (eu-central-1, Prisma Postgres 17). The older project `commerceos` still holds an empty database created by hand; it is not used and can be deleted in the console.
+- Database `commerceos-db` (eu-central-1, Prisma Postgres 17, id `db_nosar92t3ejk93v2y5juf1d9`) lives in the project `commerceos`, not in `commerceos-app`. The live app uses it through `DATABASE_URL`. **Do not delete the project `commerceos`:** deleting a project destroys its databases, and that would delete the production data. Moving the database into `commerceos-app` is a separate change (it needs a `rawPostgres()` dependency and a data move).
 - Secrets: set with `prisma project env add` in the owner's terminal. The agent never receives secret values.
 - Domain: the default `*.prisma.build` name. Custom domains are production only and need DNS work; not done.
 - `AUTH_TRUSTED_IP_HEADER`: not set. Compute does not add a proxy header we can rely on, so sign-in and lookups share one global rate limit.
