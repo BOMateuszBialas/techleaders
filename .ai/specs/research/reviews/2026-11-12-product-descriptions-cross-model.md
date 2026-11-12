@@ -67,7 +67,8 @@ Recenzent zaznacza, że na podstawie samej specyfikacji nie da się potwierdzić
   - **F-07: opcja A, jeden globalny wyłącznik AI.** Wyłączenie klucza wyłącza drafty i odpowiedzi AI Copilota. Zapisane w review logu specyfikacji (osobny PR).
   - **F-13: opcja A, ryzyko resztkowe zaakceptowane.** Cena w drafcie może się zdezaktualizować po zmianie ceny; właściciel czyta draft przed zapisem. Zapisane w review logu specyfikacji (osobny PR).
   - **F-14: opcja A, nieznane terminy nie blokują draftu.** Procedura uzupełniania słownika przy nowej kategorii zapisana w specyfikacji (krok „Glossary maintenance"). Osobny PR.
-  - **F-10, F-11, F-15: wykonane w osobnym PR** (dokumentacja: status, metryka pokrycia, uzasadnienie 35 s). Test granicznego czasu całego żądania (F-15) nie został dodany; to zmiana w kodzie.
+  - **F-10, F-11, F-15: wykonane w osobnym PR** (dokumentacja: status, metryka pokrycia, uzasadnienie 35 s). Dodany test jednostkowy: tekst „trwa do 35 sekund" jest równy deadline z use case (30 s) plus 5 s zapasu. Test granicznego czasu całego żądania HTTP nie został dodany (wymagałby konfiguracji integracyjnej z wolnym dostawcą).
+  - **Uwaga Gemini 3 (stan niedostępności): sprawdzona.** Spec, moduł tekstów i test używają tej samej treści: „AI drafting is unavailable right now."
   - **F-06: decyzja właściciela 2026-11-12: zostajemy na darmowym poziomie**, z ludzkim odczytem przez Google zaakceptowanym. Sprawdzone warunki (wyjaśnienie poniżej) zapisane w specyfikacji.
   - F-06 (opis faktów): Darmowy poziom: Google może wykorzystać treści do ulepszania produktów, a ludzie-recenzenci mogą je czytać. Płatny poziom (projekt Cloud z rozliczeniem): bez ulepszania, logi tylko do kontroli naruszeń. Zapisane w specyfikacji z datą i źródłami.
   - **F-05:** zakres danych jest zatwierdzony w A1; osobny wyłącznik to decyzja F-07 (zaakceptowana).
