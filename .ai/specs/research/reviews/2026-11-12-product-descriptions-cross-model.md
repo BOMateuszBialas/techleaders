@@ -65,5 +65,6 @@ Recenzent zaznacza, że na podstawie samej specyfikacji nie da się potwierdzić
   - **F-04: opcja A, ryzyko resztkowe zaakceptowane.** Brak ścieżki zapisu i czytanie draftu przez właściciela są zabezpieczeniem. Zapisane w review logu specyfikacji (osobny PR).
   - **F-09: progi zatwierdzone** (wynik testu z prawdziwym modelem jeszcze nie zapisany).
   - **F-07: opcja A, jeden globalny wyłącznik AI.** Wyłączenie klucza wyłącza drafty i odpowiedzi AI Copilota. Zapisane w review logu specyfikacji (osobny PR).
-  - F-05, F-06, F-10, F-11, F-13 do F-15 oraz uwagi Gemini: **do decyzji właściciela**.
+  - **F-13: opcja A, ryzyko resztkowe zaakceptowane.** Cena w drafcie może się zdezaktualizować po zmianie ceny; właściciel czyta draft przed zapisem. Zapisane w review logu specyfikacji (osobny PR).
+  - F-05, F-06, F-10, F-11, F-14, F-15 oraz uwagi Gemini: **do decyzji właściciela**.
 - Zgłoszone sprzeczności wewnątrz dokumentu (F-08, F-11, F-12) są konkretne i sprawdzalne w tekście specyfikacji.
