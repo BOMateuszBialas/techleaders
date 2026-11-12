@@ -62,5 +62,7 @@ Recenzent zaznacza, że na podstawie samej specyfikacji nie da się potwierdzić
   - **F-08 (opcja A): przyjęte.** LOG-01 obowiązuje, limit liczy się per draft. A2, krok 5, pseudokod, tabela plików i lista testów są zgodne z LOG-01 (osobny PR).
   - **F-01, F-02, F-03: opcja A, ograniczenie zaakceptowane.** Walidacja pozostaje leksykalna, a właściciel czyta każdy draft przed zapisem. Zapisane w wierszu A14 i w review logu specyfikacji (osobny PR).
   - **F-12 (częściowo):** A1 potwierdzone, A2 potwierdzone, A3 potwierdzone (D12 w briefie). Brak formalnej tabeli zatwierdzeń.
-  - F-04 do F-07, F-09 do F-11, F-13 do F-15 oraz uwagi Gemini: **do decyzji właściciela**.
+  - **F-04: opcja A, ryzyko resztkowe zaakceptowane.** Brak ścieżki zapisu i czytanie draftu przez właściciela są zabezpieczeniem. Zapisane w review logu specyfikacji (osobny PR).
+  - **F-09: progi zatwierdzone** (wynik testu z prawdziwym modelem jeszcze nie zapisany).
+  - F-05, F-06, F-07, F-10, F-11, F-13 do F-15 oraz uwagi Gemini: **do decyzji właściciela**.
 - Zgłoszone sprzeczności wewnątrz dokumentu (F-08, F-11, F-12) są konkretne i sprawdzalne w tekście specyfikacji.
