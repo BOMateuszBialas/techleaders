@@ -41,14 +41,14 @@
   "devDependencies": {
     "@testcontainers/postgresql": "^12.2.1",
     "@types/node": "^26.6.6",
-    "@vitest/coverage-v8": "^5.0.5",
+    "@vitest/coverage-v8": "^5.1.0",
     "eslint": "^10.14.0",
-    "eslint-config-next": "^16.4.3",
+    "eslint-config-next": "^16.4.5",
     "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.9.10",
     "testcontainers": "^12.2.1",
     "tsx": "^4.23.15",
     "typescript": "~5.9.3",
-    "vitest": "^5.0.5"
+    "vitest": "^5.1.0"
   }
 }
