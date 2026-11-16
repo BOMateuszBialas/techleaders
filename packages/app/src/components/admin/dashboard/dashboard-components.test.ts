@@ -310,7 +310,7 @@ describe("comparison copy (date-range spec)", () => {
       ),
     ).toEqual([
       TODAY_NOTE,
-      "No order was placed before 4 Oct 2026, so the previous period may include days before the store started selling; percentages are not shown.",
+      "No paid order was placed before 4 Oct 2026, so the previous period may include days before the store started selling; percentages are not shown.",
       "The previous period includes 1 seeded demo order (fictional).",
       "In the previous period, 1 order in another currency is not included.",
     ]);
