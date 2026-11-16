@@ -100,12 +100,12 @@ describe("GeminiLlmProvider", () => {
     expect(GEMINI_THINKING_LEVEL).toBe("LOW");
   });
 
-  it("thinks at the minimal level when the caller asks for minimal effort", async () => {
+  it("thinks at the low level even when the caller asks for minimal effort", async () => {
     const { provider, generateContent } = ok({});
     await provider.generateStructured(request({ effort: "minimal" }));
     await provider.generateStructured(request({ effort: "low" }));
     expect(generateContent.mock.calls.map((call) => call[0].config?.thinkingConfig)).toEqual([
-      { thinkingLevel: "MINIMAL" },
+      { thinkingLevel: "LOW" },
       { thinkingLevel: "LOW" },
     ]);
   });
