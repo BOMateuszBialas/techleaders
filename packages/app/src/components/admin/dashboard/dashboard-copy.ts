@@ -117,8 +117,12 @@ export function comparisonHeader(previous: DashboardPeriod): string {
   return `Compared with ${previous.label}, ${length}.`;
 }
 
-/** "+17%" or "−25%" (a real minus sign). */
+/**
+ * "+17%", "−25%" (a real minus sign) or "0%". A rounded 0 carries no sign, so it never reads as
+ * "+0%" or "−0%" next to a direction that comes from the delta (A5).
+ */
 function signedPercent(percent: number): string {
+  if (percent === 0) return "0%";
   return percent < 0 ? `−${Math.abs(percent)}%` : `+${percent}%`;
 }
 
