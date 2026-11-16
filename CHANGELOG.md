@@ -2,6 +2,13 @@
 
 All notable changes to CommerceOS. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Fixed
+
+- Prisma Compute deploy: the CLI's config needs `@prisma/orm-postgres`, `temporal-polyfill` and `redis`, now pinned as devDependencies (they were missing from the lockfile).
+- Gemini: every request uses the low thinking level. The configured model rejects the minimal level, so description drafts failed.
+
 ## [1.0.0] - 2026-11-03
 
 First release of CommerceOS: a single-store e-commerce MVP with a storefront, a merchant admin and Commerce Copilot, an AI advisor that answers from the store's own data. It is a capstone project. It is not production-ready, and the demo store takes no money.
