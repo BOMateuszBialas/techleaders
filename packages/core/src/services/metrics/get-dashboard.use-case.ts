@@ -101,7 +101,7 @@ export class GetDashboardUseCase {
         ? resolveCustomPeriod(selection.firstDay, selection.lastDay)
         : resolvePeriod(selection.kind === "preset" ? selection.preset : selection.fallback, now);
     const previous = previousRange(period);
-    // Everything before the comparison period: is there any order at all? (A9)
+    // Everything before the comparison period: was any order paid there? (A9)
     // Starts where a custom range may start (A6, A9), so the check and the validator agree.
     const before: DashboardPeriod = {
       ...previous,
@@ -124,15 +124,18 @@ export class GetDashboardUseCase {
       this.deps.getSalesSummaryUseCase.execute({ period: previous }),
       this.deps.getOrderSummaryUseCase.execute({ period: previous }),
       this.deps.storeMetrics.demoOrderCount(previous),
-      this.deps.getOrderSummaryUseCase.execute({ period: before }),
+      this.deps.getSalesSummaryUseCase.execute({ period: before }),
     ]);
 
-    // An empty check range (the comparison period starts on or before 2000-01-01) means no order
-    // is known to exist before it, so the history is partial (A9), as long as the store has orders.
+    // The start of selling is the first paid order (A9): paid in the store currency or any other,
+    // demo included. An empty check range (the comparison period starts on or before 2000-01-01)
+    // means no order was paid before it, so the history is partial (A9), as long as the store has
+    // orders. Placed-but-unpaid orders do not end the partial history.
     const beforeIsEmpty = before.to.getTime() <= before.from.getTime();
-    const noOrderBefore = beforeIsEmpty || earlier.total === 0;
+    const paidBefore = earlier.paidOrders + earlier.otherCurrencyOrders;
+    const noPaidOrderBefore = beforeIsEmpty || paidBefore === 0;
     const partialHistory =
-      noOrderBefore && (hasOrders(sales, orders) || hasOrders(previousSales, previousOrders));
+      noPaidOrderBefore && (hasOrders(sales, orders) || hasOrders(previousSales, previousOrders));
     const options = { withPercent: !partialHistory };
     const { firstDay, lastDay } = periodCalendarDays(period);
 
