@@ -39,6 +39,7 @@
     "@commerceos/config": "*",
     "@prisma/composer": "0.38.0",
     "@prisma/composer-prisma-cloud": "0.38.0",
+    "@prisma/orm-postgres": "^8.0.0-rc.23",
     "@storybook/addon-a11y": "10.6.6",
     "@storybook/addon-docs": "10.6.6",
     "@storybook/addon-vitest": "10.6.6",
@@ -52,9 +53,11 @@
     "@vitest/browser-playwright": "5.1.0",
     "playwright": "^1.65.0",
     "prisma": "8.0.0-rc.33",
+    "redis": "^5.12.3",
     "remark-gfm": "^4.0.1",
     "storybook": "10.6.6",
     "tailwindcss": "^4",
+    "temporal-polyfill": "^1.0.8",
     "vite": "^8.3.6"
   }
 }
