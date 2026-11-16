@@ -29,6 +29,20 @@ describe("resolveCustomPeriod", () => {
     });
   });
 
+  it("is half-open: 23:59:59.999 on the last day is inside, the next midnight is outside", () => {
+    // Warsaw is UTC+2 in October, so 14 Oct 23:59:59.999 is 21:59:59.999 UTC.
+    const period = resolveCustomPeriod("2026-10-01", "2026-10-14");
+    const isInside = (instant: string) => {
+      const time = new Date(instant).getTime();
+      return time >= period.from.getTime() && time < period.to.getTime();
+    };
+
+    expect(isInside("2026-09-30T21:59:59.999Z")).toBe(false); // 30 Sep 23:59:59.999
+    expect(isInside("2026-09-30T22:00:00.000Z")).toBe(true); // 1 Oct 00:00
+    expect(isInside("2026-10-14T21:59:59.999Z")).toBe(true); // 14 Oct 23:59:59.999
+    expect(isInside("2026-10-14T22:00:00.000Z")).toBe(false); // 15 Oct 00:00
+  });
+
   it("covers a single day and names it once", () => {
     const period = resolveCustomPeriod("2026-10-17", "2026-10-17");
 
