@@ -289,6 +289,13 @@ describe("comparison copy (date-range spec)", () => {
     expect(changeText(null, count)).toBe(NOT_ENOUGH_DATA_TO_COMPARE);
   });
 
+  it("shows a 0% change with the direction of the delta, never a sign on zero (A5)", () => {
+    // 1 000 against 1 004 is −0.4%: the delta is down, the rounded percent is 0.
+    expect(changeText(metricChange(1000, 1004), count)).toBe("Down 4 (0%) from 1004");
+    // 1 004 against 1 000 is +0.4%: the delta is up, the rounded percent is 0.
+    expect(changeText(metricChange(1004, 1000), count)).toBe("Up 4 (0%) from 1000");
+  });
+
   it("lists only the comparison notes that apply", () => {
     expect(comparisonNotes(dashboard())).toEqual([]);
     const previousSales = { ...dashboard().comparison.sales, otherCurrencyOrders: 1 };
