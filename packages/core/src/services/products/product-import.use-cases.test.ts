@@ -120,6 +120,39 @@ describe("PreviewProductImportUseCase", () => {
     expect(result.counts).toEqual({ create: 1, skip: 2, error: 0 });
   });
 
+  it("names both products when the slug and the SKU belong to two different products", async () => {
+    const { preview, repository } = setup();
+    repository.existing.push(VORTEX, { id: "p-2", name: "Other", slug: "other", sku: "PAD-9" });
+    const result = await preview.execute({
+      csv: [
+        "name,price,sku",
+        "Vortex Wireless Mouse,1,PAD-9",
+        "Vortex Wireless Mouse,2,VTX-001",
+      ].join("\n"),
+    });
+
+    expect(result.rows.map((row) => [row.outcome, row.reason])).toEqual([
+      [
+        "skip",
+        'Already in the catalog: slug is used by "Vortex Wireless Mouse", SKU by "Other". Not changed.',
+      ],
+      ["skip", 'Already in the catalog: "Vortex Wireless Mouse" uses this slug. Not changed.'],
+    ]);
+  });
+
+  it("never treats blank or spaces-only SKUs as duplicates of each other", async () => {
+    const { preview } = setup();
+    const result = await preview.execute({
+      csv: ["name,price,sku", "Pad A,1,", "Pad B,2,   ", "Pad C,3,"].join("\n"),
+    });
+
+    expect(result.rows.map((row) => [row.outcome, row.errors])).toEqual([
+      ["create", []],
+      ["create", []],
+      ["create", []],
+    ]);
+  });
+
   it("reports a repeated slug or SKU inside the file on the later row", async () => {
     const { preview } = setup();
     const result = await preview.execute({

@@ -53,6 +53,14 @@ describe("getCurrentAdmin", () => {
     await expect(getCurrentAdmin()).resolves.toBeNull();
   });
 
+  it("refuses a signed-in customer, so customer sessions cannot run admin actions", async () => {
+    getSession.mockResolvedValueOnce({
+      ...ownerSession,
+      user: { ...ownerSession.user, role: "customer" },
+    });
+    await expect(requireAdmin()).rejects.toThrow(UnauthorizedError);
+  });
+
   it("lets a session lookup failure propagate (a 500 or the error boundary)", async () => {
     getSession.mockRejectedValue(new Error("connection refused"));
     await expect(getCurrentAdmin()).rejects.toThrow("connection refused");
