@@ -99,6 +99,18 @@ function useCases(storeMetrics = new FakeStoreMetrics()) {
   };
 }
 
+/** The start of "before the comparison period": 2000-01-01 in the store time zone (A6). */
+const BEFORE_START = new Date("1999-12-31T23:00:00Z").getTime();
+
+/** A fake whose paid sales before the comparison period are `earlier`; other ranges answer as usual. */
+function storeWithEarlierSales(earlier: SalesAggregate) {
+  const storeMetrics = new FakeStoreMetrics();
+  const salesSummary = storeMetrics.salesSummary.bind(storeMetrics);
+  storeMetrics.salesSummary = async (range: MetricRange, currency: string) =>
+    range.from.getTime() === BEFORE_START ? earlier : salesSummary(range, currency);
+  return storeMetrics;
+}
+
 /** Every key of a nested value, to prove no customer field can leave the metric use cases. */
 function keysOf(value: unknown): string[] {
   if (Array.isArray(value)) return value.flatMap(keysOf);
@@ -232,7 +244,7 @@ describe("GetDashboardUseCase", () => {
       "lowStockProducts",
       "orderSummary",
       "orderSummary",
-      "orderSummary",
+      "salesSummary",
       "salesSummary",
       "salesSummary",
       "topProducts",
@@ -263,9 +275,9 @@ describe("GetDashboardUseCase", () => {
       revenue: { current: 1000, previous: 1000, delta: 0, percent: 0, direction: "same" },
       aov: { current: 333, previous: 333, delta: 0, percent: 0, direction: "same" },
     });
-    // The partial-history check asks for everything before the comparison period.
+    // The partial-history check asks for paid orders before the comparison period (A9).
     const ranges = storeMetrics.calls
-      .filter((call) => call.method === "orderSummary")
+      .filter((call) => call.method === "salesSummary")
       .map((call) => call.args[0] as MetricRange);
     expect(ranges).toContainEqual(
       // 2000-01-01 in the store time zone (UTC+1 in winter), the validator's first day (A6).
@@ -307,19 +319,60 @@ describe("GetDashboardUseCase", () => {
     });
   });
 
-  it("withholds percentages when no order exists before the comparison period (A9)", async () => {
-    const storeMetrics = new FakeStoreMetrics();
-    const orderSummary = storeMetrics.orderSummary.bind(storeMetrics);
-    // The start of "before the comparison period": 2000-01-01 in the store time zone.
-    const earliest = new Date("1999-12-31T23:00:00Z").getTime();
-    storeMetrics.orderSummary = async (range: MetricRange) =>
-      range.from.getTime() === earliest ? [] : orderSummary(range);
+  it("withholds percentages when no paid order exists before the comparison period (A9)", async () => {
+    const storeMetrics = storeWithEarlierSales({
+      paidOrders: 0,
+      revenueMinor: 0,
+      otherCurrencyOrders: 0,
+    });
     storeMetrics.sales = { paidOrders: 0, revenueMinor: 0, otherCurrencyOrders: 0 };
 
     const { comparison } = await useCases(storeMetrics).getDashboard.execute();
     expect(comparison.partialHistory).toBe(true);
     expect(comparison.changes.ordersPlaced).toMatchObject({ delta: 0, percent: null });
     expect(comparison.changes.aov).toBeNull();
+  });
+
+  it("withholds percentages when only a cancelled order was placed before the comparison period (A9)", async () => {
+    // Placed but never paid: the store had not started selling, so the history is partial.
+    const storeMetrics = storeWithEarlierSales({
+      paidOrders: 0,
+      revenueMinor: 0,
+      otherCurrencyOrders: 0,
+    });
+    const orderSummary = storeMetrics.orderSummary.bind(storeMetrics);
+    storeMetrics.orderSummary = async (range: MetricRange) =>
+      range.from.getTime() === BEFORE_START
+        ? [{ status: "cancelled", count: 1 }]
+        : orderSummary(range);
+
+    const { comparison } = await useCases(storeMetrics).getDashboard.execute();
+    expect(comparison.partialHistory).toBe(true);
+    expect(comparison.changes.ordersPlaced).toMatchObject({ percent: null });
+    expect(comparison.changes.paidOrders).toMatchObject({ percent: null });
+  });
+
+  it("ends the partial history with the first paid order before the comparison period (A9)", async () => {
+    const storeMetrics = storeWithEarlierSales({
+      paidOrders: 1,
+      revenueMinor: 500,
+      otherCurrencyOrders: 0,
+    });
+
+    const { comparison } = await useCases(storeMetrics).getDashboard.execute();
+    expect(comparison.partialHistory).toBe(false);
+    expect(comparison.changes.paidOrders).toMatchObject({ percent: 0 });
+  });
+
+  it("counts a paid order in another currency before the comparison period (A9)", async () => {
+    const storeMetrics = storeWithEarlierSales({
+      paidOrders: 0,
+      revenueMinor: 0,
+      otherCurrencyOrders: 1,
+    });
+
+    const { comparison } = await useCases(storeMetrics).getDashboard.execute();
+    expect(comparison.partialHistory).toBe(false);
   });
 
   it("needs no partial-history note when neither period has an order", async () => {
