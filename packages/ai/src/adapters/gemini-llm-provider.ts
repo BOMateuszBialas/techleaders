@@ -258,10 +258,9 @@ export class GeminiLlmProvider implements LlmProviderPort {
           responseMimeType: "application/json",
           responseJsonSchema: toGeminiJsonSchema(request.schema),
           maxOutputTokens: request.maxOutputTokens,
-          thinkingConfig: {
-            thinkingLevel:
-              request.effort === "minimal" ? ThinkingLevel.MINIMAL : GEMINI_THINKING_LEVEL,
-          },
+          // Every effort uses the low level: the configured model rejects MINIMAL with
+          // `bad_request` (smoke test 2026-11-16), while it accepts LOW for the Copilot.
+          thinkingConfig: { thinkingLevel: GEMINI_THINKING_LEVEL },
           abortSignal: signal,
         },
       });
