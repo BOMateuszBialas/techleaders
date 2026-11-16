@@ -83,9 +83,16 @@ describe("parseCsvText", () => {
     ]);
   });
 
-  it("keeps a quote that does not open a field, and text after a closing quote", () => {
-    const parsed = parseCsvText('name,price\nThe 27" monitor,1\n"A"b,2');
-    expect(parsed.records.map((record) => record.cells[0])).toEqual(['The 27" monitor', "Ab"]);
+  it("refuses a quote inside an unquoted value, with the line it is on", () => {
+    expect(messageOf(() => parseCsvText('name,price\nThe 27" monitor,1'))).toBe(
+      "Line 2: a quote may only open a value. Wrap the value in double quotes and double any quote inside it.",
+    );
+  });
+
+  it("refuses text after a closing quote, with the line it is on", () => {
+    expect(messageOf(() => parseCsvText('name,price\nMouse,1\n"A"b,2'))).toBe(
+      "Line 3: text after a closing quote. Put the whole value in one pair of quotes.",
+    );
   });
 
   it("keeps empty quoted fields empty", () => {

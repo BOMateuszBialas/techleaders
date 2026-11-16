@@ -61,14 +61,16 @@ function isBlank(cells: string[]): boolean {
 /**
  * Splits CSV text into records (spec A9): RFC 4180 quoting (`"` around a field, `""` inside
  * it; quoted fields may hold the delimiter and line breaks), CRLF or LF line ends (normalised
- * to "\n", also inside quoted fields), blank lines ignored. A quote that does not open a field
- * is kept as text. Each record carries the line it starts on (A13).
+ * to "\n", also inside quoted fields), blank lines ignored. A quote that does not open a value,
+ * or text after a closing quote, is a file error that names the line; it is never guessed at
+ * (A9). Each record carries the line it starts on (A13).
  */
 function readRecords(text: string, delimiter: string): CsvRecord[] {
   const records: CsvRecord[] = [];
   let cells: string[] = [];
   let cell = "";
   let quoted = false;
+  let closedQuote = false;
   let atCellStart = true;
   let line = 1;
   let recordLine = 1;
@@ -81,6 +83,7 @@ function readRecords(text: string, delimiter: string): CsvRecord[] {
     cells = [];
     cell = "";
     atCellStart = true;
+    closedQuote = false;
   };
 
   for (let index = 0; index < text.length; index += 1) {
@@ -91,18 +94,28 @@ function readRecords(text: string, delimiter: string): CsvRecord[] {
         index += 1;
       } else if (char === '"') {
         quoted = false;
+        closedQuote = true;
       } else {
         if (char === "\n") line += 1;
         cell += char;
       }
+    } else if (closedQuote && char !== delimiter && char !== "\n") {
+      throw new ValidationError(
+        `Line ${line}: text after a closing quote. Put the whole value in one pair of quotes.`,
+      );
     } else if (char === '"' && atCellStart) {
       quoted = true;
       atCellStart = false;
       quoteLine = line;
+    } else if (char === '"') {
+      throw new ValidationError(
+        `Line ${line}: a quote may only open a value. Wrap the value in double quotes and double any quote inside it.`,
+      );
     } else if (char === delimiter) {
       cells.push(cell);
       cell = "";
       atCellStart = true;
+      closedQuote = false;
     } else if (char === "\n") {
       endRecord();
       line += 1;

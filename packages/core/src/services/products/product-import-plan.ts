@@ -98,7 +98,8 @@ export function planProductImport(
 
     const { input } = check;
     const slugOwner = bySlug.get(input.slug);
-    const owner = slugOwner ?? (input.sku === null ? undefined : bySku.get(input.sku));
+    const skuOwner = input.sku === null ? undefined : bySku.get(input.sku);
+    const owner = slugOwner ?? skuOwner;
     const errors: string[] = [];
     const slugLine = firstLineOfSlug.get(input.slug);
     const skuLine = input.sku === null ? undefined : firstLineOfSku.get(input.sku);
@@ -112,8 +113,10 @@ export function planProductImport(
     }
 
     if (owner) {
-      const key = slugOwner ? "slug" : "SKU";
-      const reason = `Already in the catalog: "${owner.name}" uses this ${key}. Not changed.`;
+      const reason =
+        slugOwner && skuOwner && slugOwner.id !== skuOwner.id
+          ? `Already in the catalog: slug is used by "${slugOwner.name}", SKU by "${skuOwner.name}". Not changed.`
+          : `Already in the catalog: "${owner.name}" uses this ${slugOwner ? "slug" : "SKU"}. Not changed.`;
       return { ...display, outcome: "skip", reason, errors: [] };
     }
     if (errors.length > 0) return { ...display, outcome: "error", reason: null, errors };
