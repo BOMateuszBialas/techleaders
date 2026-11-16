@@ -5,6 +5,7 @@ import {
   METRIC_DEFINITIONS,
   METRIC_IDS,
   PAID_ORDER_STATUSES,
+  PERIOD_COMPARISON_DEFINITION,
   STORE_CURRENCY,
   TOP_PRODUCTS_LIMIT,
 } from "./metric-definitions";
@@ -217,5 +218,21 @@ describe("METRIC_DEFINITIONS", () => {
     expect(METRIC_DEFINITIONS.topProducts.definition).toContain(`top ${TOP_PRODUCTS_LIMIT}`);
     expect(METRIC_DEFINITIONS.lowStock.definition).toContain(`${LOW_STOCK_THRESHOLD} or fewer`);
     expect(METRIC_DEFINITIONS.lowStock.definition).toContain("out-of-stock included");
+  });
+});
+
+describe("PERIOD_COMPARISON_DEFINITION (date-range spec A12)", () => {
+  it("names the period length, the store time zone, the change rule and the limit of reading it", () => {
+    const text = PERIOD_COMPARISON_DEFINITION;
+    // Period length: the previous period has the same number of days.
+    expect(text).toContain("same number of days");
+    // Time zone: the days are store days.
+    expect(text).toContain(STORE_TIME_ZONE);
+    // Change rule: the difference, and the rounded percentage with its base.
+    expect(text).toContain("this period minus the previous one");
+    expect(text).toContain("rounded to a whole percent");
+    // Limit of interpretation: a change is not a cause, and some figures are not compared.
+    expect(text).toContain("does not show what caused it");
+    expect(text).toContain("Top products and low stock are not compared");
   });
 });
