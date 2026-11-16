@@ -195,6 +195,15 @@ describe("checkProductImportRow", () => {
     );
   });
 
+  it.each(["\t=1", " =1", "\t +1"])(
+    "refuses a formula character after a leading tab or space: %j",
+    (value) => {
+      expect(errorsOf(check({ name: value, price: "1" }))[0]).toBe(
+        `name: starts with "${value.trim()[0]}", which spreadsheets run as a formula. Remove it.`,
+      );
+    },
+  );
+
   it("refuses control and invisible characters, but allows line breaks in a description", () => {
     expect(errorsOf(check({ name: "Blue​tooth", price: "1" }))).toEqual([
       "name: contains invisible or control characters. Remove them.",
