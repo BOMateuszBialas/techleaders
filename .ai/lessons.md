@@ -92,3 +92,4 @@ Long-term memory for LLM agents: an index. Add an entry after fixing a bug, or w
 - **2026-10-13 — Monorepo gitignore**: create-next-app patterns are root-anchored (`/.next/`, `/node_modules`). In the monorepo they must be unanchored (`.next/`) or `packages/app/.next` gets tracked.
 - **2026-11-10 — Prisma Compute runtime facts** — [details](lessons/2026-11-10-prisma-compute-runtime.md)
 - **2026-11-10 — ORM needs an explicit TLS option** — [details](lessons/2026-11-10-orm-tls-option.md)
+- **2026-11-14 — Check the product scope before accepting a cross-model finding**: reviewers assumed multi-tenancy (`storeId`, tenants). CommerceOS is single-store (AGENTS.md), so those findings were rejected. Check AGENTS.md scope first.
