@@ -29,22 +29,31 @@ export type DashboardRangeSelection =
       kind: "invalid";
       message: string;
       fallback: MetricPeriodPreset;
-      /** The submitted values, cut to a date's length, to refill the form. */
+      /** The submitted values to refill the form: a well-formed date, or "" (A7, G6). */
       submitted: { from: string; to: string };
     };
 
+/** The value when it is a real `YYYY-MM-DD` date, else "": nothing else is echoed back. */
+function wellFormedDay(value: string): string {
+  return isIsoDay(value) ? value : "";
+}
+
 const isoDaySchema = z.string().refine(isIsoDay, DASHBOARD_RANGE_MESSAGES.notADate);
 
-/** A custom range of whole days ending no later than `today` (A6); the first issue wins. */
+/**
+ * A custom range of whole days ending no later than `today` (A6). The rules run in the order of
+ * A7 and the first failure wins: start date not too early, end date not in the future, end not
+ * before start, at most the longest range.
+ */
 export function dashboardRangeSchema(today: string) {
   return z.object({ from: isoDaySchema, to: isoDaySchema }).superRefine(({ from, to }, ctx) => {
     // Zod 4 runs this even when a field failed; a malformed date is already reported.
     if (!isIsoDay(from) || !isIsoDay(to)) return;
     // ISO dates compare correctly as strings.
     const issue = (message: string) => ctx.addIssue({ code: "custom", message });
-    if (to < from) issue(DASHBOARD_RANGE_MESSAGES.endBeforeStart);
+    if (from < MIN_DASHBOARD_DAY) issue(DASHBOARD_RANGE_MESSAGES.tooEarly);
     else if (to > today) issue(DASHBOARD_RANGE_MESSAGES.future);
-    else if (from < MIN_DASHBOARD_DAY) issue(DASHBOARD_RANGE_MESSAGES.tooEarly);
+    else if (to < from) issue(DASHBOARD_RANGE_MESSAGES.endBeforeStart);
     else if (countDays(from, to) > MAX_DASHBOARD_RANGE_DAYS)
       issue(DASHBOARD_RANGE_MESSAGES.tooLong);
   });
@@ -74,7 +83,7 @@ export function parseDashboardRange(
     kind: "invalid",
     message,
     fallback: preset,
-    submitted: { from: from.slice(0, 10), to: to.slice(0, 10) },
+    submitted: { from: wellFormedDay(from), to: wellFormedDay(to) },
   });
   if (from === "" || to === "") return invalid(DASHBOARD_RANGE_MESSAGES.bothRequired);
 

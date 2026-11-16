@@ -331,6 +331,33 @@ describe("GetDashboardUseCase", () => {
     expect(comparison.partialHistory).toBe(false);
   });
 
+  it("shows no change for an empty store, and AOV as not enough data (edge case)", async () => {
+    const storeMetrics = new FakeStoreMetrics();
+    storeMetrics.statuses = [];
+    storeMetrics.sales = { paidOrders: 0, revenueMinor: 0, otherCurrencyOrders: 0 };
+    storeMetrics.demo = 0;
+
+    const dashboard = await useCases(storeMetrics).getDashboard.execute();
+    expect(dashboard.comparison.partialHistory).toBe(false);
+    expect(dashboard.comparison.changes).toEqual({
+      ordersPlaced: { current: 0, previous: 0, delta: 0, percent: null, direction: "same" },
+      paidOrders: { current: 0, previous: 0, delta: 0, percent: null, direction: "same" },
+      revenue: { current: 0, previous: 0, delta: 0, percent: null, direction: "same" },
+      aov: null,
+    });
+  });
+
+  it("is partial history for a comparison period before 2000-01-01 (A9), with no percentages", async () => {
+    // 2000-01-01 to 2000-01-30: the comparison period is December 1999, before the check's range.
+    const { getDashboard } = useCases();
+
+    const dashboard = await getDashboard.execute({ from: "2000-01-01", to: "2000-01-30" });
+    expect(dashboard.comparison.period.label).toBe("2–31 Dec 1999");
+    expect(dashboard.comparison.partialHistory).toBe(true);
+    expect(dashboard.comparison.changes.ordersPlaced).toMatchObject({ percent: null });
+    expect(dashboard.comparison.changes.revenue).toMatchObject({ percent: null });
+  });
+
   it("keeps the Copilot's preset types: a MetricPeriod in, a MetricPeriod out", async () => {
     const { getSalesSummaryUseCase, getOrderSummaryUseCase, getTopProductsUseCase } = useCases();
 
