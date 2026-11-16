@@ -230,6 +230,19 @@ describe("DatabaseStoreMetrics (PostgreSQL)", () => {
     await orm?.close(true);
   });
 
+  /** The dashboard use case on these queries (date-range spec step 4); the clock is `now`. */
+  function dashboard(now = "2026-10-19T10:00:00.000Z") {
+    const storeMetrics = metrics();
+    return new GetDashboardUseCase({
+      clock: () => new Date(now),
+      storeMetrics,
+      getSalesSummaryUseCase: new GetSalesSummaryUseCase({ storeMetrics }),
+      getOrderSummaryUseCase: new GetOrderSummaryUseCase({ storeMetrics }),
+      getTopProductsUseCase: new GetTopProductsUseCase({ storeMetrics }),
+      getLowStockProductsUseCase: new GetLowStockProductsUseCase({ storeMetrics }),
+    });
+  }
+
   describe("on an empty store", () => {
     it("returns zeros and empty lists", async () => {
       expect(await metrics().salesSummary(RANGE, "PLN")).toEqual({
@@ -320,19 +333,6 @@ describe("DatabaseStoreMetrics (PostgreSQL)", () => {
       ).toBe(2);
     });
 
-    /** The dashboard use case on these queries (date-range spec step 4), clock on 19 Oct 2026. */
-    function dashboard() {
-      const storeMetrics = metrics();
-      return new GetDashboardUseCase({
-        clock: () => new Date("2026-10-19T10:00:00.000Z"),
-        storeMetrics,
-        getSalesSummaryUseCase: new GetSalesSummaryUseCase({ storeMetrics }),
-        getOrderSummaryUseCase: new GetOrderSummaryUseCase({ storeMetrics }),
-        getTopProductsUseCase: new GetTopProductsUseCase({ storeMetrics }),
-        getLowStockProductsUseCase: new GetLowStockProductsUseCase({ storeMetrics }),
-      });
-    }
-
     it("compares a custom range with the previous 7 days, boundaries exact", async () => {
       const result = await dashboard().execute({ from: "2026-10-11", to: "2026-10-17" });
 
@@ -345,7 +345,8 @@ describe("DatabaseStoreMetrics (PostgreSQL)", () => {
       });
       expect(result.orders.total).toBe(11);
       // 4–10 Oct: H and I were placed (O, at the boundary, is in the current period); only I
-      // was paid. DEMO-0002 (1 Oct) is before the comparison period, so history is not partial.
+      // was paid. DEMO-0002 (1 Oct) was placed and never paid, so no order was paid before 4 Oct:
+      // the history is partial and the percentages are withheld (A9).
       expect(result.comparison.period).toMatchObject({
         from: new Date("2026-10-03T22:00:00.000Z"),
         to: RANGE.from,
@@ -354,19 +355,19 @@ describe("DatabaseStoreMetrics (PostgreSQL)", () => {
       expect(result.comparison.orders.total).toBe(2);
       expect(result.comparison.sales).toMatchObject({ paidOrders: 1, revenueMinor: 24_900 });
       expect(result.comparison.demoOrderCount).toBe(0);
-      expect(result.comparison.partialHistory).toBe(false);
+      expect(result.comparison.partialHistory).toBe(true);
       expect(result.comparison.includesToday).toBe(false);
       expect(result.comparison.changes).toEqual({
-        ordersPlaced: { current: 11, previous: 2, delta: 9, percent: 450, direction: "up" },
-        paidOrders: { current: 7, previous: 1, delta: 6, percent: 600, direction: "up" },
+        ordersPlaced: { current: 11, previous: 2, delta: 9, percent: null, direction: "up" },
+        paidOrders: { current: 7, previous: 1, delta: 6, percent: null, direction: "up" },
         revenue: {
           current: 194_000,
           previous: 24_900,
           delta: 169_100,
-          percent: 679,
+          percent: null,
           direction: "up",
         },
-        aov: { current: 27_714, previous: 24_900, delta: 2814, percent: 11, direction: "up" },
+        aov: { current: 27_714, previous: 24_900, delta: 2814, percent: null, direction: "up" },
       });
     });
 
@@ -394,6 +395,161 @@ describe("DatabaseStoreMetrics (PostgreSQL)", () => {
       expect(firstTwo.total).toBe(4);
       expect(firstTwo.rows).toHaveLength(2);
       expect((await metrics().lowStockProducts(0, 10)).total).toBe(1);
+    });
+  });
+
+  describe("per-metric inclusion in both periods (orders spec A8, A10, A14)", () => {
+    // Current 8–14 Jun 2026 and the previous 7 days, 1–7 Jun (Europe/Warsaw, CEST = UTC+2).
+    const CURRENT = {
+      from: new Date("2026-06-07T22:00:00.000Z"),
+      to: new Date("2026-06-14T22:00:00.000Z"),
+    };
+    const PREVIOUS = { from: new Date("2026-05-31T22:00:00.000Z"), to: CURRENT.from };
+    const day = (date: number, time: string) =>
+      `2026-06-${String(date).padStart(2, "0")}T${time}:00Z`;
+
+    /** One order per case in each period. `demo` gives a DEMO- reference; `paid` sets paid_at. */
+    const CASES: {
+      key: string;
+      status: string;
+      currency?: string;
+      paid: boolean;
+      demo?: boolean;
+      offset: number;
+      total: number;
+    }[] = [
+      { key: "unpaid", status: "pending_payment", paid: false, offset: 1, total: 1000 },
+      { key: "cancelled", status: "cancelled", paid: false, offset: 2, total: 2000 },
+      { key: "paid", status: "paid", paid: true, offset: 2, total: 3000 },
+      { key: "processing", status: "processing", paid: true, offset: 3, total: 4000 },
+      { key: "shipped", status: "shipped", paid: true, offset: 4, total: 5000 },
+      { key: "refunded", status: "refunded", paid: true, offset: 4, total: 6000 },
+      { key: "eur", status: "paid", currency: "EUR", paid: true, offset: 5, total: 7000 },
+      { key: "demo", status: "paid", paid: true, demo: true, offset: 5, total: 8000 },
+    ];
+
+    /** `scale` doubles the current period's amounts, so a swapped period shows in the figures. */
+    function periodOrders(firstDay: number, tag: string, scale: number): FixtureOrder[] {
+      return CASES.map((item) => ({
+        ref: item.demo ? `DEMO-INT-${tag}` : `CO-INT-${tag}-${item.key}`,
+        status: item.status,
+        currency: item.currency,
+        createdAt: day(firstDay + item.offset, "10:00"),
+        paidAt: item.paid ? day(firstDay + item.offset, "10:05") : undefined,
+        lines: [
+          {
+            product: "vortex-wireless-mouse",
+            name: "Vortex Wireless Mouse",
+            unit: item.total * scale,
+            qty: 1,
+          },
+        ],
+      }));
+    }
+
+    const EARLY_CANCELLED: FixtureOrder = {
+      ref: "CO-INT-EARLY-C",
+      status: "cancelled",
+      createdAt: "2026-05-20T10:00:00Z",
+      lines: [
+        { product: "vortex-wireless-mouse", name: "Vortex Wireless Mouse", unit: 2000, qty: 1 },
+      ],
+    };
+    const EARLY_PAID: FixtureOrder = {
+      ref: "CO-INT-EARLY-P",
+      status: "paid",
+      createdAt: "2026-05-21T10:00:00Z",
+      paidAt: "2026-05-21T10:05:00Z",
+      lines: [
+        { product: "vortex-wireless-mouse", name: "Vortex Wireless Mouse", unit: 1500, qty: 1 },
+      ],
+    };
+
+    let ids = new Map<string, string>();
+
+    beforeAll(async () => {
+      ids = new Map([["vortex-wireless-mouse", await productId("vortex-wireless-mouse")]]);
+      const orders = [...periodOrders(1, "A", 1), ...periodOrders(8, "B", 2), EARLY_CANCELLED];
+      for (const order of orders) await insertOrder(order, ids);
+    });
+
+    afterAll(async () => {
+      const scope = `public_reference like 'CO-INT-A-%' or public_reference like 'CO-INT-B-%'
+        or public_reference like 'CO-INT-EARLY-%' or public_reference like 'DEMO-INT-%'`;
+      await query(
+        `delete from order_items where order_id in (select id from orders where ${scope})`,
+      );
+      await query(`delete from orders where ${scope}`);
+    });
+
+    it("sums paid store-currency orders per period, other currencies apart", async () => {
+      // Paid in PLN: paid, processing, shipped and the demo order. Refunded, unpaid and cancelled
+      // are left out; the EUR order is counted in otherCurrencyOrders only.
+      expect(await metrics().salesSummary(PREVIOUS, "PLN")).toEqual({
+        paidOrders: 4,
+        revenueMinor: 20_000,
+        otherCurrencyOrders: 1,
+      });
+      expect(await metrics().salesSummary(CURRENT, "PLN")).toEqual({
+        paidOrders: 4,
+        revenueMinor: 40_000,
+        otherCurrencyOrders: 1,
+      });
+    });
+
+    it("counts every order placed in each period by its current status, any currency", async () => {
+      const statuses = [
+        { status: "cancelled", count: 1 },
+        { status: "paid", count: 3 },
+        { status: "pending_payment", count: 1 },
+        { status: "processing", count: 1 },
+        { status: "refunded", count: 1 },
+        { status: "shipped", count: 1 },
+      ];
+      expect(await metrics().orderSummary(PREVIOUS)).toEqual(statuses);
+      expect(await metrics().orderSummary(CURRENT)).toEqual(statuses);
+      expect(await metrics().demoOrderCount(PREVIOUS)).toBe(1);
+      expect(await metrics().demoOrderCount(CURRENT)).toBe(1);
+    });
+
+    it("withholds percentages while the only earlier order was never paid (A9)", async () => {
+      const { period, sales, orders, demoOrderCount, comparison } = await dashboard(
+        "2026-06-20T10:00:00.000Z",
+      ).execute({ from: "2026-06-08", to: "2026-06-14" });
+
+      expect(period).toMatchObject(CURRENT);
+      expect(sales).toMatchObject({ paidOrders: 4, revenueMinor: 40_000, aovMinor: 10_000 });
+      expect(orders.total).toBe(8);
+      expect(demoOrderCount).toBe(1);
+      expect(comparison.period).toMatchObject(PREVIOUS);
+      expect(comparison.sales).toMatchObject({ paidOrders: 4, revenueMinor: 20_000 });
+      expect(comparison.orders.total).toBe(8);
+      expect(comparison.partialHistory).toBe(true);
+      expect(comparison.changes.revenue).toEqual({
+        current: 40_000,
+        previous: 20_000,
+        delta: 20_000,
+        percent: null,
+        direction: "up",
+      });
+      expect(comparison.changes.ordersPlaced).toMatchObject({ delta: 0, percent: null });
+    });
+
+    it("ends the partial history with a paid order placed before the comparison period (A9)", async () => {
+      await insertOrder(EARLY_PAID, ids);
+
+      const { comparison } = await dashboard("2026-06-20T10:00:00.000Z").execute({
+        from: "2026-06-08",
+        to: "2026-06-14",
+      });
+      expect(comparison.partialHistory).toBe(false);
+      expect(comparison.changes.revenue).toEqual({
+        current: 40_000,
+        previous: 20_000,
+        delta: 20_000,
+        percent: 100,
+        direction: "up",
+      });
     });
   });
 });

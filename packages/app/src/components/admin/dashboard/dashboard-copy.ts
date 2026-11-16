@@ -154,7 +154,7 @@ export function comparisonNotes(dashboard: Dashboard): string[] {
   if (comparison.partialHistory) {
     const { firstDay } = periodCalendarDays(comparison.period);
     notes.push(
-      `No order was placed before ${formatIsoDay(firstDay)}, so the previous period may include days before the store started selling; percentages are not shown.`,
+      `No paid order was placed before ${formatIsoDay(firstDay)}, so the previous period may include days before the store started selling; percentages are not shown.`,
     );
   }
   const demo = comparison.demoOrderCount;
