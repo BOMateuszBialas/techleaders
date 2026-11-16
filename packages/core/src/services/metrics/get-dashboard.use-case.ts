@@ -127,8 +127,12 @@ export class GetDashboardUseCase {
       this.deps.getOrderSummaryUseCase.execute({ period: before }),
     ]);
 
+    // An empty check range (the comparison period starts on or before 2000-01-01) means no order
+    // is known to exist before it, so the history is partial (A9), as long as the store has orders.
+    const beforeIsEmpty = before.to.getTime() <= before.from.getTime();
+    const noOrderBefore = beforeIsEmpty || earlier.total === 0;
     const partialHistory =
-      earlier.total === 0 && (hasOrders(sales, orders) || hasOrders(previousSales, previousOrders));
+      noOrderBefore && (hasOrders(sales, orders) || hasOrders(previousSales, previousOrders));
     const options = { withPercent: !partialHistory };
     const { firstDay, lastDay } = periodCalendarDays(period);
 
