@@ -1,0 +1,41 @@
+# Weekly dependency audit (spec: .ai/specs/2026-11-19-scheduled-maintenance.md).
+# Runtime dependencies gate the run; the full tree (dev and deploy tooling) only warns.
+name: Scheduled maintenance
+
+on:
+  schedule:
+    # Sunday 04:00 UTC, once a week.
+    - cron: "0 4 * * 0"
+  workflow_dispatch:
+
+concurrency:
+  group: scheduled-maintenance-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  NEXT_TELEMETRY_DISABLED: "1"
+
+jobs:
+  audit:
+    name: Dependency audit (runtime gates, full tree warns)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      # Shipped code: any high or critical advisory fails the run.
+      - name: Runtime dependencies (gate)
+        run: npm audit --omit=dev --audit-level=high
+      # Dev and deploy tooling: reported as a warning, so the owner sees it without a red build.
+      - name: Full tree (warning only)
+        run: |
+          if ! npm audit --audit-level=high; then
+            echo "::warning::Dev or deploy tooling has high advisories. See the audit log and the spec's out-of-scope note."
+          fi
