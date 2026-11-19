@@ -4,7 +4,7 @@ This guide describes how the CommerceOS app is packaged, what a host must provid
 
 **Platform: Prisma Compute** (public beta), project `commerceos-app`, region `eu-central-1` (Frankfurt), database Prisma Postgres `commerceos-db` in `eu-central-1`. Free plan. The public address is https://nesc1oj2jmwwrdxstelho08g.fra.prisma.build (the default `*.prisma.build` name; no custom domain).
 
-Status (2026-11-10): deployed and checked on the live host. `/api/health` returns `200` with the database `up`, `npm run smoke` passes 4/4, a rollback drill was run (see below), the owner account exists and the demo catalogue is seeded.
+Status (2026-11-19): redeployed from `main` at commit `0d1805c` with `npx prisma deploy` (live version `cps_nesc1oj2jmwwrdxstelho08g`). `/api/health` returns `200` with the database `up`, `npm run smoke` passes 4/4. No database migration was added since 2026-11-10. The earlier status (2026-11-10): deployed and checked on the live host, a rollback drill was run (see below), the owner account exists and the demo catalogue is seeded.
 
 The Docker image and `docker-compose.app.yml` remain the way to run the app locally and on any other host. Compute does not run Docker images: it builds the Next.js app from the standalone output (`output: "standalone"`) with the adapter declared in [`packages/app/service.ts`](../packages/app/service.ts) and [`packages/app/prisma.config.ts`](../packages/app/prisma.config.ts).
 
