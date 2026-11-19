@@ -7,9 +7,10 @@ on:
   push:
     branches: [main]
 
+# Cancel superseded runs on a PR only. A push to main must finish, or its commit never gets a result.
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
