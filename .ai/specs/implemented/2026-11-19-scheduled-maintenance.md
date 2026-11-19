@@ -1,6 +1,6 @@
 # Scheduled maintenance workflow (2026-11-19)
 
-Status: implemented (PR open). Owner: maintainer (`@BOMateuszBialas`). Source: course lessons 13 and 25 ("ustaw jedną automatyzację", cotygodniowy harmonogram). Scope: one new GitHub Actions workflow. No app, package or gate change.
+Status: implemented (PR #273, merged 2026-11-19). Follow-ups: #275 (audit fix), decision on Prisma advisories below. Owner: maintainer (`@BOMateuszBialas`). Source: course lessons 13 and 25 ("ustaw jedną automatyzację", cotygodniowy harmonogram). Scope: one new GitHub Actions workflow. No app, package or gate change.
 
 ## Problem
 
@@ -33,7 +33,11 @@ Not added: a second copy of the test gate. Lint, unit coverage, typecheck, build
 ## Out of scope
 
 - The Cezar `weekly-maintenance` agent workflow from lesson 25. It needs the Cezar runtime and an agent model; the runtime files stay untouched.
-- Fixing the dev-tooling advisories. They appeared with the Prisma Compute pin (#269). Upgrading `@prisma/composer-prisma-cloud` is a breaking change (`npm audit fix --force`), so it is an owner decision and goes in its own PR.
+- Fixing the remaining dev-tooling advisories. They appeared with the Prisma Compute pin (#269).
+
+## Owner decision (2026-11-19): accept the Prisma advisories
+
+After PR #275 (non-breaking `npm audit fix`), 8 high findings remain. All depend on `@prisma/composer-prisma-cloud`. Its fix is 0.39.0, a SemVer-major downgrade that reverses the Prisma Compute pin from #269, which the Prisma tooling needs. The owner accepted these as they are. The scheduled audit keeps reporting them as a warning. Do not run `npm audit fix --force` for them without a new decision.
 
 ## Acceptance
 
