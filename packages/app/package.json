@@ -39,7 +39,7 @@
     "@commerceos/config": "*",
     "@prisma/composer": "0.38.0",
     "@prisma/composer-prisma-cloud": "0.38.0",
-    "@prisma/orm-postgres": "^8.0.0-rc.23",
+    "@prisma/orm-postgres": "^8.0.0-rc.24",
     "@storybook/addon-a11y": "10.6.7",
     "@storybook/addon-docs": "10.6.7",
     "@storybook/addon-vitest": "10.6.7",
