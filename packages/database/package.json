@@ -16,10 +16,10 @@
   },
   "dependencies": {
     "@commerceos/core": "*",
-    "@mikro-orm/core": "^7.2.9",
-    "@mikro-orm/migrations": "^7.2.9",
-    "@mikro-orm/postgresql": "^7.2.9",
-    "@mikro-orm/seeder": "^7.2.9"
+    "@mikro-orm/core": "^7.2.11",
+    "@mikro-orm/migrations": "^7.2.11",
+    "@mikro-orm/postgresql": "^7.2.11",
+    "@mikro-orm/seeder": "^7.2.11"
   },
   "devDependencies": {
     "@commerceos/config": "*"
