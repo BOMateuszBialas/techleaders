@@ -39,9 +39,9 @@
     "smoke": "tsx scripts/smoke.ts"
   },
   "devDependencies": {
-    "@testcontainers/postgresql": "^12.2.1",
+    "@testcontainers/postgresql": "^12.2.2",
     "@types/node": "^26.6.6",
-    "@vitest/coverage-v8": "^5.1.0",
+    "@vitest/coverage-v8": "^5.1.1",
     "eslint": "^10.15.0",
     "eslint-config-next": "^16.4.6",
     "eslint-config-prettier": "^10.1.8",
@@ -49,6 +49,6 @@
     "testcontainers": "^12.2.1",
     "tsx": "^4.23.15",
     "typescript": "~5.9.3",
-    "vitest": "^5.1.0"
+    "vitest": "^5.1.1"
   }
 }
